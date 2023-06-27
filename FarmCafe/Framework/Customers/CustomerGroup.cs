@@ -14,7 +14,6 @@ namespace FarmCafe.Framework.Customers
 
 		public CustomerGroup()
 		{
-
 			Members = new List<Customer>();
 		}
 

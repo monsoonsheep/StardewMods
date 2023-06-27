@@ -227,15 +227,21 @@ namespace FarmCafe.Framework.Patching
 		// Drawing a chair's front texture requires that HasSittingFarmers returns true
 		private static bool HasSittingFarmersPrefix(Furniture __instance, ref bool __result)
 		{
-			foreach (var character in Game1.getFarm().characters)
+			if (__instance.modData.ContainsKey("FarmCafeSeat") && __instance.modData["FarmCafeSeat"] == "1")
 			{
-				if (character is not Customer customer || customer.Seat != __instance) continue;
+                __result = true;
+                return false;
+            }
+			return false;
+			//foreach (var character in Game1.getFarm().characters)
+			//{
+			//	if (character is not Customer customer || customer.Seat != __instance) continue;
 
-				__result = true;
-				return false;
-			}
+			//	__result = true;
+			//	return false;
+			//}
 
-			return true;
+			//return true;
 		}
 
 

@@ -1,5 +1,6 @@
 ﻿using FarmCafe.Framework.Customers;
 using FarmCafe.Framework.Models;
+using FarmCafe.Framework.Multiplayer;
 using FarmCafe.Framework.Objects;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
@@ -79,15 +80,14 @@ namespace FarmCafe.Framework.Managers
 				customer.isCharging = true;
 				customer.Group = group;
 				customer.faceDirection(2);
-
 			}
 
 			if (!group.ReserveTable(table))
 			{
-				Debug.Log("Not enough chairs. Couldn't reserve table.");
+				Debug.Log("Not enough chairs. Couldn't reserve table. Bug!!", LogLevel.Error);
 			}
-
 			CurrentGroups.Add(group);
+			Messaging.AddCustomerGroup(group);
 			return group;
 		}
 
@@ -114,15 +114,6 @@ namespace FarmCafe.Framework.Managers
 			{
 				return CustomerModels.FirstOrDefault();
 			}
-			foreach (var model in CustomerModels)
-			{
-				if (CustomerModelsInUse.Contains(model)) continue;
-
-				CustomerModelsInUse.Add(model);
-				return model;
-			}
-
-			return CustomerModels.FirstOrDefault();
 		}
 
 		internal static Customer SpawnCustomerBus()
@@ -144,12 +135,14 @@ namespace FarmCafe.Framework.Managers
 			foreach (Customer c in CurrentCustomers)
 			{
 				c.currentLocation.characters.Remove(c);
+				c.Seat.modData.Remove("FarmCafeSeat");
 			}
 
 			CurrentCustomers.Clear();
 			CustomerModelsInUse.Clear();
 			CurrentGroups.Clear();
 			FreeTables();
+
 		}
 
 
@@ -220,7 +213,6 @@ namespace FarmCafe.Framework.Managers
 				}
 			}
 		}
-
 
 		internal static void WarpGroup(CustomerGroup group, GameLocation location, Point warpPosition)
 		{

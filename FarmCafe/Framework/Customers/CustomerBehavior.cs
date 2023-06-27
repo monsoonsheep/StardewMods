@@ -1,5 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using StardewValley;
+using System.Collections.Generic;
+using static FarmCafe.Framework.Utilities.Utility;
 
 namespace FarmCafe.Framework.Customers
 {
@@ -33,10 +35,21 @@ namespace FarmCafe.Framework.Customers
 				3 => new Vector2(-12f, -8f), // left
 				_ => me.drawOffset
 			};
+			
+
+			me.Seat.modData.Add("FarmCafeSeat", "1");
 		}
 
+		internal static void GetUp(this Customer me, int direction)
+		{
+			me.Seat.modData.Remove("FarmCafeSeat");
+			me.drawOffset = new Vector2(0, 0);
 
-		internal static void DoNothingAndWait(this Customer me)
+			var nextPos = me.Position + (DirectionIntToDirectionVector(direction) * 64f);
+            me.LerpPosition(me.Position, nextPos, 0.15f);
+        }
+
+        internal static void DoNothingAndWait(this Customer me)
 		{
 			me.State = CustomerState.Free;
 		}

@@ -32,7 +32,6 @@ namespace FarmCafe.Framework.Customers
 	{
 		internal CustomerState State;
 
-
 		public CustomerModel Model { get; set; }
 		internal CustomerGroup Group { get; set; }
 
@@ -346,10 +345,10 @@ namespace FarmCafe.Framework.Customers
 			lerpDuration = duration;
 		}
 
-		protected override void updateSlaveAnimation(GameTime time)
-		{
-			return;
-		}
+		//protected override void updateSlaveAnimation(GameTime time)
+		//{
+		//	return;
+		//}
 
 		public override bool canPassThroughActionTiles() => false;
 

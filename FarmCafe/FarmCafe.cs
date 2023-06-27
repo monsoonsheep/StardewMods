@@ -2,6 +2,7 @@
 using FarmCafe.Framework.Interfaces;
 using FarmCafe.Framework.Managers;
 using FarmCafe.Framework.Models;
+using FarmCafe.Framework.Multiplayer;
 using FarmCafe.Framework.Objects;
 using FarmCafe.Framework.Patching;
 using HarmonyLib;
@@ -23,6 +24,7 @@ namespace FarmCafe
 		internal static IMonitor Monitor;
 		internal static IModHelper ModHelper;
 		internal static ISolidFoundationsApi SfApi;
+		internal static IManifest ModManifest;
 
 		/*********
 		** Public methods
@@ -34,11 +36,11 @@ namespace FarmCafe
 			Monitor = base.Monitor;
 			ModHelper = helper;
 			Debug.Monitor = Monitor;
-
+			ModManifest = base.ModManifest;
 			// Harmony patches
 			try
 			{
-				var harmony = new Harmony(this.ModManifest.UniqueID);
+				var harmony = new Harmony(ModManifest.UniqueID);
 				new GamePatch().Apply(harmony);
 			}
 			catch (Exception e)
@@ -59,7 +61,9 @@ namespace FarmCafe
 			helper.Events.Content.AssetRequested += OnAssetRequested;
 			helper.Events.Content.AssetsInvalidated += OnAssetsInvalidated;
 
-			helper.Events.Multiplayer.PeerConnected += OnPeerConnected;
+
+            helper.Events.Multiplayer.ModMessageReceived += OnModMessageReceived;
+            helper.Events.Multiplayer.PeerConnected += OnPeerConnected;
 		}
 
 		private static void OnButtonPressed(object sender, ButtonPressedEventArgs e)
@@ -98,7 +102,50 @@ namespace FarmCafe
 		{
 
 		}
-		private static void OnUpdateTicked(object sender, UpdateTickedEventArgs e)
+
+		private static void OnModMessageReceived(object sender, ModMessageReceivedEventArgs e)
+		{
+            if (e.FromModID != ModManifest.UniqueID) return;
+
+			if (e.Type == "UpdateCustomers")
+            {
+				var dic = e.ReadAs<CustomerUpdate>().keyValuePairs;
+				if (dic == null) return;
+
+				if (dic.Count == 0)
+				{
+					CustomerManager.CurrentCustomers.Clear();
+					Debug.Log("Removing all tracked customers.");
+					return;
+				}
+
+                foreach (var pair in dic) {
+					var location = Game1.getLocationFromName(pair.Value);
+					if (location == null)
+					{
+						Debug.Log("Updating client's customers but received an invalid location", LogLevel.Error);
+						continue;
+					}
+
+					Customer c = location.getCharacterFromName(pair.Key) as Customer;
+					if (c == null)
+					{
+                        Debug.Log("Updating client's customers but received bad customer information.", LogLevel.Error);
+						continue;
+                    }
+
+					if (CustomerManager.CurrentCustomers.Contains(c))
+					{
+                        Debug.Log("Updating client's customers but customer already tracked for client.", LogLevel.Error);
+						continue;
+                    }
+
+                    CustomerManager.CurrentCustomers.Add(c);
+				}
+            }
+        }
+
+        private static void OnUpdateTicked(object sender, UpdateTickedEventArgs e)
 		{
 			foreach (Customer customer in CustomerManager.CurrentCustomers)
 			{
