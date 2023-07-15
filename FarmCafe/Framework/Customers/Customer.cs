@@ -3,7 +3,9 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Characters;
 using StardewValley.Objects;
+using Object = StardewValley.Object;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +13,6 @@ using static FarmCafe.Framework.Utilities.Utility;
 using Manager = FarmCafe.Framework.Managers.CustomerManager;
 using Pathfinder = StardewValley.PathFindController;
 using Pathing = FarmCafe.Framework.Customers.CustomerPathing;
-
 namespace FarmCafe.Framework.Customers
 {
 	public enum CustomerState
@@ -21,6 +22,7 @@ namespace FarmCafe.Framework.Customers
 		MovingToTable,
 		GoingToSit,
 		Sitting,
+		ReadyToOrder,
 		Eating,
 		DoneEating,
 		GettingUpFromSeat,
@@ -30,18 +32,19 @@ namespace FarmCafe.Framework.Customers
 
 	public class Customer : NPC
 	{
-		internal CustomerState State;
-
+		
 		public CustomerModel Model { get; set; }
 		internal CustomerGroup Group { get; set; }
 
 		public Furniture Seat;
 
-		internal int conveneWaitingTimer = 0;
+        internal CustomerState State;
 		internal int busDepartTimer = 0;
 		internal Point busConvenePoint;
 
-		private int lookAroundTimer = 300;
+        internal int conveneWaitingTimer = 0;
+        internal int lookAroundTimer = 300;
+		internal int orderTimer = 0;
 
 		private float lerpPosition = -1f;
 		private float lerpDuration = 0f;
@@ -53,8 +56,13 @@ namespace FarmCafe.Framework.Customers
 
 		internal delegate void BehaviorFunction();
 
+		internal bool FreezeMotion
+		{
+			get { return freezeMotion; }
+			set { freezeMotion = value; }
+		}
 
-		public Customer()
+        public Customer()
 		{
 
 		}
@@ -67,8 +75,8 @@ namespace FarmCafe.Framework.Customers
 		public Customer(CustomerModel model, int frameSizeWidth, int frameSizeHeight, Point targetTile, GameLocation location)
 			: base(new AnimatedSprite(model.TilesheetPath, 0, frameSizeWidth, frameSizeHeight), targetTile.ToVector2() * 64, 1, model.Name)
 		{
-			Debug.Log("Creating a customer");
-			willDestroyObjectsUnderfoot = false;
+            //Debug.Log("Creating a customer");
+            willDestroyObjectsUnderfoot = false;
 			collidesWithOtherCharacters.Value = false;
 			eventActor = true;
 			speed = 2;
@@ -78,7 +86,9 @@ namespace FarmCafe.Framework.Customers
 
 			currentLocation = location;
 			location.addCharacter(this);
+
 			State = CustomerState.ExitingBus;
+
 			Debug.Log($"NPC {Name} spawned");
 		}
 
@@ -89,6 +99,7 @@ namespace FarmCafe.Framework.Customers
 
 			base.update(time, location);
 
+			// Spawning and waiting to leave the bus
 			if (busDepartTimer > 0)
 			{
 				busDepartTimer -= time.ElapsedGameTime.Milliseconds;
@@ -99,7 +110,7 @@ namespace FarmCafe.Framework.Customers
 
 					if (Group.ReservedTable != null)
 					{
-						HeadTowards(busConvenePoint, 2, this.StartConvening);
+						this.HeadTowards(busConvenePoint, 2, this.StartConvening);
 						collidesWithOtherCharacters.Set(false);
 					}
 					else
@@ -109,6 +120,7 @@ namespace FarmCafe.Framework.Customers
 				}
 			}
 
+			// Convening with group members
 			if (conveneWaitingTimer > 0)
 			{
 
@@ -119,11 +131,12 @@ namespace FarmCafe.Framework.Customers
 				{
 					conveneWaitingTimer = 0;
 					showTextAboveHead("Arrived, I have.");
+					
 				}
 
 				if (conveneWaitingTimer <= 0)
 				{
-					Group.ConveneEnd(this);
+					this.FinishConvening();
 					return;
 				}
 
@@ -134,7 +147,7 @@ namespace FarmCafe.Framework.Customers
 				}
 			}
 
-
+			// Lerping positionfor sitting
 			if (lerpPosition >= 0f)
 			{
 				lerpPosition += (float)time.ElapsedGameTime.TotalSeconds;
@@ -153,11 +166,28 @@ namespace FarmCafe.Framework.Customers
 				{
 					lerpPosition = -1f;
 					State = CustomerState.Sitting;
+
 				}
 				else
 					return;
 			}
 
+			if (orderTimer > 0)
+			{
+                orderTimer -= time.ElapsedGameTime.Milliseconds;
+
+                if (orderTimer <= 0)
+				{
+					State = CustomerState.ReadyToOrder;
+					doEmote(16);
+
+				}
+			}
+
+			if (State == CustomerState.ReadyToOrder)
+			{
+				emoteInterval = 21f;
+			}
 		}
 
 		public override void draw(SpriteBatch b, float alpha = 1f)
@@ -172,7 +202,41 @@ namespace FarmCafe.Framework.Customers
 				SpriteEffects.None,
 				Math.Max(0f, getStandingY() / 10000f + 0.0001f));
 
-			if (IsEmoting)
+            if (Breather && shakeTimer <= 0 && !swimming && Sprite.currentFrame < 16 && !farmerPassesThrough)
+            {
+                Rectangle sourceRect = Sprite.SourceRect;
+                sourceRect.Y += Sprite.SpriteHeight / 2 + Sprite.SpriteHeight / 32;
+                sourceRect.Height = Sprite.SpriteHeight / 4;
+                sourceRect.X += Sprite.SpriteWidth / 4;
+                sourceRect.Width = Sprite.SpriteWidth / 2;
+                Vector2 vector = new Vector2(Sprite.SpriteWidth * 4 / 2, 8f);
+                if (Age == 2)
+                {
+                    sourceRect.Y += Sprite.SpriteHeight / 6 + 1;
+                    sourceRect.Height /= 2;
+                    vector.Y += Sprite.SpriteHeight / 8 * 4;
+                }
+                else if (Gender == 1)
+                {
+                    sourceRect.Y++;
+                    vector.Y -= 4f;
+                    sourceRect.Height /= 2;
+                }
+
+                float num = (float) Math.Max(0f, Math.Ceiling(Math.Sin(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 600.0 + 200f)) / 4f);
+
+                b.Draw(Sprite.Texture, 
+					getLocalPosition(Game1.viewport) + vector + drawOffset, 
+					sourceRect, 
+					Color.White * alpha, 
+					rotation, 
+					new Vector2(sourceRect.Width / 2, sourceRect.Height / 2 + 1), 
+					Math.Max(0.2f, scale) * 4f + num, 
+					flip ? SpriteEffects.FlipHorizontally : SpriteEffects.None, 
+					Math.Max(0f, drawOnTop ? 0.992f : (getStandingY() / 10000f + 0.001f)));
+            }
+
+            if (IsEmoting)
 			{
 				Vector2 localPosition2 = getLocalPosition(Game1.viewport);
 				localPosition2.Y -= 32 + Sprite.SpriteHeight * 4;
@@ -285,56 +349,6 @@ namespace FarmCafe.Framework.Customers
 			//{
 			//    Halt();
 			//}
-		}
-
-		internal void HeadTowards(Point targetTile, int finalFacingDirection = 0, BehaviorFunction endBehaviorFunction = null)
-		{
-			controller = null;
-			freezeMotion = false;
-			Stack<Point> path = Pathing.FindPath(getTileLocationPoint(), targetTile, currentLocation);
-
-			if (State == CustomerState.MovingToTable && currentLocation.Name == "Farm")
-			{
-				finalFacingDirection = DirectionIntFromPoints(path.Last(), targetTile);
-			}
-
-			if (path == null)
-			{
-				if (State == CustomerState.MovingToTable)
-				{
-					Debug.Log("Customer can't get to their chair.", LogLevel.Warn);
-				}
-				else
-				{
-					foreach (var pos in AdjacentTiles(targetTile))
-					{
-						path = Pathfinder.findPathForNPCSchedules(getTileLocationPoint(), pos, currentLocation, 500);
-						if (path != null) break;
-					}
-				}
-			}
-
-			if (path == null || !path.Any())
-			{
-				Debug.Log("Customer couldn't find path.", LogLevel.Warn);
-				this.GoHome();
-				return;
-			}
-
-			controller = new Pathfinder(path, currentLocation, this, new Point(0, 0))
-			{
-				nonDestructivePathing = true,
-				endBehaviorFunction = endBehaviorFunction != null ? (c, loc) => endBehaviorFunction() : null,
-				finalFacingDirection = finalFacingDirection
-			};
-
-			if (controller == null)
-			{
-				Debug.Log("Can't construct controller.");
-				this.GoHome();
-			}
-
-			Debug.Log($"Path = {this.GetCurrentPathStackShort()}");
 		}
 
 		internal void LerpPosition(Vector2 startPos, Vector2 endPos, float duration)

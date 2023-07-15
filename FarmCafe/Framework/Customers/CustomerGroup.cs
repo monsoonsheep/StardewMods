@@ -1,5 +1,4 @@
 ﻿using FarmCafe.Framework.Managers;
-using FarmCafe.Framework.Objects;
 using StardewValley.Objects;
 using System.Collections.Generic;
 using static FarmCafe.Framework.Utilities.Utility;
@@ -9,7 +8,7 @@ namespace FarmCafe.Framework.Customers
 	internal class CustomerGroup
 	{
 		public List<Customer> Members;
-		public Table ReservedTable;
+		public Furniture ReservedTable;
 		public Dictionary<Furniture, Customer> SeatsToMembers;
 
 		public CustomerGroup()
@@ -22,37 +21,26 @@ namespace FarmCafe.Framework.Customers
 			Members.Add(customer);
 		}
 
-		public bool ReserveTable(Table table)
+		public bool ReserveTable(Furniture table)
 		{
-			if (table.Chairs.Count < Members.Count)
+			List<Furniture> chairs = TableManager.GetChairsOfTable(table);
+			if (chairs.Count < Members.Count)
 			{
 				return false;
 			}
 
 			ReservedTable = table;
-			table.isReserved = true;
+			table.modData["FarmCafeTableIsReserved"] = "T";
 
 			SeatsToMembers = new Dictionary<Furniture, Customer>();
 			for (int i = 0; i < Members.Count; i++)
 			{
-				SeatsToMembers[table.Chairs[i]] = Members[i];
-				Members[i].Seat = table.Chairs[i];
+				SeatsToMembers[chairs[i]] = Members[i];
+				Members[i].Seat = chairs[i];
+				chairs[i].modData["FarmCafeChairIsReserved"] = "T";
 			}
 
 			return true;
-		}
-
-		public void ConveneEnd(Customer member)
-		{
-			foreach (Customer customer in Members)
-			{
-				if (customer.State != CustomerState.Convening)
-				{
-					return;
-				}
-			}
-
-			GroupStartMoving();
 		}
 
 		public void GroupStartMoving()

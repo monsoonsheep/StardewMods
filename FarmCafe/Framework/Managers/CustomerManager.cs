@@ -1,10 +1,10 @@
 ﻿using FarmCafe.Framework.Customers;
 using FarmCafe.Framework.Models;
 using FarmCafe.Framework.Multiplayer;
-using FarmCafe.Framework.Objects;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Objects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +27,7 @@ namespace FarmCafe.Framework.Managers
 
 		internal static CustomerGroup SpawnGroupBus()
 		{
-			Table table = TryReserveTable();
+			Furniture table = TryReserveTable();
 
 			if (table == null)
 			{
@@ -35,7 +35,8 @@ namespace FarmCafe.Framework.Managers
 				return null;
 			}
 
-			int countSeats = table.Chairs.Count;
+			List<Furniture> chairs = GetChairsOfTable(table);
+			int countSeats = chairs.Count;
 			int countMembers;
 			Debug.Log($"got table! with {countSeats} seats!");
 
@@ -145,7 +146,6 @@ namespace FarmCafe.Framework.Managers
 
 		}
 
-
 		internal static void CacheBusPosition()
 		{
 			var tiles = BusStop.Map.GetLayer("Back").Tiles.Array;
@@ -182,10 +182,7 @@ namespace FarmCafe.Framework.Managers
 					BusToFarmWarps.Add(new Point(warp.X, warp.Y));
 				}
 			}
-
-			// Get a random warp
 		}
-
 
 		internal static void HandleWarp(Customer customer, GameLocation location, Vector2 position)
 		{

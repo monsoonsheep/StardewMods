@@ -3,7 +3,6 @@ using FarmCafe.Framework.Interfaces;
 using FarmCafe.Framework.Managers;
 using FarmCafe.Framework.Models;
 using FarmCafe.Framework.Multiplayer;
-using FarmCafe.Framework.Objects;
 using FarmCafe.Framework.Patching;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
@@ -11,6 +10,7 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.Objects;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -91,8 +91,17 @@ namespace FarmCafe
 					CustomerManager.Debug_ListCustomers();
 					break;
 				case SButton.X:
-					Debug.Log("WOAHHH");
-					break;
+					var fiber = new StardewValley.Object(746, 1);
+					fiber.DisplayName = "Fiber";
+					fiber.Name = "Fiber";
+					var msg = new HUDMessage(null, 1, false, new Color(0.1f, 0.5f, 0.5f), fiber);
+					msg.add = true;
+					msg.Message = "Fiber";
+					
+					msg.timeLeft = 500;
+					
+                    Game1.addHUDMessage(msg);
+                    break;
 				default:
 					return;
 			}
@@ -255,7 +264,7 @@ namespace FarmCafe
 			CustomerManager.CustomerModelsInUse = new List<CustomerModel>();
 			CustomerManager.CurrentCustomers = new List<Customer>();
 			CustomerManager.CurrentGroups = new List<CustomerGroup>();
-			TableManager.TablesOnFarm = new List<Table>();
+			TableManager.TablesOnFarm = new List<Furniture>();
 			CustomerManager.CacheBusWarpsToFarm();
 			CustomerManager.CacheBusPosition();
 
