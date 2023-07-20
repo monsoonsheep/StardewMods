@@ -51,7 +51,9 @@ namespace FarmCafe.Framework.Customers
 		private Vector2 lerpStartPosition;
 		private Vector2 lerpEndPosition;
 
+		internal bool emoteLoop = false;
 		internal new Vector2 drawOffset;
+		internal Vector2 tableCenterForEmote;
 		internal List<int> lookingDirections = new() { 0, 1, 3 };
 
 		internal delegate void BehaviorFunction();
@@ -61,6 +63,8 @@ namespace FarmCafe.Framework.Customers
 			get { return freezeMotion; }
 			set { freezeMotion = value; }
 		}
+
+        public override bool canPassThroughActionTiles() => false;
 
         public Customer()
 		{
@@ -89,7 +93,9 @@ namespace FarmCafe.Framework.Customers
 
 			State = CustomerState.ExitingBus;
 
+			this.modData["CustomerData"] = "T";
 			Debug.Log($"NPC {Name} spawned");
+			
 		}
 
 
@@ -106,16 +112,10 @@ namespace FarmCafe.Framework.Customers
 
 				if (busDepartTimer <= 0)
 				{
-					isCharging = false;
-
 					if (Group.ReservedTable != null)
 					{
 						this.HeadTowards(busConvenePoint, 2, this.StartConvening);
 						collidesWithOtherCharacters.Set(false);
-					}
-					else
-					{
-						this.DoNothingAndWait();
 					}
 				}
 			}
@@ -123,7 +123,6 @@ namespace FarmCafe.Framework.Customers
 			// Convening with group members
 			if (conveneWaitingTimer > 0)
 			{
-
 				conveneWaitingTimer -= time.ElapsedGameTime.Milliseconds;
 				lookAroundTimer -= time.ElapsedGameTime.Milliseconds;
 
@@ -131,13 +130,6 @@ namespace FarmCafe.Framework.Customers
 				{
 					conveneWaitingTimer = 0;
 					showTextAboveHead("Arrived, I have.");
-					
-				}
-
-				if (conveneWaitingTimer <= 0)
-				{
-					this.FinishConvening();
-					return;
 				}
 
 				if (lookAroundTimer <= 0)
@@ -145,10 +137,17 @@ namespace FarmCafe.Framework.Customers
 					faceDirection(lookingDirections[Game1.random.Next(lookingDirections.Count)]);
 					lookAroundTimer += Game1.random.Next(400, 1000);
 				}
-			}
 
-			// Lerping positionfor sitting
-			if (lerpPosition >= 0f)
+                if (conveneWaitingTimer <= 0)
+                {
+                    this.FinishConvening();
+                    return;
+                }
+
+            }
+
+            // Lerping position for sitting
+            if (lerpPosition >= 0f)
 			{
 				lerpPosition += (float)time.ElapsedGameTime.TotalSeconds;
 
@@ -171,27 +170,24 @@ namespace FarmCafe.Framework.Customers
 				else
 					return;
 			}
-
+			
+			// Sitting at table, waiting to order
 			if (orderTimer > 0)
 			{
                 orderTimer -= time.ElapsedGameTime.Milliseconds;
 
                 if (orderTimer <= 0)
 				{
-					State = CustomerState.ReadyToOrder;
-					doEmote(16);
-
+                    State = CustomerState.ReadyToOrder;
+                    this.OrderReady();
 				}
-			}
-
-			if (State == CustomerState.ReadyToOrder)
-			{
-				emoteInterval = 21f;
 			}
 		}
 
+
 		public override void draw(SpriteBatch b, float alpha = 1f)
 		{
+			
 			b.Draw(Sprite.Texture,
 				getLocalPosition(Game1.viewport) + new Vector2(GetSpriteWidthForPositioning() * 4 / 2, GetBoundingBox().Height / 2) + drawOffset,
 				Sprite.SourceRect,
@@ -238,9 +234,22 @@ namespace FarmCafe.Framework.Customers
 
             if (IsEmoting)
 			{
-				Vector2 localPosition2 = getLocalPosition(Game1.viewport);
-				localPosition2.Y -= 32 + Sprite.SpriteHeight * 4;
-				b.Draw(Game1.emoteSpriteSheet, localPosition2, new Rectangle(CurrentEmoteIndex * 16 % Game1.emoteSpriteSheet.Width, CurrentEmoteIndex * 16 / Game1.emoteSpriteSheet.Width * 16, 16, 16), Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, getStandingY() / 10000f);
+				Vector2 localPosition2;
+				float layer = 0f;
+                if (State == CustomerState.ReadyToOrder)
+				{
+					//localPosition2 = tableCenterForEmote;
+					localPosition2 = GetTableCenter();
+					layer = 0.991f;
+                }
+				else
+				{
+					layer = getStandingY() / 10000f;
+                    localPosition2 = getLocalPosition(Game1.viewport);
+                    localPosition2.Y -= 32 + Sprite.SpriteHeight * 4;
+                }
+                
+                b.Draw(Game1.emoteSpriteSheet, localPosition2, new Rectangle(CurrentEmoteIndex * 16 % Game1.emoteSpriteSheet.Width, CurrentEmoteIndex * 16 / Game1.emoteSpriteSheet.Width * 16, 16, 16), Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, layer);
 			}
 		}
 
@@ -364,7 +373,13 @@ namespace FarmCafe.Framework.Customers
 		//	return;
 		//}
 
-		public override bool canPassThroughActionTiles() => false;
+		internal Vector2 GetTableCenter()
+		{
+			Furniture table = currentLocation.GetFurnitureAt(getTileLocation() + DirectionIntToDirectionVector(FacingDirection));
+			if (table == null)
+				return Vector2.Zero;
+			return Game1.GlobalToLocal(table.boundingBox.Center.ToVector2()) + new Vector2(table.getTilesWide() * -16, table.getTilesHigh() * -64);
+		}
 
 		internal void Reset()
 		{

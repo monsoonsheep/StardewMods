@@ -50,7 +50,7 @@ namespace FarmCafe.Framework.Customers
 					startTile,
 					targetTile + new Point(direction[0], direction[1]),
 					Game1.getFarm(),
-					600
+					1500
 				);
 
 				if (pathRightNextToChair == null || pathRightNextToChair.Count >= shortestPathLength)

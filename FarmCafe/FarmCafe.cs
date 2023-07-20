@@ -118,49 +118,23 @@ namespace FarmCafe
 
 			if (e.Type == "UpdateCustomers")
             {
-				var dic = e.ReadAs<CustomerUpdate>().keyValuePairs;
-				if (dic == null) return;
-
-				if (dic.Count == 0)
+                List<string> names = e.ReadAs<CustomerUpdate>().names;
+				CustomerManager.UpdateCustomerList(names);
+            }
+			else if (e.Type == "SyncTables")
+			{
+				var update = e.ReadAs<List<Vector2>>();
+				List<Furniture> tables = new List<Furniture>();
+				foreach (var pos in update)
 				{
-					CustomerManager.CurrentCustomers.Clear();
-					Debug.Log("Removing all tracked customers.");
-					return;
-				}
-
-                foreach (var pair in dic) {
-					var location = Game1.getLocationFromName(pair.Value);
-					if (location == null)
-					{
-						Debug.Log("Updating client's customers but received an invalid location", LogLevel.Error);
-						continue;
-					}
-
-					Customer c = location.getCharacterFromName(pair.Key) as Customer;
-					if (c == null)
-					{
-                        Debug.Log("Updating client's customers but received bad customer information.", LogLevel.Error);
-						continue;
-                    }
-
-					if (CustomerManager.CurrentCustomers.Contains(c))
-					{
-                        Debug.Log("Updating client's customers but customer already tracked for client.", LogLevel.Error);
-						continue;
-                    }
-
-                    CustomerManager.CurrentCustomers.Add(c);
-				}
+					Furniture table = Game1.getFarm().GetFurnitureAt(pos);
+					if (table == null) continue;
+					tables.Add(table);
+                }
+                TableManager.TrackedTables = tables;
             }
         }
 
-        private static void OnUpdateTicked(object sender, UpdateTickedEventArgs e)
-		{
-			foreach (Customer customer in CustomerManager.CurrentCustomers)
-			{
-				customer.update(Game1.currentGameTime, customer.currentLocation);
-			}
-		}
 		private static void OnGameLaunched(object sender, GameLaunchedEventArgs e)
 		{
 			//GetSolidFoundationsApi();
@@ -264,7 +238,8 @@ namespace FarmCafe
 			CustomerManager.CustomerModelsInUse = new List<CustomerModel>();
 			CustomerManager.CurrentCustomers = new List<Customer>();
 			CustomerManager.CurrentGroups = new List<CustomerGroup>();
-			TableManager.TablesOnFarm = new List<Furniture>();
+			TableManager.TrackedTables = new List<Furniture>();
+			Messaging.SyncTables();
 			CustomerManager.CacheBusWarpsToFarm();
 			CustomerManager.CacheBusPosition();
 

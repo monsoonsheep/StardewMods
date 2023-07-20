@@ -29,7 +29,7 @@ namespace FarmCafe.Framework.Customers
 				return false;
 			}
 
-			ReservedTable = table;
+			this.ReservedTable = table;
 			table.modData["FarmCafeTableIsReserved"] = "T";
 
 			SeatsToMembers = new Dictionary<Furniture, Customer>();

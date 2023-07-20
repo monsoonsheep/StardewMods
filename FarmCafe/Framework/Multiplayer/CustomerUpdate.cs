@@ -11,27 +11,25 @@ namespace FarmCafe.Framework.Multiplayer
     internal class CustomerUpdate
     {
         // Dictionary - (Customer Name, Location Name)
-        public Dictionary<string, string> keyValuePairs;
+        public List<string> names;
 
         public CustomerUpdate() {
-            this.keyValuePairs = new Dictionary<string, string>();
+            this.names = new List<string>();
         }
 
-        public CustomerUpdate(Customer customer) : this(customer.Name, customer.currentLocation.Name) {}
+        public CustomerUpdate(Customer customer) : this(customer.Name) {}
 
-        public CustomerUpdate(string name, GameLocation location) : this(name, location.Name) {}
-
-        public CustomerUpdate(string name, string locationName) : this()
+        public CustomerUpdate(string name)
         {
-            this.keyValuePairs.Add(name, locationName);
+            this.names = new List<string>() { name };
         }
 
         public CustomerUpdate(CustomerGroup group)
         {
-            this.keyValuePairs = new Dictionary<string, string>();
+            this.names = new List<string>();
             foreach (var customer in group.Members)
             {
-                this.keyValuePairs.Add(customer.Name, customer.currentLocation.Name);
+                this.names.Add(customer.Name);
             }
         }
     }

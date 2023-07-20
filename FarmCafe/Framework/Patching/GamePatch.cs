@@ -1,6 +1,7 @@
 ﻿using FarmCafe.Framework.Customers;
 using FarmCafe.Framework.Managers;
 using HarmonyLib;
+using Microsoft.VisualBasic.FileIO;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
@@ -9,6 +10,7 @@ using StardewValley.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using xTile.Dimensions;
 using xTile.ObjectModel;
@@ -21,14 +23,20 @@ using Utility = FarmCafe.Framework.Utilities.Utility;
 
 namespace FarmCafe.Framework.Patching
 {
-	internal class GamePatch
+  
+    internal class GamePatch
 	{
-		internal void Apply(Harmony harmony)
+		
+        internal void Apply(Harmony harmony)
 		{
 
 			harmony.Patch(
 				original: AccessTools.Method(typeof(PathFindController), "moveCharacter"),
 				transpiler: new HarmonyMethod(GetType(), nameof(MoveCharacterTranspiler)));
+
+			harmony.Patch(
+				original: AccessTools.Method(typeof(Character), "updateEmote"),
+				transpiler: new HarmonyMethod(GetType(), nameof(UpdateEmoteTranspiler)));
 
 			harmony.Patch(
 				original: AccessTools.Method(typeof(Tool), "DoFunction",
@@ -64,7 +72,57 @@ namespace FarmCafe.Framework.Patching
 			Debug.Log("Patched methods");
 		}
 
-		private static IEnumerable<CodeInstruction> MoveCharacterTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+		private static IEnumerable<CodeInstruction> UpdateEmoteTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator) {
+			Label fadingJump = new Label();
+			List<CodeInstruction> codes = instructions.ToList();
+			MethodInfo MContainsKey = AccessTools.Method(AccessTools.Field(typeof(StardewValley.Character), "modData").FieldType, "ContainsKey");
+			int pointToInsert = 0;
+
+			for (int i = 0; i < codes.Count(); i++)
+			{
+				if (codes[i].LoadsConstant(1) && codes[i + 1].StoresField(AccessTools.Field(typeof(StardewValley.Character), "emoteFading")))
+				{
+					fadingJump = generator.DefineLabel();
+					codes[i - 1].labels.Add(fadingJump);
+					pointToInsert = i - 1;
+				}
+            }
+
+			var addcodes = new List<CodeInstruction>()
+			{
+				//new (OpCodes.Ldarg_0),
+				//CodeInstruction.LoadField(typeof(StardewValley.Character), "modData"),
+				//new (OpCodes.Ldstr, "CustomerData"),
+				//new (OpCodes.Callvirt, MContainsKey),
+				//new (OpCodes.Brfalse_S, fadingJump),
+
+				new (OpCodes.Ldarg_0), // this
+				new (OpCodes.Isinst, typeof(Customer)), // this is Customer
+				new (OpCodes.Brfalse, fadingJump),
+
+                new (OpCodes.Ldarg_0), // this
+				CodeInstruction.LoadField(typeof(Customer), "emoteLoop"),
+				new (OpCodes.Brfalse, fadingJump),
+
+                new (OpCodes.Ldarg_0),
+				new (OpCodes.Ldarg_0),
+				CodeInstruction.LoadField(typeof(StardewValley.Character), "currentEmote"),
+				CodeInstruction.StoreField(typeof(StardewValley.Character), "currentEmoteFrame"),
+				new (OpCodes.Ret),
+			};
+
+			codes.InsertRange(pointToInsert, addcodes);
+
+			//foreach (var c in codes)
+			//{
+			//	Debug.Log(c.ToString());
+			//}
+
+            return codes.AsEnumerable();
+
+        }
+
+        private static IEnumerable<CodeInstruction> MoveCharacterTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
 		{
 			var FPathfindercharacter = AccessTools.Field(typeof(PathFindController), "character");
 			var MObjectIsPassableMethod = AccessTools.Method(typeof(Object), "isPassable");
@@ -101,7 +159,6 @@ namespace FarmCafe.Framework.Patching
 		        };
 
 				codeList.InsertRange(start_pos + 1, patchCodes);
-				Debug.Log("Transpiler patch done");
 				//foreach (var item in codeList)
 				//{
 				// Debug.Log(item.ToString());
@@ -185,7 +242,7 @@ namespace FarmCafe.Framework.Patching
 			{
 				Furniture table = __instance;
 
-				if (!TableManager.TablesOnFarm.Contains(table))
+				if (!TableManager.TrackedTables.Contains(table))
 				{
 					Debug.Log("Table removed, but it wasn't a valid table counted in the manager. Bug?", LogLevel.Warn);
 					return;
@@ -253,24 +310,15 @@ namespace FarmCafe.Framework.Patching
 			int stage = 0;
 			foreach (var code in instructions)
 			{
-				if (!code.Is(OpCodes.Isinst, typeof(StardewValley.TerrainFeatures.Flooring)) && stage == 0)
+				if (stage == 0 && code.Is(OpCodes.Isinst, typeof(StardewValley.TerrainFeatures.Flooring)))
 				{
 					stage++;
-					yield return code;
-					continue;
 				}
 
-				if (!code.LoadsConstant() && stage == 1)
+				if (stage == 1 && code.LoadsConstant())
 				{
 					stage++;
-					yield return code;
-					continue;
-				}
-
-				if (stage == 2)
-				{
-					code.operand = 150;
-					stage++;
+                    code.operand = 150;
 				}
 
 				yield return code;

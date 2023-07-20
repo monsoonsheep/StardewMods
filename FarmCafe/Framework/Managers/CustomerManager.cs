@@ -8,6 +8,7 @@ using StardewValley.Objects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using static FarmCafe.Framework.Managers.TableManager;
 using static FarmCafe.Framework.Utilities.Utility;
 
@@ -25,72 +26,118 @@ namespace FarmCafe.Framework.Managers
 		public static List<Point> BusToFarmWarps;
 		public static GameLocation BusStop;
 
-		internal static CustomerGroup SpawnGroupBus()
+		internal static int HowManyCustomersOnTable(Furniture table)
 		{
-			Furniture table = TryReserveTable();
+			int n;
+            List<Furniture> chairs = GetChairsOfTable(table);
+            int countSeats = chairs.Count;
+            Debug.Log($"got table! with {countSeats} seats!");
 
-			if (table == null)
+
+            if (countSeats == 1)
+            {
+                n = 1;
+            }
+            else if (countSeats == 2)
+            {
+                n = (Game1.random.Next(2) == 0) ? 2 : 1;
+            }
+            else if (countSeats <= 4)
+            {
+                if (Game1.random.Next(countSeats) == 0)
+                {
+                    n = 1;
+                }
+                else
+                {
+                    n = Game1.random.Next(2, countSeats + 1);
+                }
+            }
+            else
+            {
+                n = Game1.random.Next(2, 5);
+            }
+
+			return n;
+        }
+
+        internal static void SpawnGroupBus()
+		{
+			Furniture newtable = TryReserveTable();
+
+			if (newtable == null)
 			{
-				Debug.Log("No tables found to spawn customers");
-				return null;
+				Debug.Log("No tables found to spawn customers", LogLevel.Error);
+				return;
 			}
 
-			List<Furniture> chairs = GetChairsOfTable(table);
-			int countSeats = chairs.Count;
-			int countMembers;
-			Debug.Log($"got table! with {countSeats} seats!");
+			int countMembers = HowManyCustomersOnTable(newtable);
 
+			CustomerGroup group = CreateGroup(countMembers, BusStop, BusPosition, newtable);
 
-			if (countSeats == 1)
-			{
-				countMembers = 1;
-			}
-			else if (countSeats == 2)
-			{
-				countMembers = (Game1.random.Next(2) == 0) ? 2 : 1;
-			}
-			else if (countSeats <= 4)
-			{
-				if (Game1.random.Next(countSeats) == 0)
-				{
-					countMembers = 1;
-				}
-				else
-				{
-					countMembers = Game1.random.Next(2, countSeats + 1);
-				}
-			}
-			else
-			{
-				countMembers = Game1.random.Next(2, 5);
-			}
-
-			Debug.Log($"{countMembers} customer(s) arriving");
-
-
-			List<Point> convenePoints = GetBusConvenePoints(countMembers);
-			CustomerGroup group = new CustomerGroup();
+            List<Point> convenePoints = GetBusConvenePoints(countMembers);
 			for (int i = 0; i < countMembers; i++)
 			{
-				Customer customer = SpawnCustomerBus();
-				group.Add(customer);
-				//customer.SetController(convenePoints[i]);
-				//busStop.characters.Add(customer);
-				customer.busDepartTimer = i * 800 + 1;
-				customer.busConvenePoint = convenePoints[i];
-				customer.isCharging = true;
-				customer.Group = group;
-				customer.faceDirection(2);
+				group.Members[i].busDepartTimer = i * 800 + 1;
+				group.Members[i].busConvenePoint = convenePoints[i];
+                group.Members[i].faceDirection(2);
+            }
+            Debug.Log($"{countMembers} customer(s) arriving");
+		}
+
+		internal static CustomerGroup CreateGroup(int memberCount, GameLocation location, Point tilePosition, Furniture tableToReserve = null)
+		{
+            CustomerGroup group = new CustomerGroup();
+            for (int i = 0; i < memberCount; i++)
+            {
+                Customer customer = SpawnCustomer(location, tilePosition);
+                group.Add(customer);
+                customer.Group = group;
+            }
+
+			if (tableToReserve != null)
+			{
+				if (group.ReserveTable(tableToReserve) == false)
+				{
+					Debug.Log("ERROR: Couldn't reserve table (was supposed to be able to reserve)", LogLevel.Error);
+				}
 			}
 
-			if (!group.ReserveTable(table))
-			{
-				Debug.Log("Not enough chairs. Couldn't reserve table. Bug!!", LogLevel.Error);
-			}
-			CurrentGroups.Add(group);
-			Messaging.AddCustomerGroup(group);
+            CurrentGroups.Add(group);
+            Messaging.AddCustomerGroup(group);
 			return group;
-		}
+        }
+
+		internal static void UpdateCustomerList(List<string> names)
+		{
+            if (names == null) return;
+
+            if (names.Count == 0)
+            {
+                CurrentCustomers.Clear();
+                Debug.Log("Removing all tracked customers.");
+                return;
+            }
+
+            foreach (var name in names)
+            {
+                Customer c = Game1.getCharacterFromName(name) as Customer;
+
+                if (c == null)
+                {
+                    Debug.Log("Updating client's customers but received bad customer information.", LogLevel.Error);
+                    continue;
+                }
+
+                if (CurrentCustomers.Contains(c))
+                {
+                    Debug.Log("Updating client's customers but customer already tracked for client.", LogLevel.Error);
+                    continue;
+                }
+
+                CurrentCustomers.Add(c);
+            }
+        }
 
 		internal static List<Point> GetBusConvenePoints(int count)
 		{
@@ -117,15 +164,10 @@ namespace FarmCafe.Framework.Managers
 			}
 		}
 
-		internal static Customer SpawnCustomerBus()
+		internal static Customer SpawnCustomer(GameLocation location, Point tilePosition)
 		{
-			var customer = SpawnCustomer(GetRandomCustomerModel(), BusPosition, BusStop);
-			return customer;
-		}
 
-		internal static Customer SpawnCustomer(CustomerModel model, Point tilePosition, GameLocation location)
-		{
-			var customer = new Customer(model, 16, 32, tilePosition, location);
+			var customer = new Customer(GetRandomCustomerModel(), 16, 32, tilePosition, location);
 			CurrentCustomers.Add(customer);
 			return customer;
 		}
@@ -143,7 +185,6 @@ namespace FarmCafe.Framework.Managers
 			CustomerModelsInUse.Clear();
 			CurrentGroups.Clear();
 			FreeTables();
-
 		}
 
 		internal static void CacheBusPosition()
@@ -200,7 +241,7 @@ namespace FarmCafe.Framework.Managers
 					continue;
 
 				var newPos = GetAdjacentTileCollision(customer.getTileLocationPoint(), location, character: customer);
-				Debug.Log("Looking for new positions", LogLevel.Debug);
+				Debug.Log("Warping group, Looking for new positions", LogLevel.Debug);
 
 				if (!newPos.Equals(Point.Zero))
 				{

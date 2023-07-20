@@ -1,4 +1,8 @@
 ﻿using FarmCafe.Framework.Customers;
+using FarmCafe.Framework.Managers;
+using Microsoft.Xna.Framework;
+using StardewValley;
+using StardewValley.Objects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +23,12 @@ namespace FarmCafe.Framework.Multiplayer
         {
             CustomerUpdate message = new CustomerUpdate();
             FarmCafe.ModHelper.Multiplayer.SendMessage(message, "UpdateCustomers", modIDs: new[] { FarmCafe.ModManifest.UniqueID });
+        }
+
+        internal static void SyncTables()
+        {
+            List<Vector2> positions = TableManager.TrackedTables.Select((table) => table.TileLocation).ToList();
+            FarmCafe.ModHelper.Multiplayer.SendMessage(positions, "SyncTables", modIDs: new[] { FarmCafe.ModManifest.UniqueID });
         }
     }
 }

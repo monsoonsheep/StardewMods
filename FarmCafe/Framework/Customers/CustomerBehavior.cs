@@ -29,7 +29,6 @@ namespace FarmCafe.Framework.Customers
                     return;
                 }
             }
-			me.doEmote(12);
             me.Group.GroupStartMoving();
         }
 
@@ -56,7 +55,7 @@ namespace FarmCafe.Framework.Customers
 
 			me.Breather = true;
 
-			me.Seat.modData.Add("FarmCafeSeat", "T");
+			me.Seat.modData["FarmCafeSeat"] = "T";
             me.orderTimer = Game1.random.Next(300, 500);
 		}
 
@@ -67,6 +66,21 @@ namespace FarmCafe.Framework.Customers
 
 			var nextPos = me.Position + (DirectionIntToDirectionVector(direction) * 64f);
             me.LerpPosition(me.Position, nextPos, 0.15f);
+        }
+
+        internal static void OrderReady(this Customer me)
+        {
+            foreach (Customer mate in me.Group.Members)
+            {
+                if (mate.State != CustomerState.ReadyToOrder)
+                {
+                    return;
+                }
+            }
+
+            me.tableCenterForEmote = me.GetTableCenter();
+            me.emoteLoop = true;
+            me.doEmote(16);
         }
 
         internal static void DoNothingAndWait(this Customer me)
@@ -85,14 +99,11 @@ namespace FarmCafe.Framework.Customers
         {
             me.controller = null;
             me.FreezeMotion = false;
-
+            
+            me.isCharging = true;
             Stack<Point> path = Pathing.FindPath(me.getTileLocationPoint(), targetTile, me.currentLocation);
-
-            if (me.State == CustomerState.MovingToTable && me.currentLocation.Name == "Farm")
-            {
-                finalFacingDirection = DirectionIntFromPoints(path.Last(), targetTile);
-            }
-
+            me.isCharging = false;
+            
             if (path == null)
             {
                 if (me.State == CustomerState.MovingToTable)
@@ -116,6 +127,11 @@ namespace FarmCafe.Framework.Customers
                 return;
             }
 
+            if (me.State == CustomerState.MovingToTable && me.currentLocation.Name == "Farm")
+            {
+                finalFacingDirection = DirectionIntFromPoints(path.Last(), targetTile);
+            }
+
             me.controller = new Pathfinder(path, me.currentLocation, me, new Point(0, 0))
             {
                 nonDestructivePathing = true,
@@ -135,13 +151,14 @@ namespace FarmCafe.Framework.Customers
 
         internal static void ArriveAtFarm(this Customer me)
 		{
-			if (me.Seat == null)
+			if (me.Seat == null || me.Group.ReservedTable == null)
 			{
 				Debug.Log($"Couldn't find a seat for {me.Name}");
-				return;
-			}
+                
+            }
 
-			me.HeadTowards(me.Seat.TileLocation.ToPoint(), -1, me.SitDown);
+
+            me.HeadTowards(me.Seat.TileLocation.ToPoint(), -1, me.SitDown);
 		}
 	}
 }
