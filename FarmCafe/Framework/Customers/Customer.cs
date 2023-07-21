@@ -34,7 +34,7 @@ namespace FarmCafe.Framework.Customers
 	{
 		
 		public CustomerModel Model { get; set; }
-		internal CustomerGroup Group { get; set; }
+		internal CustomerGroup Group;
 
 		public Furniture Seat;
 
@@ -57,6 +57,8 @@ namespace FarmCafe.Framework.Customers
 		internal List<int> lookingDirections = new() { 0, 1, 3 };
 
 		internal delegate void BehaviorFunction();
+
+		internal Object OrderItem { get; set; }
 
 		internal bool FreezeMotion
 		{

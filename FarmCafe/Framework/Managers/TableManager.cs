@@ -14,38 +14,49 @@ namespace FarmCafe.Framework.Managers
 	
 	internal class TableManager
 	{
-		internal static List<Furniture> TrackedTables;
+        internal static Dictionary<Furniture, GameLocation> TrackedTables;
 
 		internal static void PopulateTables()
 		{
-			GameLocation farm = Game1.getFarm();
-
-			foreach (Furniture table in farm.furniture)
+			foreach (var location in CafeManager.CafeLocations)
 			{
-				if (!IsTable(table)) continue;
-				// If we already have this table object registered
-				if (TrackedTables.Any(t => t == table)) continue;
+                foreach (Furniture table in location.furniture)
+                {
+                    if (!IsTable(table)) continue;
+                    // If we already have this table object registered
+                    if (TrackedTables.Keys.Any(t => t == table)) continue;
 
-				AddTable(table);
+                    AddTable(table, location);
+                }
             }
         }
 
-		internal static void AddTable(Furniture table)
+		internal static void AddTable(Furniture table, GameLocation location)
 		{
-			List<Furniture> foundChairs = FindChairsAroundTable(table);
+			List<Furniture> foundChairs = FindChairsAroundTable(table, location);
 			if (foundChairs.Count == 0) return;
-
             
-			UpdateChairsForTable(table, foundChairs);
-            table.modData["FarmCafeTable"] = "T";
+			UpdateChairsForTable(table, foundChairs, location);
 
-            TrackedTables.Add(table);
+            table.modData["FarmCafeTable"] = "T";
+            TrackedTables.Add(table, location);
             Messaging.SyncTables();
             Debug.Log($"Table added. {foundChairs.Count} chairs.");
         }
 
-        internal static void RemoveTable(Furniture table)
+        internal static void TryRemoveTable(Furniture table)
         {
+            if (!TrackedTables.Keys.Contains(table))
+            {
+                Debug.Log("Table removed, but it wasn't a valid table counted in the manager. Bug?", LogLevel.Warn);
+                return;
+            }
+
+            if (TableIsReserved(table))
+            {
+                Debug.Log("You shouldn't have removed that table. It was reserved!", LogLevel.Error);
+            }
+
             TrackedTables.Remove(table);
             Messaging.SyncTables();
 			table.modData.Remove("FarmCafeTable");
@@ -53,27 +64,18 @@ namespace FarmCafe.Framework.Managers
 			table.modData.Remove("FarmCafeTableIsReserved");
         }
 
-        internal static void UpdateChairsForTable(Furniture table, List<Furniture> chairs = null)
+        internal static void UpdateChairsForTable(Furniture table, List<Furniture> chairs, GameLocation location)
 		{
-			if (chairs == null)
-			{
-				chairs = FindChairsAroundTable(table);
-			}
             string chairsString = "";
             foreach (Furniture chair in chairs)
             {
                 chairsString += $"{chair.TileLocation.X} {chair.TileLocation.Y} ";
             }
-            //if (!table.modData.ContainsKey("FarmCafeTableChairs"))
-            //{
-            //    table.modData.Add("FarmCafeTableChairs", "");
-            //}
             table.modData["FarmCafeTableChairs"] = chairsString;
         }
 
-		internal static List<Furniture> FindChairsAroundTable(Furniture table)
+		internal static List<Furniture> FindChairsAroundTable(Furniture table, GameLocation location)
 		{
-            GameLocation farm = Game1.getFarm();
             int sizeY = table.getTilesHigh();
             int sizeX = table.getTilesWide();
             Point pos = table.TileLocation.ToPoint();
@@ -83,7 +85,7 @@ namespace FarmCafe.Framework.Managers
             {
                 for (int j = 0; j < sizeX; j++)
                 {
-                    var chairAt = farm.GetFurnitureAt(new Vector2(pos.X + j, pos.Y + i));
+                    var chairAt = location.GetFurnitureAt(new Vector2(pos.X + j, pos.Y + i));
                     if (IsChair(chairAt))
                     {
                         int rotation = chairAt.currentRotation.Value;
@@ -99,7 +101,7 @@ namespace FarmCafe.Framework.Managers
             {
                 for (int j = 0; j < sizeY; j++)
                 {
-                    var chairAt = farm.GetFurnitureAt(new Vector2(pos.X + i, pos.Y + j));
+                    var chairAt = location.GetFurnitureAt(new Vector2(pos.X + i, pos.Y + j));
                     if (IsChair(chairAt))
                     {
                         int rotation = chairAt.currentRotation.Value;
@@ -114,30 +116,61 @@ namespace FarmCafe.Framework.Managers
 			return chairs;
         }
 
-		internal static bool AddChairToTable(Furniture chair, Furniture table)
+		internal static bool AddChairToTable(Furniture chair, Furniture table, GameLocation location)
 		{
-			List<Furniture> chairs = GetChairsOfTable(table); 
+            if (table == null)
+            {
+                table = GetTableFromChair(chair);
+                if (table == null)
+                {
+                    Debug.Log("There is no table for the chair placed.");
+                    return false;
+                }
+                if (GetChairsOfTable(table).Contains(chair))
+                {
+                    Debug.Log("Table already knows the chair that was placed?", LogLevel.Warn);
+                    return false;
+                }
+                Debug.Log("Adding chair to table");
+            }
+
+            List<Furniture> chairs = GetChairsOfTable(table); 
 			if (chairs.Contains(chair)) {
 				Debug.Log("Table already contains chair to be added");
 				return false;
 			}
-			Vector2 chairPos = chair.TileLocation;
-            if (!table.modData.ContainsKey("FarmCafeTableChairs"))
-            {
-                table.modData.Add("FarmCafeTableChairs", "");
-            }
-            table.modData["FarmCafeTableChairs"] += $"{chairPos.X} {chairPos.Y} ";
-			//Debug.Log($"{table.modData["FarmCafeTableChairs"]}");
+            chairs.Add(chair);
+            UpdateChairsForTable(table, chairs, location);
 			return true;
 		}
 
-		internal static void RemoveChairFromTable(Furniture chair, Furniture table)
+		internal static void TryRemoveChairFromTable(Furniture chair, Furniture table, GameLocation location)
 		{
-			Debug.Log("Removing chair from table");
+            if (table == null)
+                table = GetTableFromChair(chair);
+
+            if (table == null)
+            {
+                Debug.Log("A chair was removed but there was no table assigned to it.", LogLevel.Debug);
+                return;
+            }
+            List<Furniture> chairsOnTable = TableManager.GetChairsOfTable(table);
+
+            if (!chairsOnTable.Contains(chair))
+            {
+                Debug.Log("Chair was removed but the table in front of it didn't recognize it before. Bug!", LogLevel.Error);
+                return;
+            }
+
+            if (TableManager.TableIsReserved(table))
+            {
+                Debug.Log("You shouldn't remove that chair. It's table is reserved!", LogLevel.Warn);
+            }
+
+            Debug.Log("Removing chair from table");
 			List<Furniture> chairs = GetChairsOfTable(table);
 			chairs.Remove(chair);
-			UpdateChairsForTable(table, chairs);
-
+			UpdateChairsForTable(table, chairs, location);
         }
 
 		internal static List<Furniture> GetChairsOfTable(Furniture table) {
@@ -167,14 +200,14 @@ namespace FarmCafe.Framework.Managers
         {
 			foreach (var table in TrackedTables.OrderBy(x => Game1.random.Next()))
 			{
-				if (TableIsReserved(table))
+				if (TableIsReserved(table.Key))
 					continue;
-				List<Furniture> chairs = GetChairsOfTable(table);
+				List<Furniture> chairs = GetChairsOfTable(table.Key);
 
 				if (chairs?.Count < minimumSeats)
 					continue;
 
-				return table;
+				return table.Key;
             }
 
 			return null;
@@ -207,7 +240,7 @@ namespace FarmCafe.Framework.Managers
 
 		public static void FreeTables()
 		{
-            foreach (var table in TrackedTables)
+            foreach (var table in TrackedTables.Keys)
             {
 				table.modData["FarmCafeTableIsReserved"] = "F";
             }

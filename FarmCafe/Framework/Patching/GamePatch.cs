@@ -217,42 +217,11 @@ namespace FarmCafe.Framework.Patching
 		{
 			if (Utility.IsChair(__instance))
 			{
-				Furniture table = TableManager.GetTableFromChair(__instance);
-				if (table == null)
-				{
-					Debug.Log("A chair was removed but there was no table assigned to it.", LogLevel.Debug);
-					return;
-				}
-				List<Furniture> chairsOnTable = TableManager.GetChairsOfTable(table);
-
-				if (!chairsOnTable.Contains(__instance))
-				{
-					Debug.Log("Chair was removed but the table in front of it didn't recognize it before. Bug alert!", LogLevel.Warn);
-					return;
-				}
-
-				if (TableManager.TableIsReserved(table))
-				{
-					Debug.Log("You shouldn't remove that chair. It's table is reserved!", LogLevel.Warn);
-				}
-
-				TableManager.RemoveChairFromTable(__instance, table);
+                TableManager.TryRemoveChairFromTable(__instance, null, environment);
 			}
 			else if (Utility.IsTable(__instance))
 			{
-				Furniture table = __instance;
-
-				if (!TableManager.TrackedTables.Contains(table))
-				{
-					Debug.Log("Table removed, but it wasn't a valid table counted in the manager. Bug?", LogLevel.Warn);
-					return;
-				}
-
-                if (TableManager.TableIsReserved(table))
-                {
-                    Debug.Log("You shouldn't remove that table. It's reserved!", LogLevel.Warn);
-				}
-				TableManager.RemoveTable(table);
+				TableManager.TryRemoveTable(__instance);
             }
 		}
 
@@ -260,24 +229,11 @@ namespace FarmCafe.Framework.Patching
 		{
 			if (Utility.IsChair(__instance))
 			{
-				Furniture table = TableManager.GetTableFromChair(__instance);
-				if (table == null)
-				{
-					Debug.Log("There is no table for the chair placed.");
-					return;
-				}
-				if (TableManager.GetChairsOfTable(__instance).Contains(__instance))
-				{
-					Debug.Log("Table already knows the chair that was placed?", LogLevel.Warn);
-					return;
-				}
-				Debug.Log("Adding chair to table");
-				TableManager.AddChairToTable(__instance, table);
+				TableManager.AddChairToTable(__instance, null, location);
 			}
 			else if (Utility.IsTable(__instance))
 			{
-				Debug.Log("Adding table", LogLevel.Debug);
-				TableManager.AddTable(__instance);
+				TableManager.AddTable(__instance, location);
 			}
 		}
 

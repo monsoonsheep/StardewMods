@@ -123,13 +123,14 @@ namespace FarmCafe
             }
 			else if (e.Type == "SyncTables")
 			{
-				var update = e.ReadAs<List<Vector2>>();
-				List<Furniture> tables = new List<Furniture>();
-				foreach (var pos in update)
+				var updates = e.ReadAs<Dictionary<Vector2, string>>();
+				var tables = new Dictionary<Furniture, GameLocation>();
+				foreach (var pair in updates)
 				{
-					Furniture table = Game1.getFarm().GetFurnitureAt(pos);
+					GameLocation location = Game1.getLocationFromName(pair.Value);
+                    Furniture table = location?.GetFurnitureAt(pair.Key);
 					if (table == null) continue;
-					tables.Add(table);
+					tables.Add(table, location);
                 }
                 TableManager.TrackedTables = tables;
             }
@@ -144,7 +145,7 @@ namespace FarmCafe
 		{
 			//PrepareCafeBuilding();
 			PrepareCustomerManager();
-
+			CafeManager.CafeLocations = new List<GameLocation>() { Game1.getFarm() };
 			//PlaceCafeBuilding(new Vector2(48, 13));
 		}
 
@@ -238,7 +239,7 @@ namespace FarmCafe
 			CustomerManager.CustomerModelsInUse = new List<CustomerModel>();
 			CustomerManager.CurrentCustomers = new List<Customer>();
 			CustomerManager.CurrentGroups = new List<CustomerGroup>();
-			TableManager.TrackedTables = new List<Furniture>();
+			TableManager.TrackedTables = new Dictionary<Furniture, GameLocation>();
 			Messaging.SyncTables();
 			CustomerManager.CacheBusWarpsToFarm();
 			CustomerManager.CacheBusPosition();

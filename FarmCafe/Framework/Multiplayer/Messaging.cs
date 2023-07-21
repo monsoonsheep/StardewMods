@@ -27,8 +27,8 @@ namespace FarmCafe.Framework.Multiplayer
 
         internal static void SyncTables()
         {
-            List<Vector2> positions = TableManager.TrackedTables.Select((table) => table.TileLocation).ToList();
-            FarmCafe.ModHelper.Multiplayer.SendMessage(positions, "SyncTables", modIDs: new[] { FarmCafe.ModManifest.UniqueID });
+            Dictionary<Vector2, string> tables = TableManager.TrackedTables.ToDictionary(x => x.Key.TileLocation, x => x.Value.Name);
+            FarmCafe.ModHelper.Multiplayer.SendMessage(tables, "SyncTables", modIDs: new[] { FarmCafe.ModManifest.UniqueID });
         }
     }
 }
