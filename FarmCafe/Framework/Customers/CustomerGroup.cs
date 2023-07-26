@@ -1,4 +1,5 @@
 ﻿using FarmCafe.Framework.Managers;
+using StardewValley;
 using StardewValley.Objects;
 using System.Collections.Generic;
 using static FarmCafe.Framework.Utilities.Utility;
@@ -10,6 +11,7 @@ namespace FarmCafe.Framework.Customers
 		public List<Customer> Members;
 		public Furniture ReservedTable;
 		public Dictionary<Furniture, Customer> SeatsToMembers;
+		public GameLocation TableLocation;
 
 		public CustomerGroup()
 		{
@@ -43,16 +45,6 @@ namespace FarmCafe.Framework.Customers
 			return true;
 		}
 
-		public void GroupStartMoving()
-		{
-			foreach (Customer member in Members)
-			{
-				member.State = CustomerState.MovingToTable;
-				member.collidesWithOtherCharacters.Set(false);
-				member.HeadTowards(CustomerManager.GetBusWarpToFarm(), 3, null);
-			}
-		}
-
 		public void GetLookingDirections()
 		{
 			foreach (Customer member in Members)
@@ -62,7 +54,7 @@ namespace FarmCafe.Framework.Customers
 				{
 					if (member.Equals(other)) continue;
 					member.lookingDirections.Add(
-						DirectionIntFromVectors(member.getTileLocation(), other.getTileLocation()));
+						DirectionIntFromVectors(member.getTileLocation(), other.busConvenePoint.ToVector2()));
 				}
 			}
 		}

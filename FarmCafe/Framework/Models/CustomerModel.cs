@@ -5,12 +5,7 @@
 		public string Name { get; set; }
 		public string TilesheetPath { get; set; }
 		public AnimationData Animation { get; set; }
-
-
-		public string GetId()
-		{
-			return Name;
-		}
+		public string PortraitName { get; set; } = "cat";
 
 		public new string ToString()
 		{

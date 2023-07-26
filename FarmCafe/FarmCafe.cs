@@ -4,6 +4,7 @@ using FarmCafe.Framework.Managers;
 using FarmCafe.Framework.Models;
 using FarmCafe.Framework.Multiplayer;
 using FarmCafe.Framework.Patching;
+using FarmCafe.Locations;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -11,10 +12,12 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Objects;
+using StardewValley.Buildings;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using xTile.Dimensions;
 
 namespace FarmCafe
 {
@@ -41,7 +44,7 @@ namespace FarmCafe
 			try
 			{
 				var harmony = new Harmony(ModManifest.UniqueID);
-				new GamePatch().Apply(harmony);
+				new Patching().Apply(harmony);
 			}
 			catch (Exception e)
 			{
@@ -58,8 +61,8 @@ namespace FarmCafe
 			helper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;
 			helper.Events.Input.ButtonPressed += OnButtonPressed;
 
-			helper.Events.Content.AssetRequested += OnAssetRequested;
-			helper.Events.Content.AssetsInvalidated += OnAssetsInvalidated;
+			//helper.Events.Content.AssetRequested += OnAssetRequested;
+			//helper.Events.Content.AssetsInvalidated += OnAssetsInvalidated;
 
 
             helper.Events.Multiplayer.ModMessageReceived += OnModMessageReceived;
@@ -102,6 +105,12 @@ namespace FarmCafe
 					
                     Game1.addHUDMessage(msg);
                     break;
+				case SButton.V:
+                    
+                    Debug.Log($"{Game1.MasterPlayer.currentLocation.Name} location, {Game1.MasterPlayer.currentLocation is CafeLocation}!");
+					Debug.Log($"contains? {Game1.locations.Contains(Game1.MasterPlayer.currentLocation)}");
+                    //CustomerManager.populateRoutesToCafe();
+                    break;
 				default:
 					return;
 			}
@@ -138,22 +147,30 @@ namespace FarmCafe
 
 		private static void OnGameLaunched(object sender, GameLaunchedEventArgs e)
 		{
-			//GetSolidFoundationsApi();
+			GetSolidFoundationsApi();
 		}
 
 		private static void OnSaveLoaded(object sender, SaveLoadedEventArgs e)
 		{
-			//PrepareCafeBuilding();
-			PrepareCustomerManager();
-			CafeManager.CafeLocations = new List<GameLocation>() { Game1.getFarm() };
-			//PlaceCafeBuilding(new Vector2(48, 13));
-		}
+			
+        }
 
-		internal static void OnDayStarted(object sender, DayStartedEventArgs e)
+        internal static void OnDayStarted(object sender, DayStartedEventArgs e)
 		{
-			// Get all the tables on the farm and register them as Table objects
-			TableManager.PopulateTables();
-		}
+            foreach (var building in Game1.getFarm().buildings)
+            {
+				if (building.indoors.Value is CafeLocation)
+				{
+					Debug.Log("Found cafe building on farm");
+                    CafeManager.CafeLocations = new List<GameLocation>() { building.indoors.Value };
+					break;
+                }
+            }
+			
+            PrepareCustomerManager();
+			CustomerManager.populateRoutesToCafe();
+            TableManager.PopulateTables();
+        }
 
 		private static void OnSaving(object sender, EventArgs e)
 		{
@@ -165,44 +182,7 @@ namespace FarmCafe
 		{
 			CustomerManager.RemoveAllCustomers();
 		}
-		private static void OnAssetRequested(object sender, AssetRequestedEventArgs e)
-		{
-			//if (e.Name.StartsWith("Characters\\Dialogue\\Customer_"))
-			//{
-			//       var dialogue = new Dictionary<string, string> { { "Farm_Entry", "Hi!" } };
-
-			//       Debug.Log("Loading dialogue for customer", LogLevel.Warn);
-			//       e.LoadFrom(
-			//               () => dialogue,
-			//               AssetLoadPriority.Exclusive);
-			//   }
-
-			if (e.Name.Name.ToLower().Contains("customer") && e.DataType == typeof(Texture2D))
-			{
-				Debug.Log($"Asset requested {e.Name.Name}");
-			}
-
-		}
-
-		private static void OnAssetsInvalidated(object sender, AssetsInvalidatedEventArgs e)
-		{
-			Debug.Log($"Invalidated!! {e.ToString()}", LogLevel.Warn);
-
-			foreach (var name in e.Names)
-			{
-				Debug.Log(name.Name);
-			}
-		}
-
-		private static void PrepareCafeBuilding()
-		{
-			if (!ModHelper.ModRegistry.IsLoaded("monsoonsheep.FarmCafe"))
-			{
-				Debug.Log("Cafe Building not found", LogLevel.Error);
-				throw new Exception("Cafe Building not found");
-			}
-		}
-
+	
 		private static void GetSolidFoundationsApi()
 		{
 			if (!ModHelper.ModRegistry.IsLoaded("PeacefulEnd.SolidFoundations"))
@@ -217,11 +197,12 @@ namespace FarmCafe
 				Debug.Log("SF Api failed", LogLevel.Error);
 				throw new EntryPointNotFoundException("SF Api failed");
 			}
+			
 		}
 
 		private static void PlaceCafeBuilding(Vector2 position)
 		{
-			var building = SfApi.PlaceBuilding("FarmCafeBuilding", Game1.getFarm(), position);
+			var building = SfApi.PlaceBuilding("FarmCafeSignboard", Game1.getFarm(), position);
 
 			if (building.Key)
 			{
@@ -229,13 +210,12 @@ namespace FarmCafe
 			}
 			else
 			{
-				Debug.Log($"buildlng not placed. messag eis {building.Value}");
+				Debug.Log($"building not placed. messag eis {building.Value}");
 			}
 		}
 
 		private static void PrepareCustomerManager()
 		{
-			CustomerManager.BusStop = Game1.getLocationFromName("BusStop");
 			CustomerManager.CustomerModelsInUse = new List<CustomerModel>();
 			CustomerManager.CurrentCustomers = new List<Customer>();
 			CustomerManager.CurrentGroups = new List<CustomerGroup>();
@@ -243,20 +223,21 @@ namespace FarmCafe
 			Messaging.SyncTables();
 			CustomerManager.CacheBusWarpsToFarm();
 			CustomerManager.CacheBusPosition();
-
+			
 			CustomerManager.CustomerModels = new List<CustomerModel>();
+
 			var dirs = new DirectoryInfo(Path.Combine(ModHelper.DirectoryPath, "assets", "Customers")).GetDirectories();
-			//Debug.Log(dirs.FirstOrDefault()?.Name);
 			foreach (var dir in dirs)
 			{
-				CustomerModel model = ModHelper.ModContent.Load<CustomerModel>(Path.Combine("assets", "Customers", dir.Name, "customer.json"));
-				model.TilesheetPath = ModHelper.ModContent.GetInternalAssetName(Path.Combine("assets", "Customers", dir.Name, "customer.png")).Name;
+				CustomerModel model = ModHelper.ModContent.Load<CustomerModel>($"assets/Customers/{dir.Name}/customer.json");
+				model.TilesheetPath = ModHelper.ModContent.GetInternalAssetName($"assets/Customers/{dir.Name}/customer.png").Name;
 				//Debug.Log($"Model loading: {model.ToString()}");
-				//Debug.Log($"\tTilesheet: {model.TilesheetPath}");
+				//Debug.Log($"Tilesheet: {model.TilesheetPath}");
+                //this SMAPI/monsoonsheep.farmcafe/assets/Customers/Catgirl/customer.png
 
-
-				CustomerManager.CustomerModels.Add(model);
+                CustomerManager.CustomerModels.Add(model);
 			}
+			
 		}
 	}
 }
