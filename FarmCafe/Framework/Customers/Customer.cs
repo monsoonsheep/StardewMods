@@ -12,7 +12,8 @@ using System.Linq;
 using static FarmCafe.Framework.Utilities.Utility;
 using Manager = FarmCafe.Framework.Managers.CustomerManager;
 using Pathfinder = StardewValley.PathFindController;
-using Pathing = FarmCafe.Framework.Customers.CustomerPathing;
+using System.IO;
+
 namespace FarmCafe.Framework.Customers
 {
 	public enum CustomerState
@@ -58,7 +59,7 @@ namespace FarmCafe.Framework.Customers
 
 		internal delegate void BehaviorFunction();
 
-		internal Object OrderItem { get; set; }
+		internal int OrderItem { get; set; }
 
 		internal bool FreezeMotion
 		{
@@ -78,26 +79,26 @@ namespace FarmCafe.Framework.Customers
 			base.initNetFields();
 		}
 
-		public Customer(CustomerModel model, int frameSizeWidth, int frameSizeHeight, Point targetTile, GameLocation location)
-			: base(new AnimatedSprite(model.TilesheetPath, 0, frameSizeWidth, frameSizeHeight), targetTile.ToVector2() * 64, 1, model.Name)
+		public Customer(CustomerModel model, string name, Point targetTile, GameLocation location)
+			: base(new AnimatedSprite(model.TilesheetPath, 0, 16, 32), targetTile.ToVector2() * 64, 1, name)
 		{
             //Debug.Log("Creating a customer");
-            willDestroyObjectsUnderfoot = false;
+            willDestroyObjectsUnderfoot = true;
 			collidesWithOtherCharacters.Value = false;
 			eventActor = true;
 			speed = 2;
+            displayName = "Customer";
+            Portrait = FarmCafe.ModHelper.ModContent.Load<Texture2D>($"assets/Portraits/{model.PortraitName}.png");
 
-			Model = model;
-			Name = "Customer_" + model.Name + Manager.CurrentCustomers.Count;
 
-			currentLocation = location;
+            Model = model;
+            State = CustomerState.ExitingBus;
+
+            currentLocation = location;
 			location.addCharacter(this);
 
-			State = CustomerState.ExitingBus;
-
 			this.modData["CustomerData"] = "T";
-			Debug.Log($"NPC {Name} spawned");
-			
+			Debug.Log($"Customer {Name} spawned");
 		}
 
 
@@ -111,41 +112,27 @@ namespace FarmCafe.Framework.Customers
 			if (busDepartTimer > 0)
 			{
 				busDepartTimer -= time.ElapsedGameTime.Milliseconds;
-
 				if (busDepartTimer <= 0)
-				{
-					if (Group.ReservedTable != null)
-					{
-						this.HeadTowards(busConvenePoint, 2, this.StartConvening);
-						collidesWithOtherCharacters.Set(false);
-					}
-				}
+					this.LeaveBus();
 			}
 
 			// Convening with group members
 			if (conveneWaitingTimer > 0)
 			{
-				conveneWaitingTimer -= time.ElapsedGameTime.Milliseconds;
-				lookAroundTimer -= time.ElapsedGameTime.Milliseconds;
-
-				if (Group.Members.Count == 1)
+                conveneWaitingTimer -= time.ElapsedGameTime.Milliseconds;
+                lookAroundTimer -= time.ElapsedGameTime.Milliseconds;
+                if (lookAroundTimer <= 0)
 				{
-					conveneWaitingTimer = 0;
-					showTextAboveHead("Arrived, I have.");
-				}
-
-				if (lookAroundTimer <= 0)
-				{
-					faceDirection(lookingDirections[Game1.random.Next(lookingDirections.Count)]);
-					lookAroundTimer += Game1.random.Next(400, 1000);
+					this.LookAround();
+                    lookAroundTimer += Game1.random.Next(400, 1000);
 				}
 
                 if (conveneWaitingTimer <= 0)
                 {
                     this.FinishConvening();
-                    return;
+					conveneWaitingTimer = 0;
+					lookAroundTimer = 0;
                 }
-
             }
 
             // Lerping position for sitting
@@ -166,11 +153,7 @@ namespace FarmCafe.Framework.Customers
 				if (lerpPosition >= lerpDuration)
 				{
 					lerpPosition = -1f;
-					State = CustomerState.Sitting;
-
 				}
-				else
-					return;
 			}
 			
 			// Sitting at table, waiting to order
@@ -180,7 +163,6 @@ namespace FarmCafe.Framework.Customers
 
                 if (orderTimer <= 0)
 				{
-                    State = CustomerState.ReadyToOrder;
                     this.OrderReady();
 				}
 			}
@@ -241,7 +223,7 @@ namespace FarmCafe.Framework.Customers
                 if (State == CustomerState.ReadyToOrder)
 				{
 					//localPosition2 = tableCenterForEmote;
-					localPosition2 = GetTableCenter();
+					localPosition2 = Game1.GlobalToLocal(tableCenterForEmote);
 					layer = 0.991f;
                 }
 				else
@@ -362,7 +344,16 @@ namespace FarmCafe.Framework.Customers
 			//}
 		}
 
-		internal void LerpPosition(Vector2 startPos, Vector2 endPos, float duration)
+		public override void tryToReceiveActiveObject(Farmer who)
+		{
+			if (who.ActiveObject != null && who.ActiveObject.ParentSheetIndex == OrderItem)
+			{
+				this.OrderReceive();
+                who.reduceActiveItemByOne();
+            }
+		}
+
+        internal void LerpPosition(Vector2 startPos, Vector2 endPos, float duration)
 		{
 			lerpStartPosition = startPos;
 			lerpEndPosition = endPos;
@@ -377,10 +368,10 @@ namespace FarmCafe.Framework.Customers
 
 		internal Vector2 GetTableCenter()
 		{
-			Furniture table = currentLocation.GetFurnitureAt(getTileLocation() + DirectionIntToDirectionVector(FacingDirection));
+			Furniture table = this.Group.ReservedTable;
 			if (table == null)
 				return Vector2.Zero;
-			return Game1.GlobalToLocal(table.boundingBox.Center.ToVector2()) + new Vector2(table.getTilesWide() * -16, table.getTilesHigh() * -64);
+			return table.boundingBox.Center.ToVector2() + new Vector2(table.getTilesWide() * -16, table.getTilesHigh() * -64);
 		}
 
 		internal void Reset()

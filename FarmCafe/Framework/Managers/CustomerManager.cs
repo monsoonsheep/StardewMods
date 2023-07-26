@@ -1,7 +1,9 @@
 ﻿using FarmCafe.Framework.Customers;
 using FarmCafe.Framework.Models;
 using FarmCafe.Framework.Multiplayer;
+using FarmCafe.Locations;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Objects;
@@ -24,7 +26,8 @@ namespace FarmCafe.Framework.Managers
 
 		public static Point BusPosition;
 		public static List<Point> BusToFarmWarps;
-		public static GameLocation BusStop;
+		public static Stack<Dictionary<GameLocation, Vector2>> PathToCafe;
+		public static List<List<string>> routesToCafe;
 
 		internal static int HowManyCustomersOnTable(Furniture table)
 		{
@@ -73,7 +76,7 @@ namespace FarmCafe.Framework.Managers
 
 			int countMembers = HowManyCustomersOnTable(newtable);
 
-			CustomerGroup group = CreateGroup(countMembers, BusStop, BusPosition, newtable);
+			CustomerGroup group = CreateGroup(countMembers, Game1.getLocationFromName("BusStop"), BusPosition, newtable);
 
             List<Point> convenePoints = GetBusConvenePoints(countMembers);
 			for (int i = 0; i < countMembers; i++)
@@ -81,8 +84,21 @@ namespace FarmCafe.Framework.Managers
 				group.Members[i].busDepartTimer = i * 800 + 1;
 				group.Members[i].busConvenePoint = convenePoints[i];
                 group.Members[i].faceDirection(2);
+				group.TableLocation = FurnitureLocation(newtable);
             }
             Debug.Log($"{countMembers} customer(s) arriving");
+		}
+
+		internal static GameLocation FurnitureLocation(Furniture table)
+		{
+			foreach (var location in CafeManager.CafeLocations)
+			{
+				if (location.furniture.Contains(table))
+				{
+					return location;
+				}
+			}
+			return null;
 		}
 
 		internal static CustomerGroup CreateGroup(int memberCount, GameLocation location, Point tilePosition, Furniture tableToReserve = null)
@@ -166,8 +182,9 @@ namespace FarmCafe.Framework.Managers
 
 		internal static Customer SpawnCustomer(GameLocation location, Point tilePosition)
 		{
-
-			var customer = new Customer(GetRandomCustomerModel(), 16, 32, tilePosition, location);
+			CustomerModel model = GetRandomCustomerModel();
+			string name = $"Customer_{model.Name}{CurrentCustomers.Count + 1}";
+			Customer customer = new Customer(model, name, tilePosition, location);
 			CurrentCustomers.Add(customer);
 			return customer;
 		}
@@ -178,18 +195,18 @@ namespace FarmCafe.Framework.Managers
 			foreach (Customer c in CurrentCustomers)
 			{
 				c.currentLocation.characters.Remove(c);
-				c.Seat.modData.Remove("FarmCafeSeat");
+				c.Seat.modData["FarmCafeChairIsReserved"] = "F";
 			}
 
 			CurrentCustomers.Clear();
 			CustomerModelsInUse.Clear();
 			CurrentGroups.Clear();
-			FreeTables();
+			FreeAllTables();
 		}
 
 		internal static void CacheBusPosition()
 		{
-			var tiles = BusStop.Map.GetLayer("Back").Tiles.Array;
+			var tiles = Game1.getLocationFromName("BusStop").Map.GetLayer("Back").Tiles.Array;
 			for (int i = 0; i < tiles.GetLength(0); i++)
 			{
 				for (int j = 0; j < tiles.GetLength(1); j++)
@@ -216,7 +233,7 @@ namespace FarmCafe.Framework.Managers
 		{
 			BusToFarmWarps = new List<Point>();
 
-			foreach (var warp in BusStop.warps)
+			foreach (var warp in Game1.getLocationFromName("BusStop").warps)
 			{
 				if (warp.TargetName == "Farm")
 				{
@@ -225,14 +242,70 @@ namespace FarmCafe.Framework.Managers
 			}
 		}
 
-		internal static void HandleWarp(Customer customer, GameLocation location, Vector2 position)
+        internal static void populateRoutesToCafe()
+        {
+            routesToCafe = new List<List<string>>();
+            foreach (string loc in new[] { "BusStop", "Town", "Beach" })
+            {
+                FindLocationRouteToCafe(Game1.getLocationFromName(loc), CafeManager.CafeLocations.First());
+            }
+            foreach (var route in routesToCafe)
+            {
+                Debug.Log(string.Join(" - ", route));
+            }
+        }
+
+        public static void FindLocationRouteToCafe(GameLocation startLocation, GameLocation endLocation)
+        {
+            Queue<string> frontier = new Queue<string>();
+            frontier.Enqueue(startLocation.Name);
+
+            Dictionary<string, string> cameFrom = new Dictionary<string, string>();
+            cameFrom[startLocation.Name] = null;
+
+            while (frontier.Count > 0)
+            {
+                GameLocation current = Game1.getLocationFromName(frontier.Dequeue());
+                if (current.Name == endLocation.Name)
+                    break;
+
+                foreach (Warp warp in current.warps)
+                {
+                    if (!cameFrom.ContainsKey(warp.TargetName))
+                    {
+                        frontier.Enqueue(warp.TargetName);
+                        cameFrom[warp.TargetName] = current.Name;
+                    }
+                }
+            }
+
+            List<string> path = new List<string>() { endLocation.Name };
+            string point = endLocation.Name;
+            while (true)
+            {
+                if (cameFrom.ContainsKey(point))
+                {
+                    path.Add(cameFrom[point]);
+                    point = cameFrom[point];
+                    if (point == startLocation.Name) break;
+                }
+                else
+                {
+                    return;
+                }
+
+            }
+            path.Reverse();
+            routesToCafe.Add(path);
+        }
+
+        internal static void HandleWarp(Customer customer, GameLocation location, Vector2 position)
 		{
 			if (location is Farm && customer.Group != null)
 			{
 				customer.arriveAt(location);
-				customer.ArriveAtFarm();
+				//customer.ArriveAtFarm();
 			}
-
 			foreach (var other in CurrentCustomers)
 			{
 				if (other.Equals(customer)
@@ -240,15 +313,16 @@ namespace FarmCafe.Framework.Managers
 					|| !other.getTileLocation().Equals(customer.getTileLocation()))
 					continue;
 
-				var newPos = GetAdjacentTileCollision(customer.getTileLocationPoint(), location, character: customer);
-				Debug.Log("Warping group, Looking for new positions", LogLevel.Debug);
+				other.isCharging = true;
+				//var newPos = GetAdjacentTileCollision(customer.getTileLocationPoint(), location, character: customer);
+				Debug.Log("Warping group, charging", LogLevel.Debug);
 
-				if (!newPos.Equals(Point.Zero))
-				{
-					Debug.Log("Changing position to avoid collisions", LogLevel.Debug);
-					customer.Position = new Vector2(newPos.X * 64, newPos.Y * 64);
-					break;
-				}
+				//if (!newPos.Equals(Point.Zero))
+				//{
+				//	Debug.Log("Changing position to avoid collisions", LogLevel.Debug);
+				//	customer.Position = new Vector2(newPos.X * 64, newPos.Y * 64);
+				//	break;
+				//}
 			}
 		}
 
@@ -285,7 +359,16 @@ namespace FarmCafe.Framework.Managers
 			{
 				Debug.Log(model.ToString());
 			}
-		}
+			foreach (var f in Game1.getFarm().furniture)
+			{
+				foreach (var pair in f.modData.Pairs)
+				{
+					Debug.Log($"{pair.Key}: {pair.Value}");
+
+				}
+                Debug.Log(f.modData.ToString());
+            }
+        }
 
 	}
 }

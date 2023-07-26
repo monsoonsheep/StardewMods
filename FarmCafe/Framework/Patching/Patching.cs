@@ -10,65 +10,125 @@ using StardewValley.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Security.Claims;
 using xTile.Dimensions;
 using xTile.ObjectModel;
 using xTile.Tiles;
 using Object = StardewValley.Object;
-using Utility = FarmCafe.Framework.Utilities.Utility;
+using static FarmCafe.Framework.Utilities.Utility;
 
 // ReSharper disable UnusedParameter.Local
 // ReSharper disable InconsistentNaming
 
 namespace FarmCafe.Framework.Patching
 {
-  
-    internal class GamePatch
+	internal enum PatchType
 	{
-		
+		prefix, postfix, transpiler
+	}
+
+	internal class PatchItem
+	{
+		internal MethodInfo _targetMethod;
+		internal string _prefixMethod;
+		internal string _postfixMethod;
+		internal string _transpilerMethod;
+
+		public PatchItem(Type targetType, 
+			string targetMethodName, 
+			Type[] arguments, 
+			string prefix = null, 
+			string postfix = null, 
+			string transpiler = null)
+		{
+            _targetMethod = AccessTools.Method(targetType, targetMethodName, arguments);
+			_prefixMethod = prefix;
+			_postfixMethod = postfix;
+			_transpilerMethod = transpiler;
+        }
+	}
+
+    internal class Patching
+	{
+		internal List<PatchItem> Patches;
+
+        public Patching()
+		{
+			Patches = new List<PatchItem>()
+			{
+				new (
+					typeof(PathFindController), 
+					"moveCharacter",
+					null, 
+					transpiler: nameof(MoveCharacterTranspiler)),
+                new (
+                    typeof(Character), 
+					"updateEmote", 
+					null,  
+					transpiler: nameof(UpdateEmoteTranspiler)),
+				new (
+                    typeof(Tool), 
+					"DoFunction", 
+					new[] {typeof(GameLocation), typeof(int), typeof(int), typeof(int), typeof(Farmer) },  
+					postfix: nameof(ToolDoFunctionPostfix)),
+				new (
+                    typeof(Game1),
+					"warpCharacter",
+					new[] { typeof(NPC), typeof(GameLocation), typeof(Vector2) },
+                    postfix: nameof(WarpCharacterPostfix)),
+				new (
+                    typeof(Furniture),
+					"placementAction",
+					new[] { typeof(GameLocation), typeof(int), typeof(int), typeof(Farmer) },
+					postfix: nameof(FurniturePlacePostfix)
+                    ),
+                new (
+                    typeof(Furniture),
+                    "performRemoveAction",
+                    new[] { typeof(Vector2), typeof(GameLocation) },
+                    postfix: nameof(FurnitureRemovePostfix)
+                    ),
+                new (
+                    typeof(Furniture),
+                    "canBeRemoved",
+					new[] { typeof(Farmer) },
+                    postfix: nameof(CanBeRemovedPostfix)
+                    ),
+                new (
+                    typeof(Furniture),
+                    "HasSittingFarmers",
+                    null,
+                    prefix: nameof(HasSittingFarmersPrefix)
+                    ),
+                new (
+                    typeof(Furniture),
+                    "AddSittingFarmer",
+					new[] { typeof(Farmer) },
+                    postfix: nameof(AddSittingFarmerPostfix)
+                    ),
+                new (
+                    typeof(PathFindController),
+                    "GetFarmTileWeight",
+                    null,
+                    transpiler: nameof(GetFarmTileWeightTranspiler)
+                    ),
+            };
+        }
+
         internal void Apply(Harmony harmony)
 		{
-
-			harmony.Patch(
-				original: AccessTools.Method(typeof(PathFindController), "moveCharacter"),
-				transpiler: new HarmonyMethod(GetType(), nameof(MoveCharacterTranspiler)));
-
-			harmony.Patch(
-				original: AccessTools.Method(typeof(Character), "updateEmote"),
-				transpiler: new HarmonyMethod(GetType(), nameof(UpdateEmoteTranspiler)));
-
-			harmony.Patch(
-				original: AccessTools.Method(typeof(Tool), "DoFunction",
-					new[] { typeof(GameLocation), typeof(int), typeof(int), typeof(int), typeof(Farmer) }),
-				postfix: new HarmonyMethod(GetType(), nameof(ToolDoFunctionPostfix)));
-
-			harmony.Patch(
-				original: AccessTools.Method(typeof(Game1), "warpCharacter", new[] { typeof(NPC), typeof(GameLocation), typeof(Vector2) }),
-				postfix: new HarmonyMethod(GetType(), nameof(WarpCharacterPostfix)));
-
-			harmony.Patch(
-				original: AccessTools.Method(typeof(Furniture), "placementAction",
-					new[] { typeof(GameLocation), typeof(int), typeof(int), typeof(Farmer) }),
-				postfix: new HarmonyMethod(GetType(), nameof(FurniturePlacePostfix)));
-
-			harmony.Patch(
-				original: AccessTools.Method(typeof(Furniture), "performRemoveAction",
-					new[] { typeof(Vector2), typeof(GameLocation) }),
-				postfix: new HarmonyMethod(GetType(), nameof(FurnitureRemovePostfix)));
-
-			harmony.Patch(
-				original: AccessTools.Method(typeof(Furniture), "HasSittingFarmers"),
-				prefix: new HarmonyMethod(GetType(), nameof(HasSittingFarmersPrefix)));
-
-			harmony.Patch(
-				original: AccessTools.Method(typeof(Furniture), "AddSittingFarmer", new[] { typeof(Farmer) }),
-				postfix: new HarmonyMethod(GetType(), nameof(AddSittingFarmerPostfix)));
-
-			harmony.Patch(
-				original: AccessTools.Method(typeof(PathFindController), "GetFarmTileWeight"),
-				transpiler: new HarmonyMethod(GetType(), nameof(GetFarmTileWeightTranspiler)));
-
+			foreach (PatchItem patch in Patches)
+			{
+				harmony.Patch(
+					original: patch._targetMethod,
+					prefix: patch._prefixMethod == null ? null : new HarmonyMethod(GetType(), patch._prefixMethod),
+					postfix: patch._postfixMethod == null ? null : new HarmonyMethod(GetType(), patch._postfixMethod),
+					transpiler: patch._transpilerMethod == null ? null : new HarmonyMethod(GetType(), patch._transpilerMethod)
+					);
+			}
 			Debug.Log("Patched methods");
 		}
 
@@ -90,17 +150,11 @@ namespace FarmCafe.Framework.Patching
 
 			var addcodes = new List<CodeInstruction>()
 			{
-				//new (OpCodes.Ldarg_0),
-				//CodeInstruction.LoadField(typeof(StardewValley.Character), "modData"),
-				//new (OpCodes.Ldstr, "CustomerData"),
-				//new (OpCodes.Callvirt, MContainsKey),
-				//new (OpCodes.Brfalse_S, fadingJump),
-
-				new (OpCodes.Ldarg_0), // this
-				new (OpCodes.Isinst, typeof(Customer)), // this is Customer
+				new (OpCodes.Ldarg_0),
+				new (OpCodes.Isinst, typeof(Customer)),
 				new (OpCodes.Brfalse, fadingJump),
 
-                new (OpCodes.Ldarg_0), // this
+                new (OpCodes.Ldarg_0),
 				CodeInstruction.LoadField(typeof(Customer), "emoteLoop"),
 				new (OpCodes.Brfalse, fadingJump),
 
@@ -112,12 +166,6 @@ namespace FarmCafe.Framework.Patching
 			};
 
 			codes.InsertRange(pointToInsert, addcodes);
-
-			//foreach (var c in codes)
-			//{
-			//	Debug.Log(c.ToString());
-			//}
-
             return codes.AsEnumerable();
 
         }
@@ -126,12 +174,6 @@ namespace FarmCafe.Framework.Patching
 		{
 			var FPathfindercharacter = AccessTools.Field(typeof(PathFindController), "character");
 			var MObjectIsPassableMethod = AccessTools.Method(typeof(Object), "isPassable");
-
-			if (FPathfindercharacter == null || MObjectIsPassableMethod == null)
-			{
-				Debug.Log("Field or Method not found!", LogLevel.Error);
-				throw new Exception("Field or Method not found!");
-			}
 
 			var codeList = instructions.ToList();
 			int start_pos = -1;
@@ -152,22 +194,16 @@ namespace FarmCafe.Framework.Patching
 					new (OpCodes.Ldarg_0), // this
 			        new (OpCodes.Ldfld, FPathfindercharacter), // this.character
 			        CodeInstruction.Call(typeof(Character), "GetType"), // this.character.GetType()
-			        new (OpCodes.Ldstr, "seat"), // this.character.GetType(), "seat"
+			        new (OpCodes.Ldstr, "Seat"), // this.character.GetType(), "seat"
 			        CodeInstruction.Call("System.Type:GetField", new[] { typeof(string) }), // FieldInfo this.character.GetType().GetField("seat")
 			        new (OpCodes.Brtrue, jumpLabel) // branch to the same one found earlier
 
 		        };
 
 				codeList.InsertRange(start_pos + 1, patchCodes);
-				//foreach (var item in codeList)
-				//{
-				// Debug.Log(item.ToString());
-				//}
 			}
 			else
-			{
-				Debug.Log("Couldn't find the break after isPassable check");
-			}
+				Debug.Log("Couldn't find the break after isPassable check", LogLevel.Error);
 
 			return codeList.AsEnumerable();
 		}
@@ -213,25 +249,70 @@ namespace FarmCafe.Framework.Patching
 			}
 		}
 
-		private static void FurnitureRemovePostfix(Furniture __instance, Vector2 tileLocation, GameLocation environment)
+		private static void CanBeRemovedPostfix(Furniture __instance, Farmer who, ref bool __result)
 		{
-			if (Utility.IsChair(__instance))
+			if (!__result) return;
+
+            string val;
+            if ((__instance.modData.TryGetValue("FarmCafeTableIsReserved", out val) && val == "T")
+				|| (__instance.modData.TryGetValue("FarmCafeChairIsReserved", out val) && val == "T"))
+            {
+				Debug.Log("Can't remove furniture. Is reserved!");
+                __result = false;
+            }
+        }
+
+        private static void FurnitureRemovePostfix(Furniture __instance, Vector2 tileLocation, GameLocation environment)
+		{
+			if (IsChair(__instance))
 			{
-                TableManager.TryRemoveChairFromTable(__instance, null, environment);
-			}
-			else if (Utility.IsTable(__instance))
+				__instance.modData.TryGetValue("FarmCafeChairTable", out string pos1);
+				int[] pos2 = pos1.Split(' ').Select(x => int.Parse(x)).ToArray();
+				Furniture table = environment.GetFurnitureAt(new Vector2(pos2[0], pos2[1]));
+				if (table != null)
+				{
+                    TableManager.TryRemoveChairFromTable(__instance, table);
+                }
+            }
+			else if (IsTable(__instance))
 			{
-				TableManager.TryRemoveTable(__instance);
+				if (TableManager.TrackedTables.ContainsKey(__instance))
+				{
+                    TableManager.TryRemoveTable(__instance);
+                }
             }
 		}
 
-		private static void FurniturePlacePostfix(Furniture __instance, GameLocation location, int x, int y, Farmer who, ref bool __result)
+		private static void FurniturePlacePostfix(Furniture __instance, GameLocation location, int x, int y, Farmer who)
 		{
-			if (Utility.IsChair(__instance))
+			Debug.Log("Furniture type = " + __instance.furniture_type.Value);
+			if (IsChair(__instance))
 			{
-				TableManager.AddChairToTable(__instance, null, location);
-			}
-			else if (Utility.IsTable(__instance))
+                // Get position of chair
+                Vector2 tablePos = __instance.TileLocation;
+
+                // Get position of table in front of the chair
+                tablePos += DirectionIntToDirectionVector(__instance.currentRotation.Value) * new Vector2(1, -1);
+
+                // Get table Furniture object
+                Furniture table = location.GetFurnitureAt(tablePos);
+
+                // Get Table object
+                if (table == null || !IsTable(table))
+                {
+                    return;
+                }
+
+                if (!TableManager.TrackedTables.ContainsKey(table))
+                {
+                    TableManager.AddTable(table, location);
+                }
+				else
+				{
+					TableManager.AddChairToTable(__instance, table) ;
+                }
+            }
+			else if (IsTable(__instance))
 			{
 				TableManager.AddTable(__instance, location);
 			}
@@ -240,7 +321,7 @@ namespace FarmCafe.Framework.Patching
 		// Drawing a chair's front texture requires that HasSittingFarmers returns true
 		private static bool HasSittingFarmersPrefix(Furniture __instance, ref bool __result)
 		{
-			if (__instance.modData.ContainsKey("FarmCafeSeat") && __instance.modData["FarmCafeSeat"] == "T")
+			if (__instance.modData.ContainsKey("FarmCafeChairIsReserved") && __instance.modData["FarmCafeChairIsReserved"] == "T")
 			{
                 __result = true;
                 return false;
