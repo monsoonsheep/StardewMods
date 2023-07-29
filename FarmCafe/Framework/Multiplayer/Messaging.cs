@@ -22,7 +22,7 @@ namespace FarmCafe.Framework.Multiplayer
         internal static void RemoveAllCustomers()
         {
             CustomerUpdate message = new CustomerUpdate();
-            FarmCafe.ModHelper.Multiplayer.SendMessage(message, "UpdateCustomers", modIDs: new[] { FarmCafe.ModManifest.UniqueID });
+            FarmCafe.ModHelper.Multiplayer.SendMessage(message, "RemoveCustomers", modIDs: new[] { FarmCafe.ModManifest.UniqueID });
         }
 
         internal static void SyncTables()

@@ -2,6 +2,7 @@
 using StardewValley;
 using StardewValley.Objects;
 using System.Collections.Generic;
+using FarmCafe.Framework.Characters;
 using static FarmCafe.Framework.Utilities.Utility;
 
 namespace FarmCafe.Framework.Customers

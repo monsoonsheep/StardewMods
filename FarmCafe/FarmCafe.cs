@@ -13,10 +13,12 @@ using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Objects;
 using StardewValley.Buildings;
+using static FarmCafe.Framework.Utilities.Utility;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using FarmCafe.Framework.Characters;
 using xTile.Dimensions;
 
 namespace FarmCafe
@@ -52,24 +54,38 @@ namespace FarmCafe
 				return;
 			}
 
-
 			//helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
 			helper.Events.GameLoop.GameLaunched += OnGameLaunched;
 			helper.Events.GameLoop.DayStarted += OnDayStarted;
 			helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
 			helper.Events.GameLoop.Saving += OnSaving;
-			helper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;
 			helper.Events.Input.ButtonPressed += OnButtonPressed;
+			helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
+			helper.Events.GameLoop.DayEnding += OnDayEnding;
 
 			//helper.Events.Content.AssetRequested += OnAssetRequested;
 			//helper.Events.Content.AssetsInvalidated += OnAssetsInvalidated;
-
 
             helper.Events.Multiplayer.ModMessageReceived += OnModMessageReceived;
             helper.Events.Multiplayer.PeerConnected += OnPeerConnected;
 		}
 
-		private static void OnButtonPressed(object sender, ButtonPressedEventArgs e)
+        [EventPriority(EventPriority.High+1)]
+        private static void OnDayEnding(object sender, DayEndingEventArgs e)
+		{
+			CustomerManager.RemoveAllCustomers();
+		}
+
+		private static void OnUpdateTicked(object sender, UpdateTickedEventArgs e)
+		{
+			if (!Context.IsMainPlayer && CustomerManager.ClientShouldUpdateCustomers)
+			{
+				CustomerManager.CurrentCustomers = CustomerManager.GetAllCustomersInGame();
+				CustomerManager.ClientShouldUpdateCustomers = false;
+            }
+		}
+
+        private static void OnButtonPressed(object sender, ButtonPressedEventArgs e)
 		{
 			switch (e.Button)
 			{
@@ -94,21 +110,30 @@ namespace FarmCafe
 					CustomerManager.Debug_ListCustomers();
 					break;
 				case SButton.X:
-					var fiber = new StardewValley.Object(746, 1);
-					fiber.DisplayName = "Fiber";
-					fiber.Name = "Fiber";
-					var msg = new HUDMessage(null, 1, false, new Color(0.1f, 0.5f, 0.5f), fiber);
-					msg.add = true;
-					msg.Message = "Fiber";
-					
-					msg.timeLeft = 500;
-					
-                    Game1.addHUDMessage(msg);
+					Debug.Log(Game1.MasterPlayer.ActiveObject?.ParentSheetIndex.ToString());
+					Game1.MasterPlayer.addItemToInventory(new Furniture(1220, new Vector2(0, 0)).getOne());
+                    Game1.MasterPlayer.addItemToInventory(new Furniture(21, new Vector2(0, 0)).getOne());
                     break;
 				case SButton.V:
-                    
-                    Debug.Log($"{Game1.MasterPlayer.currentLocation.Name} location, {Game1.MasterPlayer.currentLocation is CafeLocation}!");
-					Debug.Log($"contains? {Game1.locations.Contains(Game1.MasterPlayer.currentLocation)}");
+					Debug.Log(Game1.getLocationFromName("FarmCafe.CafeBuilding")?.Name);
+					foreach (var item in Game1.currentLocation.furniture)
+					{
+                        item.updateDrawPosition();
+                    }
+     //               foreach (var building in Game1.getFarm().buildings)
+					//{
+					//	if (building.indoors.Value is not null)
+					//	{
+     //                       Debug.Log($"Indoor: {building.indoors?.Value?.Name}");
+     //                       foreach (var f in building.indoors.Value.furniture)
+					//		{
+					//			Debug.Log($"Furniture {f.Name}");
+					//		}
+					//	}
+					//}
+					//Debug.Log($"{Game1.MasterPlayer.currentLocation.Name} location, {Game1.MasterPlayer.currentLocation is CafeLocation}!");
+					//Debug.Log($"contains? {Game1.locations.Contains(Game1.MasterPlayer.currentLocation)}");
+					//Messaging.AddCustomerGroup(CustomerManager.CurrentGroups.First());
                     //CustomerManager.populateRoutesToCafe();
                     break;
 				default:
@@ -127,16 +152,20 @@ namespace FarmCafe
 
 			if (e.Type == "UpdateCustomers")
             {
-                List<string> names = e.ReadAs<CustomerUpdate>().names;
-				CustomerManager.UpdateCustomerList(names);
+				CustomerManager.ClientShouldUpdateCustomers = true;
             }
-			else if (e.Type == "SyncTables")
+			else if (e.Type == "RemoveCustomers")
+            {
+				CustomerManager.CurrentCustomers.Clear();
+                //CustomerManager.ClientShouldUpdateCustomers = true;
+            }
+            else if (e.Type == "SyncTables")
 			{
 				var updates = e.ReadAs<Dictionary<Vector2, string>>();
 				var tables = new Dictionary<Furniture, GameLocation>();
 				foreach (var pair in updates)
 				{
-					GameLocation location = Game1.getLocationFromName(pair.Value);
+					GameLocation location = GetLocationFromName(pair.Value);
                     Furniture table = location?.GetFurnitureAt(pair.Key);
 					if (table == null) continue;
 					tables.Add(table, location);
@@ -152,37 +181,41 @@ namespace FarmCafe
 
 		private static void OnSaveLoaded(object sender, SaveLoadedEventArgs e)
 		{
-			
+			TableManager.TrackedTables = new Dictionary<Furniture, GameLocation>();
+
+            PrepareCustomerModels();
+            CustomerManager.CacheBusPosition();
         }
 
         internal static void OnDayStarted(object sender, DayStartedEventArgs e)
 		{
-            foreach (var building in Game1.getFarm().buildings)
+			CafeManager.CafeLocations = new List<GameLocation>();
+            var cafeBuilding = Game1.getFarm().buildings
+                .FirstOrDefault(b => b.indoors.Value is CafeLocation);
+
+            var cafeLocation = cafeBuilding?.indoors.Value;
+
+            if (cafeLocation == null)
             {
-				if (building.indoors.Value is CafeLocation)
-				{
-					Debug.Log("Found cafe building on farm");
-                    CafeManager.CafeLocations = new List<GameLocation>() { building.indoors.Value };
-					break;
-                }
+                Debug.Log("Didn't find cafe building on farm");
+                cafeLocation = Game1.getFarm();
             }
-			
-            PrepareCustomerManager();
-			CustomerManager.populateRoutesToCafe();
+
+            CafeManager.CafeLocations.Add(cafeLocation);
+            Debug.Log($"Added Cafe locations {string.Join(", ", CafeManager.CafeLocations.Select(l => l.Name))}");
+            
+			ResetCustomers();
+			CafeManager.populateRoutesToCafe();
             TableManager.PopulateTables();
+            Messaging.SyncTables();
         }
 
 		private static void OnSaving(object sender, EventArgs e)
 		{
 			// Go through all game locations and purge any customers
-			CustomerManager.RemoveAllCustomers();
+			//CustomerManager.RemoveAllCustomers();
 		}
 
-		private static void OnReturnedToTitle(object sender, ReturnedToTitleEventArgs e)
-		{
-			CustomerManager.RemoveAllCustomers();
-		}
-	
 		private static void GetSolidFoundationsApi()
 		{
 			if (!ModHelper.ModRegistry.IsLoaded("PeacefulEnd.SolidFoundations"))
@@ -197,7 +230,6 @@ namespace FarmCafe
 				Debug.Log("SF Api failed", LogLevel.Error);
 				throw new EntryPointNotFoundException("SF Api failed");
 			}
-			
 		}
 
 		private static void PlaceCafeBuilding(Vector2 position)
@@ -214,30 +246,27 @@ namespace FarmCafe
 			}
 		}
 
-		private static void PrepareCustomerManager()
+		private static void PrepareCustomerModels()
+		{
+            CustomerManager.CustomerModels = new List<CustomerModel>();
+            var dirs = new DirectoryInfo(Path.Combine(ModHelper.DirectoryPath, "assets", "Customers")).GetDirectories();
+            foreach (var dir in dirs)
+            {
+                CustomerModel model = ModHelper.ModContent.Load<CustomerModel>($"assets/Customers/{dir.Name}/customer.json");
+                model.TilesheetPath = ModHelper.ModContent.GetInternalAssetName($"assets/Customers/{dir.Name}/customer.png").Name;
+                //Debug.Log($"Model loading: {model.ToString()}");
+                //Debug.Log($"Tilesheet: {model.TilesheetPath}");
+                //this SMAPI/monsoonsheep.farmcafe/assets/Customers/Catgirl/customer.png
+
+                CustomerManager.CustomerModels.Add(model);
+            }
+        }
+
+		private static void ResetCustomers()
 		{
 			CustomerManager.CustomerModelsInUse = new List<CustomerModel>();
 			CustomerManager.CurrentCustomers = new List<Customer>();
 			CustomerManager.CurrentGroups = new List<CustomerGroup>();
-			TableManager.TrackedTables = new Dictionary<Furniture, GameLocation>();
-			Messaging.SyncTables();
-			CustomerManager.CacheBusWarpsToFarm();
-			CustomerManager.CacheBusPosition();
-			
-			CustomerManager.CustomerModels = new List<CustomerModel>();
-
-			var dirs = new DirectoryInfo(Path.Combine(ModHelper.DirectoryPath, "assets", "Customers")).GetDirectories();
-			foreach (var dir in dirs)
-			{
-				CustomerModel model = ModHelper.ModContent.Load<CustomerModel>($"assets/Customers/{dir.Name}/customer.json");
-				model.TilesheetPath = ModHelper.ModContent.GetInternalAssetName($"assets/Customers/{dir.Name}/customer.png").Name;
-				//Debug.Log($"Model loading: {model.ToString()}");
-				//Debug.Log($"Tilesheet: {model.TilesheetPath}");
-                //this SMAPI/monsoonsheep.farmcafe/assets/Customers/Catgirl/customer.png
-
-                CustomerManager.CustomerModels.Add(model);
-			}
-			
 		}
 	}
 }

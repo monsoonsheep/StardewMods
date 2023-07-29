@@ -6,11 +6,16 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Buildings;
+using StardewValley.Locations;
 using StardewValley.Objects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
+using FarmCafe.Framework.Characters;
+using xTile.Dimensions;
 using static FarmCafe.Framework.Managers.TableManager;
 using static FarmCafe.Framework.Utilities.Utility;
 
@@ -27,8 +32,8 @@ namespace FarmCafe.Framework.Managers
 		public static Point BusPosition;
 		public static List<Point> BusToFarmWarps;
 		public static Stack<Dictionary<GameLocation, Vector2>> PathToCafe;
-		public static List<List<string>> routesToCafe;
 
+		internal static bool ClientShouldUpdateCustomers = false;
 		internal static int HowManyCustomersOnTable(Furniture table)
 		{
 			int n;
@@ -66,27 +71,26 @@ namespace FarmCafe.Framework.Managers
 
         internal static void SpawnGroupBus()
 		{
-			Furniture newtable = TryReserveTable();
-
-			if (newtable == null)
+			CustomerGroup group = CreateGroup(GetLocationFromName("BusStop"), BusPosition);
+			if (group == null)
 			{
-				Debug.Log("No tables found to spawn customers", LogLevel.Error);
 				return;
 			}
+			int memberCount = group.Members.Count;
 
-			int countMembers = HowManyCustomersOnTable(newtable);
-
-			CustomerGroup group = CreateGroup(countMembers, Game1.getLocationFromName("BusStop"), BusPosition, newtable);
-
-            List<Point> convenePoints = GetBusConvenePoints(countMembers);
-			for (int i = 0; i < countMembers; i++)
+            List<Point> convenePoints = GetBusConvenePoints(memberCount);
+			for (int i = 0; i < memberCount; i++)
 			{
-				group.Members[i].busDepartTimer = i * 800 + 1;
-				group.Members[i].busConvenePoint = convenePoints[i];
+				group.Members[i].SetBusConvene(convenePoints[i], i * 800 + 1);
                 group.Members[i].faceDirection(2);
-				group.TableLocation = FurnitureLocation(newtable);
             }
-            Debug.Log($"{countMembers} customer(s) arriving");
+
+            Debug.Log($"{memberCount} customer(s) arriving");
+		}
+
+		internal static void SpawnCustomerGroup(GameLocation location, Point tilePosition, int count = 0)
+		{
+            
 		}
 
 		internal static GameLocation FurnitureLocation(Furniture table)
@@ -101,9 +105,20 @@ namespace FarmCafe.Framework.Managers
 			return null;
 		}
 
-		internal static CustomerGroup CreateGroup(int memberCount, GameLocation location, Point tilePosition, Furniture tableToReserve = null)
+		internal static CustomerGroup CreateGroup(GameLocation location, Point tilePosition, int memberCount = 0)
 		{
+            Furniture newtable = TryReserveTable();
+
+            if (newtable == null)
+            {
+                Debug.Log("No tables found to spawn customers", LogLevel.Error);
+                return null;
+            }
+
             CustomerGroup group = new CustomerGroup();
+            group.TableLocation = FurnitureLocation(newtable);
+			memberCount = (memberCount > 0) ? GetChairsOfTable(newtable).Count : HowManyCustomersOnTable(newtable);
+
             for (int i = 0; i < memberCount; i++)
             {
                 Customer customer = SpawnCustomer(location, tilePosition);
@@ -111,48 +126,14 @@ namespace FarmCafe.Framework.Managers
                 customer.Group = group;
             }
 
-			if (tableToReserve != null)
-			{
-				if (group.ReserveTable(tableToReserve) == false)
-				{
-					Debug.Log("ERROR: Couldn't reserve table (was supposed to be able to reserve)", LogLevel.Error);
-				}
-			}
+            if (group.ReserveTable(newtable) == false)
+            {
+                Debug.Log("ERROR: Couldn't reserve table (was supposed to be able to reserve)", LogLevel.Error);
+            }
 
             CurrentGroups.Add(group);
             Messaging.AddCustomerGroup(group);
 			return group;
-        }
-
-		internal static void UpdateCustomerList(List<string> names)
-		{
-            if (names == null) return;
-
-            if (names.Count == 0)
-            {
-                CurrentCustomers.Clear();
-                Debug.Log("Removing all tracked customers.");
-                return;
-            }
-
-            foreach (var name in names)
-            {
-                Customer c = Game1.getCharacterFromName(name) as Customer;
-
-                if (c == null)
-                {
-                    Debug.Log("Updating client's customers but received bad customer information.", LogLevel.Error);
-                    continue;
-                }
-
-                if (CurrentCustomers.Contains(c))
-                {
-                    Debug.Log("Updating client's customers but customer already tracked for client.", LogLevel.Error);
-                    continue;
-                }
-
-                CurrentCustomers.Add(c);
-            }
         }
 
 		internal static List<Point> GetBusConvenePoints(int count)
@@ -183,21 +164,24 @@ namespace FarmCafe.Framework.Managers
 		internal static Customer SpawnCustomer(GameLocation location, Point tilePosition)
 		{
 			CustomerModel model = GetRandomCustomerModel();
-			string name = $"Customer_{model.Name}{CurrentCustomers.Count + 1}";
+			string name = $"CustomerNPC_{model.Name}{CurrentCustomers.Count + 1}";
 			Customer customer = new Customer(model, name, tilePosition, location);
 			CurrentCustomers.Add(customer);
-			return customer;
+            Debug.Log($"Customer {name} spawned");
+            return customer;
 		}
 
 		public static void RemoveAllCustomers()
 		{
+			if (CurrentCustomers == null) return;
 			Debug.Log("Removing customers");
 			foreach (Customer c in CurrentCustomers)
 			{
-				c.currentLocation.characters.Remove(c);
+				c.currentLocation?.characters?.Remove(c);
 				c.Seat.modData["FarmCafeChairIsReserved"] = "F";
 			}
-
+			
+			Messaging.RemoveAllCustomers();
 			CurrentCustomers.Clear();
 			CustomerModelsInUse.Clear();
 			CurrentGroups.Clear();
@@ -206,7 +190,7 @@ namespace FarmCafe.Framework.Managers
 
 		internal static void CacheBusPosition()
 		{
-			var tiles = Game1.getLocationFromName("BusStop").Map.GetLayer("Back").Tiles.Array;
+			var tiles = GetLocationFromName("BusStop").Map.GetLayer("Back").Tiles.Array;
 			for (int i = 0; i < tiles.GetLength(0); i++)
 			{
 				for (int j = 0; j < tiles.GetLength(1); j++)
@@ -224,87 +208,11 @@ namespace FarmCafe.Framework.Managers
 			BusPosition = new Point(12, 10);
 		}
 
-		internal static Point GetBusWarpToFarm()
-		{
-			return BusToFarmWarps[new Random().Next(BusToFarmWarps.Count)];
-		}
-
-		internal static void CacheBusWarpsToFarm()
-		{
-			BusToFarmWarps = new List<Point>();
-
-			foreach (var warp in Game1.getLocationFromName("BusStop").warps)
-			{
-				if (warp.TargetName == "Farm")
-				{
-					BusToFarmWarps.Add(new Point(warp.X, warp.Y));
-				}
-			}
-		}
-
-        internal static void populateRoutesToCafe()
-        {
-            routesToCafe = new List<List<string>>();
-            foreach (string loc in new[] { "BusStop", "Town", "Beach" })
-            {
-                FindLocationRouteToCafe(Game1.getLocationFromName(loc), CafeManager.CafeLocations.First());
-            }
-            foreach (var route in routesToCafe)
-            {
-                Debug.Log(string.Join(" - ", route));
-            }
-        }
-
-        public static void FindLocationRouteToCafe(GameLocation startLocation, GameLocation endLocation)
-        {
-            Queue<string> frontier = new Queue<string>();
-            frontier.Enqueue(startLocation.Name);
-
-            Dictionary<string, string> cameFrom = new Dictionary<string, string>();
-            cameFrom[startLocation.Name] = null;
-
-            while (frontier.Count > 0)
-            {
-                GameLocation current = Game1.getLocationFromName(frontier.Dequeue());
-                if (current.Name == endLocation.Name)
-                    break;
-
-                foreach (Warp warp in current.warps)
-                {
-                    if (!cameFrom.ContainsKey(warp.TargetName))
-                    {
-                        frontier.Enqueue(warp.TargetName);
-                        cameFrom[warp.TargetName] = current.Name;
-                    }
-                }
-            }
-
-            List<string> path = new List<string>() { endLocation.Name };
-            string point = endLocation.Name;
-            while (true)
-            {
-                if (cameFrom.ContainsKey(point))
-                {
-                    path.Add(cameFrom[point]);
-                    point = cameFrom[point];
-                    if (point == startLocation.Name) break;
-                }
-                else
-                {
-                    return;
-                }
-
-            }
-            path.Reverse();
-            routesToCafe.Add(path);
-        }
-
         internal static void HandleWarp(Customer customer, GameLocation location, Vector2 position)
 		{
-			if (location is Farm && customer.Group != null)
+			if (location.Name.Contains("Cafe"))
 			{
-				customer.arriveAt(location);
-				//customer.ArriveAtFarm();
+				position += new Vector2(0, -64);
 			}
 			foreach (var other in CurrentCustomers)
 			{
@@ -328,11 +236,35 @@ namespace FarmCafe.Framework.Managers
 
 		internal static void WarpGroup(CustomerGroup group, GameLocation location, Point warpPosition)
 		{
-			foreach (Customer customer in group.Members)
+			var points = AdjacentTiles(warpPosition).ToList();
+			if (points.Count < group.Members.Count)
+				return;
+			for (int i = 0; i < group.Members.Count; i++)
 			{
-				Game1.warpCharacter(customer, location, warpPosition.ToVector2());
+				Game1.warpCharacter(group.Members[i], location, points[i].ToVector2());
+				group.Members[i].StartConvening();
 			}
 		}
+
+		internal static List<Customer> GetAllCustomersInGame()
+		{
+			var list = new List<Customer>();
+
+			var locationCustomers = Game1.locations
+				.SelectMany(l => l.getCharacters())
+				.Where(c => c is Customer)
+				.Select((c) => c as Customer);
+
+            var buildingCustomers = Game1.getFarm()?.buildings
+				.Where(b => b.indoors.Value != null)
+				.SelectMany(b => b.indoors.Value.characters)
+				.Where(c => c is Customer)
+				.Select(c => c as Customer);
+			list = locationCustomers.Concat(buildingCustomers).ToList();
+
+            Debug.Log("Updating customers" + string.Join(' ', list));
+			return list;
+        }
 
 		internal static void Debug_ListCustomers()
 		{

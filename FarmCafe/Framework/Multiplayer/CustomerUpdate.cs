@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FarmCafe.Framework.Characters;
 using FarmCafe.Framework.Customers;
 using StardewValley;
 
@@ -29,6 +30,10 @@ namespace FarmCafe.Framework.Multiplayer
             this.names = new List<string>();
             foreach (var customer in group.Members)
             {
+                if ((Game1.getCharacterFromName(customer.Name) as Customer) == null)
+                {
+                    Debug.Log("Can't get character)");
+                }
                 this.names.Add(customer.Name);
             }
         }
