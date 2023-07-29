@@ -12,17 +12,17 @@ namespace FarmCafe.Framework.Managers
 {
     internal static class CafeManager
     {
-        internal static List<GameLocation> CafeLocations = new List<GameLocation>();
-        public static List<List<string>> routesToCafe;
+        internal static List<GameLocation> CafeLocations = new();
+        public static List<List<string>> RoutesToCafe;
 
-        internal static void populateRoutesToCafe()
+        internal static void PopulateRoutesToCafe()
         {
-            routesToCafe = new List<List<string>>();
+            RoutesToCafe = new List<List<string>>();
             foreach (string loc in new[] { "BusStop", "Town", "Beach" })
             {
                 FindLocationRouteToCafe(GetLocationFromName(loc), CafeManager.CafeLocations.First());
             }
-            foreach (var route in routesToCafe)
+            foreach (var route in RoutesToCafe)
             {
                 Debug.Log(string.Join(" - ", route));
             }
@@ -30,53 +30,45 @@ namespace FarmCafe.Framework.Managers
 
         public static void FindLocationRouteToCafe(GameLocation startLocation, GameLocation endLocation)
         {
-            Queue<string> frontier = new Queue<string>();
+            var frontier = new Queue<string>();
             frontier.Enqueue(startLocation.Name);
 
-            Dictionary<string, string> cameFrom = new Dictionary<string, string>();
-            cameFrom[startLocation.Name] = null;
+            var cameFrom = new Dictionary<string, string>
+            {
+                [startLocation.Name] = null
+            };
 
             while (frontier.Count > 0)
             {
                 string currentName = frontier.Dequeue();
                 GameLocation current = GetLocationFromName(currentName);
-                if (current == null)
-                {
-                    current = CafeLocations.First();
-                }
+               
                 if (current.Name == endLocation.Name)
                     break;
 
-                foreach (Warp warp in current.warps)
+                foreach (var name in current.warps.Select(warp => warp.TargetName).Where(name => !cameFrom.ContainsKey(name)))
                 {
-                    string name = warp.TargetName;
-                    if (!cameFrom.ContainsKey(name))
-                    {
-                        frontier.Enqueue(name);
-                        cameFrom[name] = current.Name;
-                    }
+                    frontier.Enqueue(name);
+                    cameFrom[name] = current.Name;
                 }
-                foreach (Point p in current.doors.Keys)
+
+                foreach (var name in current.doors.Keys.Select(p => current.doors[p]).Where(name => !cameFrom.ContainsKey(name)))
                 {
-                    string name = current.doors[p];
-                    if (!cameFrom.ContainsKey(name))
-                    {
-                        frontier.Enqueue(name);
-                        cameFrom[name] = current.Name;
-                    }
+                    frontier.Enqueue(name);
+                    cameFrom[name] = current.Name;
                 }
-                if (current is BuildableGameLocation buildableCurrent)
+
+                if (current is not BuildableGameLocation buildableCurrent) continue;
+                
+                foreach (var building in buildableCurrent.buildings.Where(b => b.indoors.Value != null))
                 {
-                    foreach (var building in buildableCurrent.buildings.Where(b => b.indoors.Value != null))
-                    {
-                        string name = building.indoors.Value.Name;
-                        if (!cameFrom.ContainsKey(name))
-                        {
-                            frontier.Enqueue(name);
-                            cameFrom[name] = current.Name;
-                        }
-                    }
+                    string name = building.indoors.Value.Name;
+                    if (cameFrom.ContainsKey(name)) continue;
+
+                    frontier.Enqueue(name);
+                    cameFrom[name] = current.Name;
                 }
+                
             }
 
             List<string> path = new List<string>() { endLocation.Name };
@@ -96,12 +88,12 @@ namespace FarmCafe.Framework.Managers
 
             }
             path.Reverse();
-            routesToCafe.Add(path);
+            RoutesToCafe.Add(path);
         }
 
-        internal static List<string> getLocationRoute(GameLocation start, GameLocation end)
+        internal static List<string> GetLocationRoute(GameLocation start, GameLocation end)
         {
-            foreach (var r in routesToCafe)
+            foreach (var r in RoutesToCafe)
             {
                 if (r.First() == start.Name && r.Last() == end.Name)
                 {

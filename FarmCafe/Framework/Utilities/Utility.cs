@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using FarmCafe.Framework.Characters;
+using xTile.Tiles;
 
 namespace FarmCafe.Framework.Utilities
 {
@@ -144,6 +145,19 @@ namespace FarmCafe.Framework.Utilities
 				}
 			}
 		}
+        internal static string GetTileProperties(Tile tile)
+        {
+            return tile == null ? "" : tile.Properties.Concat(tile.TileIndexProperties).Aggregate("", (currentTile, property) => currentTile + $"{property.Key}: {property.Value}, ");
+        }
 
-	}
+        private static void DebugRepositionCustomer(int x, int y)
+        {
+            if (CustomerManager.CurrentCustomers.Any())
+            {
+                Customer c = CustomerManager.CurrentCustomers.First();
+                c.Position = new Vector2(x, y);
+            }
+
+        }
+    }
 }

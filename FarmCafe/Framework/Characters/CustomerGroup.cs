@@ -55,7 +55,7 @@ namespace FarmCafe.Framework.Customers
 				{
 					if (member.Equals(other)) continue;
 					member.lookingDirections.Add(
-						DirectionIntFromVectors(member.getTileLocation(), other.busConvenePoint.ToVector2()));
+						DirectionIntFromVectors(member.getTileLocation(), other.BusConvenePoint.ToVector2()));
 				}
 			}
 		}

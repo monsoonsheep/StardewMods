@@ -1,5 +1,6 @@
 ﻿using FarmCafe.Framework.Characters;
 using FarmCafe.Framework.Managers;
+using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
 
@@ -24,9 +25,13 @@ namespace FarmCafe
 			Monitor.Log(message, level);
 		}
 
+        public static void Show(string message)
+        {
+			Game1.addHUDMessage(new HUDMessage(message, Color.White, 2000));
+            Monitor.Log(message, LogLevel.Debug);
+        }
 
-
-		internal static void MoveDebugAll(int dir)
+        internal static void MoveDebugAll(int dir)
 		{
 			foreach (var c in CustomerManager.CurrentCustomers)
 			{
