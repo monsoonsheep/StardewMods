@@ -46,7 +46,10 @@ namespace FarmCafe
 			try
 			{
 				var harmony = new Harmony(ModManifest.UniqueID);
-				new Patching().Apply(harmony);
+				Patching.Apply(harmony, new GameLocationPatches().Patches);
+				Patching.Apply(harmony, new CharacterPatches().Patches);
+				Patching.Apply(harmony, new UtilityPatches().Patches);
+				Patching.Apply(harmony, new FurniturePatches().Patches);
 			}
 			catch (Exception e)
 			{
@@ -92,7 +95,7 @@ namespace FarmCafe
 				case SButton.B:
 					break;
 				case SButton.NumPad0:
-					CustomerManager.SpawnGroupBus();
+					CustomerManager.SpawnGroupAtBus();
 					break;
 				case SButton.NumPad1:
 					Debug.Debug_warpToBus();
@@ -205,7 +208,7 @@ namespace FarmCafe
             Debug.Log($"Added Cafe locations {string.Join(", ", CafeManager.CafeLocations.Select(l => l.Name))}");
             
 			ResetCustomers();
-			CafeManager.populateRoutesToCafe();
+			CafeManager.PopulateRoutesToCafe();
             TableManager.PopulateTables();
             Messaging.SyncTables();
         }

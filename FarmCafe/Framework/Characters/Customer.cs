@@ -5,6 +5,7 @@ using System.Xml.Serialization;
 using FarmCafe.Framework.Customers;
 using FarmCafe.Framework.Managers;
 using FarmCafe.Framework.Models;
+using FarmCafe.Locations;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Netcode;
@@ -16,188 +17,177 @@ using static FarmCafe.Framework.Utilities.Utility;
 
 namespace FarmCafe.Framework.Characters
 {
+    public enum CustomerState : byte
+    {
+        ExitingBus,
+        Convening,
+        MovingToTable,
+        GoingToSit,
+        Sitting,
+        ReadyToOrder,
+        WaitingForOrder,
+        Eating,
+        DoneEating,
+        GettingUpFromSeat,
+        Leaving,
+        Free,
+    }
 
-	public enum CustomerState
-	{
-		ExitingBus,
-		Convening,
-		MovingToTable,
-		GoingToSit,
-		Sitting,
-		ReadyToOrder,
-		Eating,
-		DoneEating,
-		GettingUpFromSeat,
-		Leaving,
-		Free,
-	}
+    public class Customer : NPC
+    {
+        [XmlElement("CustomerModel")] public CustomerModel Model { get; set; }
 
-    [InstanceStatics]
-    [XmlInclude(typeof(Customer))]
-	[XmlType(Namespace = "FarmCafe.Framework.Customers",
-	TypeName = "Customer")]
-	public class Customer : NPC
-	{
-		[XmlElement("CustomerModel")]
-		public CustomerModel Model { get; set; }
+        [XmlIgnore] internal CustomerGroup Group;
 
-		[XmlIgnore]
-		internal CustomerGroup Group;
-
-		[XmlIgnore]
-		public Furniture Seat;
+        [XmlIgnore] public Furniture Seat;
 
 
-        protected NetEnum<CustomerState> State = new NetEnum<CustomerState>(CustomerState.ExitingBus);
-		private int busDepartTimer = 0;
+        protected NetEnum<CustomerState> State = new(CustomerState.ExitingBus);
+        private int busDepartTimer = 0;
         private int conveneWaitingTimer = 0;
         private int lookAroundTimer = 0;
         private int orderTimer = 0;
 
-        [XmlIgnore]
-        internal Point busConvenePoint;
+        [XmlIgnore] internal Point BusConvenePoint;
 
-        
 
-		private float lerpPosition = -1f;
-		private float lerpDuration = 0f;
-		private Vector2 lerpStartPosition;
-		private Vector2 lerpEndPosition;
+        private float lerpPosition = -1f;
+        private float lerpDuration = 0f;
+        private Vector2 lerpStartPosition;
+        private Vector2 lerpEndPosition;
 
-        protected bool emoteLoop = false;
-		private NetVector2 drawOffsetForSeat = new NetVector2(new Vector2(0, 0));
-		
-		private NetVector2 tableCenterForEmote = new NetVector2(new Vector2(0, 0));
+        private readonly NetVector2 drawOffsetForSeat = new NetVector2(new Vector2(0, 0));
+        private readonly NetVector2 tableCenterForEmote = new NetVector2(new Vector2(0, 0));
 
-        [XmlIgnore]
-        internal List<int> lookingDirections = new() { 0, 1, 3 };
+        [XmlIgnore] internal List<int> lookingDirections = new() { 0, 1, 3 };
 
-		internal delegate void BehaviorFunction();
+        internal delegate void BehaviorFunction();
+
+        [XmlIgnore] internal Item OrderItem { get; set; }
 
         [XmlIgnore]
-		internal int OrderItem { get; set; }
+        internal bool FreezeMotion
+        {
+            get => freezeMotion;
+            set => freezeMotion = value;
+        }
 
-        [XmlIgnore]
-		internal bool FreezeMotion
-		{
-			get { return freezeMotion; }
-			set { freezeMotion = value; }
-		}
-
+        private bool emoteLoop;
+      
         public override bool canPassThroughActionTiles() => false;
 
         public Customer() : base()
-		{
+        {
+        }
 
-		}
+        protected override void initNetFields()
+        {
+            NetFields.AddFields(drawOffsetForSeat, State);
+            base.initNetFields();
+        }
 
-		protected override void initNetFields()
-		{
-			NetFields.AddFields(drawOffsetForSeat, State);
-			base.initNetFields();
-		}
-
-		public Customer(CustomerModel model, string name, Point targetTile, GameLocation location)
-			: base(new AnimatedSprite(model.TilesheetPath, 0, 16, 32), targetTile.ToVector2() * 64, 1, name)
-		{
+        public Customer(CustomerModel model, string name, Point targetTile, GameLocation location)
+            : base(new AnimatedSprite(model.TilesheetPath, 0, 16, 32), targetTile.ToVector2() * 64, 1, name)
+        {
             willDestroyObjectsUnderfoot = true;
-			collidesWithOtherCharacters.Value = false;
-			eventActor = false;
-			speed = 2;
-            displayName = "Customer";
+            collidesWithOtherCharacters.Value = false;
+            eventActor = false;
+            speed = 2;
+            base.displayName = "Customer";
             Portrait = FarmCafe.ModHelper.ModContent.Load<Texture2D>($"assets/Portraits/{model.PortraitName}.png");
 
             Model = model;
             State.Set(CustomerState.ExitingBus);
 
             currentLocation = location;
-			location.addCharacter(this);
+            location.addCharacter(this);
 
-			this.modData["CustomerData"] = "T";
-		}
+            this.modData["CustomerData"] = "T";
+        }
 
-		
-		public override void update(GameTime time, GameLocation location)
-		{
-			speed = 3; // For debug
-			//Debug.Log($"Position = {getTileLocation()}");
 
-			if (!Context.IsWorldReady) return;
+        public override void update(GameTime time, GameLocation location)
+        {
+            speed = 3; // For debug
+            //Debug.Log($"Position = {getTileLocation()}");
 
-			base.update(time, location);
+            if (!Context.IsWorldReady) return;
 
-			// Spawning and waiting to leave the bus
-			if (busDepartTimer > 0)
-			{
-				busDepartTimer -= time.ElapsedGameTime.Milliseconds;
-				if (busDepartTimer <= 0)
-					this.LeaveBus();
-			}
+            base.update(time, location);
 
-			// Convening with group members
-			if (conveneWaitingTimer > 0)
-			{
+            // Spawning and waiting to leave the bus
+            if (busDepartTimer > 0)
+            {
+                busDepartTimer -= time.ElapsedGameTime.Milliseconds;
+                if (busDepartTimer <= 0)
+                    this.LeaveBus();
+            }
+
+            // Convening with group members
+            if (conveneWaitingTimer > 0)
+            {
                 conveneWaitingTimer -= time.ElapsedGameTime.Milliseconds;
                 lookAroundTimer -= time.ElapsedGameTime.Milliseconds;
                 if (lookAroundTimer <= 0)
-				{
-					this.LookAround();
+                {
+                    this.LookAround();
                     lookAroundTimer += Game1.random.Next(400, 1000);
-				}
+                }
 
                 if (conveneWaitingTimer <= 0)
                 {
                     this.FinishConvening();
-					conveneWaitingTimer = 0;
-					lookAroundTimer = 0;
+                    conveneWaitingTimer = 0;
+                    lookAroundTimer = 0;
                 }
             }
 
             // Lerping position for sitting
             if (lerpPosition >= 0f)
-			{
-				lerpPosition += (float)time.ElapsedGameTime.TotalSeconds;
+            {
+                lerpPosition += (float)time.ElapsedGameTime.TotalSeconds;
 
-				if (lerpPosition >= lerpDuration)
-				{
-					lerpPosition = lerpDuration;
-				}
+                if (lerpPosition >= lerpDuration)
+                {
+                    lerpPosition = lerpDuration;
+                }
 
-				Position = new Vector2(
-					Utility.Lerp(lerpStartPosition.X, lerpEndPosition.X, lerpPosition / lerpDuration),
-					Utility.Lerp(lerpStartPosition.Y, lerpEndPosition.Y, lerpPosition / lerpDuration)
-				);
+                Position = new Vector2(
+                    Utility.Lerp(lerpStartPosition.X, lerpEndPosition.X, lerpPosition / lerpDuration),
+                    Utility.Lerp(lerpStartPosition.Y, lerpEndPosition.Y, lerpPosition / lerpDuration)
+                );
 
-				if (lerpPosition >= lerpDuration)
-				{
-					lerpPosition = -1f;
-				}
-			}
-			
-			// Sitting at table, waiting to order
-			if (orderTimer > 0)
-			{
+                if (lerpPosition >= lerpDuration)
+                {
+                    lerpPosition = -1f;
+                }
+            }
+
+            // Sitting at table, waiting to order
+            if (orderTimer > 0)
+            {
                 orderTimer -= time.ElapsedGameTime.Milliseconds;
 
                 if (orderTimer <= 0)
-				{
-                    this.OrderReady();
-				}
-			}
-		}
+                {
+                    this.ReadyToOrder();
+                }
+            }
+        }
 
 
-		public override void draw(SpriteBatch b, float alpha = 1f)
-		{
-			b.Draw(Sprite.Texture,
-				getLocalPosition(Game1.viewport) + new Vector2(GetSpriteWidthForPositioning() * 4 / 2, GetBoundingBox().Height / 2) + drawOffsetForSeat,
-				Sprite.SourceRect,
-				Color.White * alpha,
-				rotation,
-				new Vector2(Sprite.SpriteWidth / 2, Sprite.SpriteHeight * 3f / 4f),
-				Math.Max(0.2f, scale) * 4f,
-				SpriteEffects.None,
-				Math.Max(0f, getStandingY() / 10000f + 0.0001f));
+        public override void draw(SpriteBatch b, float alpha = 1f)
+        {
+            b.Draw(Sprite.Texture,
+                getLocalPosition(Game1.viewport) +
+                new Vector2(GetSpriteWidthForPositioning() * 4 / 2, GetBoundingBox().Height / 2) + drawOffsetForSeat,
+                Sprite.SourceRect,
+                Color.White * alpha,
+                rotation,
+                new Vector2(Sprite.SpriteWidth / 2, Sprite.SpriteHeight * 3f / 4f),
+                Math.Max(0.2f, scale) * 4f,
+                SpriteEffects.None,
+                Math.Max(0f, getStandingY() / 10000f + 0.0001f));
 
             if (Breather && shakeTimer <= 0 && !swimming && Sprite.currentFrame < 16 && !farmerPassesThrough)
             {
@@ -206,7 +196,7 @@ namespace FarmCafe.Framework.Characters
                 sourceRect.Height = Sprite.SpriteHeight / 4;
                 sourceRect.X += Sprite.SpriteWidth / 4;
                 sourceRect.Width = Sprite.SpriteWidth / 2;
-                Vector2 vector = new Vector2(Sprite.SpriteWidth * 4 / 2, 8f);
+                var vector = new Vector2(Sprite.SpriteWidth * 4 / 2, 8f);
                 if (Age == 2)
                 {
                     sourceRect.Y += Sprite.SpriteHeight / 6 + 1;
@@ -220,194 +210,217 @@ namespace FarmCafe.Framework.Characters
                     sourceRect.Height /= 2;
                 }
 
-                float num = (float) Math.Max(0f, Math.Ceiling(Math.Sin(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 600.0 + 200f)) / 4f);
+                float num = (float)Math.Max(0f,
+                    Math.Ceiling(Math.Sin(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 600.0 + 200f)) / 4f);
 
-                b.Draw(Sprite.Texture, 
-					getLocalPosition(Game1.viewport) + vector + drawOffsetForSeat, 
-					sourceRect, 
-					Color.White * alpha, 
-					rotation, 
-					new Vector2(sourceRect.Width / 2, sourceRect.Height / 2 + 1), 
-					Math.Max(0.2f, scale) * 4f + num, 
-					flip ? SpriteEffects.FlipHorizontally : SpriteEffects.None, 
-					Math.Max(0f, drawOnTop ? 0.992f : (getStandingY() / 10000f + 0.001f)));
+                b.Draw(Sprite.Texture,
+                    getLocalPosition(Game1.viewport) + vector + drawOffsetForSeat,
+                    sourceRect,
+                    Color.White * alpha,
+                    rotation,
+                    new Vector2(sourceRect.Width / 2, sourceRect.Height / 2 + 1),
+                    Math.Max(0.2f, scale) * 4f + num,
+                    flip ? SpriteEffects.FlipHorizontally : SpriteEffects.None,
+                    Math.Max(0f, drawOnTop ? 0.992f : (getStandingY() / 10000f + 0.001f)));
             }
 
             if (IsEmoting)
-			{
-				Vector2 localPosition2;
-				float layer = getStandingY() / 10000f;
-                localPosition2 = getLocalPosition(Game1.viewport);
-                localPosition2.Y -= 32 + Sprite.SpriteHeight * 4;
+            {
+                float layer = getStandingY() / 10000f;
+                Vector2 localPosition = getLocalPosition(Game1.viewport);
+                localPosition.Y -= 32 + Sprite.SpriteHeight * 4;
 
-                b.Draw(Game1.emoteSpriteSheet, localPosition2, new Rectangle(CurrentEmoteIndex * 16 % Game1.emoteSpriteSheet.Width, CurrentEmoteIndex * 16 / Game1.emoteSpriteSheet.Width * 16, 16, 16), Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, layer);
-			}
+                b.Draw(Game1.emoteSpriteSheet, localPosition,
+                    new Rectangle(CurrentEmoteIndex * 16 % Game1.emoteSpriteSheet.Width,
+                        CurrentEmoteIndex * 16 / Game1.emoteSpriteSheet.Width * 16, 16, 16), Color.White, 0f,
+                    Vector2.Zero, 4f, SpriteEffects.None, layer);
+            }
 
-			if (State == CustomerState.ReadyToOrder)
-			{
-                float num2 = 4f * (float)Math.Round(Math.Sin(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 250.0), 2);
+            if (State == CustomerState.ReadyToOrder)
+            {
+                Vector2 offset = new Vector2(0,
+                    (float) Math.Round(4f * Math.Sin(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 250.0)));
+
+                OrderItem.drawInMenu(
+                    b, 
+                    Game1.GlobalToLocal(tableCenterForEmote - new Vector2(18, 56) + offset), 
+                    0.8f, 1f, 1f, StackDrawType.Hide, Color.White, false);
+
                 b.Draw(
                     Game1.mouseCursors,
-                    Game1.GlobalToLocal(tableCenterForEmote),
-                    new Rectangle(402, 495, 7, 16),
+                    Game1.GlobalToLocal(tableCenterForEmote - new Vector2(28, 64) + offset),
+                    new Rectangle(141, 465, 20, 24),
                     Color.White,
                     0f,
-                    new Vector2(1f, 4f),
-                    4f + Math.Max(0f, 0.25f - num2 / 16f),
+                    Vector2.Zero,
+                    4f,
                     SpriteEffects.None,
-                    1f);
+                    0.991f);
+                //b.Draw(
+                //    Game1.mouseCursors,
+                //    Game1.GlobalToLocal(tableCenterForEmote),
+                //    new Rectangle(402, 495, 7, 16),
+                //    Color.White,
+                //    0f,
+                //    new Vector2(1f, 4f),
+                //    4f + Math.Max(0f, 0.25f - scale / 16f),
+                //    SpriteEffects.None,
+                //    1f);
             }
-		}
+        }
 
-		public override void MovePosition(GameTime time, xTile.Dimensions.Rectangle viewport, GameLocation currentLocation)
-		{
-			//Debug.Log($"{moveUp}, {moveRight}, {moveDown}, {moveLeft}");
-			if (moveUp)
-			{
-				if (currentLocation == null || !currentLocation.isCollidingPosition(nextPosition(0), viewport, isFarmer: false, 0, glider: false, this) || isCharging)
-				{
-					position.Y -= speed + addedSpeed;
+        public override void MovePosition(GameTime time, xTile.Dimensions.Rectangle viewport,
+            GameLocation currentLocation)
+        {
+            //Debug.Log($"{moveUp}, {moveRight}, {moveDown}, {moveLeft}");
+            if (moveUp)
+            {
+                if (currentLocation == null ||
+                    !currentLocation.isCollidingPosition(nextPosition(0), viewport, isFarmer: false, 0, glider: false,
+                        this) || isCharging)
+                {
+                    position.Y -= speed + addedSpeed;
 
-					if (!ignoreMovementAnimation)
-					{
-						Sprite.AnimateUp(time, (speed - 2 + addedSpeed) * -25, Utility.isOnScreen(getTileLocationPoint(), 1, currentLocation) ? "Cowboy_Footstep" : "");
-						faceDirection(0);
-					}
+                    if (!ignoreMovementAnimation)
+                    {
+                        Sprite.AnimateUp(time, (speed - 2 + addedSpeed) * -25,
+                            Utility.isOnScreen(getTileLocationPoint(), 1, currentLocation) ? "Cowboy_Footstep" : "");
+                        faceDirection(0);
+                    }
 
-					blockedInterval = 0;
-
-				}
-				else if (!currentLocation.isTilePassable(nextPosition(0), viewport))
-				{
-					Halt();
-				}
-				else
-				{
-					//blockedInterval += time.ElapsedGameTime.Milliseconds;
-				}
-
-			}
-			else if (moveRight)
-			{
-				if (currentLocation == null || !currentLocation.isCollidingPosition(nextPosition(1), viewport, isFarmer: false, 0, glider: false, this) || isCharging)
-				{
-					position.X += speed + addedSpeed;
-
-					if (!ignoreMovementAnimation)
-					{
-						Sprite.AnimateRight(time, (speed - 2 + addedSpeed) * -25, Utility.isOnScreen(getTileLocationPoint(), 1, currentLocation) ? "Cowboy_Footstep" : "");
-						faceDirection(1);
-					}
-
-					blockedInterval = 0;
-				}
-				else if (!currentLocation.isTilePassable(nextPosition(1), viewport))
-				{
-					Halt();
-				}
-				else
-				{
-					//blockedInterval += time.ElapsedGameTime.Milliseconds;
-				}
-			}
-			else if (moveDown)
-			{
-				if (currentLocation == null || !currentLocation.isCollidingPosition(nextPosition(2), viewport, isFarmer: false, 0, glider: false, this) || isCharging)
-				{
-					position.Y += speed + addedSpeed;
-
-					if (!ignoreMovementAnimation)
-					{
-						Sprite.AnimateDown(time, (speed - 2 + addedSpeed) * -25, Utility.isOnScreen(getTileLocationPoint(), 1, currentLocation) ? "Cowboy_Footstep" : "");
-						faceDirection(2);
-					}
-
-					blockedInterval = 0;
-
-				}
-				else if (!currentLocation.isTilePassable(nextPosition(2), viewport))
-				{
-					Halt();
-				}
-				else
-				{
-					//blockedInterval += time.ElapsedGameTime.Milliseconds;
-				}
-
-			}
-			else if (moveLeft)
-			{
-				if (currentLocation == null || !currentLocation.isCollidingPosition(nextPosition(3), viewport, isFarmer: false, 0, glider: false, this) || isCharging)
-				{
-					position.X -= speed + addedSpeed;
-
-					if (!ignoreMovementAnimation)
-					{
-						Sprite.AnimateLeft(time, (speed - 2 + addedSpeed) * -25, Utility.isOnScreen(getTileLocationPoint(), 1, currentLocation) ? "Cowboy_Footstep" : "");
-						faceDirection(3);
-					}
-
-					blockedInterval = 0;
-				}
-				else if (!currentLocation.isTilePassable(nextPosition(3), viewport))
-				{
-					Halt();
-				}
-				else
-				{
-					//blockedInterval += time.ElapsedGameTime.Milliseconds;
-				}
-			}
-
-
-			//if (blockedInterval > 5000)
-			//{
-			//    Halt();
-			//}
-		}
-
-		public override void tryToReceiveActiveObject(Farmer who)
-		{
-			if (who.ActiveObject != null && who.ActiveObject.ParentSheetIndex == OrderItem)
-			{
-				this.OrderReceive();
-                who.reduceActiveItemByOne();
+                    blockedInterval = 0;
+                }
+                else if (!currentLocation.isTilePassable(nextPosition(0), viewport))
+                {
+                    Halt();
+                }
+                else
+                {
+                    //blockedInterval += time.ElapsedGameTime.Milliseconds;
+                }
             }
-		}
+            else if (moveRight)
+            {
+                if (currentLocation == null ||
+                    !currentLocation.isCollidingPosition(nextPosition(1), viewport, isFarmer: false, 0, glider: false,
+                        this) || isCharging)
+                {
+                    position.X += speed + addedSpeed;
+
+                    if (!ignoreMovementAnimation)
+                    {
+                        Sprite.AnimateRight(time, (speed - 2 + addedSpeed) * -25,
+                            Utility.isOnScreen(getTileLocationPoint(), 1, currentLocation) ? "Cowboy_Footstep" : "");
+                        faceDirection(1);
+                    }
+
+                    blockedInterval = 0;
+                }
+                else if (!currentLocation.isTilePassable(nextPosition(1), viewport))
+                {
+                    Halt();
+                }
+                else
+                {
+                    //blockedInterval += time.ElapsedGameTime.Milliseconds;
+                }
+            }
+            else if (moveDown)
+            {
+                if (currentLocation == null ||
+                    !currentLocation.isCollidingPosition(nextPosition(2), viewport, isFarmer: false, 0, glider: false,
+                        this) || isCharging)
+                {
+                    position.Y += speed + addedSpeed;
+
+                    if (!ignoreMovementAnimation)
+                    {
+                        Sprite.AnimateDown(time, (speed - 2 + addedSpeed) * -25,
+                            Utility.isOnScreen(getTileLocationPoint(), 1, currentLocation) ? "Cowboy_Footstep" : "");
+                        faceDirection(2);
+                    }
+
+                    blockedInterval = 0;
+                }
+                else if (!currentLocation.isTilePassable(nextPosition(2), viewport))
+                {
+                    Halt();
+                }
+                else
+                {
+                    //blockedInterval += time.ElapsedGameTime.Milliseconds;
+                }
+            }
+            else if (moveLeft)
+            {
+                if (currentLocation == null ||
+                    !currentLocation.isCollidingPosition(nextPosition(3), viewport, isFarmer: false, 0, glider: false,
+                        this) || isCharging)
+                {
+                    position.X -= speed + addedSpeed;
+
+                    if (!ignoreMovementAnimation)
+                    {
+                        Sprite.AnimateLeft(time, (speed - 2 + addedSpeed) * -25,
+                            Utility.isOnScreen(getTileLocationPoint(), 1, currentLocation) ? "Cowboy_Footstep" : "");
+                        faceDirection(3);
+                    }
+
+                    blockedInterval = 0;
+                }
+                else if (!currentLocation.isTilePassable(nextPosition(3), viewport))
+                {
+                    Halt();
+                }
+                else
+                {
+                    //blockedInterval += time.ElapsedGameTime.Milliseconds;
+                }
+            }
+        }
+
+        public override void tryToReceiveActiveObject(Farmer who)
+        {
+            if (who.ActiveObject == null || who.ActiveObject.ParentSheetIndex != OrderItem.ParentSheetIndex) return;
+
+            this.OrderReceive();
+            who.reduceActiveItemByOne();
+        }
 
         internal void LeaveBus()
         {
             if (Group.Members.Count == 1)
             {
-               GoToCafe();
+                GoToCafe();
             }
             else
             {
-               collidesWithOtherCharacters.Set(false);
-               HeadTowards(GetLocationFromName("BusStop"),busConvenePoint, 2,StartConvening);
+                collidesWithOtherCharacters.Set(false);
+                HeadTowards(GetLocationFromName("BusStop"), BusConvenePoint, 2, StartConvening);
             }
         }
 
         internal void SetBusConvene(Point pos, int timer)
         {
             busDepartTimer = timer;
-            busConvenePoint = pos;
+            BusConvenePoint = pos;
         }
 
         internal void GoToCafe()
         {
-           State.Set(CustomerState.MovingToTable);
-           collidesWithOtherCharacters.Set(false);
-           HeadTowards(Group.TableLocation,Seat.TileLocation.ToPoint(), -1,SitDown);
-           controller.finalFacingDirection = DirectionIntFromPoints(controller.pathToEndPoint.Last(),Seat.TileLocation.ToPoint());
+            State.Set(CustomerState.MovingToTable);
+            collidesWithOtherCharacters.Set(false);
+            HeadTowards(Group.TableLocation, Seat.TileLocation.ToPoint(), -1, SitDown);
+            controller.finalFacingDirection =
+                DirectionIntFromPoints(controller.pathToEndPoint.Last(), Seat.TileLocation.ToPoint());
         }
 
         internal void StartConvening()
         {
-           controller = null;
-           conveneWaitingTimer = Game1.random.Next(500, 3000);
-           State.Set(CustomerState.Convening);
-           Group.GetLookingDirections();
+            controller = null;
+            conveneWaitingTimer = Game1.random.Next(500, 3000);
+            State.Set(CustomerState.Convening);
+            Group.GetLookingDirections();
         }
 
 
@@ -420,98 +433,95 @@ namespace FarmCafe.Framework.Characters
                     return;
                 }
             }
+
             foreach (Customer mate in Group.Members)
                 mate.GoToCafe();
         }
 
         internal void LookAround()
         {
-           faceDirection(lookingDirections[Game1.random.Next(lookingDirections.Count)]);
+            faceDirection(lookingDirections[Game1.random.Next(lookingDirections.Count)]);
         }
 
         internal void SitDown()
         {
-           controller = null;
-           isCharging = true;
+            controller = null;
+            isCharging = true;
 
-            var mypos =Position;
-            var seatpos =Seat.TileLocation * 64f;
+            var mypos = Position;
+            var seatpos = Seat.TileLocation * 64f;
 
-           State.Set(CustomerState.GoingToSit);
-           LerpPosition(mypos, seatpos, 0.15f);
-           faceDirection(Seat.GetSittingDirection());
+            State.Set(CustomerState.GoingToSit);
+            LerpPosition(mypos, seatpos, 0.15f);
+            faceDirection(Seat.GetSittingDirection());
 
-            Vector2 vec =facingDirection.Value switch
+            Vector2 vec = facingDirection.Value switch
             {
                 0 => new Vector2(0f, -24f), // up
                 1 => new Vector2(12f, -8f), // right
                 2 => new Vector2(0f, 0f), // down 
                 3 => new Vector2(-12f, -8f), // left
-                _ =>drawOffsetForSeat
+                _ => drawOffsetForSeat
             };
 
-           drawOffsetForSeat.Set(vec);
-           Breather = true;
-           orderTimer = Game1.random.Next(300, 500);
-        }
-
-        internal void SitDownFinishLerping()
-        {
-           State.Set(CustomerState.Sitting);
+            drawOffsetForSeat.Set(vec);
+            Breather = true;
+            orderTimer = Game1.random.Next(300, 500);
         }
 
         internal void GetUp(int direction)
         {
-           drawOffsetForSeat.Set(new Vector2(0, 0));
-            var nextPos =Position + (DirectionIntToDirectionVector(direction) * 64f);
-           LerpPosition(Position, nextPos, 0.15f);
+            drawOffsetForSeat.Set(new Vector2(0, 0));
+            var nextPos = Position + (DirectionIntToDirectionVector(direction) * 64f);
+            LerpPosition(Position, nextPos, 0.15f);
         }
 
-        internal void OrderReady()
+        internal void ReadyToOrder()
         {
-           State.Set(CustomerState.ReadyToOrder);
+            State.Set(CustomerState.ReadyToOrder);
             foreach (Customer mate in Group.Members)
             {
-                if (mate.State != CustomerState.ReadyToOrder)
+                if (mate.State.Value != CustomerState.ReadyToOrder)
                 {
                     return;
                 }
             }
 
-           tableCenterForEmote.Set(GetTableCenter());
-           emoteLoop = true;
-           doEmote(16);
-           CurrentDialogue.Push(new Dialogue("I am customer.", this));
-           OrderItem = 746;
+            tableCenterForEmote.Set(GetTableCenter());
+
+            //emoteLoop = true;
+            doEmote(16);
+            CurrentDialogue.Push(new Dialogue("I am customer.", this));
+            OrderItem = new StardewValley.Object(746, 1).getOne();
         }
 
         internal void OrderReceive()
         {
-           emoteLoop = false;
-           isEmoting = false;
-           State.Set(CustomerState.Eating);
-           doEmote(20);
+            emoteLoop = false;
+            isEmoting = false;
+            State.Set(CustomerState.Eating);
+            doEmote(20);
         }
 
         internal void DoNothingAndWait()
         {
-           State.Set(CustomerState.Free);
+            State.Set(CustomerState.Free);
         }
 
 
         internal void GoHome()
         {
-
         }
 
 
-        internal void HeadTowards(GameLocation targetLocation, Point targetTile, int finalFacingDirection = 0, BehaviorFunction endBehaviorFunction = null)
+        internal void HeadTowards(GameLocation targetLocation, Point targetTile, int finalFacingDirection = 0,
+            BehaviorFunction endBehaviorFunction = null)
         {
-           controller = null;
-           FreezeMotion = false;
-           isCharging = false;
+            controller = null;
+            FreezeMotion = false;
+            isCharging = false;
 
-            Stack<Point> path = PathTo(currentLocation,getTileLocationPoint(), targetLocation, targetTile);
+            Stack<Point> path = PathTo(currentLocation, getTileLocationPoint(), targetLocation, targetTile);
 
             if (path == null || !path.Any())
             {
@@ -521,7 +531,7 @@ namespace FarmCafe.Framework.Characters
             }
 
 
-           controller = new PathFindController(path, currentLocation, this, path.Last())
+            controller = new PathFindController(path, currentLocation, this, path.Last())
             {
                 NPCSchedule = true,
                 nonDestructivePathing = true,
@@ -532,19 +542,20 @@ namespace FarmCafe.Framework.Characters
             if (controller == null)
             {
                 Debug.Log("Can't construct controller.", LogLevel.Warn);
-               GoHome();
+                GoHome();
             }
         }
 
 
-        internal Stack<Point> PathTo(GameLocation startingLocation, Point startTile, GameLocation targetLocation, Point targetTile)
+        internal Stack<Point> PathTo(GameLocation startingLocation, Point startTile, GameLocation targetLocation,
+            Point targetTile)
         {
             Stack<Point> path = new Stack<Point>();
             Point locationStartPoint = startTile;
             if (startingLocation.Name.Equals(targetLocation.Name, StringComparison.Ordinal))
                 return FindPath(locationStartPoint, targetTile, startingLocation);
 
-            List<string> locationsRoute = CafeManager.getLocationRoute(startingLocation, targetLocation);
+            List<string> locationsRoute = CafeManager.GetLocationRoute(startingLocation, targetLocation);
 
             if (locationsRoute == null)
             {
@@ -554,26 +565,29 @@ namespace FarmCafe.Framework.Characters
 
             for (int i = 0; i < locationsRoute.Count; i++)
             {
-                GameLocation currentLocation = GetLocationFromName(locationsRoute[i]);
+                GameLocation current = GetLocationFromName(locationsRoute[i]);
                 if (i < locationsRoute.Count - 1)
                 {
-                    Point target = currentLocation.getWarpPointTo(locationsRoute[i + 1]);
+                    Point target = current.getWarpPointTo(locationsRoute[i + 1]);
                     var cafeloc = GetLocationFromName(locationsRoute[i + 1]);
-                    if (target == Point.Zero && cafeloc != null && cafeloc.Name.Contains("Cafe") && currentLocation is BuildableGameLocation buildableLocation)
+                    if (target == Point.Zero && cafeloc != null && cafeloc.Name.Contains("Cafe") &&
+                        current is BuildableGameLocation buildableLocation)
                     {
-                        var building = buildableLocation.buildings.Where(b => b.indoors.Value != null && b.indoors.Value.Name.Contains("Cafe")).FirstOrDefault();
+                        var building = buildableLocation.buildings
+                            .FirstOrDefault(b => b.indoors.Value is CafeLocation);
                         if (building == null || building.humanDoor == null)
                             throw new Exception("schedule pathing tried to find a warp point that doesn't exist.");
                         target = building.humanDoor.Value;
                     }
+
                     if (target.Equals(Point.Zero) || locationStartPoint.Equals(Point.Zero))
                         throw new Exception("schedule pathing tried to find a warp point that doesn't exist.");
 
-                    path = combineStacks(path, FindPath(locationStartPoint, target, currentLocation));
-                    locationStartPoint = currentLocation.getWarpPointTarget(target);
+                    path = CombineStacks(path, FindPath(locationStartPoint, target, current));
+                    locationStartPoint = current.getWarpPointTarget(target);
                     if (locationStartPoint == Point.Zero)
                     {
-                        var building = (currentLocation as BuildableGameLocation).getBuildingAt(target.ToVector2());
+                        var building = (current as BuildableGameLocation).getBuildingAt(target.ToVector2());
                         if (building != null && building.indoors.Value != null)
                         {
                             Warp w = building.indoors.Value.warps.FirstOrDefault();
@@ -583,7 +597,7 @@ namespace FarmCafe.Framework.Characters
                 }
                 else
                 {
-                    path = combineStacks(path, FindPath(locationStartPoint, targetTile, currentLocation));
+                    path = CombineStacks(path, FindPath(locationStartPoint, targetTile, current));
                 }
             }
 
@@ -602,7 +616,8 @@ namespace FarmCafe.Framework.Characters
             }
             else
             {
-                return PathFindController.findPath(startTile, targetTile, new PathFindController.isAtEnd(PathFindController.isAtEndPoint), location, this, iterations);
+                return PathFindController.findPath(startTile, targetTile,
+                    new PathFindController.isAtEnd(PathFindController.isAtEndPoint), location, this, iterations);
             }
         }
 
@@ -611,10 +626,10 @@ namespace FarmCafe.Framework.Characters
             var directions = new List<sbyte[]>
             {
                 new sbyte[] { 0, -1 }, // up
-			    new sbyte[] { -1, 0 }, // left
-			    new sbyte[] { 0, 1 }, // down
-			    new sbyte[] { 1, 0 }, // right
-		    };
+                new sbyte[] { -1, 0 }, // left
+                new sbyte[] { 0, 1 }, // down
+                new sbyte[] { 1, 0 }, // right
+            };
 
             if (!chair.Name.ToLower().Contains("stool"))
                 directions.RemoveAt(chair.currentRotation.Value);
@@ -624,7 +639,8 @@ namespace FarmCafe.Framework.Characters
 
             foreach (var direction in directions)
             {
-                Furniture obstructionChair = location.GetFurnitureAt((targetTile + new Point(direction[0], direction[1])).ToVector2());
+                Furniture obstructionChair =
+                    location.GetFurnitureAt((targetTile + new Point(direction[0], direction[1])).ToVector2());
                 if (IsChair(obstructionChair))
                     continue;
 
@@ -641,10 +657,12 @@ namespace FarmCafe.Framework.Characters
                 shortestPath = pathRightNextToChair;
                 shortestPathLength = pathRightNextToChair.Count;
             }
+
             if (shortestPath == null || shortestPath.Count == 0)
             {
                 Debug.Log("path to chair can't be found");
             }
+
             return shortestPath;
         }
 
@@ -652,72 +670,74 @@ namespace FarmCafe.Framework.Characters
         internal void UpdatePathingTarget(Point targetTile)
         {
             //Debug.Log($"repathing to {targetTile.X}, {targetTile.Y}");
-           HeadTowards(currentLocation, targetTile);
+            HeadTowards(currentLocation, targetTile);
         }
 
-        internal static Stack<Point> combineStacks(Stack<Point> original, Stack<Point> toAdd)
+        internal static Stack<Point> CombineStacks(Stack<Point> original, Stack<Point> toAdd)
         {
             if (toAdd == null)
             {
                 return original;
             }
+
             original = new Stack<Point>(original);
             while (original.Count > 0)
             {
                 toAdd.Push(original.Pop());
             }
+
             return toAdd;
         }
 
         internal void LerpPosition(Vector2 startPos, Vector2 endPos, float duration)
-		{
-			lerpStartPosition = startPos;
-			lerpEndPosition = endPos;
-			lerpPosition = 0f;
-			lerpDuration = duration;
-		}
+        {
+            lerpStartPosition = startPos;
+            lerpEndPosition = endPos;
+            lerpPosition = 0f;
+            lerpDuration = duration;
+        }
 
-		//protected override void updateSlaveAnimation(GameTime time)
-		//{
-		//	return;
-		//}
+        //protected override void updateSlaveAnimation(GameTime time)
+        //{
+        //	return;
+        //}
 
-		internal Vector2 GetTableCenter()
-		{
-			Furniture table = this.Group.ReservedTable;
-			if (table == null)
-				return Vector2.Zero;
-			return table.boundingBox.Center.ToVector2() + new Vector2(-8, -64);
-		}
+        internal Vector2 GetTableCenter()
+        {
+            Furniture table = this.Group.ReservedTable;
+            if (table == null)
+                return Vector2.Zero;
+            return table.boundingBox.Center.ToVector2() + new Vector2(-8, -64);
+        }
 
-		internal void Reset()
-		{
-			isCharging = false;
-			freezeMotion = false;
-			controller = null;
-			State.Set(CustomerState.Free);
-		}
+        internal void Reset()
+        {
+            isCharging = false;
+            freezeMotion = false;
+            controller = null;
+            State.Set(CustomerState.Free);
+        }
 
-		internal void Debug_ShowInfo()
-		{
-			Debug.Log(ToString());
-		}
+        internal void Debug_ShowInfo()
+        {
+            Debug.Log(ToString());
+        }
 
-		public new string ToString()
-		{
-			return $"[Customer]\n"
-				   + $"Name: {Name}\n"
-				   + $"Active path: " + this.GetCurrentPathStackShort() + "\n"
-				   + $"Location: {currentLocation}, Position: {Position}, Tile: {getTileLocation()}\n"
-				   + $"Bus depart timer: {busDepartTimer}, Convene timer: {conveneWaitingTimer}\n"
-				   + $"State: {State}\n"
-				   + $"Model: [Name: {Model?.Name}, Tilesheet: {Model?.TilesheetPath}]\n";
+        public new string ToString()
+        {
+            return $"[Customer]\n"
+                   + $"Name: {Name}\n"
+                   + $"Active path: " + this.GetCurrentPathStackShort() + "\n"
+                   + $"Location: {currentLocation}, Position: {Position}, Tile: {getTileLocation()}\n"
+                   + $"Bus depart timer: {busDepartTimer}, Convene timer: {conveneWaitingTimer}\n"
+                   + $"State: {State}\n"
+                   + $"Model: [Name: {Model?.Name}, Tilesheet: {Model?.TilesheetPath}]\n";
 
-			//+ $"Group members: {Group.Members.Count}\n"
-			//+ $"Animation: {Model.Animation.NumberOfFrames} frames, {Model.Animation.Duration}ms each, Starting {Model.Animation.StartingFrame}\n"
-			//+ $"Sprite info: {Sprite} current frame = {Sprite.CurrentFrame}, "
-			//+ $"Texture name = {Sprite.Texture.Name}\n"
-			//+ $"Facing direction {FacingDirection}, IsMoving = {isMoving()}";
-		}
-	}
+            //+ $"Group members: {Group.Members.Count}\n"
+            //+ $"Animation: {Model.Animation.NumberOfFrames} frames, {Model.Animation.Duration}ms each, Starting {Model.Animation.StartingFrame}\n"
+            //+ $"Sprite info: {Sprite} current frame = {Sprite.CurrentFrame}, "
+            //+ $"Texture name = {Sprite.Texture.Name}\n"
+            //+ $"Facing direction {FacingDirection}, IsMoving = {isMoving()}";
+        }
+    }
 }

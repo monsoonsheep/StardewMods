@@ -18,8 +18,6 @@ namespace FarmCafe.Framework.Multiplayer
             this.names = new List<string>();
         }
 
-        public CustomerUpdate(Customer customer) : this(customer.Name) {}
-
         public CustomerUpdate(string name)
         {
             this.names = new List<string>() { name };

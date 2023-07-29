@@ -16,7 +16,6 @@ namespace FarmCafe.Locations
 {
     public class CafeLocation : DecoratableLocation
     {
-       
         public CafeLocation()
         {
 
