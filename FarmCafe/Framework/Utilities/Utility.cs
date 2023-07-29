@@ -1,20 +1,31 @@
 ﻿using FarmCafe.Framework.Customers;
+using FarmCafe.Framework.Managers;
 using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.Objects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FarmCafe.Framework.Characters;
 
 namespace FarmCafe.Framework.Utilities
 {
 	internal static class Utility
 	{
-		internal static bool IsChair(Furniture furniture)
+        internal static GameLocation GetLocationFromName(string name)
+        {
+            var l = Game1.getLocationFromName(name);
+            if (l == null)
+            {
+                l = CafeManager.CafeLocations.Where(a => a.Name == name).FirstOrDefault();
+            }
+            return l;
+        }
+
+        internal static bool IsChair(Furniture furniture)
 		{
 			return furniture != null && furniture.furniture_type.Value is 0 or 1 or 2;
 		}
-
 
 		internal static bool IsTable(Furniture furniture)
 		{

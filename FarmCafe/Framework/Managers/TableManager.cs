@@ -26,42 +26,40 @@ namespace FarmCafe.Framework.Managers
                     // If we already have this table object registered
                     if (TrackedTables.Keys.Any(t => t == table)) continue;
 
-                    AddTable(table, location);
+                    TryAddTable(table, location);
                 }
             }
         }
 
-		internal static void AddTable(Furniture table, GameLocation location)
+		internal static void TryAddTable(Furniture table, GameLocation location)
 		{
 			List<Furniture> foundChairs = FindChairsAroundTable(table, location);
-			if (foundChairs.Count == 0) return;
+			if (foundChairs.Count == 0) 
+                return;
             
-			UpdateChairsForTable(table, foundChairs);
-
             table.modData["FarmCafeTable"] = "T";
+            UpdateChairsForTable(table, foundChairs);
+
+            Debug.Log($"Table added. {foundChairs.Count} chairs.");
             TrackedTables.Add(table, location);
             Messaging.SyncTables();
-            Debug.Log($"Table added. {foundChairs.Count} chairs.");
         }
 
         internal static void TryRemoveTable(Furniture table)
         {
-            if (!TrackedTables.ContainsKey(table))
+            List<Furniture> chairs = GetChairsOfTable(table);
+            foreach (var chair in chairs)
             {
-                //Debug.Log("Table removed, but it wasn't a valid table counted in the manager. Bug?", LogLevel.Warn);
-                return;
+                chair.modData.Remove("FarmCafeChairIsReserved");
+                chair.modData.Remove("FarmCafeChairTable");
             }
-
-            if (TableIsReserved(table))
-            {
-                Debug.Log("You shouldn't have removed that table. It was reserved!", LogLevel.Error);
-            }
-
-            TrackedTables.Remove(table);
-            Messaging.SyncTables();
-			table.modData.Remove("FarmCafeTable");
+            table.modData.Remove("FarmCafeTable");
 			table.modData.Remove("FarmCafeTableChairs");
 			table.modData.Remove("FarmCafeTableIsReserved");
+
+            Debug.Log($"Table removed");
+            TrackedTables.Remove(table);
+            Messaging.SyncTables();
         }
 
         internal static void UpdateChairsForTable(Furniture table, List<Furniture> chairs)
@@ -144,11 +142,6 @@ namespace FarmCafe.Framework.Managers
                 return;
             }
 
-            if (TableIsReserved(table))
-            {
-                Debug.Log("You shouldn't remove that chair. Its table is reserved!", LogLevel.Warn);
-            }
-
             chair.modData["FarmCafeChairIsReserved"] = "F";
 
             Debug.Log("Removing chair from table");
@@ -209,7 +202,7 @@ namespace FarmCafe.Framework.Managers
             table.modData["FarmCafeTableIsReserved"] = "F";
             foreach (Furniture chair in GetChairsOfTable(table))
             {
-                Debug.Log("Removing chair" + chair.HasSittingFarmers());
+                Debug.Log("Freeing chair" + chair.HasSittingFarmers());
                 chair.modData["FarmCafeChairIsReserved"] = "F";
             }
         }

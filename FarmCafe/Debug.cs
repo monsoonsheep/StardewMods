@@ -1,4 +1,4 @@
-﻿using FarmCafe.Framework.Customers;
+﻿using FarmCafe.Framework.Characters;
 using FarmCafe.Framework.Managers;
 using StardewModdingAPI;
 using StardewValley;

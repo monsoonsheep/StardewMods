@@ -14,6 +14,8 @@ using System.Net.Http.Headers;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Security.Claims;
+using FarmCafe.Framework.Characters;
+using Netcode;
 using xTile.Dimensions;
 using xTile.ObjectModel;
 using xTile.Tiles;
@@ -39,7 +41,8 @@ namespace FarmCafe.Framework.Patching
 
 		public PatchItem(Type targetType, 
 			string targetMethodName, 
-			Type[] arguments, 
+			Type[] arguments,
+			Type[] generics = null,
 			string prefix = null, 
 			string postfix = null, 
 			string transpiler = null)
@@ -59,14 +62,24 @@ namespace FarmCafe.Framework.Patching
 		{
 			Patches = new List<PatchItem>()
 			{
-				new (
+                new (
+                    typeof(GameLocation),
+                    "cleanupBeforeSave",
+					null,
+					postfix: nameof(CleanupBeforeSavePostfix)),
+                new (
+                    typeof(Game1),
+                    "findStructure",
+					new[] {typeof(GameLocation), typeof(string)},
+                    transpiler: nameof(FindStructureTranspiler)),
+                new (
 					typeof(PathFindController), 
 					"moveCharacter",
 					null, 
 					transpiler: nameof(MoveCharacterTranspiler)),
                 new (
                     typeof(Character), 
-					"updateEmote", 
+					"updateEmote",
 					null,  
 					transpiler: nameof(UpdateEmoteTranspiler)),
 				new (
@@ -129,34 +142,69 @@ namespace FarmCafe.Framework.Patching
 					transpiler: patch._transpilerMethod == null ? null : new HarmonyMethod(GetType(), patch._transpilerMethod)
 					);
 			}
+
+			
 			Debug.Log("Patched methods");
 		}
 
-		private static IEnumerable<CodeInstruction> UpdateEmoteTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator) {
-			Label fadingJump = new Label();
+		private static void CleanupBeforeSavePostfix(GameLocation __instance)
+		{
+            for (int i = __instance.characters.Count - 1; i >= 0; i--)
+            {
+                if (__instance.characters[i] is Customer)
+                {
+                    Debug.Log("Removing character before saving");
+                    __instance.characters.RemoveAt(i);
+                }
+            }
+        }
+
+        private static IEnumerable<CodeInstruction> FindStructureTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+		{
+            foreach (var instruction in instructions)
+			{
+				if (instruction.LoadsField(AccessTools.Field(typeof(GameLocation), "uniqueName"))) {
+					Debug.Log("BAAAAA ---------------------------- ");
+					//yield return instruction;
+					//yield return instruction;
+     //               yield return instruction;
+
+					//Label label = (Label) instruction.operand;
+
+     //               yield return instruction;
+
+
+     //               yield return new(CodeInstruction.LoadField(typeof(GameLocation), "name"));
+				}
+
+				yield return instruction;
+			}
+        }
+
+        private static IEnumerable<CodeInstruction> UpdateEmoteTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator) {
+			Label fadingTrueJump = new Label();
 			List<CodeInstruction> codes = instructions.ToList();
-			MethodInfo MContainsKey = AccessTools.Method(AccessTools.Field(typeof(StardewValley.Character), "modData").FieldType, "ContainsKey");
 			int pointToInsert = 0;
 
 			for (int i = 0; i < codes.Count(); i++)
 			{
 				if (codes[i].LoadsConstant(1) && codes[i + 1].StoresField(AccessTools.Field(typeof(StardewValley.Character), "emoteFading")))
 				{
-					fadingJump = generator.DefineLabel();
-					codes[i - 1].labels.Add(fadingJump);
+					fadingTrueJump = generator.DefineLabel();
+					codes[i - 1].labels.Add(fadingTrueJump);
 					pointToInsert = i - 1;
 				}
             }
 
-			var addcodes = new List<CodeInstruction>()
+			var addedCode = new List<CodeInstruction>()
 			{
 				new (OpCodes.Ldarg_0),
 				new (OpCodes.Isinst, typeof(Customer)),
-				new (OpCodes.Brfalse, fadingJump),
+				new (OpCodes.Brfalse, fadingTrueJump),
 
                 new (OpCodes.Ldarg_0),
 				CodeInstruction.LoadField(typeof(Customer), "emoteLoop"),
-				new (OpCodes.Brfalse, fadingJump),
+				new (OpCodes.Brfalse, fadingTrueJump),
 
                 new (OpCodes.Ldarg_0),
 				new (OpCodes.Ldarg_0),
@@ -165,8 +213,8 @@ namespace FarmCafe.Framework.Patching
 				new (OpCodes.Ret),
 			};
 
-			codes.InsertRange(pointToInsert, addcodes);
-            return codes.AsEnumerable();
+			codes.InsertRange(pointToInsert, addedCode);
+			return codes.AsEnumerable();
 
         }
 
@@ -197,7 +245,6 @@ namespace FarmCafe.Framework.Patching
 			        new (OpCodes.Ldstr, "Seat"), // this.character.GetType(), "seat"
 			        CodeInstruction.Call("System.Type:GetField", new[] { typeof(string) }), // FieldInfo this.character.GetType().GetField("seat")
 			        new (OpCodes.Brtrue, jumpLabel) // branch to the same one found earlier
-
 		        };
 
 				codeList.InsertRange(start_pos + 1, patchCodes);
@@ -213,6 +260,7 @@ namespace FarmCafe.Framework.Patching
 		{
 			if (character is Customer customer)
 			{
+				Debug.Log($"Warped customer to {targetLocation.Name} - {position}");
 				CustomerManager.HandleWarp(customer, targetLocation, position);
 			}
 		}
@@ -228,20 +276,9 @@ namespace FarmCafe.Framework.Patching
 					//RepositionCustomer(x, y);
 					break;
 				case Hoe:
-					{
-						Debug.Log($"{x}, {y}: {GetTileProperties(location.Map.GetLayer("Back").PickTile(new Location(x, y), Game1.viewport.Size))}");
+					Debug.Log($"{x}, {y}: {GetTileProperties(location.Map.GetLayer("Back").PickTile(new Location(x, y), Game1.viewport.Size))}");
+					break;
 
-						//foreach (var tile in location.Map.GetLayer("Buildings").Tiles.Array)
-						//{
-						//}
-						//   string a = location.doesTileHaveProperty(x, y, "Passable", "Buildings");
-						//   Debug.Log(a);
-						//var tile = location.Map.GetLayer("Back").Tiles[x, y];
-						//if (tile == null) break;
-						//foreach (var prop in tile.Properties)
-						//    Debug.Log($"Tile {x}, {y} has: {prop.Key} = {prop.Value}");
-						break;
-					}
 				case FishingRod:
 					break;
 				case WateringCan:
@@ -264,14 +301,19 @@ namespace FarmCafe.Framework.Patching
 
         private static void FurnitureRemovePostfix(Furniture __instance, Vector2 tileLocation, GameLocation environment)
 		{
-			if (IsChair(__instance))
+            if (!CafeManager.CafeLocations.Contains(environment)) { return; }
+
+            if (IsChair(__instance))
 			{
-				__instance.modData.TryGetValue("FarmCafeChairTable", out string pos1);
-				int[] pos2 = pos1.Split(' ').Select(x => int.Parse(x)).ToArray();
-				Furniture table = environment.GetFurnitureAt(new Vector2(pos2[0], pos2[1]));
-				if (table != null)
+				__instance.modData.TryGetValue("FarmCafeChairTable", out string val);
+				if (val != null)
 				{
-                    TableManager.TryRemoveChairFromTable(__instance, table);
+                    int[] tablePos = val?.Split(' ').Select(x => int.Parse(x)).ToArray();
+                    Furniture table = environment.GetFurnitureAt(new Vector2(tablePos[0], tablePos[1]));
+                    if (table != null)
+                    {
+                        TableManager.TryRemoveChairFromTable(__instance, table);
+                    }
                 }
             }
 			else if (IsTable(__instance))
@@ -285,6 +327,8 @@ namespace FarmCafe.Framework.Patching
 
 		private static void FurniturePlacePostfix(Furniture __instance, GameLocation location, int x, int y, Farmer who)
 		{
+			if (!CafeManager.CafeLocations.Contains(location)) { return; }
+
 			Debug.Log("Furniture type = " + __instance.furniture_type.Value);
 			if (IsChair(__instance))
 			{
@@ -305,7 +349,7 @@ namespace FarmCafe.Framework.Patching
 
                 if (!TableManager.TrackedTables.ContainsKey(table))
                 {
-                    TableManager.AddTable(table, location);
+                    TableManager.TryAddTable(table, location);
                 }
 				else
 				{
@@ -314,7 +358,7 @@ namespace FarmCafe.Framework.Patching
             }
 			else if (IsTable(__instance))
 			{
-				TableManager.AddTable(__instance, location);
+				TableManager.TryAddTable(__instance, location);
 			}
 		}
 
@@ -335,10 +379,11 @@ namespace FarmCafe.Framework.Patching
 			if (__result == null) return;
 			foreach (var customer in CustomerManager.CurrentCustomers)
 			{
-				if (customer.Seat?.TileLocation != __result) continue;
-
-				__result = null;
-				return;
+				if (customer.Seat?.TileLocation == __result)
+				{
+                    __result = null;
+                    return;
+                }
 			}
 		}
 
@@ -362,8 +407,13 @@ namespace FarmCafe.Framework.Patching
 			}
 		}
 
+		private static void FindStructurePostfix(Game1 __instance, string name, bool mustBeVillager, bool useLocationsListOnly, ref NPC __result)
+		{
+			if (__result != null) return;
 
-		internal static string GetTileProperties(Tile tile)
+		}
+
+        internal static string GetTileProperties(Tile tile)
 		{
 			string s = "";
 			if (tile == null) return "None";
