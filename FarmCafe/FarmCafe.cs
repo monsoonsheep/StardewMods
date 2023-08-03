@@ -1,5 +1,4 @@
-﻿using FarmCafe.Framework.Customers;
-using FarmCafe.Framework.Interfaces;
+﻿using FarmCafe.Framework.Interfaces;
 using FarmCafe.Framework.Managers;
 using FarmCafe.Framework.Models;
 using FarmCafe.Framework.Multiplayer;
@@ -18,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using FarmCafe.Framework.Characters;
 using xTile.Dimensions;
 
@@ -37,8 +37,8 @@ namespace FarmCafe
 		/// <summary>The mod entry point, called after the mod is first loaded.</summary>
 		/// <param name="helper">Provides simplified APIs for writing mods.</param>
 		public override void Entry(IModHelper helper)
-		{
-			Monitor = base.Monitor;
+        {
+            Monitor = base.Monitor;
 			ModHelper = helper;
 			Debug.Monitor = Monitor;
 			ModManifest = base.ModManifest;
@@ -46,11 +46,11 @@ namespace FarmCafe
 			try
 			{
 				var harmony = new Harmony(ModManifest.UniqueID);
-				Patching.Apply(harmony, new GameLocationPatches().Patches);
-				Patching.Apply(harmony, new CharacterPatches().Patches);
-				Patching.Apply(harmony, new UtilityPatches().Patches);
-				Patching.Apply(harmony, new FurniturePatches().Patches);
-			}
+				new GameLocationPatches().ApplyAll(harmony);
+                new CharacterPatches().ApplyAll(harmony);
+                new UtilityPatches().ApplyAll(harmony);
+                new FurniturePatches().ApplyAll(harmony);
+            }
 			catch (Exception e)
 			{
 				Debug.Log($"Couldn't patch methods - {e}", LogLevel.Error);
@@ -112,18 +112,17 @@ namespace FarmCafe
 				case SButton.NumPad4:
 					CustomerManager.Debug_ListCustomers();
 					break;
-				case SButton.X:
+				case SButton.N:
 					Debug.Log(Game1.MasterPlayer.ActiveObject?.ParentSheetIndex.ToString());
 					Game1.MasterPlayer.addItemToInventory(new Furniture(1220, new Vector2(0, 0)).getOne());
                     Game1.MasterPlayer.addItemToInventory(new Furniture(21, new Vector2(0, 0)).getOne());
                     break;
 				case SButton.V:
-					Debug.Log(Game1.getLocationFromName("FarmCafe.CafeBuilding")?.Name);
-					foreach (var item in Game1.currentLocation.furniture)
-					{
-                        item.updateDrawPosition();
-                    }
-     //               foreach (var building in Game1.getFarm().buildings)
+                    CustomerGroup g = CustomerManager.SpawnGroup(Game1.player.currentLocation,
+                        Game1.player.getTileLocationPoint() + new Point(0, -1), 1);
+                    g.Members?.First()?.GoToCafe();;
+					//Debug.Log(Game1.getLocationFromName("FarmCafe.CafeBuilding")?.Name);
+                    //               foreach (var building in Game1.getFarm().buildings)
 					//{
 					//	if (building.indoors.Value is not null)
 					//	{

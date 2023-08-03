@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using FarmCafe.Framework.Characters;
-using FarmCafe.Framework.Customers;
 using FarmCafe.Framework.Models;
 using FarmCafe.Framework.Multiplayer;
 using Microsoft.Xna.Framework;
@@ -48,8 +47,9 @@ namespace FarmCafe.Framework.Managers
 
         internal static void SpawnGroupAtBus()
         {
-            var group = CreateGroup(GetLocationFromName("BusStop"), BusPosition);
-            if (group == null) return;
+            var group = SpawnGroup(GetLocationFromName("BusStop"), BusPosition);
+            if (group == null) 
+                return;
 
             var memberCount = group.Members.Count;
             var convenePoints = GetBusConvenePoints(memberCount);
@@ -70,10 +70,9 @@ namespace FarmCafe.Framework.Managers
             return null;
         }
 
-        internal static CustomerGroup CreateGroup(GameLocation location, Point tilePosition, int memberCount = 0)
+        internal static CustomerGroup SpawnGroup(GameLocation location, Point tilePosition, int memberCount = 0)
         {
             var newtable = TryReserveTable();
-
             if (newtable == null)
             {
                 Debug.Show("No tables to spawn customers");
@@ -88,9 +87,7 @@ namespace FarmCafe.Framework.Managers
 
             for (var i = 0; i < memberCount; i++)
             {
-                var customer = SpawnCustomer(location, tilePosition);
-                group.Add(customer);
-                customer.Group = group;
+                SpawnCustomer(group, location, tilePosition);
             }
 
             if (group.ReserveTable(newtable) == false)
@@ -117,20 +114,22 @@ namespace FarmCafe.Framework.Managers
 
         internal static CustomerModel GetRandomCustomerModel()
         {
-            if (CustomerModels.Any())
-                return CustomerModels[Game1.random.Next(CustomerModels.Count)];
-            return null;
+            return CustomerModels.Any() ? CustomerModels[Game1.random.Next(CustomerModels.Count)] : null;
         }
 
-        internal static Customer SpawnCustomer(GameLocation location, Point tilePosition)
+        internal static Customer SpawnCustomer(CustomerGroup group, GameLocation location, Point tilePosition)
         {
             var model = GetRandomCustomerModel();
-            if (model == null) throw new Exception("Customer model not found.");
+            if (model == null) 
+                throw new Exception("Customer model not found.");
 
             var name = $"CustomerNPC_{model.Name}{CurrentCustomers.Count + 1}";
             var customer = new Customer(model, name, tilePosition, location);
-            CurrentCustomers.Add(customer);
             Debug.Log($"Customer {name} spawned");
+
+            CurrentCustomers.Add(customer);
+            group.Add(customer);
+            customer.Group = group;
             return customer;
         }
 
@@ -150,6 +149,13 @@ namespace FarmCafe.Framework.Managers
             CustomerModelsInUse.Clear();
             CurrentGroups.Clear();
             FreeAllTables();
+        }
+
+        public static void EndGroup(CustomerGroup group)
+        {
+            foreach (Customer c in group.Members)
+                CurrentCustomers.Remove(c);
+            CurrentGroups.Remove(group);
         }
 
         internal static void CacheBusPosition()

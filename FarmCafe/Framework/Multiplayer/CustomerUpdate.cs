@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FarmCafe.Framework.Characters;
-using FarmCafe.Framework.Customers;
 using StardewValley;
 
 namespace FarmCafe.Framework.Multiplayer

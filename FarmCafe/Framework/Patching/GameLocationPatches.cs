@@ -8,10 +8,8 @@ using StardewValley;
 
 namespace FarmCafe.Framework.Patching
 {
-    internal class GameLocationPatches
+    internal class GameLocationPatches : PatchList
     {
-        public List<Patch> Patches;
-
         public GameLocationPatches()
         {
             Patches = new List<Patch>

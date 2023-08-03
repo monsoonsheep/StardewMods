@@ -18,7 +18,7 @@ namespace FarmCafe.Framework.Managers
         internal static void PopulateRoutesToCafe()
         {
             RoutesToCafe = new List<List<string>>();
-            foreach (string loc in new[] { "BusStop", "Town", "Beach" })
+            foreach (string loc in new[] { "BusStop", "Town", "Beach" , "Farm" })
             {
                 FindLocationRouteToCafe(GetLocationFromName(loc), CafeManager.CafeLocations.First());
             }
