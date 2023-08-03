@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using FarmCafe.Framework.Characters;
 using static FarmCafe.Framework.Utilities.Utility;
 
-namespace FarmCafe.Framework.Customers
+namespace FarmCafe.Framework.Characters
 {
 	internal class CustomerGroup
 	{
@@ -20,8 +20,10 @@ namespace FarmCafe.Framework.Customers
 		}
 
 		public void Add(Customer customer)
-		{
-			Members.Add(customer);
+        {
+            if (Members.Count == 0)
+                customer.IsGroupLeader = true;
+            Members.Add(customer);
 		}
 
 		public bool ReserveTable(Furniture table)

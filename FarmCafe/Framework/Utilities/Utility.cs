@@ -1,5 +1,4 @@
-﻿using FarmCafe.Framework.Customers;
-using FarmCafe.Framework.Managers;
+﻿using FarmCafe.Framework.Managers;
 using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.Objects;

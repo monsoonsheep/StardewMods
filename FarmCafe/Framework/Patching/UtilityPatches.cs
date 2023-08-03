@@ -10,10 +10,8 @@ using static FarmCafe.Framework.Utilities.Utility;
 
 namespace FarmCafe.Framework.Patching
 {
-    internal class UtilityPatches
+    internal class UtilityPatches : PatchList
     {
-        public List<Patch> Patches;
-
         public UtilityPatches()
         {
             Patches = new List<Patch>

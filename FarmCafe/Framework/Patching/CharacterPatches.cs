@@ -15,10 +15,8 @@ using Object = StardewValley.Object;
 
 namespace FarmCafe.Framework.Patching
 {
-    internal class CharacterPatches
+    internal class CharacterPatches : PatchList
     {
-        public List<Patch> Patches;
-
         public CharacterPatches()
         {
             Patches = new List<Patch>

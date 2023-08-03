@@ -1,7 +1,5 @@
-﻿using FarmCafe.Framework.Customers;
-using FarmCafe.Framework.Managers;
+﻿using FarmCafe.Framework.Managers;
 using HarmonyLib;
-using Microsoft.VisualBasic.FileIO;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
@@ -10,15 +8,9 @@ using StardewValley.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http.Headers;
 using System.Reflection;
-using System.Reflection.Emit;
-using System.Security.Claims;
 using FarmCafe.Framework.Characters;
 using Netcode;
-using xTile.Dimensions;
-using xTile.ObjectModel;
-using xTile.Tiles;
 using Object = StardewValley.Object;
 using static FarmCafe.Framework.Utilities.Utility;
 
@@ -49,25 +41,22 @@ namespace FarmCafe.Framework.Patching
 			_postfixMethod = postfix;
 			_transpilerMethod = transpiler;
         }
-	}
+    }
 
-    internal static class Patching
-	{
-        internal static void Apply(Harmony harmony, List<Patch> patches)
-		{
-			foreach (Patch patch in patches)
-			{
-				harmony.Patch(
-					original: patch._targetMethod,
-					prefix: patch._prefixMethod == null ? null : new HarmonyMethod(patch.patchType, patch._prefixMethod),
-					postfix: patch._postfixMethod == null ? null : new HarmonyMethod(patch.patchType, patch._postfixMethod),
-					transpiler: patch._transpilerMethod == null ? null : new HarmonyMethod(patch.patchType, patch._transpilerMethod)
-					);
-			}
-
-			
-			Debug.Log("Patched methods");
-		}
-
+    internal abstract class PatchList
+    {
+        internal List<Patch> Patches;
+        internal virtual void ApplyAll(Harmony harmony)
+        {
+            foreach (Patch patch in Patches)
+            {
+                harmony.Patch(
+                    original: patch._targetMethod,
+                    prefix: patch._prefixMethod == null ? null : new HarmonyMethod(patch.patchType, patch._prefixMethod),
+                    postfix: patch._postfixMethod == null ? null : new HarmonyMethod(patch.patchType, patch._postfixMethod),
+                    transpiler: patch._transpilerMethod == null ? null : new HarmonyMethod(patch.patchType, patch._transpilerMethod)
+                );
+            }
+        }
     }
 }

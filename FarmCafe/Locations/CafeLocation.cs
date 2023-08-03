@@ -10,7 +10,6 @@ using System.Xml.Serialization;
 using FarmCafe.Framework.Characters;
 using SolidFoundations.Framework.Models.ContentPack;
 using StardewValley.Characters;
-using FarmCafe.Framework.Customers;
 
 namespace FarmCafe.Locations
 {
