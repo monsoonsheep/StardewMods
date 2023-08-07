@@ -18,7 +18,6 @@ namespace FarmCafe.Framework.Patching
                     typeof(GameLocation),
                     "cleanupBeforeSave",
                     null,
-                    typeof(GameLocationPatches),
                     postfix: nameof(CleanupBeforeSavePostfix)),
             };
         }

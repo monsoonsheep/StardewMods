@@ -28,56 +28,48 @@ namespace FarmCafe.Framework.Patching
                     typeof(Furniture),
                     "clicked",
                     new[] { typeof(Farmer) },
-                    typeof(FurniturePatches),
                     prefix: nameof(ClickedPrefix)
                 ),
                 new (
                     typeof(Furniture),
                     "canBePlacedHere",
                     new[] { typeof(GameLocation), typeof(Vector2) },
-                    typeof(FurniturePatches),
                     transpiler: nameof(CanBePlacedHereTranspiler)
                 ),
                 new (
                     typeof(Furniture),
                     "performObjectDropInAction",
                     new[] { typeof(Item), typeof(bool), typeof(Farmer) },
-                    typeof(FurniturePatches),
                     prefix: nameof(PerformObjectDropInActionPrefix)
                 ),
                 new (
                     typeof(Furniture),
                     "performRemoveAction",
                     new[] { typeof(Vector2), typeof(GameLocation) },
-                    typeof(FurniturePatches),
                     postfix: nameof(FurnitureRemovePostfix)
                 ),
                 new (
                     typeof(Furniture),
                     "canBeRemoved",
                     new[] { typeof(Farmer) },
-                    typeof(FurniturePatches),
                     postfix: nameof(CanBeRemovedPostfix)
                 ),
                 new (
                     typeof(Furniture),
                     "HasSittingFarmers",
                     null,
-                    typeof(FurniturePatches),
                     prefix: nameof(HasSittingFarmersPrefix)
                 ),
                 new (
                     typeof(Furniture),
                     "AddSittingFarmer",
                     new[] { typeof(Farmer) },
-                    typeof(FurniturePatches),
                     prefix: nameof(AddSittingFarmerPrefix)
                 ),
                 new (
                     typeof(Furniture),
                     "placementAction",
                     new[] { typeof(GameLocation), typeof(int), typeof(int), typeof(Farmer) },
-                    typeof(FurniturePatches),
                     postfix: nameof(FurniturePlacePostfix)
                 ),
             };
@@ -87,20 +79,37 @@ namespace FarmCafe.Framework.Patching
         {
             if (IsTable(__instance) && TableManager.TrackedTables.Keys.Contains(__instance) &&
                 TableManager.TableIsReserved(__instance))
-            {
+            { 
                 __result = true;
-                Debug.Show($"Item: {who.ActiveObject?.DisplayName}");
 
                 CustomerGroup groupOnTable =
                     CustomerManager.CurrentGroups.FirstOrDefault(g => g.ReservedTable == __instance);
-                if (groupOnTable == null)
-                    return false;
 
-                foreach (Customer member in groupOnTable.Members)
+                if (groupOnTable == null)
+                    goto end;
+
+                if (groupOnTable.Members.All(c => c.State.Value == CustomerState.ReadyToOrder))
                 {
-                    member.OrderReceive();
+                    foreach (Customer customer in groupOnTable.Members)
+                    {
+                        customer.StartWaitForOrder();
+                    }
                 }
-                return false;
+                else if (groupOnTable.Members.All(c => c.State.Value == CustomerState.WaitingForOrder))
+                {
+                    foreach (Customer customer in groupOnTable.Members)
+                    {
+                        if (customer.OrderItem != null && who.hasItemInInventory(customer.OrderItem.ParentSheetIndex, 1))
+                        {
+                            Debug.Log($"Customer item = {customer.OrderItem.ParentSheetIndex}, inventory = {who.hasItemInInventory(customer.OrderItem.ParentSheetIndex, 1)}");
+                            customer.OrderReceive();
+                            who.removeFirstOfThisItemFromInventory(customer.OrderItem.ParentSheetIndex);
+                        }
+                    }
+                }
+
+                end:
+                    return false;
             }
 
             return true;
@@ -120,17 +129,15 @@ namespace FarmCafe.Framework.Patching
                 if (!codelist[i].Calls(AccessTools.Method(typeof(Furniture), "getTilesHigh"))) 
                     continue;
 
-                i += 3;
-                insertPoint = i;
-
-                // This is ldc.i4.1 (returning true)
-                codelist[i].labels.Add(jumpLabel);
-                leaveLabel = (Label)codelist[i + 2].operand;
+                insertPoint = i + 3;
             }
-
+            
             if (insertPoint == -1) 
-                return codelist.AsEnumerable();
+                return instructions;
 
+            // This is ldc.i4.1 (returning true)
+            codelist[insertPoint].labels.Add(jumpLabel);
+            leaveLabel = (Label) codelist[insertPoint + 2].operand;
 
             List<CodeInstruction> addCodes = new()
             {
@@ -139,6 +146,7 @@ namespace FarmCafe.Framework.Patching
                 new CodeInstruction(OpCodes.Ldstr, "FarmCafeTableIsReserved"),
                 CodeInstruction.Call(typeof(NetStringDictionary<string, NetString>), "ContainsKey"),
                 new CodeInstruction(OpCodes.Brfalse_S, jumpLabel),
+
                 new CodeInstruction(OpCodes.Ldloc, 6),
                 CodeInstruction.LoadField(typeof(Item), "modData"),
                 new CodeInstruction(OpCodes.Ldstr, "FarmCafeTableIsReserved"),
@@ -146,6 +154,7 @@ namespace FarmCafe.Framework.Patching
                 new CodeInstruction(OpCodes.Ldstr, "T"),
                 CodeInstruction.Call(typeof(String), "Equals", new [] {typeof(String)}),
                 new CodeInstruction(OpCodes.Brfalse_S, jumpLabel),
+
                 new CodeInstruction(OpCodes.Ldc_I4_0),
                 new CodeInstruction(OpCodes.Stloc, 8),
                 new CodeInstruction(OpCodes.Leave, leaveLabel)
@@ -176,13 +185,13 @@ namespace FarmCafe.Framework.Patching
                 Debug.Log("Can't remove");
                 __result = false;
             }
-
             // For chairs, the HasSittingFarmers patch does the work
         }
 
         private static void FurnitureRemovePostfix(Furniture __instance, Vector2 tileLocation, GameLocation environment)
         {
-            if (!CafeManager.CafeLocations.Contains(environment)) { return; }
+            if (!CafeManager.CafeLocations.Contains(environment)) 
+                return;
 
             if (IsChair(__instance))
             {
@@ -193,16 +202,11 @@ namespace FarmCafe.Framework.Patching
                 int[] tablePos = val?.Split(' ').Select(int.Parse).ToArray();
                 Furniture table = environment.GetFurnitureAt(new Vector2(tablePos[0], tablePos[1]));
                 if (table != null)
-                {
                     TableManager.TryRemoveChairFromTable(__instance, table);
-                }
             }
-            else if (IsTable(__instance))
+            else if (IsTable(__instance) && TableManager.TrackedTables.ContainsKey(__instance))
             {
-                if (TableManager.TrackedTables.ContainsKey(__instance))
-                {
-                    TableManager.TryRemoveTable(__instance);
-                }
+                TableManager.TryRemoveTable(__instance);
             }
         }
 

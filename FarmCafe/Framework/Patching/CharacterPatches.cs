@@ -25,25 +25,21 @@ namespace FarmCafe.Framework.Patching
                     typeof(PathFindController),
                     "moveCharacter",
                     null,
-                    GetType(),
                     transpiler: nameof(MoveCharacterTranspiler)),
                 new (
                     typeof(Character),
                     "updateEmote",
                     null,
-                    GetType(),
                     transpiler: nameof(UpdateEmoteTranspiler)),
                 new (
                     typeof(Game1),
                     "warpCharacter",
                     new[] { typeof(NPC), typeof(GameLocation), typeof(Vector2) },
-                    GetType(),
                     postfix: nameof(WarpCharacterPostfix)),
                 new (
                     typeof(PathFindController),
                     "GetFarmTileWeight",
                     null,
-                    GetType(),
                     transpiler: nameof(GetFarmTileWeightTranspiler)
                 ),
 

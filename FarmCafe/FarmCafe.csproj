@@ -23,4 +23,8 @@
 	    <Private>False</Private>
 	  </Reference>
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="UI\" />
+	</ItemGroup>
 </Project>
