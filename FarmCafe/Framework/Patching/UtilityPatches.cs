@@ -20,7 +20,6 @@ namespace FarmCafe.Framework.Patching
                     typeof(Tool),
                     "DoFunction",
                     new[] {typeof(GameLocation), typeof(int), typeof(int), typeof(int), typeof(Farmer) },
-                    typeof(UtilityPatches),
                     postfix: nameof(ToolDoFunctionPostfix)),
             };
         }

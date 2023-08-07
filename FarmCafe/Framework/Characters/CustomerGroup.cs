@@ -52,11 +52,11 @@ namespace FarmCafe.Framework.Characters
 		{
 			foreach (Customer member in Members)
 			{
-				member.lookingDirections.Clear();
+				member.LookingDirections.Clear();
 				foreach (Customer other in Members)
 				{
 					if (member.Equals(other)) continue;
-					member.lookingDirections.Add(
+					member.LookingDirections.Add(
 						DirectionIntFromVectors(member.getTileLocation(), other.BusConvenePoint.ToVector2()));
 				}
 			}

@@ -120,7 +120,7 @@ namespace FarmCafe
 				case SButton.V:
                     CustomerGroup g = CustomerManager.SpawnGroup(Game1.player.currentLocation,
                         Game1.player.getTileLocationPoint() + new Point(0, -1), 1);
-                    g.Members?.First()?.GoToCafe();;
+                    g.Members?.First()?.GoToSeat();;
 					//Debug.Log(Game1.getLocationFromName("FarmCafe.CafeBuilding")?.Name);
                     //               foreach (var building in Game1.getFarm().buildings)
 					//{

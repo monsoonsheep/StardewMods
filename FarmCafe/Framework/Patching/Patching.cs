@@ -25,17 +25,14 @@ namespace FarmCafe.Framework.Patching
 		internal string _prefixMethod;
 		internal string _postfixMethod;
 		internal string _transpilerMethod;
-        internal Type patchType;
 
 		public Patch(Type targetType, 
 			string targetMethodName, 
 			Type[] arguments,
-			Type patchType,
 			string prefix = null, 
 			string postfix = null, 
 			string transpiler = null)	
         {
-            this.patchType = patchType;
             _targetMethod = AccessTools.Method(targetType, targetMethodName, arguments);
 			_prefixMethod = prefix;
 			_postfixMethod = postfix;
@@ -52,9 +49,9 @@ namespace FarmCafe.Framework.Patching
             {
                 harmony.Patch(
                     original: patch._targetMethod,
-                    prefix: patch._prefixMethod == null ? null : new HarmonyMethod(patch.patchType, patch._prefixMethod),
-                    postfix: patch._postfixMethod == null ? null : new HarmonyMethod(patch.patchType, patch._postfixMethod),
-                    transpiler: patch._transpilerMethod == null ? null : new HarmonyMethod(patch.patchType, patch._transpilerMethod)
+                    prefix: patch._prefixMethod == null ? null : new HarmonyMethod(GetType(), patch._prefixMethod),
+                    postfix: patch._postfixMethod == null ? null : new HarmonyMethod(GetType(), patch._postfixMethod),
+                    transpiler: patch._transpilerMethod == null ? null : new HarmonyMethod(GetType(), patch._transpilerMethod)
                 );
             }
         }
