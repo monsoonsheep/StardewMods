@@ -10,18 +10,9 @@ using xTile.Tiles;
 
 namespace FarmCafe.Framework.Utilities
 {
-	internal static class Utility
+	internal class Utility
 	{
-        internal static GameLocation GetLocationFromName(string name)
-        {
-            var l = Game1.getLocationFromName(name);
-            if (l == null)
-            {
-                l = CafeManager.CafeLocations.Where(a => a.Name == name).FirstOrDefault();
-            }
-            return l;
-        }
-
+      
         internal static bool IsChair(Furniture furniture)
 		{
 			return furniture != null && furniture.furniture_type.Value is 0 or 1 or 2;
@@ -147,16 +138,6 @@ namespace FarmCafe.Framework.Utilities
         internal static string GetTileProperties(Tile tile)
         {
             return tile == null ? "" : tile.Properties.Concat(tile.TileIndexProperties).Aggregate("", (currentTile, property) => currentTile + $"{property.Key}: {property.Value}, ");
-        }
-
-        private static void DebugRepositionCustomer(int x, int y)
-        {
-            if (CustomerManager.CurrentCustomers.Any())
-            {
-                Customer c = CustomerManager.CurrentCustomers.First();
-                c.Position = new Vector2(x, y);
-            }
-
         }
     }
 }
