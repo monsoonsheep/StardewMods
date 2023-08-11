@@ -28,7 +28,7 @@ namespace FarmCafe.Framework.Characters
 
 		public bool ReserveTable(Furniture table)
 		{
-			List<Furniture> chairs = TableManager.GetChairsOfTable(table);
+			List<Furniture> chairs = FarmCafe.tableManager.GetChairsOfTable(table);
 			if (chairs.Count < Members.Count)
 			{
 				return false;

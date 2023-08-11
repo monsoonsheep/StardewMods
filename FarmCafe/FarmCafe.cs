@@ -19,7 +19,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using FarmCafe.Framework.Characters;
+using FarmCafe.Framework.UI;
+using StardewValley.Menus;
 using xTile.Dimensions;
+using SolidFoundations.Framework.Interfaces.Internal;
 
 namespace FarmCafe
 {
@@ -28,8 +31,11 @@ namespace FarmCafe
 	{
 		internal static IMonitor Monitor;
 		internal static IModHelper ModHelper;
-		internal static ISolidFoundationsApi SfApi;
+		internal IApi SfApi;
 		internal static IManifest ModManifest;
+
+        internal static CafeManager cafeManager;
+        internal static TableManager tableManager;
 
 		/*********
 		** Public methods
@@ -57,6 +63,7 @@ namespace FarmCafe
 				return;
 			}
 
+			
 			//helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
 			helper.Events.GameLoop.GameLaunched += OnGameLaunched;
 			helper.Events.GameLoop.DayStarted += OnDayStarted;
@@ -66,61 +73,82 @@ namespace FarmCafe
 			helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
 			helper.Events.GameLoop.DayEnding += OnDayEnding;
 
-			//helper.Events.Content.AssetRequested += OnAssetRequested;
+			helper.Events.Content.AssetRequested += OnAssetRequested;
 			//helper.Events.Content.AssetsInvalidated += OnAssetsInvalidated;
 
-            helper.Events.Multiplayer.ModMessageReceived += OnModMessageReceived;
+			helper.Events.Multiplayer.ModMessageReceived += OnModMessageReceived;
             helper.Events.Multiplayer.PeerConnected += OnPeerConnected;
 		}
 
         [EventPriority(EventPriority.High+1)]
-        private static void OnDayEnding(object sender, DayEndingEventArgs e)
+        private void OnDayEnding(object sender, DayEndingEventArgs e)
 		{
-			CustomerManager.RemoveAllCustomers();
+            cafeManager.RemoveAllCustomers();
 		}
 
-		private static void OnUpdateTicked(object sender, UpdateTickedEventArgs e)
+		private void OnUpdateTicked(object sender, UpdateTickedEventArgs e)
 		{
-			if (!Context.IsMainPlayer && CustomerManager.ClientShouldUpdateCustomers)
+			if (!Context.IsMainPlayer && cafeManager.ClientShouldUpdateCustomers)
 			{
-				CustomerManager.CurrentCustomers = CustomerManager.GetAllCustomersInGame();
-				CustomerManager.ClientShouldUpdateCustomers = false;
+				cafeManager.CurrentCustomers = cafeManager.GetAllCustomersInGame();
+				cafeManager.ClientShouldUpdateCustomers = false;
             }
 		}
 
-        private static void OnButtonPressed(object sender, ButtonPressedEventArgs e)
+        private void OnButtonPressed(object sender, ButtonPressedEventArgs e)
 		{
 			switch (e.Button)
 			{
 				case SButton.B:
 					break;
 				case SButton.NumPad0:
-					CustomerManager.SpawnGroupAtBus();
+                    cafeManager.SpawnGroupAtBus();
 					break;
 				case SButton.NumPad1:
 					Debug.Debug_warpToBus();
 					break;
 				case SButton.NumPad2:
-					CustomerManager.RemoveAllCustomers();
+					cafeManager.RemoveAllCustomers();
 					break;
 				case SButton.NumPad3:
-					if (CustomerManager.CurrentGroups.Any())
+					if (cafeManager.CurrentGroups.Any())
 					{
-						CustomerManager.WarpGroup(CustomerManager.CurrentGroups.First(), Game1.getFarm(), new Point(78, 16));
+						cafeManager.WarpGroup(cafeManager.CurrentGroups.First(), Game1.getFarm(), new Point(78, 16));
 					}
 					break;
 				case SButton.NumPad4:
-					CustomerManager.Debug_ListCustomers();
+                    Game1.activeClickableMenu = new CarpenterMenu();
+					cafeManager.Debug_ListCustomers();
 					break;
+				case SButton.NumPad5:
+					OpenCafeMenu();
+                    //var signboardPos =
+                    //    Game1.getFarm().buildings.FirstOrDefault(b => b.indoors.Value is CafeLocation).humanDoor.Value -
+                    //    new Point(-1, 1);
+
+                    //SfApi.PlaceBuilding("FarmCafeSignboard", Game1.getFarm(), signboardPos.ToVector2());
+                    //NPC helper = Game1.getCharacterFromName("Sebastian");
+                    //helper.clearSchedule();
+                    //helper.ignoreScheduleToday = true;
+                    //Game1.warpCharacter(helper, "BusStop", CustomerManager.BusPosition);
+                    //helper.HeadTowards(CafeManager.CafeLocations.First(), new Point(12, 18), 2);
+                    //helper.eventActor = true;
+                    break;
+				case SButton.NumPad6:
+					Debug.Log(string.Join(", ", cafeManager.MenuItems.Select(i => i.DisplayName)));
+                    break;
+				case SButton.M:
+                    Debug.Log("Breaking");
+                    break;
 				case SButton.N:
 					Debug.Log(Game1.MasterPlayer.ActiveObject?.ParentSheetIndex.ToString());
 					Game1.MasterPlayer.addItemToInventory(new Furniture(1220, new Vector2(0, 0)).getOne());
                     Game1.MasterPlayer.addItemToInventory(new Furniture(21, new Vector2(0, 0)).getOne());
                     break;
 				case SButton.V:
-                    CustomerGroup g = CustomerManager.SpawnGroup(Game1.player.currentLocation,
+                    CustomerGroup g = cafeManager.SpawnGroup(Game1.player.currentLocation,
                         Game1.player.getTileLocationPoint() + new Point(0, -1), 1);
-                    g.Members?.First()?.GoToSeat();;
+                    g?.Members?.First()?.GoToSeat();;
 					//Debug.Log(Game1.getLocationFromName("FarmCafe.CafeBuilding")?.Name);
                     //               foreach (var building in Game1.getFarm().buildings)
 					//{
@@ -148,17 +176,17 @@ namespace FarmCafe
 
 		}
 
-		private static void OnModMessageReceived(object sender, ModMessageReceivedEventArgs e)
+		private void OnModMessageReceived(object sender, ModMessageReceivedEventArgs e)
 		{
             if (e.FromModID != ModManifest.UniqueID) return;
 
 			if (e.Type == "UpdateCustomers")
             {
-				CustomerManager.ClientShouldUpdateCustomers = true;
+				cafeManager.ClientShouldUpdateCustomers = true;
             }
 			else if (e.Type == "RemoveCustomers")
             {
-				CustomerManager.CurrentCustomers.Clear();
+				cafeManager.CurrentCustomers.Clear();
                 //CustomerManager.ClientShouldUpdateCustomers = true;
             }
             else if (e.Type == "SyncTables")
@@ -167,31 +195,33 @@ namespace FarmCafe
 				var tables = new Dictionary<Furniture, GameLocation>();
 				foreach (var pair in updates)
 				{
-					GameLocation location = GetLocationFromName(pair.Value);
+					GameLocation location = cafeManager.GetLocationFromName(pair.Value);
                     Furniture table = location?.GetFurnitureAt(pair.Key);
 					if (table == null) continue;
 					tables.Add(table, location);
                 }
-                TableManager.TrackedTables = tables;
+                tableManager.TrackedTables = tables;
             }
         }
 
-		private static void OnGameLaunched(object sender, GameLaunchedEventArgs e)
+		private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
 		{
 			GetSolidFoundationsApi();
+            tableManager = new TableManager();
+            cafeManager = new CafeManager(tableManager);
 		}
 
-		private static void OnSaveLoaded(object sender, SaveLoadedEventArgs e)
-		{
-			TableManager.TrackedTables = new Dictionary<Furniture, GameLocation>();
+		private void OnSaveLoaded(object sender, SaveLoadedEventArgs e)
+        {
+            tableManager.TrackedTables = new Dictionary<Furniture, GameLocation>();
 
             PrepareCustomerModels();
-            CustomerManager.CacheBusPosition();
+            cafeManager.CacheBusPosition();
         }
 
-        internal static void OnDayStarted(object sender, DayStartedEventArgs e)
+        internal void OnDayStarted(object sender, DayStartedEventArgs e)
 		{
-			CafeManager.CafeLocations = new List<GameLocation>();
+            cafeManager.CafeLocations = new List<GameLocation>();
             var cafeBuilding = Game1.getFarm().buildings
                 .FirstOrDefault(b => b.indoors.Value is CafeLocation);
 
@@ -203,13 +233,20 @@ namespace FarmCafe
                 cafeLocation = Game1.getFarm();
             }
 
-            CafeManager.CafeLocations.Add(cafeLocation);
-            Debug.Log($"Added Cafe locations {string.Join(", ", CafeManager.CafeLocations.Select(l => l.Name))}");
+            cafeManager.CafeLocations.Add(cafeLocation);
+            Debug.Log($"Added Cafe locations {string.Join(", ", cafeManager.CafeLocations.Select(l => l.Name))}");
             
+			tableManager.CafeLocations = cafeManager.CafeLocations;
+
 			ResetCustomers();
-			CafeManager.PopulateRoutesToCafe();
-            TableManager.PopulateTables();
+            cafeManager.PopulateRoutesToCafe();
+            tableManager.PopulateTables();
             Messaging.SyncTables();
+
+            //cafeManager.MenuItems = new MenuList();
+            //{
+            //    new StardewValley.Object(746, 1).getOne();
+            //};
         }
 
 		private static void OnSaving(object sender, EventArgs e)
@@ -218,23 +255,64 @@ namespace FarmCafe
 			//CustomerManager.RemoveAllCustomers();
 		}
 
-		private static void GetSolidFoundationsApi()
+        private static void OnAssetRequested(object sender, AssetRequestedEventArgs e)
+        {
+            if (e.Name.IsEquivalentTo("Characters/Schedules/Sebastian"))
+            {
+				Debug.Log("Sebiastian schedule");
+				e.LoadFrom(() => new Dictionary<string, string>(), AssetLoadPriority.Exclusive);
+                
+            }
+        }
+
+		/// <summary>
+		/// Access and save the API from the Solid Foundations mod
+		/// </summary>
+		/// <exception cref="Exception"></exception>
+		private void GetSolidFoundationsApi()
 		{
-			if (!ModHelper.ModRegistry.IsLoaded("PeacefulEnd.SolidFoundations"))
-			{
-				Debug.Log("Solid Foundations is required for this mod", LogLevel.Error);
-				throw new DllNotFoundException("Solid Foundations is required for this mod");
-			}
+            SfApi = ModHelper.ModRegistry.GetApi<SolidFoundations.Framework.Interfaces.Internal.IApi>("PeacefulEnd.SolidFoundations");
+            if (SfApi == null)
+                throw new Exception("SF Api failed");
+			
+            SfApi.BroadcastSpecialActionTriggered += OnBuildingBroadcastTriggered;
+        }
 
-			SfApi = ModHelper.ModRegistry.GetApi<ISolidFoundationsApi>("PeacefulEnd.SolidFoundations");
-			if (SfApi == null)
-			{
-				Debug.Log("SF Api failed", LogLevel.Error);
-				throw new EntryPointNotFoundException("SF Api failed");
-			}
-		}
+		/// <summary>
+		/// The solid foundations API fires an Event called BroadcastSpecialActionTriggered, and this method is added to it
+		/// </summary>
+		/// <param name="sender">The object that sent the event</param>
+		/// <param name="e">Event arguments sent by the event</param>
+        private void OnBuildingBroadcastTriggered(object sender, IApi.BroadcastEventArgs e)
+        {
+            var buildingId = e.BuildingId;
+            var buildingObject = e.Building;
+            var farmerObject = e.Farmer;
+            var tileWhereTriggered = e.TriggerTile;
+            var sentMessage = e.Message;
+            if (!Context.IsWorldReady) return;
+            if (Game1.activeClickableMenu != null || (!Context.IsPlayerFree)) return;
 
-		private static void PlaceCafeBuilding(Vector2 position)
+            if (sentMessage.ToLower() == "opencafemenu")
+            {
+                OpenCafeMenu();
+            }
+        }
+
+		/// <summary>
+		/// Open the cafe menu
+		/// </summary>
+        internal void OpenCafeMenu()
+        {
+            Debug.Log("Open menu!");
+            Game1.activeClickableMenu = new CafeMenu(cafeManager.MenuItems, cafeManager.RecentlyAddedMenuItems);
+        }
+
+		/// <summary>
+		/// Debug: build the cafe building
+		/// </summary>
+		/// <param name="position"></param>
+		private void PlaceCafeBuilding(Vector2 position)
 		{
 			var building = SfApi.PlaceBuilding("FarmCafeSignboard", Game1.getFarm(), position);
 
@@ -248,9 +326,12 @@ namespace FarmCafe
 			}
 		}
 
-		private static void PrepareCustomerModels()
+		/// <summary>
+		/// Scan customer models in the asset directory and create CustomerModel instances
+		/// </summary>
+		private void PrepareCustomerModels()
 		{
-            CustomerManager.CustomerModels = new List<CustomerModel>();
+            cafeManager.CustomerModels = new List<CustomerModel>();
             var dirs = new DirectoryInfo(Path.Combine(ModHelper.DirectoryPath, "assets", "Customers")).GetDirectories();
             foreach (var dir in dirs)
             {
@@ -260,15 +341,19 @@ namespace FarmCafe
                 //Debug.Log($"Tilesheet: {model.TilesheetPath}");
                 //this SMAPI/monsoonsheep.farmcafe/assets/Customers/Catgirl/customer.png
 
-                CustomerManager.CustomerModels.Add(model);
+                cafeManager.CustomerModels.Add(model);
             }
         }
 
-		private static void ResetCustomers()
+		/// <summary>
+		/// TODO
+		/// </summary>
+		private void ResetCustomers()
 		{
-			CustomerManager.CustomerModelsInUse = new List<CustomerModel>();
-			CustomerManager.CurrentCustomers = new List<Customer>();
-			CustomerManager.CurrentGroups = new List<CustomerGroup>();
+			cafeManager.CustomerModelsInUse = new List<CustomerModel>();
+            cafeManager.CurrentCustomers = new List<Customer>();
+            cafeManager.CurrentGroups = new List<CustomerGroup>();
 		}
+
 	}
 }

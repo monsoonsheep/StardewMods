@@ -54,21 +54,19 @@ namespace FarmCafe.Framework.Characters
         private int eatingTimer = 0;
         [XmlIgnore] internal Point BusConvenePoint;
 
-
+        internal delegate void LerpEnd();
         private float lerpPosition = -1f;
         private float lerpDuration = 0f;
         private Vector2 lerpStartPosition;
         private Vector2 lerpEndPosition;
+        private LerpEnd lerpEndBehavior;
+
 
         private readonly NetVector2 drawOffsetForSeat = new NetVector2(new Vector2(0, 0));
         private readonly NetVector2 tableCenterForEmote = new NetVector2(new Vector2(0, 0));
 
         [XmlIgnore] 
         internal List<int> LookingDirections = new() { 0, 1, 3 };
-
-        internal delegate void BehaviorFunction();
-
-        private BehaviorFunction endBehavior;
 
         [XmlIgnore] 
         internal Item OrderItem { get; set; }
@@ -100,12 +98,11 @@ namespace FarmCafe.Framework.Characters
             willDestroyObjectsUnderfoot = true;
             collidesWithOtherCharacters.Value = false;
             eventActor = false;
-            speed = 2;
+            speed = 3;
             base.displayName = "Customer";
             Portrait = FarmCafe.ModHelper.ModContent.Load<Texture2D>($"assets/Portraits/{model.PortraitName}.png");
 
             Model = model;
-            State.Set(CustomerState.ExitingBus);
 
             currentLocation = location;
             location.addCharacter(this);
@@ -190,8 +187,7 @@ namespace FarmCafe.Framework.Characters
                 if (lerpPosition >= lerpDuration)
                 {
                     lerpPosition = -1f;
-                    if (endBehavior != null)
-                        endBehavior();
+                    lerpEndBehavior?.Invoke();
                 }
             }
         }
@@ -311,7 +307,7 @@ namespace FarmCafe.Framework.Characters
             else
             {
                 collidesWithOtherCharacters.Set(false);
-                this.HeadTowards(GetLocationFromName("BusStop"), BusConvenePoint, 2, StartConvening);
+                this.HeadTowards(FarmCafe.cafeManager.GetLocationFromName("BusStop"), BusConvenePoint, 2, StartConvening);
             }
         }
 
@@ -385,7 +381,7 @@ namespace FarmCafe.Framework.Characters
             Breather = true;
         }
 
-        internal void GetUp(int direction)
+        internal void GetUpFromSeat(int direction)
         {
             drawOffsetForSeat.Set(new Vector2(0, 0));
             var nextPos = Position + (DirectionIntToDirectionVector(direction) * 64f);
@@ -399,17 +395,16 @@ namespace FarmCafe.Framework.Characters
         internal void ReadyToOrder()
         {
             State.Set(CustomerState.ReadyToOrder);
-            OrderItem = new StardewValley.Object(746, 1).getOne();
-            if (Group.Members.Any(c => c.State.Value != CustomerState.ReadyToOrder))
-                return;
+            if (IsGroupLeader)
+                tableCenterForEmote.Set(this.Group.ReservedTable.boundingBox.Center.ToVector2() + new Vector2(-8, -64));
 
-            tableCenterForEmote.Set(GetTableCenter());
+            //OrderItem = new StardewValley.Object(746, 1).getOne();
         }
-
+      
         internal void OrderReceive()
         {
             State.Set(CustomerState.Eating);
-            if (IsGroupLeader) 
+            if (IsGroupLeader)
                 doEmote(20);
             this.eatingTimer = 2000;
         }
@@ -423,7 +418,7 @@ namespace FarmCafe.Framework.Characters
         {
             State.Set(CustomerState.Leaving);
             int direction = Game1.random.Next(2) == 0 ? (FacingDirection + 1) % 4 : (FacingDirection + 3) % 4;
-            this.GetUp(direction);
+            this.GetUpFromSeat(direction);
         }
 
         internal void DoNothingAndWait()
@@ -431,11 +426,10 @@ namespace FarmCafe.Framework.Characters
             State.Set(CustomerState.Free);
         }
 
-
         internal void GoHome()
         {
-            TableManager.FreeTable(Group.ReservedTable);
-            this.HeadTowards(Game1.getLocationFromName("BusStop"), CustomerManager.BusPosition, 0, ReachHome);
+            FarmCafe.tableManager.FreeTable(Group.ReservedTable);
+            this.HeadTowards(Game1.getLocationFromName("BusStop"), FarmCafe.cafeManager.BusPosition, 0, ReachHome);
         }
 
         internal void ReachHome()
@@ -444,38 +438,23 @@ namespace FarmCafe.Framework.Characters
             Game1.removeCharacterFromItsLocation(this.Name);
             if (Group.Members.All(c => c.IsInvisible))
             {
-                CustomerManager.EndGroup(Group);
+                FarmCafe.cafeManager.EndGroup(Group);
             }
         }
 
-        internal void UpdatePathingTarget(Point targetTile)
-        {
-            //Debug.Log($"repathing to {targetTile.X}, {targetTile.Y}");
-            this.HeadTowards(currentLocation, targetTile);
-        }
-
-
-        internal void LerpPosition(Vector2 startPos, Vector2 endPos, float duration, BehaviorFunction action)
+        internal void LerpPosition(Vector2 startPos, Vector2 endPos, float duration, LerpEnd action)
         {
             lerpStartPosition = startPos;
             lerpEndPosition = endPos;
             lerpPosition = 0f;
             lerpDuration = duration;
-            endBehavior = action;
+            lerpEndBehavior = action;
         }
 
         //protected override void updateSlaveAnimation(GameTime time)
         //{
         //	return;
         //}
-
-        internal Vector2 GetTableCenter()
-        {
-            Furniture table = this.Group.ReservedTable;
-            if (table == null)
-                return Vector2.Zero;
-            return table.boundingBox.Center.ToVector2() + new Vector2(-8, -64);
-        }
 
         internal void Reset()
         {

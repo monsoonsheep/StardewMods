@@ -21,11 +21,11 @@ namespace FarmCafe.Framework.Patching
         {
             Patches = new List<Patch>
             {
-                new (
-                    typeof(PathFindController),
-                    "moveCharacter",
-                    null,
-                    transpiler: nameof(MoveCharacterTranspiler)),
+                //new (
+                //    typeof(PathFindController),
+                //    "moveCharacter",
+                //    null,
+                //    transpiler: nameof(MoveCharacterTranspiler)),
                 new (
                     typeof(Character),
                     "updateEmote",
@@ -84,6 +84,7 @@ namespace FarmCafe.Framework.Patching
 
         }
 
+        // Is this really needed?
         private static IEnumerable<CodeInstruction> MoveCharacterTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
             var fPathfindercharacter = AccessTools.Field(typeof(PathFindController), "character");
@@ -147,7 +148,7 @@ namespace FarmCafe.Framework.Patching
             if (character is Customer customer)
             {
                 Debug.Log($"Warped customer to {targetLocation.Name} - {position}");
-                CustomerManager.HandleWarp(customer, targetLocation, position);
+                FarmCafe.cafeManager.HandleWarp(customer, targetLocation, position);
             }
         }
     }

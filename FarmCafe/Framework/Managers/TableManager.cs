@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using StardewModdingAPI;
-using static FarmCafe.Framework.Utilities.Utility;
+using Utility = FarmCafe.Framework.Utilities.Utility;
 using FarmCafe.Framework.Multiplayer;
 
 namespace FarmCafe.Framework.Managers
@@ -14,17 +14,18 @@ namespace FarmCafe.Framework.Managers
 	
 	internal class TableManager
 	{
-        internal static Dictionary<Furniture, GameLocation> TrackedTables;
+        internal Dictionary<Furniture, GameLocation> TrackedTables;
+        internal List<GameLocation> CafeLocations;
 
-		internal static void PopulateTables()
+		internal void PopulateTables()
 		{
-			foreach (var location in CafeManager.CafeLocations)
+			foreach (var location in CafeLocations)
 			{
                 foreach (Furniture table in location.furniture)
                 {
-                    if (!IsTable(table)) continue;
+                    if (!Utility.IsTable(table)) continue;
                     // If we already have this table object registered
-                    if (TrackedTables.Keys.Any(t => t == table)) continue;
+                    if (TrackedTables.Keys.Any(t => t.TileLocation == table.TileLocation)) continue;
 
                     TryAddTable(table, location);
                 }
@@ -32,7 +33,7 @@ namespace FarmCafe.Framework.Managers
             FreeAllTables();
         }
 
-		internal static void TryAddTable(Furniture table, GameLocation location)
+		internal void TryAddTable(Furniture table, GameLocation location)
 		{
 			List<Furniture> foundChairs = FindChairsAroundTable(table, location);
 			if (foundChairs.Count == 0) 
@@ -46,7 +47,7 @@ namespace FarmCafe.Framework.Managers
             Messaging.SyncTables();
         }
 
-        internal static void TryRemoveTable(Furniture table)
+        internal void TryRemoveTable(Furniture table)
         {
             foreach (var chair in GetChairsOfTable(table))
             {
@@ -62,7 +63,7 @@ namespace FarmCafe.Framework.Managers
             Messaging.SyncTables();
         }
 
-        internal static void UpdateChairsForTable(Furniture table, List<Furniture> chairs = null)
+        internal void UpdateChairsForTable(Furniture table, List<Furniture> chairs = null)
         {
             chairs ??= FindChairsAroundTable(table, TrackedTables[table]);
 
@@ -76,7 +77,7 @@ namespace FarmCafe.Framework.Managers
             table.modData["FarmCafeTableChairs"] = chairsString;
         }
 
-		internal static List<Furniture> FindChairsAroundTable(Furniture table, GameLocation location)
+		internal List<Furniture> FindChairsAroundTable(Furniture table, GameLocation location)
 		{
             int sizeY = table.getTilesHigh();
             int sizeX = table.getTilesWide();
@@ -88,7 +89,7 @@ namespace FarmCafe.Framework.Managers
                 for (int j = 0; j < sizeX; j++)
                 {
                     var chairAt = location.GetFurnitureAt(new Vector2(pos.X + j, pos.Y + i));
-                    if (!IsChair(chairAt)) continue;
+                    if (!Utility.IsChair(chairAt)) continue;
                     int rotation = chairAt.currentRotation.Value;
                     if (rotation == 0 && i == -1 || rotation == 2 && i != -1)
                         chairs.Add(chairAt);
@@ -101,7 +102,7 @@ namespace FarmCafe.Framework.Managers
                 for (int j = 0; j < sizeY; j++)
                 {
                     var chairAt = location.GetFurnitureAt(new Vector2(pos.X + i, pos.Y + j));
-                    if (!IsChair(chairAt)) continue;
+                    if (!Utility.IsChair(chairAt)) continue;
                     int rotation = chairAt.currentRotation.Value;
                     if (rotation == 1 && i == -1 || rotation == 3 && i != -1)
                         chairs.Add(chairAt);
@@ -111,7 +112,7 @@ namespace FarmCafe.Framework.Managers
 			return chairs;
         }
 
-		internal static bool AddChairToTable(Furniture chair, Furniture table)
+		internal bool AddChairToTable(Furniture chair, Furniture table)
 		{
             if (TableIsReserved((table)))
                 return false;
@@ -130,7 +131,7 @@ namespace FarmCafe.Framework.Managers
 			return true;
 		}
 
-		internal static void TryRemoveChairFromTable(Furniture chair, Furniture table)
+		internal void TryRemoveChairFromTable(Furniture chair, Furniture table)
 		{
             List<Furniture> chairs = GetChairsOfTable(table);
             if (!chairs.Contains(chair))
@@ -151,7 +152,7 @@ namespace FarmCafe.Framework.Managers
                 TryRemoveTable(table);
         }
 
-		internal static List<Furniture> GetChairsOfTable(Furniture table) {
+		internal List<Furniture> GetChairsOfTable(Furniture table) {
             var chairs = new List<Furniture>();
             if (!TrackedTables.ContainsKey(table))
                 return chairs;
@@ -179,7 +180,7 @@ namespace FarmCafe.Framework.Managers
 			return chairs;
 		}
 
-        internal static Furniture TryReserveTable(int minimumSeats = 1)
+        internal Furniture TryReserveTable(int minimumSeats = 1)
         {
             return (from table in TrackedTables.OrderBy(x => Game1.random.Next()) 
                 where !TableIsReserved(table.Key) 
@@ -189,18 +190,18 @@ namespace FarmCafe.Framework.Managers
                 .FirstOrDefault();
         }
 
-        internal static bool TableIsReserved(Furniture table)
+        internal bool TableIsReserved(Furniture table)
 		{
 			table.modData.TryGetValue("FarmCafeTableIsReserved", out var result);
 			return result == "T";
 		}
 
-        internal static bool ChairIsReserved(Furniture chair)
+        internal bool ChairIsReserved(Furniture chair)
         {
             return chair.modData.TryGetValue("FarmCafeChairIsReserved", out var val) && val == "T";
         }
 
-        public static void FreeTable(Furniture table)
+        public void FreeTable(Furniture table)
         {
             table.modData["FarmCafeTableIsReserved"] = "F";
             foreach (Furniture chair in GetChairsOfTable(table))
@@ -211,7 +212,7 @@ namespace FarmCafe.Framework.Managers
             UpdateChairsForTable(table);
         }
 
-        public static void FreeAllTables()
+        public void FreeAllTables()
 		{
             foreach (var table in TrackedTables.Keys)
             {

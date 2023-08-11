@@ -16,10 +16,14 @@ namespace FarmCafe.Framework.Characters
 {
     internal static class NpcExtensions
     {
-        
         internal static void HeadTowards(this NPC me, GameLocation targetLocation, Point targetTile, int finalFacingDirection = 0,
-            Customer.BehaviorFunction endBehaviorFunction = null)
+            Action endBehaviorFunction = null)
         {
+            if (targetLocation == null)
+            {
+                Debug.Log("Invalid location in pathfinding..", LogLevel.Error);
+                return;
+            }
             me.controller = null;
             me.isCharging = false;
 
@@ -27,7 +31,7 @@ namespace FarmCafe.Framework.Characters
 
             if (path == null || !path.Any())
             {
-                Debug.Log("Customer couldn't find path.", LogLevel.Warn);
+                Debug.Log("Character couldn't find path.", LogLevel.Warn);
                 //GoHome();
                 return;
             }
@@ -37,13 +41,13 @@ namespace FarmCafe.Framework.Characters
             {
                 NPCSchedule = true,
                 nonDestructivePathing = true,
-                endBehaviorFunction = endBehaviorFunction != null ? (c, loc) => endBehaviorFunction() : null,
+                endBehaviorFunction = (_, _) => endBehaviorFunction?.Invoke(),
                 finalFacingDirection = finalFacingDirection
             };
 
             if (me.controller == null)
             {
-                Debug.Log("Can't construct controller.", LogLevel.Warn);
+                Debug.Log("Can't construct controller.", LogLevel.Error);
                 //me.GoHome();
             }
         }
@@ -52,51 +56,55 @@ namespace FarmCafe.Framework.Characters
         internal static Stack<Point> PathTo(this NPC me, GameLocation startingLocation, Point startTile, GameLocation targetLocation,
             Point targetTile)
         {
-            Stack<Point> path = new Stack<Point>();
+            static Stack<Point> CombineStacks(Stack<Point> original, Stack<Point> toAdd)
+            {
+                if (toAdd == null)
+                    return original;
+            
+                original = new Stack<Point>(original);
+                while (original.Count > 0)
+                    toAdd.Push(original.Pop());
+
+                return toAdd;
+            }
+
             Point locationStartPoint = startTile;
             if (startingLocation.Name.Equals(targetLocation.Name, StringComparison.Ordinal))
                 return FindPath(me, locationStartPoint, targetTile, startingLocation);
 
-            List<string> locationsRoute = CafeManager.GetLocationRoute(startingLocation, targetLocation);
-
+            List<string> locationsRoute = FarmCafe.cafeManager.GetLocationRoute(startingLocation, targetLocation);
             if (locationsRoute == null)
-            {
-                locationsRoute = CafeManager.GetLocationRoute(targetLocation, startingLocation);
-                if (locationsRoute == null)
-                {
-                    Debug.Log("Route to cafe not found!", LogLevel.Error);
-                    return null;
-                }
-                else
-                    locationsRoute.Reverse();
-            }
+                throw new Exception("Location route not found");
 
+            Stack<Point> path = new Stack<Point>();
             for (int i = 0; i < locationsRoute.Count; i++)
             {
-                GameLocation current = GetLocationFromName(locationsRoute[i]);
+                GameLocation current = FarmCafe.cafeManager.GetLocationFromName(locationsRoute[i]);
                 if (i < locationsRoute.Count - 1)
                 {
                     Point target = current.getWarpPointTo(locationsRoute[i + 1]);
-                    var cafeloc = GetLocationFromName(locationsRoute[i + 1]);
-                    if (target == Point.Zero && cafeloc != null && cafeloc.Name.Contains("Cafe") &&
+
+                    // If the next location in the route is a Cafe Indoors (getWarpPointTo doesn't find SF indoors)
+                    if (target == Point.Zero && FarmCafe.cafeManager.GetLocationFromName(locationsRoute[i + 1]) is CafeLocation &&
                         current is BuildableGameLocation buildableLocation)
                     {
                         var building = buildableLocation.buildings
                             .FirstOrDefault(b => b.indoors.Value is CafeLocation);
-                        if (building == null || building.humanDoor == null)
+                        if (building == null)
                             throw new Exception("schedule pathing tried to find a warp point that doesn't exist.");
+
                         target = building.humanDoor.Value;
                     }
 
                     if (target.Equals(Point.Zero) || locationStartPoint.Equals(Point.Zero))
-                        throw new Exception("schedule pathing tried to find a warp point that doesn't exist.");
+                        throw new Exception("Error finding route to cafe. Couldn't find warp point");
 
                     path = CombineStacks(path, FindPath(me, locationStartPoint, target, current));
                     locationStartPoint = current.getWarpPointTarget(target);
                     if (locationStartPoint == Point.Zero)
                     {
-                        var building = (current as BuildableGameLocation).getBuildingAt(target.ToVector2());
-                        if (building != null && building.indoors.Value != null)
+                        var building = (current as BuildableGameLocation)?.getBuildingAt(target.ToVector2());
+                        if (building?.indoors.Value != null)
                         {
                             Warp w = building.indoors.Value.warps.FirstOrDefault();
                             locationStartPoint = new Point(w.X, w.Y - 1);
@@ -116,18 +124,23 @@ namespace FarmCafe.Framework.Characters
         {
             if (IsChair(location.GetFurnitureAt(targetTile.ToVector2())))
             {
-                return PathToChair(me, location, startTile, targetTile, location.GetFurnitureAt(targetTile.ToVector2()));
+                return PathToObject(me, location, startTile, targetTile);
             }
             if (location.Name.Equals("Farm"))
             {
                 return PathFindController.FindPathOnFarm(startTile, targetTile, location, iterations);
             }
 
-            return PathFindController.findPath(startTile, targetTile,
-                PathFindController.isAtEndPoint, location, me, iterations);
+            return PathFindController.findPath(
+                startTile, 
+                targetTile,
+                PathFindController.isAtEndPoint, 
+                location, 
+                me, 
+                iterations);
         }
 
-        internal static Stack<Point> PathToChair(this NPC me, GameLocation location, Point startTile, Point targetTile, Furniture chair)
+        internal static Stack<Point> PathToObject(this NPC me, GameLocation location, Point startTile, Point targetTile)
         {
             var directions = new List<sbyte[]>
             {
@@ -137,20 +150,20 @@ namespace FarmCafe.Framework.Characters
                 new sbyte[] { 1, 0 }, // right
             };
 
-            if (!chair.Name.ToLower().Contains("stool"))
-                directions.RemoveAt(chair.currentRotation.Value);
+            Furniture furniture = location.GetFurnitureAt((targetTile).ToVector2());
+            if (IsChair(furniture) && !furniture.Name.ToLower().Contains("stool"))
+                directions.RemoveAt(furniture.currentRotation.Value);
+            
 
             Stack<Point> shortestPath = null;
-            int shortestPathLength = 99999;
+            int shortestPathLength = int.MaxValue;
 
             foreach (var direction in directions)
             {
-                Furniture obstructionChair =
-                    location.GetFurnitureAt((targetTile + new Point(direction[0], direction[1])).ToVector2());
-                if (IsChair(obstructionChair))
+                if (location.GetFurnitureAt((targetTile + new Point(direction[0], direction[1])).ToVector2()) != null)
                     continue;
 
-                var pathRightNextToChair = FindPath(
+                var pathToAdjacentTile = FindPath(
                     me,
                     startTile,
                     targetTile + new Point(direction[0], direction[1]),
@@ -158,33 +171,19 @@ namespace FarmCafe.Framework.Characters
                     1500
                 );
 
-                if (pathRightNextToChair == null || pathRightNextToChair.Count >= shortestPathLength)
+                if (pathToAdjacentTile == null || pathToAdjacentTile.Count >= shortestPathLength)
                     continue;
 
-                shortestPath = pathRightNextToChair;
-                shortestPathLength = pathRightNextToChair.Count;
+                shortestPath = pathToAdjacentTile;
+                shortestPathLength = pathToAdjacentTile.Count;
             }
 
             if (shortestPath == null || shortestPath.Count == 0)
             {
-                Debug.Log("path to chair can't be found");
+                Debug.Log($"path to chair can't be found.");
             }
 
             return shortestPath;
         }
-
-        
-        internal static Stack<Point> CombineStacks(Stack<Point> original, Stack<Point> toAdd)
-        {
-            if (toAdd == null)
-                return original;
-            
-            original = new Stack<Point>(original);
-            while (original.Count > 0)
-                toAdd.Push(original.Pop());
-
-            return toAdd;
-        }
-
     }
 }

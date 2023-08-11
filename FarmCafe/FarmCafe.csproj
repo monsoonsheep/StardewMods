@@ -19,12 +19,8 @@
 
 	<ItemGroup>
 	  <Reference Include="SolidFoundations">
-	    <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley\Mods\SolidFoundations\SolidFoundations.dll</HintPath>
+	    <HintPath>SolidFoundations.dll</HintPath>
 	    <Private>False</Private>
 	  </Reference>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="UI\" />
 	</ItemGroup>
 </Project>
