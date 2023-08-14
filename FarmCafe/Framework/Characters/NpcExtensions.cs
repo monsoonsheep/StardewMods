@@ -36,7 +36,6 @@ namespace FarmCafe.Framework.Characters
                 return;
             }
 
-
             me.controller = new PathFindController(path, me.currentLocation, me, path.Last())
             {
                 NPCSchedule = true,
@@ -50,6 +49,8 @@ namespace FarmCafe.Framework.Characters
                 Debug.Log("Can't construct controller.", LogLevel.Error);
                 //me.GoHome();
             }
+
+            Debug.Log($"Pathing from {me.getTileLocationPoint()} to {targetTile}");
         }
 
 
@@ -72,20 +73,20 @@ namespace FarmCafe.Framework.Characters
             if (startingLocation.Name.Equals(targetLocation.Name, StringComparison.Ordinal))
                 return FindPath(me, locationStartPoint, targetTile, startingLocation);
 
-            List<string> locationsRoute = FarmCafe.cafeManager.GetLocationRoute(startingLocation, targetLocation);
+            List<string> locationsRoute = FarmCafe.CafeManager.GetLocationRoute(startingLocation, targetLocation);
             if (locationsRoute == null)
                 throw new Exception("Location route not found");
 
             Stack<Point> path = new Stack<Point>();
             for (int i = 0; i < locationsRoute.Count; i++)
             {
-                GameLocation current = FarmCafe.cafeManager.GetLocationFromName(locationsRoute[i]);
+                GameLocation current = FarmCafe.GetLocationFromName(locationsRoute[i]);
                 if (i < locationsRoute.Count - 1)
                 {
                     Point target = current.getWarpPointTo(locationsRoute[i + 1]);
 
                     // If the next location in the route is a Cafe Indoors (getWarpPointTo doesn't find SF indoors)
-                    if (target == Point.Zero && FarmCafe.cafeManager.GetLocationFromName(locationsRoute[i + 1]) is CafeLocation &&
+                    if (target == Point.Zero && FarmCafe.GetLocationFromName(locationsRoute[i + 1]) is CafeLocation &&
                         current is BuildableGameLocation buildableLocation)
                     {
                         var building = buildableLocation.buildings
@@ -126,7 +127,7 @@ namespace FarmCafe.Framework.Characters
             {
                 return PathToObject(me, location, startTile, targetTile);
             }
-            if (location.Name.Equals("Farm"))
+            if (location is Farm)
             {
                 return PathFindController.FindPathOnFarm(startTile, targetTile, location, iterations);
             }

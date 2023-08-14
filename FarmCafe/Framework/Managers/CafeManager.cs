@@ -10,59 +10,58 @@ using static FarmCafe.Framework.Utilities.Utility;
 using StardewModdingAPI;
 using FarmCafe.Framework.Characters;
 using FarmCafe.Framework.Models;
-using FarmCafe.Framework.Multiplayer;
 using FarmCafe.Locations;
+using Microsoft.Xna.Framework.Graphics;
 using StardewValley.Objects;
 using xTile.Tiles;
 
 namespace FarmCafe.Framework.Managers
 {
-
     internal class CafeManager
     {
-        private readonly TableManager tableManager;
-        internal List<GameLocation> CafeLocations = new();
-        public List<List<string>> RoutesToCafe;
+        internal readonly TableManager TableManager;
+
+        internal List<GameLocation> CafeLocations;
+        internal IList<Item> MenuItems;
+        internal List<Customer> CurrentCustomers;
         internal NPC HelperNpc;
 
-        public IList<Item> MenuItems;
-        public IList<Item> RecentlyAddedMenuItems;
+
+        internal List<List<string>> RoutesToCafe;
 
         internal List<CustomerModel> CustomerModels;
         internal List<CustomerModel> CustomerModelsInUse;
-        internal List<Customer> CurrentCustomers;
         internal List<CustomerGroup> CurrentGroups;
+
         public Point BusPosition;
 
-        internal bool ClientShouldUpdateCustomers = false;
+        internal Dictionary<GameLocation, Vector2> FurnitureToAdd;
+        internal Dictionary<GameLocation, Vector2> FurnitureToRemove;
 
-        public CafeManager(TableManager t)
+
+        public CafeManager(TableManager t, List<GameLocation> cafeLocationsList, IList<Item> menuItemsList, List<Customer> customersList, NPC helperNpc)
         {
-            tableManager = t;
-            MenuItems = new List<Item>(new Item[27]);
-            MenuItems[0] = new StardewValley.Object(746, 1).getOne();
+            TableManager = t;
+            CafeLocations = cafeLocationsList;
+            MenuItems = menuItemsList;
+            CurrentCustomers = customersList;
+            HelperNpc = helperNpc;
 
-            RecentlyAddedMenuItems = new List<Item>(new Item[9]);
-            RecentlyAddedMenuItems[0] = new StardewValley.Object(746, 1).getOne();
-        }
-
-        internal void SetUpHelper(string name)
-        {
-            HelperNpc = Game1.getCharacterFromName(name);
+            CurrentGroups = new List<CustomerGroup>();
+            // TODO Read menu items from saved json file
+            //MenuItems[0] = new StardewValley.Object(746, 1).getOne();
+            //RecentlyAddedMenuItems[0] = new StardewValley.Object(746, 1).getOne();
         }
 
         internal void PopulateRoutesToCafe()
         {
             RoutesToCafe = new List<List<string>>();
-            foreach (string loc in new[] { "BusStop", "Town", "Beach", "Farm" })
+            foreach (string loc in new[] { "BusStop", "Farm" })
             {
-                RoutesToCafe.Add(FindLocationRouteToCafe(GetLocationFromName(loc), CafeLocations.First()));
+                RoutesToCafe.Add(FindLocationRouteToCafe(FarmCafe.GetLocationFromName(loc), CafeLocations.First()));
             }
 
-            foreach (var route in RoutesToCafe)
-            {
-                Debug.Log(string.Join(" - ", route));
-            }
+            RoutesToCafe.ForEach((route) => Debug.Log(string.Join(" - ", route)));
         }
 
         public List<string> FindLocationRouteToCafe(GameLocation startLocation, GameLocation endLocation)
@@ -78,8 +77,10 @@ namespace FarmCafe.Framework.Managers
             while (frontier.Count > 0)
             {
                 string currentName = frontier.Dequeue();
-                GameLocation current = GetLocationFromName(currentName);
+                GameLocation current = FarmCafe.GetLocationFromName(currentName);
 
+                if (current == null)
+                    continue;
                 if (current.Name == endLocation.Name)
                     break;
 
@@ -107,7 +108,6 @@ namespace FarmCafe.Framework.Managers
                     frontier.Enqueue(name);
                     cameFrom[name] = current.Name;
                 }
-
             }
 
             List<string> path = new List<string>() { endLocation.Name };
@@ -124,7 +124,6 @@ namespace FarmCafe.Framework.Managers
                 {
                     return null;
                 }
-
             }
 
             path.Reverse();
@@ -147,9 +146,9 @@ namespace FarmCafe.Framework.Managers
             return route;
         }
 
-        internal int HowManyCustomersOnTable(Furniture table)
+        internal int GetNumberofCustomersForTable(Furniture table)
         {
-            var chairs = tableManager.GetChairsOfTable(table);
+            var chairs = TableManager.GetChairsOfTable(table);
             var countSeats = chairs.Count;
             Debug.Log($"got table! with {countSeats} seats!");
 
@@ -166,7 +165,7 @@ namespace FarmCafe.Framework.Managers
 
         internal void SpawnGroupAtBus()
         {
-            var group = SpawnGroup(GetLocationFromName("BusStop"), BusPosition);
+            var group = SpawnGroup(FarmCafe.GetLocationFromName("BusStop"), BusPosition);
             if (group == null)
                 return;
 
@@ -194,7 +193,7 @@ namespace FarmCafe.Framework.Managers
 
         internal CustomerGroup SpawnGroup(GameLocation location, Point tilePosition, int memberCount = 0)
         {
-            var newtable = tableManager.TryReserveTable();
+            var newtable = TableManager.TryReserveTable();
             if (newtable == null)
             {
                 Debug.Show("No tables to spawn customers");
@@ -206,20 +205,20 @@ namespace FarmCafe.Framework.Managers
                 TableLocation = FurnitureLocation(newtable)
             };
             memberCount = memberCount > 0
-                ? Math.Min(tableManager.GetChairsOfTable(newtable).Count, memberCount)
-                : HowManyCustomersOnTable(newtable);
+                ? Math.Min(TableManager.GetChairsOfTable(newtable).Count, memberCount)
+                : GetNumberofCustomersForTable(newtable);
 
             for (var i = 0; i < memberCount; i++)
             {
                 Customer c = SpawnCustomer(group, location, tilePosition);
-                c.OrderItem = GetRandomItemFromMenu();
+                c.SetOrderItem(GetRandomItemFromMenu());
             }
 
             if (group.ReserveTable(newtable) == false)
                 Debug.Log("ERROR: Couldn't reserve table (was supposed to be able to reserve)", LogLevel.Error);
 
             CurrentGroups.Add(group);
-            Messaging.AddCustomerGroup(group);
+            Multiplayer.AddCustomerGroup(group);
             return group;
         }
 
@@ -248,9 +247,13 @@ namespace FarmCafe.Framework.Managers
             if ((model = GetRandomCustomerModel()) == null)
                 throw new Exception("Customer model not found.");
 
-            var name = $"CustomerNPC_{model.Name}{CurrentCustomers.Count + 1}";
-            var customer = new Customer(model, name, tilePosition, location);
-            Debug.Log($"Customer {name} spawned");
+            Customer customer = new Customer(
+                name: $"CustomerNPC_{model.Name}{CurrentCustomers.Count + 1}",
+                targetTile: tilePosition,
+                location: location, 
+                portrait: FarmCafe.ModHelper.ModContent.Load<Texture2D>($"assets/Portraits/{model.PortraitName}.png"), 
+                tileSheetPath: model.TilesheetPath);
+            Debug.Log($"Customer {customer.Name} spawned");
 
             CurrentCustomers.Add(customer);
             group.Add(customer);
@@ -269,11 +272,11 @@ namespace FarmCafe.Framework.Managers
                 c.Seat.modData["FarmCafeChairIsReserved"] = "F";
             }
 
-            Messaging.RemoveAllCustomers();
+            Multiplayer.RemoveAllCustomers();
             CurrentCustomers.Clear();
-            CustomerModelsInUse.Clear();
-            CurrentGroups.Clear();
-            tableManager.FreeAllTables();
+            CustomerModelsInUse?.Clear();
+            CurrentGroups?.Clear();
+            TableManager.FreeAllTables();
         }
 
         public void EndGroup(CustomerGroup group)
@@ -285,7 +288,7 @@ namespace FarmCafe.Framework.Managers
 
         internal void CacheBusPosition()
         {
-            Tile[,] tiles = GetLocationFromName("BusStop").Map.GetLayer("Back").Tiles.Array;
+            Tile[,] tiles = FarmCafe.GetLocationFromName("BusStop").Map.GetLayer("Back").Tiles.Array;
             for (var i = 0; i < tiles.GetLength(0); i++)
             for (var j = 0; j < tiles.GetLength(1); j++)
                 if (tiles[i, j].Properties.ContainsKey("TouchAction") && tiles[i, j].Properties["TouchAction"] == "Bus")
@@ -333,7 +336,8 @@ namespace FarmCafe.Framework.Managers
             }
         }
 
-        internal List<Customer> GetAllCustomersInGame()
+        // For multiplayer
+        internal static List<Customer> GetAllCustomersInGame()
         {
             var locationCustomers = Game1.locations
                 .SelectMany(l => l.getCharacters())
@@ -370,11 +374,93 @@ namespace FarmCafe.Framework.Managers
             }
         }
 
-        
-        internal GameLocation GetLocationFromName(string name)
+        public bool AddToMenu(Item itemToAdd)
         {
-            return Game1.getLocationFromName(name) ?? CafeLocations.FirstOrDefault(a => a.Name == name);
+            if (MenuItems.Contains(itemToAdd, new ItemEqualityComparer()))
+                return false;
+            
+            for (int i = 0; i < MenuItems.Count; i++)
+            {
+                if (MenuItems[i] == null)
+                {
+                    MenuItems[i] = itemToAdd.getOne();
+                    MenuItems[i].Stack = 1;
+                    return true;
+                }
+            }
+
+            return false;
         }
 
+        public Item RemoveFromMenu(int slotNumber)
+        {
+            Item tmp = MenuItems[slotNumber];
+            if (tmp == null)
+                return null;
+            
+            MenuItems[slotNumber] = null;
+            int firstEmpty = slotNumber;
+            for (int i = slotNumber + 1; i < MenuItems.Count; i++)
+            {
+                if (MenuItems[i] != null)
+                {
+                    MenuItems[firstEmpty] = MenuItems[i];
+                    MenuItems[i] = null;
+                    firstEmpty += 1;
+                }
+            }
+
+            return tmp;
+        }
+
+        internal static void FarmerClickTable(Farmer who, Furniture table)
+        {
+            CustomerGroup groupOnTable =
+                FarmCafe.CurrentCustomers.FirstOrDefault(c => c.Group.ReservedTable == table)?.Group;
+
+            if (groupOnTable == null)
+            {
+                Debug.Log("Didn't get group from table");
+                return;
+            }
+
+            if (groupOnTable.Members.All(c => c.State.Value == CustomerState.OrderReady))
+            {
+                foreach (Customer customer in groupOnTable.Members)
+                {
+                    customer.StartWaitForOrder();
+                }
+            }
+            else if (groupOnTable.Members.All(c => c.State.Value == CustomerState.WaitingForOrder))
+            {
+                foreach (Customer customer in groupOnTable.Members)
+                {
+                    if (customer.OrderItem != null && who.hasItemInInventory(customer.OrderItem.ParentSheetIndex, 1))
+                    {
+                        Debug.Log($"Customer item = {customer.OrderItem.ParentSheetIndex}, inventory = {who.hasItemInInventory(customer.OrderItem.ParentSheetIndex, 1)}");
+                        customer.OrderReceive();
+                        who.removeFirstOfThisItemFromInventory(customer.OrderItem.ParentSheetIndex);
+                    }
+                }
+            }
+            return;
+        }
+        public void ResetCustomers()
+        {
+            CustomerModelsInUse?.Clear();
+            CurrentCustomers?.Clear();
+            CurrentGroups?.Clear();
+        }
     }
+
+    public class ItemEqualityComparer : IEqualityComparer<Item>
+    {
+        public bool Equals(Item x, Item y)
+        {
+            return x != null && y != null && x.ParentSheetIndex == y.ParentSheetIndex;
+        }
+
+        public int GetHashCode(Item obj) => (obj != null) ? obj.ParentSheetIndex * 900 : -1;
+    }
+
 }

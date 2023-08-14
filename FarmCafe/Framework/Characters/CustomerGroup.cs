@@ -22,13 +22,13 @@ namespace FarmCafe.Framework.Characters
 		public void Add(Customer customer)
         {
             if (Members.Count == 0)
-                customer.IsGroupLeader = true;
+                customer.IsGroupLeader.Set(true);
             Members.Add(customer);
 		}
 
 		public bool ReserveTable(Furniture table)
 		{
-			List<Furniture> chairs = FarmCafe.tableManager.GetChairsOfTable(table);
+			List<Furniture> chairs = FarmCafe.TableManager.GetChairsOfTable(table);
 			if (chairs.Count < Members.Count)
 			{
 				return false;

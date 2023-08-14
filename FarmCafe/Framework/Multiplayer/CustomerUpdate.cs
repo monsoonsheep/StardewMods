@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using FarmCafe.Framework.Characters;
 using StardewValley;
 
-namespace FarmCafe.Framework.Multiplayer
+namespace FarmCafe.Framework
 {
     internal class CustomerUpdate
     {
