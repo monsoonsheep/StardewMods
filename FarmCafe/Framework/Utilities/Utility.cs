@@ -23,6 +23,16 @@ namespace FarmCafe.Framework.Utilities
 			return furniture.furniture_type.Value == 11;
 		}
 
+        internal static Furniture TableFromChair(Furniture chair, GameLocation loc)
+        {
+            chair.modData.TryGetValue("FarmCafeChairTable", out string val);
+            if (val == null) 
+                return null;
+
+            int[] tablePos = val?.Split(' ').Select(int.Parse).ToArray();
+            return loc.GetFurnitureAt(new Vector2(tablePos[0], tablePos[1]));
+        }
+
 		internal static Vector2 DirectionIntToDirectionVector(int direction)
 		{
 			return direction switch

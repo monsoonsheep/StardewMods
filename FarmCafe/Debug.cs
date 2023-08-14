@@ -33,7 +33,7 @@ namespace FarmCafe
 
         internal static void MoveDebugAll(int dir)
 		{
-			foreach (var c in FarmCafe.cafeManager.CurrentCustomers)
+			foreach (var c in FarmCafe.CafeManager.CurrentCustomers)
 			{
 				c.MoveDebug(dir);
 			}

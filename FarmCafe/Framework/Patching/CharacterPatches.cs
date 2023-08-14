@@ -28,60 +28,15 @@ namespace FarmCafe.Framework.Patching
                 //    transpiler: nameof(MoveCharacterTranspiler)),
                 new (
                     typeof(Character),
-                    "updateEmote",
-                    null,
-                    transpiler: nameof(UpdateEmoteTranspiler)),
+                    "doEmote",
+                    new[] { typeof(int) , typeof(bool), typeof(bool) },
+                    postfix: nameof(DoEmotePostfix)),
                 new (
                     typeof(Game1),
                     "warpCharacter",
                     new[] { typeof(NPC), typeof(GameLocation), typeof(Vector2) },
                     postfix: nameof(WarpCharacterPostfix)),
-                new (
-                    typeof(PathFindController),
-                    "GetFarmTileWeight",
-                    null,
-                    transpiler: nameof(GetFarmTileWeightTranspiler)
-                ),
-
             };
-        }
-
-        private static IEnumerable<CodeInstruction> UpdateEmoteTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-        {
-            Label fadingTrueJump = new Label();
-            List<CodeInstruction> codes = instructions.ToList();
-            int pointToInsert = 0;
-
-            for (int i = 0; i < codes.Count; i++)
-            {
-                if (codes[i].LoadsConstant(1) && codes[i + 1].StoresField(AccessTools.Field(typeof(StardewValley.Character), "emoteFading")))
-                {
-                    fadingTrueJump = generator.DefineLabel();
-                    codes[i - 1].labels.Add(fadingTrueJump);
-                    pointToInsert = i - 1;
-                }
-            }
-
-            var addedCode = new List<CodeInstruction>()
-            {
-                new (OpCodes.Ldarg_0),
-                new (OpCodes.Isinst, typeof(Customer)),
-                new (OpCodes.Brfalse, fadingTrueJump),
-
-                new (OpCodes.Ldarg_0),
-                CodeInstruction.LoadField(typeof(Customer), "emoteLoop"),
-                new (OpCodes.Brfalse, fadingTrueJump),
-
-                new (OpCodes.Ldarg_0),
-                new (OpCodes.Ldarg_0),
-                CodeInstruction.LoadField(typeof(StardewValley.Character), "currentEmote"),
-                CodeInstruction.StoreField(typeof(StardewValley.Character), "currentEmoteFrame"),
-                new (OpCodes.Ret),
-            };
-
-            codes.InsertRange(pointToInsert, addedCode);
-            return codes.AsEnumerable();
-
         }
 
         // Is this really needed?
@@ -122,33 +77,20 @@ namespace FarmCafe.Framework.Patching
             return codeList.AsEnumerable();
         }
 
-
-        private static IEnumerable<CodeInstruction> GetFarmTileWeightTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-        {
-            int stage = 0;
-            foreach (var code in instructions)
-            {
-                if (stage == 0 && code.Is(OpCodes.Isinst, typeof(StardewValley.TerrainFeatures.Flooring)))
-                {
-                    stage++;
-                }
-
-                if (stage == 1 && code.LoadsConstant())
-                {
-                    stage++;
-                    code.operand = 150;
-                }
-
-                yield return code;
-            }
-        }
-
         private static void WarpCharacterPostfix(NPC character, GameLocation targetLocation, Vector2 position)
         {
             if (character is Customer customer)
             {
                 Debug.Log($"Warped customer to {targetLocation.Name} - {position}");
-                FarmCafe.cafeManager.HandleWarp(customer, targetLocation, position);
+                FarmCafe.CafeManager.HandleWarp(customer, targetLocation, position);
+            }
+        }
+
+        private static void DoEmotePostfix(Character __instance, int whichEmote, bool playSound, bool nextEventCommand)
+        {
+            if (__instance is Customer customer && Context.IsMainPlayer)
+            {
+                Multiplayer.CustomerDoEmote(customer, whichEmote);
             }
         }
     }

@@ -15,42 +15,13 @@ using static StardewValley.Menus.CharacterCustomization;
 
 namespace FarmCafe.Framework.UI
 {
-    public class ItemEqualityComparer : IEqualityComparer<Item>
-    {
-        public bool Equals(Item x, Item y)
-        {
-            return x != null && y != null && x.ParentSheetIndex == y.ParentSheetIndex;
-        }
-
-        public int GetHashCode(Item obj) => (obj != null) ? obj.ParentSheetIndex * 900 : -1;
-    }
-
+   
     public class RecentlyAddedItemsMenu : MenuMenu
     {
         public RecentlyAddedItemsMenu(int xPosition, int yPosition, IList<Item> items, int capacity) : base(xPosition,
-            yPosition, items, capacity, 1)
-        {
-            
-        }
+            yPosition, items, capacity, 1) {}
 
-        public override void draw(SpriteBatch b)
-        {
-
-            Game1.drawDialogueBox(
-                xPositionOnScreen - borderWidth - spaceToClearSideBorder,
-                yPositionOnScreen - borderWidth - spaceToClearTopBorder,
-                width + borderWidth * 2 + spaceToClearSideBorder * 2,
-                height + spaceToClearTopBorder + borderWidth * 2,
-                speaker: false,
-                drawOnlyBox: true);
-
-            base.draw(b);
-            b.DrawString(Game1.tinyFont, "Recent Items",
-                new Vector2(xPositionOnScreen + horizontalGap, yPositionOnScreen - 32), Color.DimGray, 0,
-                Vector2.Zero, 0.75f, SpriteEffects.None, 0.9f);
-        }
-
-        public override Item leftClick(int x, int y, Item _ignored, bool playSound = true)
+        public new Item leftClick(int x, int y, Item _ignored, bool playSound = true)
         {
             foreach (ClickableComponent c in inventory)
             {
@@ -70,6 +41,22 @@ namespace FarmCafe.Framework.UI
             return null;
         }
 
+        public override void draw(SpriteBatch b)
+        {
+
+            Game1.drawDialogueBox(
+                xPositionOnScreen - borderWidth - spaceToClearSideBorder,
+                yPositionOnScreen - borderWidth - spaceToClearTopBorder,
+                width + borderWidth * 2 + spaceToClearSideBorder * 2,
+                height + spaceToClearTopBorder + borderWidth * 2,
+                speaker: false,
+                drawOnlyBox: true);
+
+            base.draw(b);
+            b.DrawString(Game1.tinyFont, "Recent Items",
+                new Vector2(xPositionOnScreen + horizontalGap, yPositionOnScreen - 32), Color.DimGray, 0,
+                Vector2.Zero, 0.75f, SpriteEffects.None, 0.9f);
+        }
     }
 
     public class MenuMenu : IClickableMenu
@@ -134,7 +121,7 @@ namespace FarmCafe.Framework.UI
             }
         }
 
-        public virtual Item leftClick(int x, int y, Item _ignored, bool playSound = true)
+        public virtual int leftClick(int x, int y, Item _ignored, bool playSound = true)
         {
             foreach (ClickableComponent c in inventory)
             {
@@ -145,16 +132,15 @@ namespace FarmCafe.Framework.UI
                     {
                         if (actualInventory[slotNumber] != null)
                         {
-                            return RemoveFromMenu(slotNumber);
+                            return slotNumber;
                         }
                     }
                 }
             }
 
-            return null;
+            return -1;
         }
 
-        
         public Item getItemAt(int x, int y)
         {
             foreach (ClickableComponent c in inventory)
@@ -178,45 +164,6 @@ namespace FarmCafe.Framework.UI
                 }
             }
             return null;
-        }
-
-        public virtual bool AddToMenu(Item itemToAdd)
-        {
-            if (actualInventory.Contains(itemToAdd, new ItemEqualityComparer()))
-                return false;
-            
-            for (int i = 0; i < actualInventory.Count; i++)
-            {
-                if (actualInventory[i] == null)
-                {
-                    actualInventory[i] = itemToAdd.getOne();
-                    actualInventory[i].Stack = 1;
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        public virtual Item RemoveFromMenu(int slotNumber)
-        {
-            Item tmp = actualInventory[slotNumber];
-            if (tmp == null)
-                return null;
-            
-            actualInventory[slotNumber] = null;
-            int firstEmpty = slotNumber;
-            for (int i = slotNumber + 1; i < actualInventory.Count; i++)
-            {
-                if (actualInventory[i] != null)
-                {
-                    actualInventory[firstEmpty] = actualInventory[i];
-                    actualInventory[i] = null;
-                    firstEmpty += 1;
-                }
-            }
-
-            return tmp;
         }
 
         public virtual Item hover(int x, int y, Item heldItem)
@@ -283,6 +230,8 @@ namespace FarmCafe.Framework.UI
                 }
             }
         }
+
+       
     }
 
     public sealed class CafeMenu : MenuWithInventory
@@ -295,11 +244,20 @@ namespace FarmCafe.Framework.UI
 
         private bool showRecentMenu;
 
-        public CafeMenu(IList<Item> menu, IList<Item> recentItems)
+        public delegate bool addToMenuFunction(Item item);
+        private readonly addToMenuFunction addFunction;
+        public delegate Item removeFromMenuFunction(int slotNumber);
+        private readonly removeFromMenuFunction removeFunction;
+
+
+        public CafeMenu(ref IList<Item> menu, ref IList<Item> recentItems, addToMenuFunction addFunction, removeFromMenuFunction removeFunction)
 			: base(highlighterMethod: null, okButton: true)
         {
             this.menuItemsList = menu;
             this.recentlyAddedItemsList = recentItems;
+
+            this.addFunction = addFunction;
+            this.removeFunction = removeFunction;
 
             InitializeComponents();
 
@@ -368,44 +326,22 @@ namespace FarmCafe.Framework.UI
                 return;
             }
 
-            // Clicked on an item in the menu items menu (returns removed item)
-            if (menuItemsMenu.leftClick(x, y, heldItem, playSound: false) != null)
-                return;
+            int removedItemFromMenu = menuItemsMenu.leftClick(x, y, heldItem, playSound: false);
+            // Clicked on an item in the menu items menu (returns removes)
+            if (removedItemFromMenu != -1)
+            {
+                if (removeFunction != null && removeFunction(removedItemFromMenu) != null)
+                    return;
+            }
 
-            Item itemToAdd = base.inventory.getItemAt(x, y)?.getOne() ?? recentyAddedMenu.leftClick(x, y, null);
-            if (itemToAdd != null && itemToAdd.canBeDropped() && itemToAdd.salePrice() > 0)
+
+            Item itemToAdd = (showRecentMenu is false) ? base.inventory.getItemAt(x, y)?.getOne() : recentyAddedMenu.leftClick(x, y, null);
+            if (itemToAdd != null && itemToAdd.canBeDropped())
             {
                 itemToAdd.Stack = 1;
-                if (menuItemsMenu.AddToMenu(itemToAdd))
+                if (addFunction != null && addFunction(itemToAdd))
                 {
                     AddToRecentItems(itemToAdd);
-                }
-            }
-        }
-
-        internal void AddToRecentItems(Item item)
-        {
-            if (recentlyAddedItemsList.Contains(item, new ItemEqualityComparer()))
-                return;
-
-            // Shift everything left
-            if (recentlyAddedItemsList.All(i => i != null))
-            {
-                for (int i = 0; i < recentlyAddedItemsList.Count; i++)
-                {
-                    if (i != recentlyAddedItemsList.Count - 1)
-                        recentlyAddedItemsList[i] = recentlyAddedItemsList[i + 1];
-                    else
-                        recentlyAddedItemsList[i] = null;
-                }
-            }
-
-            for (int i = 0; i < recentlyAddedItemsList.Count; i++)
-            {
-                if (recentlyAddedItemsList[i] == null)
-                {
-                    recentlyAddedItemsList[i] = item;
-                    return;
                 }
             }
         }
@@ -480,6 +416,33 @@ namespace FarmCafe.Framework.UI
             
             Game1.mouseCursorTransparency = 1f;
             drawMouse(b);
+        }
+
+        internal void AddToRecentItems(Item item)
+        {
+            if (recentlyAddedItemsList.Contains(item, new ItemEqualityComparer()))
+                return;
+
+            // Shift everything left
+            if (recentlyAddedItemsList.All(i => i != null))
+            {
+                for (int i = 0; i < recentlyAddedItemsList.Count; i++)
+                {
+                    if (i != recentlyAddedItemsList.Count - 1)
+                        recentlyAddedItemsList[i] = recentlyAddedItemsList[i + 1];
+                    else
+                        recentlyAddedItemsList[i] = null;
+                }
+            }
+
+            for (int i = 0; i < recentlyAddedItemsList.Count; i++)
+            {
+                if (recentlyAddedItemsList[i] == null)
+                {
+                    recentlyAddedItemsList[i] = item;
+                    return;
+                }
+            }
         }
     }
 }
