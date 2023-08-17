@@ -46,17 +46,13 @@ namespace FarmCafe
         internal static IList<Item> RecentlyAddedMenuItems = new List<Item>(new Item[9]);
         internal static List<Customer> CurrentCustomers = new List<Customer>();
         internal static NPC HelperNpc;
-        internal static List<ITable> Tables = new();
+        internal static List<Table> Tables = new();
 
         internal static bool ClientShouldUpdateCustomers = false;
 
         
 
-        /*********
-        ** Public methods
-        *********/
-        /// <summary>The mod entry point, called after the mod is first loaded.</summary>
-        /// <param name="helper">Provides simplified APIs for writing mods.</param>
+        /// <inheritdoc/>
         public override void Entry(IModHelper helper)
         {
             Monitor = base.Monitor;
@@ -121,6 +117,10 @@ namespace FarmCafe
 
                 TableManager = new TableManager(ref Tables);
                 CafeManager = new CafeManager(ref TableManager, ref CafeLocations, ref MenuItems, ref CurrentCustomers, null);
+
+                CafeManager.openingTime = 0900;
+                CafeManager.closingTime = 2100;
+
                 PrepareCustomerModels();
             }
             else
@@ -147,8 +147,8 @@ namespace FarmCafe
             if (Context.IsMainPlayer)
             {
                 CafeManager.PopulateRoutesToCafe();
-                CafeManager.ResetCustomers();
                 TableManager.PopulateTables(CafeLocations);
+                CafeManager.LastTimeCustomersArrived = CafeManager.openingTime;
             }
         }
 
@@ -199,13 +199,13 @@ namespace FarmCafe
                     case nameof(c.OrderItem):
                         c.OrderItem = new StardewValley.Object(e.ReadAs<int>(), 1).getOne();
                         break;
-                    case nameof(c.tableCenterForEmote):
+                    case nameof(c.TableCenterForEmote):
                         MatchCollection matches = Regex.Matches(e.ReadAs<string>(), @"\d+");
                         if (matches.Count == 2 &&
                             float.TryParse(matches[0].Value, out float x) &&
                             float.TryParse(matches[1].Value, out float y))
                         {
-                            c.tableCenterForEmote = new Vector2(x, y);
+                            c.TableCenterForEmote = new Vector2(x, y);
                         }
                         break;
                     default:
@@ -224,7 +224,7 @@ namespace FarmCafe
                     float.TryParse(matches[1].Value, out float y))
                 {
                     // Also add functionality for map tables
-                    ITable table = TableManager.GetTableAt(who.currentLocation, new Vector2(x, y));
+                    Table table = TableManager.GetTableAt(who.currentLocation, new Vector2(x, y));
                     if (table != null)
                         CafeManager.FarmerClickTable(table, who);
                 }
@@ -261,8 +261,8 @@ namespace FarmCafe
                 TableManager.FurnitureShouldBeUpdated = false;
             }
 
-            int tableCount = Tables.Count(t => !t.IsReserved);
             // spawn customers depending on probability logic
+            CafeManager.CheckSpawnCustomers();
         }
 
         private static void OnButtonPressed(object sender, ButtonPressedEventArgs e)
@@ -292,7 +292,7 @@ namespace FarmCafe
                     break;
                 case SButton.NumPad4:
                     Game1.activeClickableMenu = new CarpenterMenu();
-                    CafeManager.Debug_ListCustomers();
+                    Debug.Debug_ListCustomers();
                     break;
                 case SButton.NumPad5:
                     CafeLocations.OfType<CafeLocation>()?.FirstOrDefault()?.PopulateMapTables();
@@ -352,7 +352,7 @@ namespace FarmCafe
 
         private static void OnFurnitureListChanged(object sender, FurnitureListChangedEventArgs e)
         {
-            if (CafeLocations.Any(l => l.Equals(e.Location)))
+            if (!Context.IsMainPlayer || !CafeLocations.Any(l => l.Equals(e.Location)))
                 return;
 
             foreach (var removed in e.Removed)
@@ -363,7 +363,7 @@ namespace FarmCafe
                         .OfType<FurnitureTable>()
                         .SelectMany(t => t.Seats)
                         .OfType<FurnitureChair>()
-                        .FirstOrDefault(seat => seat.TileLocation == removed.TileLocation && seat.Table.CurrentLocation.Equals(e.Location));
+                        .FirstOrDefault(seat => seat.Position == removed.TileLocation && seat.Table.CurrentLocation.Equals(e.Location));
 
                     if (trackedChair?.Table is not FurnitureTable table)
                         continue;
@@ -432,7 +432,6 @@ namespace FarmCafe
 
             return trackedTable;
         }
-
 
         private static void PrepareSolidFoundationsApi()
         {

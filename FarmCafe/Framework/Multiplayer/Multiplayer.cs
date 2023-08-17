@@ -38,7 +38,7 @@ namespace FarmCafe.Framework
             //FarmCafe.ModHelper.Multiplayer.SendMessage(tables, "SyncTables", modIDs: new[] { FarmCafe.ModManifest.UniqueID });
         }
 
-        internal static void SendTableClick(ITable table, Farmer who)
+        internal static void SendTableClick(Table table, Farmer who)
         {
             FarmCafe.ModHelper.Multiplayer.SendMessage(
                 message: new Dictionary<string, string>()

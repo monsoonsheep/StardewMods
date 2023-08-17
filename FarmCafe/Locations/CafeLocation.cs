@@ -89,16 +89,17 @@ namespace FarmCafe.Locations
             Debug.Log($"Updated map tables in the cafe: {string.Join(", ", MapTables.Select(pair => pair.Key.Center + " with " + pair.Value.Count + " seats"))}");
         }
 
-        public override void cleanupBeforeSave()
-        {
-            for (var i = characters.Count - 1; i >= 0; i--)
-            {
-                if (characters[i] is Customer) 
-                {
-                    characters.RemoveAt(i);
-                }
-            }
-        }
+        // Probably not needed because of the postfix?
+        //public override void cleanupBeforeSave()
+        //{
+        //    for (var i = characters.Count - 1; i >= 0; i--)
+        //    {
+        //        if (characters[i] is Customer) 
+        //        {
+        //            characters.RemoveAt(i);
+        //        }
+        //    }
+        //}
 
         public override void DayUpdate(int dayOfMonth)
         {

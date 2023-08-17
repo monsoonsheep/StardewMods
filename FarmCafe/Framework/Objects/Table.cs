@@ -19,26 +19,26 @@ using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 namespace FarmCafe.Framework.Objects
 {
-    public interface ITable
+    public abstract class Table
     {
-        public List<ISeat> Seats { get; }
+        public abstract List<ISeat> Seats { get; set; }
 
-        public Vector2 Position { get; }
+        public abstract Vector2 Position { get; }
 
-        public GameLocation CurrentLocation { get; }
+        public abstract GameLocation CurrentLocation { get; set; }
 
-        public bool IsReserved { get; }
+        public abstract bool IsReserved { get; }
 
-        public Rectangle BoundingBox { get; }
+        public abstract Rectangle BoundingBox { get; }
 
-        public void Free();
+        public abstract void Free();
 
-        public bool Reserve(List<Customer> customers);
+        public abstract bool Reserve(List<Customer> customers);
 
-        public Vector2 GetCenter();
+        public abstract Vector2 GetCenter();
     }
 
-    internal class FurnitureTable : ITable
+    internal class FurnitureTable : Table
     {
         internal Furniture ActualTable;
 
@@ -51,20 +51,40 @@ namespace FarmCafe.Framework.Objects
             PopulateChairs();
         }
 
-        public Vector2 Position => ActualTable.TileLocation;
+        public override List<ISeat> Seats { get; set; }
 
-        public List<ISeat> Seats { get; private set; }
+        public override Vector2 Position => ActualTable.TileLocation;
 
-        public GameLocation CurrentLocation { get; set; }
+        public override GameLocation CurrentLocation { get; set; }
 
-        public bool IsReserved => this.ActualTable.modData.TryGetValue("FarmCafeTableIsReserved", out var val) && val == "T";
+        public override bool IsReserved => this.ActualTable.modData.TryGetValue("FarmCafeTableIsReserved", out var val) && val == "T";
 
-        public Rectangle BoundingBox => this.ActualTable.boundingBox.Value;
+        public override Rectangle BoundingBox => this.ActualTable.boundingBox.Value;
 
-        public void Free()
+        public override void Free()
         {
             this.ActualTable.modData["FarmCafeTableIsReserved"] = "F";
             Seats.ForEach(s => s.Free());
+        }
+
+        public override bool Reserve(List<Customer> customers)
+        {
+            if (IsReserved || Seats.Count < customers.Count)
+                return false;
+
+            for (int i = 0; i < customers.Count; i++)
+            {
+                customers[i].Seat = Seats[i];
+                Seats[i].Reserve(customers[i]);
+            }
+
+            this.ActualTable.modData["FarmCafeTableIsReserved"] = "T";
+            return true;
+        }
+
+        public override Vector2 GetCenter()
+        {
+            return this.ActualTable.boundingBox.Value.Center.ToVector2();
         }
 
         public void PopulateChairs()
@@ -111,32 +131,12 @@ namespace FarmCafe.Framework.Objects
             }
         }
 
-        public bool Reserve(List<Customer> customers)
-        {
-            if (IsReserved || Seats.Count < customers.Count)
-                return false;
-
-            this.ActualTable.modData["FarmCafeTableIsReserved"] = "T";
-            for (int i = 0; i < customers.Count; i++)
-            {
-                customers[i].Seat = Seats[i];
-                Seats[i].Reserve(customers[i]);
-            }
-
-            return true;
-        }
-
-        public Vector2 GetCenter()
-        {
-            return this.ActualTable.boundingBox.Value.Center.ToVector2();
-        }
-
         internal FurnitureChair AddChair(Furniture chairToAdd)
         {
             if (IsReserved)
                 return null;
 
-            if (Seats.Any(c => c.TileLocation == chairToAdd.TileLocation))
+            if (Seats.Any(c => c.Position == chairToAdd.TileLocation))
                 return null;
 
             Debug.Log("Adding chair to table");
@@ -153,19 +153,20 @@ namespace FarmCafe.Framework.Objects
             if (IsReserved)
                 return false;
 
-            if (!Seats.Any(c => c.TileLocation == chairToRemove.TileLocation))
+            if (!Seats.Any(c => c.Position == chairToRemove.TileLocation))
             {
                 Debug.Log("Trying to remove a chair that wasn't tracked");
                 return false;
             }
 
             chairToRemove.modData.Remove("FarmCafeChairIsReserved");
-            Seats = Seats.TakeWhile(c => c.TileLocation != chairToRemove.TileLocation).ToList();
+            Seats = Seats.TakeWhile(c => c.Position != chairToRemove.TileLocation).ToList();
+            Debug.Log("Removed chair from table");
             return true;
         }
     }
 
-    public class MapTable : ITable {
+    public class MapTable : Table {
         private bool isReserved;
 
         public MapTable(Rectangle boundingBox, GameLocation location, List<Vector2> seats)
@@ -182,27 +183,21 @@ namespace FarmCafe.Framework.Objects
             }
         }
 
-        public List<ISeat> Seats { get; }
+        public override List<ISeat> Seats { get; set; }
 
-        public Vector2 Position { get; }
+        public override Vector2 Position { get; }
 
-        public GameLocation CurrentLocation { get; }
+        public override GameLocation CurrentLocation { get; set; }
 
-        public bool IsReserved => isReserved;
+        public override bool IsReserved => isReserved;
 
-        public Rectangle BoundingBox { get; }
+        public override Rectangle BoundingBox { get; }
 
-        public void Free()
+        public override bool Reserve(List<Customer> customers)
         {
-            isReserved = false;
-            Seats.ForEach(s => s.Free());
-        }
-
-        public bool Reserve(List<Customer> customers)
-        {
-            if (isReserved)
+            if (IsReserved || Seats.Count < customers.Count)
                 return false;
-            
+
             for (int i = 0; i < customers.Count; i++)
             {
                 customers[i].Seat = Seats[i];
@@ -213,9 +208,15 @@ namespace FarmCafe.Framework.Objects
             return true;
         }
 
-        public Vector2 GetCenter()
+        public override Vector2 GetCenter()
         {
             return BoundingBox.Center.ToVector2();
+        }
+
+        public override void Free()
+        {
+            isReserved = false;
+            Seats.ForEach(s => s.Free());
         }
     }
 }

@@ -15,11 +15,11 @@ namespace FarmCafe.Framework.Managers
 {
     internal class TableManager
     {
-        internal List<ITable> Tables;
+        internal List<Table> Tables;
 
         internal bool FurnitureShouldBeUpdated = false;
 
-        public TableManager(ref List<ITable> tables)
+        public TableManager(ref List<Table> tables)
         {
             Tables = tables;
         }
@@ -65,7 +65,7 @@ namespace FarmCafe.Framework.Managers
             Multiplayer.SyncTables();
         }
        
-        internal bool TryAddTable(ITable table, bool update = true)
+        internal bool TryAddTable(Table table, bool update = true)
         {
             if (table == null || table.Seats.Count == 0)
                 return false;
@@ -99,10 +99,9 @@ namespace FarmCafe.Framework.Managers
             Multiplayer.SyncTables();
         }
 
-        internal ITable GetFreeTable(int minimumSeats = 1)
+        internal List<Table> GetFreeTables(int minimumSeats = 1)
         {
-            ITable newTable = Tables.OrderBy((_) => Game1.random.Next()).FirstOrDefault(t => !t.IsReserved && t.Seats.Count >= minimumSeats);
-            return newTable;
+            return Tables.OrderBy((_) => Game1.random.Next()).Where(t => !t.IsReserved && t.Seats.Count >= minimumSeats).ToList();
         }
 
         internal static bool ChairIsReserved(Furniture chair)
@@ -116,7 +115,7 @@ namespace FarmCafe.Framework.Managers
                 table.Free();
         }
 
-        internal ITable GetTableAt(GameLocation location, Vector2 position)
+        internal Table GetTableAt(GameLocation location, Vector2 position)
         {
             return Tables.Where(t => t.CurrentLocation.Equals(location)).FirstOrDefault(table => table.BoundingBox.Contains(position));
         }
