@@ -10,9 +10,12 @@ using static FarmCafe.Framework.Utilities.Utility;
 using StardewModdingAPI;
 using FarmCafe.Framework.Characters;
 using FarmCafe.Framework.Models;
+using FarmCafe.Framework.Objects;
 using FarmCafe.Locations;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley.Objects;
+using xTile.Layers;
+using xTile.ObjectModel;
 using xTile.Tiles;
 
 namespace FarmCafe.Framework.Managers
@@ -35,11 +38,11 @@ namespace FarmCafe.Framework.Managers
 
         public Point BusPosition;
 
-        internal Dictionary<GameLocation, Vector2> FurnitureToAdd;
-        internal Dictionary<GameLocation, Vector2> FurnitureToRemove;
-
-
-        public CafeManager(TableManager t, List<GameLocation> cafeLocationsList, IList<Item> menuItemsList, List<Customer> customersList, NPC helperNpc)
+        internal int LastTimeCustomersDined;
+        internal int openingTime = 0800;
+        internal int closingTime = 2100;
+        internal short CustomerGroupsDinedToday;
+        public CafeManager(ref TableManager t, ref List<GameLocation> cafeLocationsList, ref IList<Item> menuItemsList, ref List<Customer> customersList, NPC helperNpc)
         {
             TableManager = t;
             CafeLocations = cafeLocationsList;
@@ -48,9 +51,32 @@ namespace FarmCafe.Framework.Managers
             HelperNpc = helperNpc;
 
             CurrentGroups = new List<CustomerGroup>();
-            // TODO Read menu items from saved json file
-            //MenuItems[0] = new StardewValley.Object(746, 1).getOne();
-            //RecentlyAddedMenuItems[0] = new StardewValley.Object(746, 1).getOne();
+            CacheBusPosition();
+        }
+
+        internal bool CheckSpawnCustomers()
+        {
+            //if (Utility.CalculateMinutesBetweenTimes(Game1.timeOfDay, ))
+            //    return false;
+
+            //// if it's an hour before closing
+            //if (Game1.timeOfDay >= closingTime - 0100) 
+            //{
+            //    return (Game1.random.Next(11) == 0);
+            //}
+            //float prob = 0f;
+
+            //// Add for amount of time passed since last customers (maxed if it's been 2 hours
+            //prob += Math.Min(0.8f, (float)(Game1.timeOfDay - LastTimeCustomersDined) / 200f);
+
+            ////prob += (Game1.timeOfDay ) ? 
+
+            //if (prob >= 1)
+            //{
+            //    LastTimeCustomersDined = Game1.timeOfDay;
+            //    return true;
+            //}
+            return false;
         }
 
         internal void PopulateRoutesToCafe()
@@ -146,9 +172,9 @@ namespace FarmCafe.Framework.Managers
             return route;
         }
 
-        internal int GetNumberofCustomersForTable(Furniture table)
+        internal int GetNumberofCustomersForTable(ITable table)
         {
-            var chairs = TableManager.GetChairsOfTable(table);
+            var chairs = table.Seats;
             var countSeats = chairs.Count;
             Debug.Log($"got table! with {countSeats} seats!");
 
@@ -181,37 +207,25 @@ namespace FarmCafe.Framework.Managers
             Debug.Show($"{memberCount} customer(s) arriving");
         }
 
-        internal Item GetRandomItemFromMenu()
-        {
-            return MenuItems.Where(c => c != null).OrderBy((i) => Game1.random.Next()).FirstOrDefault();
-        }
-
-        internal GameLocation FurnitureLocation(Furniture table)
-        {
-            return CafeLocations.FirstOrDefault(location => location.furniture.Contains(table));
-        }
-
         internal CustomerGroup SpawnGroup(GameLocation location, Point tilePosition, int memberCount = 0)
         {
-            var newtable = TableManager.TryReserveTable();
+            var newtable = TableManager.GetFreeTable();
             if (newtable == null)
             {
                 Debug.Show("No tables to spawn customers");
                 return null;
             }
 
-            var group = new CustomerGroup
-            {
-                TableLocation = FurnitureLocation(newtable)
-            };
+            var group = new CustomerGroup();
+
             memberCount = memberCount > 0
-                ? Math.Min(TableManager.GetChairsOfTable(newtable).Count, memberCount)
+                ? Math.Min(newtable.Seats.Count, memberCount)
                 : GetNumberofCustomersForTable(newtable);
 
             for (var i = 0; i < memberCount; i++)
             {
                 Customer c = SpawnCustomer(group, location, tilePosition);
-                c.SetOrderItem(GetRandomItemFromMenu());
+                c.OrderItem = GetRandomItemFromMenu();
             }
 
             if (group.ReserveTable(newtable) == false)
@@ -269,7 +283,6 @@ namespace FarmCafe.Framework.Managers
             {
                 Game1.removeThisCharacterFromAllLocations(c);
                 c.currentLocation?.characters?.Remove(c);
-                c.Seat.modData["FarmCafeChairIsReserved"] = "F";
             }
 
             Multiplayer.RemoveAllCustomers();
@@ -413,7 +426,12 @@ namespace FarmCafe.Framework.Managers
             return tmp;
         }
 
-        internal static void FarmerClickTable(Farmer who, Furniture table)
+        internal Item GetRandomItemFromMenu()
+        {
+            return MenuItems.Where(c => c != null).OrderBy((i) => Game1.random.Next()).FirstOrDefault();
+        }
+
+        internal static void FarmerClickTable(ITable table, Farmer who)
         {
             CustomerGroup groupOnTable =
                 FarmCafe.CurrentCustomers.FirstOrDefault(c => c.Group.ReservedTable == table)?.Group;

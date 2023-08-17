@@ -60,16 +60,16 @@ namespace FarmCafe
 			me.MovePosition(Game1.currentGameTime, Game1.viewport, Game1.getFarm());
 			me.Halt();
 
-			float seatback = (me.Seat.boundingBox.Value.Top + 16) / 10000f;
-			float seatfront = (me.Seat.boundingBox.Value.Bottom - 8) / 10000f;
-			float charlayer = me.getStandingY() / 10000f;
+			//float seatback = (me.Seat.boundingBox.Value.Top + 16) / 10000f;
+			//float seatfront = (me.Seat.boundingBox.Value.Bottom - 8) / 10000f;
+			//float charlayer = me.getStandingY() / 10000f;
 
-			Debug.Log($"seat back is {seatback}");
-			Debug.Log($"seat front is {seatfront}");
-			Debug.Log($"character layer is {charlayer}");
-			Debug.Log($"{seatback} --- {charlayer} --- {seatfront}");
-			Debug.Log($"character bouding box {me.GetBoundingBox()}");
-			Debug.Log($"seat bounding box is {me.Seat.boundingBox}");
+			//Debug.Log($"seat back is {seatback}");
+			//Debug.Log($"seat front is {seatfront}");
+			//Debug.Log($"character layer is {charlayer}");
+			//Debug.Log($"{seatback} --- {charlayer} --- {seatfront}");
+			//Debug.Log($"character bouding box {me.GetBoundingBox()}");
+			//Debug.Log($"seat bounding box is {me.Seat.boundingBox}");
 		}
 
 	}

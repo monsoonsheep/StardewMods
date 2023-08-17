@@ -4,7 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FarmCafe.Framework.Characters;
+using FarmCafe.Framework.Managers;
+using FarmCafe.Framework.Objects;
+using FarmCafe.Locations;
+using StardewModdingAPI;
 using StardewValley;
+using xTile.Dimensions;
 
 namespace FarmCafe.Framework.Patching
 {
@@ -19,6 +24,11 @@ namespace FarmCafe.Framework.Patching
                     "cleanupBeforeSave",
                     null,
                     postfix: nameof(CleanupBeforeSavePostfix)),
+                new (
+                    typeof(GameLocation),
+                    "checkAction",
+                    new [] { typeof(Location), typeof(Rectangle), typeof(Farmer) },
+                    postfix: nameof(CheckActionPostfix)),
             };
         }
 
@@ -30,6 +40,29 @@ namespace FarmCafe.Framework.Patching
                 {
                     Debug.Log("Removing character before saving");
                     __instance.characters.RemoveAt(i);
+                }
+            }
+        }
+
+        private static void CheckActionPostfix(GameLocation __instance, Location tileLocation, Rectangle viewport, Farmer who, ref bool __result)
+        {
+            if (!FarmCafe.CafeLocations.Contains(__instance)) return;
+
+            foreach (ITable table in FarmCafe.Tables)
+            {
+                if (table.BoundingBox.Contains(tileLocation.X * 64, tileLocation.Y * 64))
+                {
+                    if (!Context.IsMainPlayer)
+                    {
+                        Multiplayer.SendTableClick(table, who);
+                    }
+                    else
+                    {
+                        CafeManager.FarmerClickTable(table, who);
+                    }
+
+                    __result = true;
+                    return;
                 }
             }
         }

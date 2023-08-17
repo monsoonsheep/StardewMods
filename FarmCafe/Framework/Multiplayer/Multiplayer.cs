@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FarmCafe.Framework.Objects;
 using StardewValley.Menus;
 using static FarmCafe.Framework.Utilities.Utility;
 
@@ -33,17 +34,17 @@ namespace FarmCafe.Framework
 
         internal static void SyncTables()
         {
-            Dictionary<Vector2, string> tables = FarmCafe.TableManager.TrackedTables.ToDictionary(x => x.Key.TileLocation, x => x.Value.Name);
-            FarmCafe.ModHelper.Multiplayer.SendMessage(tables, "SyncTables", modIDs: new[] { FarmCafe.ModManifest.UniqueID });
+            //Dictionary<Vector2, string> tables = FarmCafe.TableManager.Tables.ToDictionary(x => x.Position, x => x.CurrentLocation.Name);
+            //FarmCafe.ModHelper.Multiplayer.SendMessage(tables, "SyncTables", modIDs: new[] { FarmCafe.ModManifest.UniqueID });
         }
 
-        internal static void SendTableClick(Furniture table, Farmer who)
+        internal static void SendTableClick(ITable table, Farmer who)
         {
             FarmCafe.ModHelper.Multiplayer.SendMessage(
                 message: new Dictionary<string, string>()
                 {
                     { "farmer", who.UniqueMultiplayerID.ToString() },
-                    { "table", table.TileLocation.ToString() }
+                    { "table", table.Position.ToString() }
                 },
                 messageType: "ClickTable",
                 modIDs: new[] { FarmCafe.ModManifest.UniqueID });
