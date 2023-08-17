@@ -34,29 +34,27 @@ namespace FarmCafe.Framework.Characters
         Free,
     }
 
-    public class Customer : NPC
+    public partial class Customer : NPC
     {
-        [XmlIgnore] 
-        internal CustomerGroup Group;
+        [XmlIgnore] internal CustomerGroup Group;
 
-        [XmlIgnore] 
-        public ISeat Seat;
+        [XmlIgnore] public ISeat Seat;
 
-        [XmlIgnore]
-        internal NetBool IsGroupLeader = new NetBool();
+        [XmlIgnore] internal NetBool IsGroupLeader = new NetBool();
 
-        [XmlIgnore]
-        internal NetEnum<CustomerState> State = new(ExitingBus);
+        [XmlIgnore] internal NetBool IsSitting = new NetBool();
+
+        [XmlIgnore] internal NetEnum<CustomerState> State = new(ExitingBus);
         private int busDepartTimer = 0;
         private int conveneWaitingTimer = 0;
         private int lookAroundTimer = 0;
         private int orderTimer = 0;
         private int eatingTimer = 0;
 
-        [XmlIgnore] 
-        internal Point BusConvenePoint;
+        [XmlIgnore] internal Point BusConvenePoint;
 
         internal delegate void LerpEnd();
+
         private float lerpPosition = -1f;
         private float lerpDuration = 0f;
         private Vector2 lerpStartPosition;
@@ -66,13 +64,11 @@ namespace FarmCafe.Framework.Characters
 
         private readonly NetVector2 drawOffsetForSeat = new NetVector2(new Vector2(0, 0));
 
-        internal Vector2 tableCenterForEmote = new Vector2(0, 0);
+        internal Vector2 TableCenterForEmote = new Vector2(0, 0);
 
-        [XmlIgnore] 
-        internal List<int> LookingDirections = new() { 0, 1, 3 };
+        [XmlIgnore] internal List<int> LookingDirections = new() { 0, 1, 3 };
 
-        [XmlIgnore] 
-        internal Item OrderItem { get; set; }
+        [XmlIgnore] internal Item OrderItem { get; set; }
 
         [XmlIgnore]
         internal bool FreezeMotion
@@ -107,7 +103,7 @@ namespace FarmCafe.Framework.Characters
 
         protected override void initNetFields()
         {
-            NetFields.AddFields(drawOffsetForSeat, State, IsGroupLeader);
+            NetFields.AddFields(drawOffsetForSeat, State, IsGroupLeader, IsSitting);
             base.initNetFields();
         }
 
@@ -204,7 +200,7 @@ namespace FarmCafe.Framework.Characters
                 new Vector2(Sprite.SpriteWidth / 2, Sprite.SpriteHeight * 3f / 4f),
                 Math.Max(0.2f, scale) * 4f,
                 SpriteEffects.None,
-                Math.Max(0f, getStandingY() / 10000f + ((getTileLocation() == Seat.TileLocation) ? 0.0035f : 0.0001f)));
+                Math.Max(0f, getStandingY() / 10000f + ((IsSitting.Value is true) ? 0.0035f : 0.0001f)));
 
             if (Breather && shakeTimer <= 0 && !swimming && Sprite.currentFrame < 16 && !farmerPassesThrough)
             {
@@ -227,7 +223,7 @@ namespace FarmCafe.Framework.Characters
                     sourceRect.Height /= 2;
                 }
 
-                float num = (float) Math.Max(0f,
+                float num = (float)Math.Max(0f,
                     Math.Ceiling(Math.Sin(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 600.0 + 200f)) / 4f);
 
                 b.Draw(Sprite.Texture,
@@ -256,11 +252,11 @@ namespace FarmCafe.Framework.Characters
             if (State == OrderReady && IsGroupLeader.Value)
             {
                 Vector2 offset = new Vector2(0,
-                    (float) Math.Round(4f * Math.Sin(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 250.0)));
+                    (float)Math.Round(4f * Math.Sin(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 250.0)));
 
                 b.Draw(
                     Game1.mouseCursors,
-                    Game1.GlobalToLocal(tableCenterForEmote) + offset,
+                    Game1.GlobalToLocal(TableCenterForEmote) + offset,
                     new Rectangle(402, 495, 7, 16),
                     Color.Crimson,
                     0f,
@@ -271,160 +267,151 @@ namespace FarmCafe.Framework.Characters
             }
         }
 
+        public override void MovePosition(GameTime time, xTile.Dimensions.Rectangle viewport, GameLocation location)
+        {
+            if (location == null)
+                return;
+
+            if (moveUp)
+			{
+                if (location.isCollidingPosition(nextPosition(0), viewport, isFarmer: false, 0, glider: false, this) && !isCharging)
+                {
+                    if (!location.isTilePassable(nextPosition(0), viewport))
+                        // TODO: Repath
+                        Halt();
+                    else
+                    {
+                        if (location.characterDestroyObjectWithinRectangle(nextPosition(0), showDestroyedObject: true))
+                        {
+                            doEmote(12);
+                            position.Y -= speed + addedSpeed;
+                        }
+                        else
+                        {
+                            blockedInterval += time.ElapsedGameTime.Milliseconds;
+                        }
+                    }
+                }
+                else
+				{
+                    position.Y -= speed + addedSpeed;
+                    if (!ignoreMovementAnimation)
+                    {
+                        Sprite.AnimateUp(time, (speed - 2 + addedSpeed) * -25, Utility.isOnScreen(getTileLocationPoint(), 1, location) ? "Cowboy_Footstep" : "");
+                        faceDirection(0);
+                    }
+				}
+            }
+            else if (moveRight)
+            {
+                if (location.isCollidingPosition(nextPosition(1), viewport, isFarmer: false, 0, glider: false, this) && !isCharging)
+                {
+                    if (!location.isTilePassable(nextPosition(1), viewport))
+                        Halt();
+                    else
+                    {
+                        if (location.characterDestroyObjectWithinRectangle(nextPosition(1), showDestroyedObject: true))
+                        {
+                            doEmote(12);
+                            position.X += speed + addedSpeed;
+                        }
+                        else
+                        {
+                            blockedInterval += time.ElapsedGameTime.Milliseconds;
+                        }
+                    }
+                }
+                else
+                {
+                    position.X += speed + addedSpeed;
+                    if (!ignoreMovementAnimation)
+                    {
+                        Sprite.AnimateRight(time, (speed - 2 + addedSpeed) * -25, Utility.isOnScreen(getTileLocationPoint(), 1, location) ? "Cowboy_Footstep" : "");
+                        faceDirection(1);
+                    }
+                }
+            }
+            else if (moveDown)
+            {
+                if (location.isCollidingPosition(nextPosition(2), viewport, isFarmer: false, 0, glider: false, this) && !isCharging)
+                {
+                    if (!location.isTilePassable(nextPosition(2), viewport))
+                        Halt();
+                    else
+                    {
+                        if (location.characterDestroyObjectWithinRectangle(nextPosition(2), showDestroyedObject: true))
+                        {
+                            doEmote(12);
+                            position.Y += speed + addedSpeed;
+                        }
+                        else
+                        {
+                            blockedInterval += time.ElapsedGameTime.Milliseconds;
+                        }
+                    }
+                }
+                else
+                {
+                    position.Y += speed + addedSpeed;
+                    if (!ignoreMovementAnimation)
+                    {
+                        Sprite.AnimateDown(time, (speed - 2 + addedSpeed) * -25, Utility.isOnScreen(getTileLocationPoint(), 1, location) ? "Cowboy_Footstep" : "");
+                        faceDirection(2);
+                    }
+                }
+            }
+            else if (moveLeft)
+            {
+                if (location.isCollidingPosition(nextPosition(3), viewport, isFarmer: false, 0, glider: false, this) && !isCharging)
+                {
+                    if (!location.isTilePassable(nextPosition(3), viewport))
+                        Halt();
+                    else
+                    {
+                        if (location.characterDestroyObjectWithinRectangle(nextPosition(3), showDestroyedObject: true))
+                        {
+                            doEmote(12);
+                            position.X -= speed + addedSpeed;
+                        }
+                        else
+                        {
+                            blockedInterval += time.ElapsedGameTime.Milliseconds;
+                        }
+                    }
+                }
+                else
+                {
+                    position.X -= speed + addedSpeed;
+                    if (!ignoreMovementAnimation)
+                    {
+                        Sprite.AnimateLeft(time, (speed - 2 + addedSpeed) * -25, Utility.isOnScreen(getTileLocationPoint(), 1, location) ? "Cowboy_Footstep" : "");
+                        faceDirection(3);
+                    }
+                }
+            }
+            else
+			{
+				Sprite.animateOnce(time);
+			}
+            if (blockedInterval >= 3000 && blockedInterval <= 3750)
+			{
+				doEmote((Game1.random.NextDouble() < 0.5) ? 8 : 40);
+				blockedInterval = 3750;
+			}
+			else if (blockedInterval >= 5000)
+			{
+				isCharging = true;
+				blockedInterval = 0;
+			}
+		}
+
         public override void tryToReceiveActiveObject(Farmer who)
         {
-            if (who.ActiveObject == null || who.ActiveObject.ParentSheetIndex != OrderItem.ParentSheetIndex) 
+            if (who.ActiveObject == null || who.ActiveObject.ParentSheetIndex != OrderItem.ParentSheetIndex)
                 return;
 
             this.OrderReceive();
             who.reduceActiveItemByOne();
-        }
-
-        #endregion
-
-        #region Behavior
-        internal void LeaveBus()
-        {
-            if (Group.Members.Count == 1)
-            {
-                GoToSeat();
-            }
-            else
-            {
-                collidesWithOtherCharacters.Set(false);
-                this.HeadTowards(FarmCafe.GetLocationFromName("BusStop"), BusConvenePoint, 2, StartConvening);
-            }
-        }
-
-        internal void SetBusConvene(Point pos, int timer)
-        {
-            busDepartTimer = timer;
-            BusConvenePoint = pos;
-        }
-
-        internal void GoToSeat()
-        {
-            State.Set(MovingToTable);
-            collidesWithOtherCharacters.Set(false);
-            this.HeadTowards(
-                Group.ReservedTable.CurrentLocation, 
-                Seat.TileLocation.ToPoint(), 
-                -1, 
-                SitDown);
-            
-        }
-
-        internal void StartConvening()
-        {
-            controller = null;
-            conveneWaitingTimer = Game1.random.Next(500, 3000);
-            State.Set(Convening);
-            Group.GetLookingDirections();
-        }
-
-        internal void FinishConvening()
-        {
-            State.Set(MovingToTable);
-            if (Group.Members.Any(c => c.State.Value != MovingToTable))
-                return;
-
-            foreach (Customer mate in Group.Members)
-                mate.GoToSeat();
-        }
-
-        internal void LookAround()
-        {
-            faceDirection(LookingDirections[Game1.random.Next(LookingDirections.Count)]);
-        }
-
-        internal void SitDown()
-        {
-            State.Set(Sitting);
-            controller = null;
-            isCharging = true;
-
-            LerpPosition(
-                Position, 
-                Seat.TileLocation * 64f, 
-                0.15f, 
-                () => this.orderTimer = Game1.random.Next(300, 500));
-
-            int sittingDirection = Seat.GetSittingDirection();
-            faceDirection(sittingDirection);
-           
-            Vector2 vec = sittingDirection switch
-            {
-                0 => new Vector2(0f, -24f), // up
-                1 => new Vector2(12f, -8f), // right
-                2 => new Vector2(0f, 0f), // down 
-                3 => new Vector2(-12f, -8f), // left
-                _ => drawOffsetForSeat
-            };
-
-            drawOffsetForSeat.Set(vec);
-            Breather = true;
-        }
-
-        internal void GetUpFromSeat(int direction)
-        {
-            drawOffsetForSeat.Set(new Vector2(0, 0));
-            var nextPos = Position + (DirectionIntToDirectionVector(direction) * 64f);
-            LerpPosition(
-                Position,
-                nextPos,
-                0.15f, 
-                GoHome);
-        }
-
-        internal void ReadyToOrder()
-        {
-            State.Set(OrderReady);
-            if (IsGroupLeader)
-                tableCenterForEmote = this.Group.ReservedTable.GetCenter() + new Vector2(-8, -64);
-
-            Multiplayer.UpdateCustomerInfo(this, nameof(OrderItem), OrderItem.ParentSheetIndex);
-            Multiplayer.UpdateCustomerInfo(this, nameof(tableCenterForEmote), tableCenterForEmote.ToString());
-
-        }
-      
-        internal void OrderReceive()
-        {
-            State.Set(Eating);
-            if (IsGroupLeader)
-                doEmote(20);
-            this.eatingTimer = 2000;
-        }
-
-        internal void StartWaitForOrder()
-        {
-            State.Set(WaitingForOrder);
-        }
-
-        internal void FinishEating()
-        {
-            State.Set(Leaving);
-            int direction = Game1.random.Next(2) == 0 ? (FacingDirection + 1) % 4 : (FacingDirection + 3) % 4;
-            this.GetUpFromSeat(direction);
-        }
-
-        internal void DoNothingAndWait()
-        {
-            State.Set(Free);
-        }
-
-        internal void GoHome()
-        {
-            Group.ReservedTable.Free();
-            this.HeadTowards(Game1.getLocationFromName("BusStop"), FarmCafe.CafeManager.BusPosition, 0, ReachHome);
-        }
-
-        internal void ReachHome()
-        {
-            IsInvisible = true;
-            Game1.removeCharacterFromItsLocation(this.Name);
-            if (Group.Members.All(c => c.IsInvisible))
-                FarmCafe.CafeManager.EndGroup(Group);
-            
         }
 
         #endregion

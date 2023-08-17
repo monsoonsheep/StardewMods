@@ -67,18 +67,6 @@ namespace FarmCafe.Framework.Patching
             };
         }
 
-
-        private static bool MapSeatHasSittingFarmersPrefix(MapSeat __instance, ref bool __result)
-        {
-            if (FarmCafe.Tables.Any(t => t.Seats.Any(s => s.TileLocation == __instance.tilePosition.Value)))
-            {
-                __result = true;
-                return false;
-            }
-
-            return true;
-        }
-
         // Drawing a chair's front texture requires that HasSittingFarmers returns true
         private static bool HasSittingFarmersPrefix(Furniture __instance, ref bool __result)
         {
@@ -86,22 +74,6 @@ namespace FarmCafe.Framework.Patching
             {
                 __result = true;
                 return false;
-            }
-
-            return true;
-        }
-
-        private static bool MapSeatAddSittingFarmerPrefix(MapSeat __instance, Farmer who, ref Vector2? __result)
-        {
-            Vector2 seatPos = __instance.tilePosition.Value;
-            if (who.currentLocation is CafeLocation cafeLocation)
-            {
-                ISeat existingSeat = FarmCafe.Tables.OfType<MapTable>().SelectMany(t => t.Seats).FirstOrDefault(s => s.TileLocation.Equals(seatPos));
-                if (existingSeat != null && existingSeat.IsReserved())
-                {
-                    __result = null;
-                    return false;
-                }
             }
 
             return true;
@@ -205,6 +177,14 @@ namespace FarmCafe.Framework.Patching
                 FurnitureTable trackedTable = FarmCafe.IsTableTracked(__instance, who.currentLocation);
                 if (trackedTable is { IsReserved: true })
                 {
+                    if (!Context.IsMainPlayer)
+                    {
+                        Multiplayer.SendTableClick(trackedTable, who);
+                    }
+                    else
+                    {
+                        CafeManager.FarmerClickTable(trackedTable, who);
+                    }
                     __result = true;
                     return false;
                 }
@@ -212,6 +192,5 @@ namespace FarmCafe.Framework.Patching
 
             return true;
         }
-
     }
 }

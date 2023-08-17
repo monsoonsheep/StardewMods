@@ -12,24 +12,24 @@ using xTile.Tiles;
 
 namespace FarmCafe.Framework.Objects
 {
-    public interface ISeat
+    public abstract class ISeat
     {
-        public ITable Table { get; set;  }
+        public abstract Table Table { get; set;  }
 
-        public Vector2 TileLocation { get; }
+        public abstract Vector2 Position { get; }
 
-        public Customer ReservingCustomer { get; set; }
+        public abstract Customer ReservingCustomer { get; set; }
 
-        public bool Reserve(Customer customer);
+        public abstract bool Reserve(Customer customer);
 
-        public void Free();
+        public abstract void Free();
 
-        public bool IsReserved();
+        public abstract bool IsReserved { get; }
 
-        public int GetSittingDirection();
+        public abstract int SittingDirection { get; }
     }
 
-    internal class FurnitureChair : ISeat
+    internal sealed class FurnitureChair : ISeat
     {
         internal Furniture ActualChair;
 
@@ -38,18 +38,15 @@ namespace FarmCafe.Framework.Objects
             this.ActualChair = actualChair;
         }
 
-        public Vector2 TileLocation => ActualChair.TileLocation;
+        public override Vector2 Position => ActualChair.TileLocation;
 
-        public int GetSittingDirection()
-        {
-            return ActualChair.GetSittingDirection();
-        }
+        public override int SittingDirection => ActualChair.GetSittingDirection();
 
-        public ITable Table { get; set; }
+        public override Table Table { get; set; }
 
-        public Customer ReservingCustomer { get; set; }
+        public override Customer ReservingCustomer { get; set; }
 
-        public bool Reserve(Customer customer)
+        public override bool Reserve(Customer customer)
         {
             if (ReservingCustomer != null)
                 return false;
@@ -59,76 +56,72 @@ namespace FarmCafe.Framework.Objects
             return true;
         }
 
-        public void Free()
+        public override void Free()
         {
             this.ActualChair.modData.Remove("FarmCafeChairIsReserved");
             this.ReservingCustomer = null;
         }
 
-        public bool IsReserved() => this.ActualChair.modData.TryGetValue("FarmCafeChairIsReserved", out var val) && val == "T";
+        public override bool IsReserved => this.ActualChair.modData.TryGetValue("FarmCafeChairIsReserved", out var val) && val == "T";
     }
 
-    public class MapChair : ISeat
+    public sealed class MapChair : ISeat
     {
         public MapChair(MapTable table, Vector2 position)
         {
             this.Table = table;
-            this.TileLocation = position;
+            this.Position = position;
         }
 
-        public ITable Table { get; set;  }
+        public override Table Table { get; set;  }
 
-        public Vector2 TileLocation { get; }
+        public override Vector2 Position { get; }
 
-        public Customer ReservingCustomer { get; set; }
+        public override Customer ReservingCustomer { get; set; }
 
-        public bool Reserve(Customer customer)
+        public override bool Reserve(Customer customer)
         {
-            if (ReservingCustomer != null) return false;
+            if (ReservingCustomer != null) 
+                return false;
             if (Table.CurrentLocation is CafeLocation cafe)
             {
-                MapSeat mapSeat = cafe.mapSeats.ToList().FirstOrDefault(s => s.tilePosition.Value.Equals(this.TileLocation));
-                if (mapSeat != null)
-                {
-                    mapSeat.sittingFarmers.Add(Game1.MasterPlayer.UniqueMultiplayerID, 0);
-                }
+                MapSeat mapSeat = cafe.mapSeats.ToList().FirstOrDefault(s => s.tilePosition.Value.Equals(this.Position));
+                mapSeat?.sittingFarmers.Add(Game1.MasterPlayer.UniqueMultiplayerID, 0);
             }
             ReservingCustomer = customer;
             return true;
         }
 
-        public void Free()
+        public override void Free()
         {
             if (Table.CurrentLocation is CafeLocation cafe)
             {
-                MapSeat mapSeat = cafe.mapSeats.ToList().FirstOrDefault(s => s.tilePosition.Value.Equals(this.TileLocation));
-                if (mapSeat != null)
-                {
-                    mapSeat.RemoveSittingFarmer(Game1.MasterPlayer);
-                }
+                MapSeat mapSeat = cafe.mapSeats.ToList().FirstOrDefault(s => s.tilePosition.Value.Equals(this.Position));
+                mapSeat?.RemoveSittingFarmer(Game1.MasterPlayer);
             }
             ReservingCustomer = null;
         }
 
-        public bool IsReserved()
-        {
-            return (ReservingCustomer != null);
-        }
+        public override bool IsReserved => (ReservingCustomer != null);
 
-        public int GetSittingDirection()
+        public override int SittingDirection
         {
-            Rectangle tableBox = (Table as MapTable).BoundingBox;
-            Vector2 myPos = TileLocation * 64;
-            if (tableBox.Contains(myPos.X, myPos.Y - 64))
+            get 
+            {
+                Rectangle tableBox = (Table as MapTable).BoundingBox;
+                Vector2 myPos = Position * 64;
+                if (tableBox.Contains(myPos.X, myPos.Y - 64))
+                    return 0;
+                if (tableBox.Contains(myPos.X + 64, myPos.Y))
+                    return 1;
+                if (tableBox.Contains(myPos.X, myPos.Y + 64))
+                    return 2;
+                if (tableBox.Contains(myPos.X - 64, myPos.Y))
+                    return 3;
+
                 return 0;
-            if (tableBox.Contains(myPos.X + 64, myPos.Y))
-                return 1;
-            if (tableBox.Contains(myPos.X, myPos.Y + 64))
-                return 2;
-            if (tableBox.Contains(myPos.X - 64, myPos.Y))
-                return 3;
-
-            return 0;
+            }
         }
+        
     }
 }

@@ -12,7 +12,6 @@ namespace FarmCafe.Framework.Utilities
 {
 	internal class Utility
 	{
-      
         internal static bool IsChair(Furniture furniture)
 		{
 			return furniture != null && furniture.furniture_type.Value is 0 or 1 or 2;
@@ -22,16 +21,6 @@ namespace FarmCafe.Framework.Utilities
 		{
 			return furniture.furniture_type.Value == 11;
 		}
-
-        internal static Furniture TableFromChair(Furniture chair, GameLocation loc)
-        {
-            chair.modData.TryGetValue("FarmCafeChairTable", out string val);
-            if (val == null) 
-                return null;
-
-            int[] tablePos = val?.Split(' ').Select(int.Parse).ToArray();
-            return loc.GetFurnitureAt(new Vector2(tablePos[0], tablePos[1]));
-        }
 
 		internal static Vector2 DirectionIntToDirectionVector(int direction)
 		{
@@ -88,27 +77,6 @@ namespace FarmCafe.Framework.Utilities
 			return -1;
 		}
 
-		internal static Point GetRandomAdjacentTile(Point fromPoint, GameLocation location, Customer character = null)
-		{
-			for (int i = -1; i <= 1; i++)
-			{
-				for (int j = -1; j <= 1; j++)
-				{
-					if (i == 0 && j == 0) continue;
-
-					var pos = new Rectangle((fromPoint.X + i) * 64, (fromPoint.Y + j) * 64, 62, 62);
-
-					if (!location.isCollidingPosition(pos, Game1.viewport, character) && location.isCollidingWithWarp(pos, character) == null) // ???
-					{
-						return new Point(fromPoint.X + i, fromPoint.Y + j);
-					}
-
-				}
-			}
-
-			return Point.Zero;
-		}
-
 		internal static IEnumerable<Point> AdjacentTilesCollision(Point startPos, GameLocation location, Customer character, int reach = 1)
 		{
 			for (int i = startPos.X - reach; i < startPos.X + reach; i++)
@@ -136,15 +104,16 @@ namespace FarmCafe.Framework.Utilities
 
 		internal static IEnumerable<Point> AdjacentTiles(Point startPos, int reach = 1)
 		{
-			for (int i = startPos.X - reach; i < startPos.X + reach; i++)
+			for (int i = startPos.X - reach; i <= startPos.X + reach; i++)
 			{
-				for (int j = startPos.Y - reach; i < startPos.Y + reach; j++)
+				for (int j = startPos.Y - reach; i <= startPos.Y + reach; j++)
 				{
 					if (i == startPos.X && j == startPos.Y) continue;
 					yield return startPos + new Point(i, j);
 				}
 			}
 		}
+
         internal static string GetTileProperties(Tile tile)
         {
             return tile == null ? "" : tile.Properties.Concat(tile.TileIndexProperties).Aggregate("", (currentTile, property) => currentTile + $"{property.Key}: {property.Value}, ");

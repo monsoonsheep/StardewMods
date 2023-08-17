@@ -111,8 +111,12 @@ namespace FarmCafe.Framework.Characters
                         throw new Exception("Error finding route to cafe. Couldn't find warp point");
 
 
-
-                    path = CombineStacks(path, FindPath(me, locationStartPoint, target, current));
+                    Stack<Point> nextPath = FindPath(me, locationStartPoint, target, current);
+                    if (nextPath == null)
+                    {
+                        return null;
+                    }
+                    path = CombineStacks(path, nextPath);
 
                     locationStartPoint = current.getWarpPointTarget(target);
                     if (locationStartPoint == Point.Zero)

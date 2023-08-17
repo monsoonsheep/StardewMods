@@ -11,7 +11,7 @@ namespace FarmCafe.Framework.Characters
 	internal class CustomerGroup
 	{
 		public List<Customer> Members;
-		public ITable ReservedTable;
+		public Table ReservedTable;
 
 		public CustomerGroup()
 		{
@@ -25,10 +25,8 @@ namespace FarmCafe.Framework.Characters
             Members.Add(customer);
 		}
 
-		public bool ReserveTable(ITable table)
+		public bool ReserveTable(Table table)
 		{
-			List<ISeat> chairs = table.Seats;
-
             if (table.Reserve(Members) is false)
                 return false;
 

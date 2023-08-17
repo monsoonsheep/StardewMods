@@ -21,11 +21,11 @@ namespace FarmCafe.Framework.Patching
         {
             Patches = new List<Patch>
             {
-                //new (
-                //    typeof(PathFindController),
-                //    "moveCharacter",
-                //    null,
-                //    transpiler: nameof(MoveCharacterTranspiler)),
+                new (
+                    typeof(PathFindController),
+                    "moveCharacter",
+                    null,
+                    transpiler: nameof(MoveCharacterTranspiler)),
                 new (
                     typeof(Character),
                     "doEmote",
@@ -39,7 +39,6 @@ namespace FarmCafe.Framework.Patching
             };
         }
 
-        // Is this really needed?
         private static IEnumerable<CodeInstruction> MoveCharacterTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
             var fPathfindercharacter = AccessTools.Field(typeof(PathFindController), "character");
@@ -63,10 +62,8 @@ namespace FarmCafe.Framework.Patching
                 {
                     new (OpCodes.Ldarg_0), // this
 			        new (OpCodes.Ldfld, fPathfindercharacter), // this.character
-			        CodeInstruction.Call(typeof(Character), "GetType"), // this.character.GetType()
-			        new (OpCodes.Ldstr, "Seat"), // this.character.GetType(), "seat"
-			        CodeInstruction.Call("System.Type:GetField", new[] { typeof(string) }), // FieldInfo this.character.GetType().GetField("seat")
-			        new (OpCodes.Brtrue, jumpLabel) // branch to the same one found earlier
+                    new (OpCodes.Isinst, typeof(Customer)),
+                    new (OpCodes.Brtrue, jumpLabel) // branch to the same one found earlier
 		        };
 
                 codeList.InsertRange(start_pos + 1, patchCodes);

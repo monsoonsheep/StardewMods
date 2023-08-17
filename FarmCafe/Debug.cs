@@ -25,53 +25,35 @@ namespace FarmCafe
 			Monitor.Log(message, level);
 		}
 
-        public static void Show(string message)
+        public static void LogWithHudMessage(string message)
         {
 			Game1.addHUDMessage(new HUDMessage(message, Color.White, 2000));
             Monitor.Log(message, LogLevel.Debug);
         }
 
-        internal static void MoveDebugAll(int dir)
-		{
-			foreach (var c in FarmCafe.CafeManager.CurrentCustomers)
-			{
-				c.MoveDebug(dir);
-			}
-		}
+        internal static void Debug_ListCustomers()
+        {
+            Debug.Log("Characters in current");
+            foreach (var ch in Game1.currentLocation.characters)
+                if (ch is Customer)
+                    Debug.Log(ch.ToString());
+                else
+                    Debug.Log("NPC: " + ch.Name);
 
-		internal static void MoveDebug(this Customer me, int direction)
-		{
-			//switch (direction)
-			//{
-			// case 0:
-			//  me.drawOffset += new Vector2(0, -1);
-			//  break;
-			// case 1:
-			//  me.drawOffset += new Vector2(1, 0);
-			//  break;
-			// case 2:
-			//  me.drawOffset += new Vector2(0, 1);
-			//  break;
-			// case 3:
-			//  me.drawOffset += new Vector2(-1, 0);
-			//  break;
-			//}
+            Debug.Log("Current customers: ");
+            foreach (var customer in FarmCafe.CafeManager.CurrentCustomers) 
+                Debug.Log(customer.ToString());
 
-			me.MovePosition(Game1.currentGameTime, Game1.viewport, Game1.getFarm());
-			me.Halt();
+            Debug.Log("Current models: ");
+            foreach (var model in FarmCafe.CafeManager.CustomerModels) 
+                Debug.Log(model.ToString());
 
-			//float seatback = (me.Seat.boundingBox.Value.Top + 16) / 10000f;
-			//float seatfront = (me.Seat.boundingBox.Value.Bottom - 8) / 10000f;
-			//float charlayer = me.getStandingY() / 10000f;
-
-			//Debug.Log($"seat back is {seatback}");
-			//Debug.Log($"seat front is {seatfront}");
-			//Debug.Log($"character layer is {charlayer}");
-			//Debug.Log($"{seatback} --- {charlayer} --- {seatfront}");
-			//Debug.Log($"character bouding box {me.GetBoundingBox()}");
-			//Debug.Log($"seat bounding box is {me.Seat.boundingBox}");
-		}
-
-	}
-
+            foreach (var f in Game1.getFarm().furniture)
+            {
+                foreach (var pair in f.modData.Pairs) 
+                    Debug.Log($"{pair.Key}: {pair.Value}");
+                Debug.Log(f.modData.ToString());
+            }
+        }
+    }
 }
