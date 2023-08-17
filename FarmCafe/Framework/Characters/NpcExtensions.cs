@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
+using xTile.Dimensions;
 using static FarmCafe.Framework.Utilities.Utility;
 
 namespace FarmCafe.Framework.Characters
@@ -71,7 +72,17 @@ namespace FarmCafe.Framework.Characters
 
             Point locationStartPoint = startTile;
             if (startingLocation.Name.Equals(targetLocation.Name, StringComparison.Ordinal))
-                return FindPath(me, locationStartPoint, targetTile, startingLocation);
+            {
+                if ((targetLocation is CafeLocation && !targetLocation.isTilePassable(new Location(targetTile.X, targetTile.Y), Game1.viewport)) 
+                    || targetLocation.GetFurnitureAt(targetTile.ToVector2()) != null)
+                {
+                    return FindPath(me, locationStartPoint, targetTile, startingLocation, pathingToObject: true);
+                }
+                else
+                {
+                    return FindPath(me, locationStartPoint, targetTile, startingLocation);
+                }
+            }
 
             List<string> locationsRoute = FarmCafe.CafeManager.GetLocationRoute(startingLocation, targetLocation);
             if (locationsRoute == null)
@@ -93,14 +104,16 @@ namespace FarmCafe.Framework.Characters
                             .FirstOrDefault(b => b.indoors.Value is CafeLocation);
                         if (building == null)
                             throw new Exception("schedule pathing tried to find a warp point that doesn't exist.");
-
                         target = building.humanDoor.Value;
                     }
 
                     if (target.Equals(Point.Zero) || locationStartPoint.Equals(Point.Zero))
                         throw new Exception("Error finding route to cafe. Couldn't find warp point");
 
+
+
                     path = CombineStacks(path, FindPath(me, locationStartPoint, target, current));
+
                     locationStartPoint = current.getWarpPointTarget(target);
                     if (locationStartPoint == Point.Zero)
                     {
@@ -114,16 +127,27 @@ namespace FarmCafe.Framework.Characters
                 }
                 else
                 {
-                    path = CombineStacks(path, FindPath(me, locationStartPoint, targetTile, current));
+                    Stack<Point> nextPathToAppend;
+                    if ((targetLocation is CafeLocation && !targetLocation.isTilePassable(new Location(targetTile.X, targetTile.Y), Game1.viewport)) 
+                        || targetLocation.GetFurnitureAt(targetTile.ToVector2()) != null)
+                    {
+                        nextPathToAppend = FindPath(me, locationStartPoint, targetTile, current, pathingToObject: true);
+                    }
+                    else
+                    {
+                        nextPathToAppend = FindPath(me, locationStartPoint, targetTile, current);
+                    }
+
+                    path = CombineStacks(path, nextPathToAppend);
                 }
             }
 
             return path;
         }
 
-        internal static Stack<Point> FindPath(this NPC me, Point startTile, Point targetTile, GameLocation location, int iterations = 600)
+        internal static Stack<Point> FindPath(this NPC me, Point startTile, Point targetTile, GameLocation location, bool pathingToObject = false, int iterations = 600)
         {
-            if (IsChair(location.GetFurnitureAt(targetTile.ToVector2())))
+            if (pathingToObject)
             {
                 return PathToObject(me, location, startTile, targetTile);
             }
@@ -161,15 +185,18 @@ namespace FarmCafe.Framework.Characters
 
             foreach (var direction in directions)
             {
-                if (location.GetFurnitureAt((targetTile + new Point(direction[0], direction[1])).ToVector2()) != null)
+                Point newTile = (targetTile + new Point(direction[0], direction[1]));
+
+                if (location.GetFurnitureAt(newTile.ToVector2()) != null || !location.isTilePassable(new Location(newTile.X, newTile.Y), Game1.viewport))
                     continue;
 
                 var pathToAdjacentTile = FindPath(
                     me,
                     startTile,
-                    targetTile + new Point(direction[0], direction[1]),
+                    newTile,
                     location,
-                    1500
+                    pathingToObject: false,
+                    iterations: 1500
                 );
 
                 if (pathToAdjacentTile == null || pathToAdjacentTile.Count >= shortestPathLength)

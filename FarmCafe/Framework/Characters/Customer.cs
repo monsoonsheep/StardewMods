@@ -5,6 +5,7 @@ using System.Xml.Serialization;
 using FarmCafe.Framework.Characters;
 using FarmCafe.Framework.Managers;
 using FarmCafe.Framework.Models;
+using FarmCafe.Framework.Objects;
 using FarmCafe.Locations;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -39,7 +40,7 @@ namespace FarmCafe.Framework.Characters
         internal CustomerGroup Group;
 
         [XmlIgnore] 
-        public Furniture Seat;
+        public ISeat Seat;
 
         [XmlIgnore]
         internal NetBool IsGroupLeader = new NetBool();
@@ -99,6 +100,8 @@ namespace FarmCafe.Framework.Characters
 
             base.modData["CustomerData"] = "T";
         }
+
+        #region Overrides
 
         public override bool canPassThroughActionTiles() => false;
 
@@ -201,7 +204,7 @@ namespace FarmCafe.Framework.Characters
                 new Vector2(Sprite.SpriteWidth / 2, Sprite.SpriteHeight * 3f / 4f),
                 Math.Max(0.2f, scale) * 4f,
                 SpriteEffects.None,
-                Math.Max(0f, getStandingY() / 10000f + 0.0001f));
+                Math.Max(0f, getStandingY() / 10000f + ((getTileLocation() == Seat.TileLocation) ? 0.0035f : 0.0001f)));
 
             if (Breather && shakeTimer <= 0 && !swimming && Sprite.currentFrame < 16 && !farmerPassesThrough)
             {
@@ -255,31 +258,16 @@ namespace FarmCafe.Framework.Characters
                 Vector2 offset = new Vector2(0,
                     (float) Math.Round(4f * Math.Sin(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 250.0)));
 
-                OrderItem?.drawInMenu(
-                    b, 
-                    Game1.GlobalToLocal(tableCenterForEmote - new Vector2(18, 56) + offset), 
-                    0.8f, 1f, 1f, StackDrawType.Hide, Color.White, false);
-
                 b.Draw(
                     Game1.mouseCursors,
-                    Game1.GlobalToLocal(tableCenterForEmote - new Vector2(28, 64) + offset),
-                    new Rectangle(141, 465, 20, 24),
-                    Color.White,
+                    Game1.GlobalToLocal(tableCenterForEmote) + offset,
+                    new Rectangle(402, 495, 7, 16),
+                    Color.Crimson,
                     0f,
-                    Vector2.Zero,
-                    4f,
+                    new Vector2(1f, 4f),
+                    4f + Math.Max(0f, 0.25f - scale / 16f),
                     SpriteEffects.None,
-                    0.991f);
-                //b.Draw(
-                //    Game1.mouseCursors,
-                //    Game1.GlobalToLocal(tableCenterForEmote),
-                //    new Rectangle(402, 495, 7, 16),
-                //    Color.White,
-                //    0f,
-                //    new Vector2(1f, 4f),
-                //    4f + Math.Max(0f, 0.25f - scale / 16f),
-                //    SpriteEffects.None,
-                //    1f);
+                    1f);
             }
         }
 
@@ -291,6 +279,8 @@ namespace FarmCafe.Framework.Characters
             this.OrderReceive();
             who.reduceActiveItemByOne();
         }
+
+        #endregion
 
         #region Behavior
         internal void LeaveBus()
@@ -317,7 +307,7 @@ namespace FarmCafe.Framework.Characters
             State.Set(MovingToTable);
             collidesWithOtherCharacters.Set(false);
             this.HeadTowards(
-                Group.TableLocation, 
+                Group.ReservedTable.CurrentLocation, 
                 Seat.TileLocation.ToPoint(), 
                 -1, 
                 SitDown);
@@ -390,7 +380,7 @@ namespace FarmCafe.Framework.Characters
         {
             State.Set(OrderReady);
             if (IsGroupLeader)
-                tableCenterForEmote = this.Group.ReservedTable.boundingBox.Center.ToVector2() + new Vector2(-8, -64);
+                tableCenterForEmote = this.Group.ReservedTable.GetCenter() + new Vector2(-8, -64);
 
             Multiplayer.UpdateCustomerInfo(this, nameof(OrderItem), OrderItem.ParentSheetIndex);
             Multiplayer.UpdateCustomerInfo(this, nameof(tableCenterForEmote), tableCenterForEmote.ToString());
@@ -424,7 +414,7 @@ namespace FarmCafe.Framework.Characters
 
         internal void GoHome()
         {
-            FarmCafe.TableManager.FreeTable(Group.ReservedTable);
+            Group.ReservedTable.Free();
             this.HeadTowards(Game1.getLocationFromName("BusStop"), FarmCafe.CafeManager.BusPosition, 0, ReachHome);
         }
 
@@ -438,11 +428,6 @@ namespace FarmCafe.Framework.Characters
         }
 
         #endregion
-
-        internal void SetOrderItem(Item item)
-        {
-            this.OrderItem = item;
-        }
 
         internal void LerpPosition(Vector2 startPos, Vector2 endPos, float duration, LerpEnd action)
         {

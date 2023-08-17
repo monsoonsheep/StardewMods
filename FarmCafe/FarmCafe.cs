@@ -19,6 +19,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using FarmCafe.Framework.Characters;
+using FarmCafe.Framework.Objects;
 using FarmCafe.Framework.UI;
 using Microsoft.VisualBasic.FileIO;
 using Sickhead.Engine.Util;
@@ -31,10 +32,10 @@ namespace FarmCafe
     /// <summary>The mod entry point.</summary>
     internal sealed class FarmCafe : Mod
     {
-        internal static IMonitor Monitor;
+        internal new static IMonitor Monitor;
         internal static IModHelper ModHelper;
         internal static IApi SfApi;
-        internal static IManifest ModManifest;
+        internal new static IManifest ModManifest;
 
         internal static CafeManager CafeManager;
         internal static TableManager TableManager;
@@ -45,9 +46,11 @@ namespace FarmCafe
         internal static IList<Item> RecentlyAddedMenuItems = new List<Item>(new Item[9]);
         internal static List<Customer> CurrentCustomers = new List<Customer>();
         internal static NPC HelperNpc;
-        internal static Dictionary<Furniture, GameLocation> TrackedTables = new Dictionary<Furniture, GameLocation>();
+        internal static List<ITable> Tables = new();
 
         internal static bool ClientShouldUpdateCustomers = false;
+
+        
 
         /*********
         ** Public methods
@@ -86,14 +89,15 @@ namespace FarmCafe
             helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
             helper.Events.Input.ButtonPressed += OnButtonPressed;
             helper.Events.Content.AssetRequested += OnAssetRequested;
-            
+
+            helper.Events.World.LocationListChanged += OnLocationListChanged;
+            helper.Events.World.FurnitureListChanged += OnFurnitureListChanged;
 
             // Multiplayer
             helper.Events.Multiplayer.PeerConnected += OnPeerConnected;
             helper.Events.Multiplayer.ModMessageReceived += OnModMessageReceived;
         }
 
-       
         private static void OnGameLaunched(object sender, GameLaunchedEventArgs e)
         {
             if (Context.IsMainPlayer)
@@ -104,6 +108,10 @@ namespace FarmCafe
 
         private static void OnSaveLoaded(object sender, SaveLoadedEventArgs e)
         {
+            Tables = new();
+            CafeLocations = new();
+            CurrentCustomers = new();
+
             if (Context.IsMainPlayer)
             {
                 MenuItems = new List<Item>(new Item[27]);
@@ -111,10 +119,9 @@ namespace FarmCafe
                 MenuItems[0] = new StardewValley.Object(746, 1).getOne();
                 RecentlyAddedMenuItems[0] = new StardewValley.Object(746, 1).getOne();
 
-                TableManager = new TableManager(ref TrackedTables);
-                CafeManager = new CafeManager(TableManager, CafeLocations, MenuItems, CurrentCustomers, null);
+                TableManager = new TableManager(ref Tables);
+                CafeManager = new CafeManager(ref TableManager, ref CafeLocations, ref MenuItems, ref CurrentCustomers, null);
                 PrepareCustomerModels();
-                CafeManager.CacheBusPosition();
             }
             else
             {
@@ -124,26 +131,22 @@ namespace FarmCafe
             // Multiplayer clients get updated with the state of managers
         }
 
-        private void OnDayStarted(object sender, DayStartedEventArgs e)
+        private static void OnDayStarted(object sender, DayStartedEventArgs e)
         {
-            if (!CafeLocations.Any(l => l is CafeLocation))
+            UpdateCafeLocation();
+            if (CafeLocations.Count == 0)
             {
-                GameLocation cafeloc = LookForCafeLocation();
-                if (cafeloc != null)
-                {
-                    CafeLocations.Add(cafeloc);
-                }
-                else
-                    CafeLocations = new List<GameLocation>() { Game1.getFarm() };
+                CafeLocations.Add(Game1.getFarm());
             }
-
-            if (Context.IsMainPlayer)
-                CafeManager.PopulateRoutesToCafe();
-
+            else
+            {
+                CafeLocations.OfType<CafeLocation>().FirstOrDefault()?.PopulateMapTables();
+            }
             Debug.Log($"Cafe locations are {string.Join(", ", CafeLocations.Select(l => l.Name))}");
 
             if (Context.IsMainPlayer)
             {
+                CafeManager.PopulateRoutesToCafe();
                 CafeManager.ResetCustomers();
                 TableManager.PopulateTables(CafeLocations);
             }
@@ -209,17 +212,6 @@ namespace FarmCafe
                         break;
                 }
             }
-            else if (e.Type == "SyncTables" && !Context.IsMainPlayer)
-            {
-                //TrackedTables.Clear();
-                //foreach (var pair in e.ReadAs<Dictionary<Vector2, string>>())
-                //{
-                //    GameLocation loc = GetLocationFromName(pair.Value);
-                //    Furniture furniture = loc?.GetFurnitureAt(pair.Key);
-                //    if (furniture == null) continue;
-                //    TrackedTables.Add(furniture, loc);
-                //}
-            }
             else if (e.Type == "ClickTable" && Context.IsMainPlayer)
             {
                 var info = e.ReadAs<Dictionary<string, string>>();
@@ -231,8 +223,10 @@ namespace FarmCafe
                     float.TryParse(matches[0].Value, out float x) &&
                     float.TryParse(matches[1].Value, out float y))
                 {
-                    Furniture table = who.currentLocation.GetFurnitureAt(new Vector2(x, y));
-                    CafeManager.FarmerClickTable(who, table);
+                    // Also add functionality for map tables
+                    ITable table = TableManager.GetTableAt(who.currentLocation, new Vector2(x, y));
+                    if (table != null)
+                        CafeManager.FarmerClickTable(table, who);
                 }
             }
             else if (e.Type == "CustomerDoEmote" && !Context.IsMainPlayer)
@@ -266,6 +260,9 @@ namespace FarmCafe
                 TableManager.PopulateTables(CafeLocations);
                 TableManager.FurnitureShouldBeUpdated = false;
             }
+
+            int tableCount = Tables.Count(t => !t.IsReserved);
+            // spawn customers depending on probability logic
         }
 
         private static void OnButtonPressed(object sender, ButtonPressedEventArgs e)
@@ -298,7 +295,8 @@ namespace FarmCafe
                     CafeManager.Debug_ListCustomers();
                     break;
                 case SButton.NumPad5:
-                    OpenCafeMenu();
+                    CafeLocations.OfType<CafeLocation>()?.FirstOrDefault()?.PopulateMapTables();
+                    //OpenCafeMenu();
                     //NPC helper = Game1.getCharacterFromName("Sebastian");
                     //helper.clearSchedule();
                     //helper.ignoreScheduleToday = true;
@@ -341,6 +339,100 @@ namespace FarmCafe
             }
         }
 
+        private static void OnLocationListChanged(object sender, LocationListChangedEventArgs e)
+        {
+            foreach (var removed in e.Removed)
+            {
+                if (removed is CafeLocation)
+                {
+                    UpdateCafeLocation();
+                }
+            }
+        }
+
+        private static void OnFurnitureListChanged(object sender, FurnitureListChangedEventArgs e)
+        {
+            if (CafeLocations.Any(l => l.Equals(e.Location)))
+                return;
+
+            foreach (var removed in e.Removed)
+            {
+                if (IsChair(removed))
+                {
+                    FurnitureChair trackedChair = FarmCafe.Tables
+                        .OfType<FurnitureTable>()
+                        .SelectMany(t => t.Seats)
+                        .OfType<FurnitureChair>()
+                        .FirstOrDefault(seat => seat.TileLocation == removed.TileLocation && seat.Table.CurrentLocation.Equals(e.Location));
+
+                    if (trackedChair?.Table is not FurnitureTable table)
+                        continue;
+
+                    if (table.IsReserved)
+                        Debug.Log("Removed a chair but the table was reserved");
+
+                    table.RemoveChair(removed);
+                }
+                else if (IsTable(removed))
+                {
+                    FurnitureTable trackedTable = FarmCafe.IsTableTracked(removed, e.Location);
+
+                    if (trackedTable != null)
+                    {
+                        FarmCafe.TableManager.RemoveTable(trackedTable);
+                    }
+                }
+            }
+
+            foreach (var added in e.Added)
+            {
+                if (IsChair(added))
+                {
+                    // Get position of table in front of the chair
+                    Vector2 tablePos = added.TileLocation + (DirectionIntToDirectionVector(added.currentRotation.Value) * new Vector2(1, -1));
+
+                    // Get table Furniture object
+                    Furniture facingFurniture = e.Location.GetFurnitureAt(tablePos);
+
+                    if (facingFurniture == null ||
+                        !IsTable(facingFurniture) ||
+                        facingFurniture
+                            .getBoundingBox(facingFurniture.TileLocation)
+                            .Intersects(added.boundingBox.Value)) // if chair was placed on top of the table
+                    {
+                        continue;
+                    }
+
+                    FurnitureTable newTable = TryAddFurnitureTable(facingFurniture, e.Location);
+                    newTable?.AddChair(added);
+                }
+                else if (IsTable(added))
+                {
+                    TryAddFurnitureTable(added, e.Location);
+                }
+            }
+        }
+        
+        internal static FurnitureTable TryAddFurnitureTable(Furniture table, GameLocation location)
+        {
+            FurnitureTable trackedTable = IsTableTracked(table, location);
+
+            if (trackedTable == null)
+            {
+                trackedTable = new FurnitureTable(table, location)
+                {
+                    CurrentLocation = location
+                };
+                if (TableManager.TryAddTable(trackedTable))
+                    return trackedTable;
+                else
+                    return null;
+                
+            }
+
+            return trackedTable;
+        }
+
 
         private static void PrepareSolidFoundationsApi()
         {
@@ -352,7 +444,6 @@ namespace FarmCafe
             SfApi.BroadcastSpecialActionTriggered += OnBuildingBroadcastTriggered;
         }
 
-        
         private static void OnBuildingBroadcastTriggered(object sender, IApi.BroadcastEventArgs e)
         {
             var buildingId = e.BuildingId;
@@ -374,11 +465,33 @@ namespace FarmCafe
             return Game1.getLocationFromName(name) ?? CafeLocations.FirstOrDefault(a => a.Name == name);
         }
 
-        private static GameLocation LookForCafeLocation()
+        private static bool UpdateCafeLocation()
+        {
+            CafeLocation cafeloc = LookForCafeLocation();
+            CafeLocation existingCafeLocation = CafeLocations.OfType<CafeLocation>().FirstOrDefault();
+
+            if (cafeloc == null)
+            {
+                return false;
+            }
+            if (existingCafeLocation == null)
+            {
+                CafeLocations.Add(cafeloc);
+            }
+            else if (!cafeloc.Equals(existingCafeLocation))
+            {
+                CafeLocations.Remove(existingCafeLocation);
+                CafeLocations.Add(cafeloc);
+            }
+
+            return true;
+        }
+
+        private static CafeLocation LookForCafeLocation()
         {
             return Game1.getFarm().buildings
                 .FirstOrDefault(b => b.indoors.Value is CafeLocation)
-                ?.indoors.Value;
+                ?.indoors.Value as CafeLocation;
         }
 
         internal static void OpenCafeMenu()
@@ -407,6 +520,16 @@ namespace FarmCafe
             }
         }
 
+        internal static CafeLocation GetCafeLocation()
+        {
+            return CafeLocations.OfType<CafeLocation>().FirstOrDefault();
+        }
+
+        internal static FurnitureTable IsTableTracked(Furniture table, GameLocation location)
+        {
+            return Tables
+                .OfType<FurnitureTable>().FirstOrDefault(t => t.CurrentLocation.Equals(location) && t.Position == table.TileLocation);
+        }
 
         private static void PrepareCustomerModels()
         {
@@ -425,7 +548,5 @@ namespace FarmCafe
                 CafeManager.CustomerModels.Add(model);
             }
         }
-
-
     }
 }

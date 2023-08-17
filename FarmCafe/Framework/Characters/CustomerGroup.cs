@@ -3,6 +3,7 @@ using StardewValley;
 using StardewValley.Objects;
 using System.Collections.Generic;
 using FarmCafe.Framework.Characters;
+using FarmCafe.Framework.Objects;
 using static FarmCafe.Framework.Utilities.Utility;
 
 namespace FarmCafe.Framework.Characters
@@ -10,9 +11,7 @@ namespace FarmCafe.Framework.Characters
 	internal class CustomerGroup
 	{
 		public List<Customer> Members;
-		public Furniture ReservedTable;
-		public Dictionary<Furniture, Customer> SeatsToMembers;
-		public GameLocation TableLocation;
+		public ITable ReservedTable;
 
 		public CustomerGroup()
 		{
@@ -26,26 +25,15 @@ namespace FarmCafe.Framework.Characters
             Members.Add(customer);
 		}
 
-		public bool ReserveTable(Furniture table)
+		public bool ReserveTable(ITable table)
 		{
-			List<Furniture> chairs = FarmCafe.TableManager.GetChairsOfTable(table);
-			if (chairs.Count < Members.Count)
-			{
-				return false;
-			}
+			List<ISeat> chairs = table.Seats;
 
-			this.ReservedTable = table;
-			table.modData["FarmCafeTableIsReserved"] = "T";
+            if (table.Reserve(Members) is false)
+                return false;
 
-			SeatsToMembers = new Dictionary<Furniture, Customer>();
-			for (int i = 0; i < Members.Count; i++)
-			{
-				SeatsToMembers[chairs[i]] = Members[i];
-				Members[i].Seat = chairs[i];
-				chairs[i].modData["FarmCafeChairIsReserved"] = "T";
-			}
-
-			return true;
+            this.ReservedTable = table;
+            return true;
 		}
 
 		public void GetLookingDirections()
