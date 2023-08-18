@@ -50,8 +50,6 @@ namespace FarmCafe
 
         internal static bool ClientShouldUpdateCustomers = false;
 
-        
-
         /// <inheritdoc/>
         public override void Entry(IModHelper helper)
         {

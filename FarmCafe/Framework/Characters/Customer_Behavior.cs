@@ -138,7 +138,12 @@ namespace FarmCafe.Framework.Characters
 
         internal void GoHome()
         {
-            Group.ReservedTable.Free();
+            if (IsGroupLeader)
+            {
+                Group.ReservedTable.Free();
+                Group.ReservedTable = null;
+            }
+            
             this.HeadTowards(Game1.getLocationFromName("BusStop"), FarmCafe.CafeManager.BusPosition, 0, ReachHome);
         }
 
