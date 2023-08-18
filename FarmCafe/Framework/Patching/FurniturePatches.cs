@@ -159,6 +159,10 @@ namespace FarmCafe.Framework.Patching
 
             if (IsTable(__instance))
             {
+                if (!Context.IsMainPlayer && __instance.modData.TryGetValue("FarmCafeTableIsReserved", out var val) && val == "T")
+                {
+                    __result = false;
+                } 
                 FurnitureTable trackedTable = FarmCafe.IsTableTracked(__instance, who.currentLocation);
                 if (trackedTable is { IsReserved: true })
                 {

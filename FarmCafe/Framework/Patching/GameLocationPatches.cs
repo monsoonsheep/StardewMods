@@ -48,7 +48,7 @@ namespace FarmCafe.Framework.Patching
         {
             if (!FarmCafe.CafeLocations.Contains(__instance)) return;
 
-            foreach (Table table in FarmCafe.Tables)
+            foreach (MapTable table in FarmCafe.Tables.OfType<MapTable>())
             {
                 if (table.BoundingBox.Contains(tileLocation.X * 64, tileLocation.Y * 64))
                 {

@@ -48,7 +48,7 @@ namespace FarmCafe.Framework.Characters
             if (me.controller == null)
             {
                 Debug.Log("Can't construct controller.", LogLevel.Error);
-                //me.GoHome();
+                //GoHome();
             }
 
             Debug.Log($"Pathing from {me.getTileLocationPoint()} to {targetTile}");
@@ -155,35 +155,42 @@ namespace FarmCafe.Framework.Characters
             {
                 return PathToObject(me, location, startTile, targetTile);
             }
+
+            Stack<Point> path = null;
             if (location is Farm)
             {
-                return PathFindController.FindPathOnFarm(startTile, targetTile, location, iterations);
+                path = PathFindController.FindPathOnFarm(startTile, targetTile, location, iterations);
             }
 
-            return PathFindController.findPath(
-                startTile, 
+            path ??= PathFindController.findPath(
+                startTile,
                 targetTile,
-                PathFindController.isAtEndPoint, 
-                location, 
-                me, 
+                PathFindController.isAtEndPoint,
+                location,
+                me,
                 iterations);
+
+            return path;
         }
 
         internal static Stack<Point> PathToObject(this NPC me, GameLocation location, Point startTile, Point targetTile)
         {
             var directions = new List<sbyte[]>
             {
-                new sbyte[] { 0, -1 }, // up
-                new sbyte[] { -1, 0 }, // left
                 new sbyte[] { 0, 1 }, // down
+                new sbyte[] { -1, 0 }, // left
+                new sbyte[] { 0, -1 }, // up
                 new sbyte[] { 1, 0 }, // right
             };
 
-            Furniture furniture = location.GetFurnitureAt((targetTile).ToVector2());
-            if (IsChair(furniture) && !furniture.Name.ToLower().Contains("stool"))
-                directions.RemoveAt(furniture.currentRotation.Value);
-            
+            Furniture seat = location.GetFurnitureAt((targetTile).ToVector2());
+            if (IsChair(seat) && !seat.Name.ToLower().Contains("stool"))
+                directions.RemoveAt(seat.GetSittingDirection()); // 3 is left
 
+            MapSeat mapSeat = location.mapSeats.FirstOrDefault(s => s.OccupiesTile(targetTile.X, targetTile.Y));
+            if (mapSeat != null)
+                directions.RemoveAt(mapSeat.GetSittingDirection());
+            
             Stack<Point> shortestPath = null;
             int shortestPathLength = int.MaxValue;
 

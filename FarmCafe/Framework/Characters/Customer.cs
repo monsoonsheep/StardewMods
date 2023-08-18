@@ -38,7 +38,7 @@ namespace FarmCafe.Framework.Characters
     {
         [XmlIgnore] internal CustomerGroup Group;
 
-        [XmlIgnore] public ISeat Seat;
+        [XmlIgnore] internal Seat Seat;
 
         [XmlIgnore] internal NetBool IsGroupLeader = new NetBool();
 
