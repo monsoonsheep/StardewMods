@@ -2,19 +2,16 @@
 	<PropertyGroup>
 		<ModFolderName>FarmCafe</ModFolderName>
 		<TargetFramework>net5.0</TargetFramework>
-		<GamePath>"C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley"</GamePath>
+		<GamePath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley</GamePath>
+		<GameModsPath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley\Mods</GameModsPath>
 		<Configurations>Debug;Release</Configurations>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
-		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="4.6.0">
-		  <PrivateAssets>all</PrivateAssets>
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-		<PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.1.0" />
-		<PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
+		<PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.1.1" />
+		<PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -23,4 +20,9 @@
 	    <Private>False</Private>
 	  </Reference>
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="FarmCafe\" />
+	</ItemGroup>
+
 </Project>

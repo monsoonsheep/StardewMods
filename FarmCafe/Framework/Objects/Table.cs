@@ -21,6 +21,8 @@ namespace FarmCafe.Framework.Objects
 {
     internal abstract class Table
     {
+        internal bool IsReadyToOrder;
+
         protected Table(GameLocation location)
         {
             this.CurrentLocation = location;
@@ -38,6 +40,7 @@ namespace FarmCafe.Framework.Objects
 
         internal virtual void Free()
         {
+            IsReadyToOrder = false;
             Seats.ForEach(s => s.Free());
             IsReserved = false;
         }
@@ -149,7 +152,7 @@ namespace FarmCafe.Framework.Objects
             if (Seats.Any(c => c.Position == chairToAdd.TileLocation))
                 return null;
 
-            Debug.Log("Adding chair to table");
+            Logger.Log("Adding chair to table");
             var furnitureChair = new FurnitureChair(chairToAdd)
             {
                 Table = this
@@ -165,13 +168,13 @@ namespace FarmCafe.Framework.Objects
 
             if (!Seats.Any(c => c.Position == chairToRemove.TileLocation))
             {
-                Debug.Log("Trying to remove a chair that wasn't tracked");
+                Logger.Log("Trying to remove a chair that wasn't tracked");
                 return false;
             }
 
             chairToRemove.modData.Remove("FarmCafeChairIsReserved");
             Seats = Seats.TakeWhile(c => c.Position != chairToRemove.TileLocation).ToList();
-            Debug.Log("Removed chair from table");
+            Logger.Log("Removed chair from table");
             return true;
         }
     }

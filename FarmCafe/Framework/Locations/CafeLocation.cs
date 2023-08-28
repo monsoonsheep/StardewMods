@@ -16,7 +16,7 @@ using xTile.Layers;
 using xTile.ObjectModel;
 using xTile.Tiles;
 
-namespace FarmCafe.Locations
+namespace FarmCafe.Framework.Locations
 {
     public class CafeLocation : DecoratableLocation
     {
@@ -36,8 +36,8 @@ namespace FarmCafe.Locations
         {
             if (MapTables.Count != 0)
                 return;
-            
-            Layer layer = this.Map.GetLayer("Back");
+
+            Layer layer = Map.GetLayer("Back");
 
             Dictionary<string, Rectangle> seatStringToTableRecs = new();
 
@@ -55,8 +55,8 @@ namespace FarmCafe.Locations
 
                     Rectangle thisTile = new Rectangle(i, j, 1, 1);
 
-                    seatStringToTableRecs[val] = (seatStringToTableRecs.TryGetValue(val, out var existingTileKey)) 
-                        ? Rectangle.Union(thisTile, existingTileKey) 
+                    seatStringToTableRecs[val] = seatStringToTableRecs.TryGetValue(val, out var existingTileKey)
+                        ? Rectangle.Union(thisTile, existingTileKey)
                         : thisTile;
                 }
             }
@@ -71,7 +71,7 @@ namespace FarmCafe.Locations
                     if (!float.TryParse(splitValues[i], out float x) ||
                         !float.TryParse(splitValues[i + 1], out float y))
                     {
-                        Debug.Log($"Invalid values in Cafe Map's seats at {pair.Value.X}, {pair.Value.Y}", LogLevel.Warn);
+                        Logger.Log($"Invalid values in Cafe Map's seats at {pair.Value.X}, {pair.Value.Y}", LogLevel.Warn);
                         continue;
                     }
 
@@ -85,8 +85,8 @@ namespace FarmCafe.Locations
                 }
 
             }
-            
-            Debug.Log($"Updated map tables in the cafe: {string.Join(", ", MapTables.Select(pair => pair.Key.Center + " with " + pair.Value.Count + " seats"))}");
+
+            Logger.Log($"Updated map tables in the cafe: {string.Join(", ", MapTables.Select(pair => pair.Key.Center + " with " + pair.Value.Count + " seats"))}");
         }
 
         // Probably not needed because of the postfix?
@@ -104,7 +104,7 @@ namespace FarmCafe.Locations
         public override void DayUpdate(int dayOfMonth)
         {
             base.DayUpdate(dayOfMonth);
-            foreach (var item in this.furniture)
+            foreach (var item in furniture)
             {
                 item.updateDrawPosition();
             }

@@ -6,7 +6,7 @@ using FarmCafe.Framework.Characters;
 using FarmCafe.Framework.Managers;
 using FarmCafe.Framework.Models;
 using FarmCafe.Framework.Objects;
-using FarmCafe.Locations;
+using FarmCafe.Framework.Locations;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Netcode;
@@ -14,8 +14,11 @@ using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Locations;
 using StardewValley.Objects;
+using xTile.Dimensions;
+using xTile.ObjectModel;
 using static FarmCafe.Framework.Utilities.Utility;
 using static FarmCafe.Framework.Characters.CustomerState;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace FarmCafe.Framework.Characters
 {
@@ -36,6 +39,8 @@ namespace FarmCafe.Framework.Characters
 
     public partial class Customer : NPC
     {
+        [XmlIgnore] internal NPC OriginalNpc;
+
         [XmlIgnore] internal CustomerGroup Group;
 
         [XmlIgnore] internal Seat Seat;
@@ -43,8 +48,8 @@ namespace FarmCafe.Framework.Characters
         [XmlIgnore] internal NetBool IsGroupLeader = new NetBool();
 
         [XmlIgnore] internal NetBool IsSitting = new NetBool();
-
         [XmlIgnore] internal NetEnum<CustomerState> State = new(ExitingBus);
+
         private int busDepartTimer = 0;
         private int conveneWaitingTimer = 0;
         private int lookAroundTimer = 0;
@@ -81,23 +86,53 @@ namespace FarmCafe.Framework.Characters
         {
         }
 
-        public Customer(string name, Point targetTile, GameLocation location, Texture2D portrait, string tileSheetPath)
-            : base(new AnimatedSprite(tileSheetPath, 0, 16, 32), targetTile.ToVector2() * 64, 1, name)
+        public Customer(string name, Point targetTile, GameLocation location, AnimatedSprite sprite)
+            : base(sprite, targetTile.ToVector2() * 64, 1, name)
         {
             willDestroyObjectsUnderfoot = true;
             collidesWithOtherCharacters.Value = false;
             eventActor = false;
             speed = 3;
-            base.displayName = "Customer";
-            Portrait = portrait;
+
+            if (name.StartsWith("Customer"))
+                base.displayName = "Customer";
 
             currentLocation = location;
             location.addCharacter(this);
+        }
 
-            base.modData["CustomerData"] = "T";
+        public Customer(NPC npc) : base(npc.Sprite, npc.getTileLocation(), npc.DefaultMap, npc.FacingDirection, npc.Name, npc.datable.Value, null, npc.Portrait)
+        {
+            IsInvisible = false;
+            followSchedule = false;
+            ignoreScheduleToday = true;
+            isSleeping.Set(false);
+
+            this.syncedPortraitPath.Set(npc.syncedPortraitPath.Value);
+            this.lastSeenMovieWeek.Set(npc.lastSeenMovieWeek.Value);
+            this.Portrait = npc.Portrait;
+            this.Breather = npc.Breather;
+            this.Schedule = npc.Schedule;
+
+            this.currentLocation = npc.currentLocation;
+            this.Position = npc.Position;
+            base.faceDirection(npc.FacingDirection);
+
+            this.currentLocation.addCharacter(this);
+
+            base.reloadData();
+
+            this.OriginalNpc = npc;
+
+
+            // Problem: We can't create a good enough copy of an NPC in the form of a customer. 
+            // We'd have to copy over a bunch of fields and props, so the player can interact with them the normal way,
+            // like give gifts and propose and even get custom modded behavior.
         }
 
         #region Overrides
+
+        public override bool shouldCollideWithBuildingLayer(GameLocation location) => true;
 
         public override bool canPassThroughActionTiles() => false;
 
@@ -112,7 +147,22 @@ namespace FarmCafe.Framework.Characters
             base.update(time, location);
             if (!Context.IsWorldReady || !Context.IsMainPlayer) return;
 
-            speed = 3; // For debug
+            PropertyValue propertyValue = null;
+            location.map.GetLayer("Buildings").PickTile(nextPositionPoint(), Game1.viewport.Size)?.Properties.TryGetValue("Action", out propertyValue);
+            var strArray = propertyValue?.ToString().Split(Utility.CharSpace);
+            if (strArray == null)
+            {
+                var standingXy2 = getStandingXY();
+                location.map.GetLayer("Buildings").PickTile(new Location(standingXy2.X, standingXy2.Y), Game1.viewport.Size)?.Properties
+                    .TryGetValue("Action", out propertyValue);
+                strArray = propertyValue?.ToString().Split(Utility.CharSpace);
+            }
+            if (strArray is { Length: >= 1 } && strArray[0].Contains("Door"))
+            {
+                location.openDoor(new Location(nextPositionPoint().X / 64, nextPositionPoint().Y / 64), Game1.player.currentLocation.Equals(location));
+            }
+
+            speed = 4; // For debug
 
             // Spawning and waiting to leave the bus
             if (busDepartTimer > 0)
@@ -248,23 +298,6 @@ namespace FarmCafe.Framework.Characters
                         CurrentEmoteIndex * 16 / Game1.emoteSpriteSheet.Width * 16, 16, 16), Color.White, 0f,
                     Vector2.Zero, 4f, SpriteEffects.None, layer);
             }
-
-            if (State == OrderReady && IsGroupLeader.Value)
-            {
-                Vector2 offset = new Vector2(0,
-                    (float)Math.Round(4f * Math.Sin(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 250.0)));
-
-                b.Draw(
-                    Game1.mouseCursors,
-                    Game1.GlobalToLocal(TableCenterForEmote) + offset,
-                    new Rectangle(402, 495, 7, 16),
-                    Color.Crimson,
-                    0f,
-                    new Vector2(1f, 4f),
-                    4f + Math.Max(0f, 0.25f - scale / 16f),
-                    SpriteEffects.None,
-                    1f);
-            }
         }
 
         public override void MovePosition(GameTime time, xTile.Dimensions.Rectangle viewport, GameLocation location)
@@ -273,7 +306,7 @@ namespace FarmCafe.Framework.Characters
                 return;
 
             if (moveUp)
-			{
+            {
                 if (location.isCollidingPosition(nextPosition(0), viewport, isFarmer: false, 0, glider: false, this) && !isCharging)
                 {
                     if (!location.isTilePassable(nextPosition(0), viewport))
@@ -293,14 +326,14 @@ namespace FarmCafe.Framework.Characters
                     }
                 }
                 else
-				{
+                {
                     position.Y -= speed + addedSpeed;
                     if (!ignoreMovementAnimation)
                     {
                         Sprite.AnimateUp(time, (speed - 2 + addedSpeed) * -25, Utility.isOnScreen(getTileLocationPoint(), 1, location) ? "Cowboy_Footstep" : "");
                         faceDirection(0);
                     }
-				}
+                }
             }
             else if (moveRight)
             {
@@ -390,28 +423,19 @@ namespace FarmCafe.Framework.Characters
                 }
             }
             else
-			{
-				Sprite.animateOnce(time);
-			}
+            {
+                Sprite.animateOnce(time);
+            }
             if (blockedInterval >= 3000 && blockedInterval <= 3750)
-			{
-				doEmote((Game1.random.NextDouble() < 0.5) ? 8 : 40);
-				blockedInterval = 3750;
-			}
-			else if (blockedInterval >= 5000)
-			{
-				isCharging = true;
-				blockedInterval = 0;
-			}
-		}
-
-        public override void tryToReceiveActiveObject(Farmer who)
-        {
-            if (who.ActiveObject == null || who.ActiveObject.ParentSheetIndex != OrderItem.ParentSheetIndex)
-                return;
-
-            this.OrderReceive();
-            who.reduceActiveItemByOne();
+            {
+                doEmote((Game1.random.NextDouble() < 0.5) ? 8 : 40);
+                blockedInterval = 3750;
+            }
+            else if (blockedInterval >= 5000)
+            {
+                isCharging = true;
+                blockedInterval = 0;
+            }
         }
 
         #endregion
