@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using FarmCafe.Framework.Characters;
 using StardewValley;
 
-namespace FarmCafe.Framework
+namespace FarmCafe.Framework.Multiplayer
 {
     internal class CustomerUpdate
     {
@@ -29,7 +25,7 @@ namespace FarmCafe.Framework
             {
                 if ((Game1.getCharacterFromName(customer.Name) as Customer) == null)
                 {
-                    Debug.Log("Can't get character)");
+                    Logger.Log("Can't get character)");
                 }
                 this.names.Add(customer.Name);
             }

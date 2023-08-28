@@ -32,11 +32,31 @@ namespace FarmCafe.Framework.Patching
                     new[] { typeof(int) , typeof(bool), typeof(bool) },
                     postfix: nameof(DoEmotePostfix)),
                 new (
+                    typeof(NPC),
+                    "tryToReceiveActiveObject",
+                    new[] { typeof(Farmer) },
+                    prefix: nameof(TryToReceiveActiveObjectPrefix)),
+                new (
                     typeof(Game1),
                     "warpCharacter",
                     new[] { typeof(NPC), typeof(GameLocation), typeof(Vector2) },
                     postfix: nameof(WarpCharacterPostfix)),
             };
+        }
+
+        private static bool TryToReceiveActiveObjectPrefix(NPC __instance, Farmer who)
+        {
+            if (__instance is Customer customer) // TODO: make work for regular NPCs
+            {
+                if (who.ActiveObject == null || who.ActiveObject.ParentSheetIndex != customer.OrderItem.ParentSheetIndex)
+                    return true;
+
+                customer.OrderReceive();
+                who.reduceActiveItemByOne();
+                return false;
+            }
+
+            return true;
         }
 
         private static IEnumerable<CodeInstruction> MoveCharacterTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
@@ -69,7 +89,7 @@ namespace FarmCafe.Framework.Patching
                 codeList.InsertRange(start_pos + 1, patchCodes);
             }
             else
-                Debug.Log("Couldn't find the break after isPassable check", LogLevel.Error);
+                Logger.Log("Couldn't find the break after isPassable check", LogLevel.Error);
 
             return codeList.AsEnumerable();
         }
@@ -78,8 +98,8 @@ namespace FarmCafe.Framework.Patching
         {
             if (character is Customer customer)
             {
-                Debug.Log($"Warped customer to {targetLocation.Name} - {position}");
-                FarmCafe.CafeManager.HandleWarp(customer, targetLocation, position);
+                Logger.Log($"Warped customer to {targetLocation.Name} - {position}");
+                ModEntry.CafeManager.HandleWarp(customer, targetLocation, position);
             }
         }
 
@@ -87,7 +107,7 @@ namespace FarmCafe.Framework.Patching
         {
             if (__instance is Customer customer && Context.IsMainPlayer)
             {
-                Multiplayer.CustomerDoEmote(customer, whichEmote);
+                Multiplayer.Sync.CustomerDoEmote(customer, whichEmote);
             }
         }
     }

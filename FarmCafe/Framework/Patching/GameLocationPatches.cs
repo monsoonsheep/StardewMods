@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using FarmCafe.Framework.Characters;
 using FarmCafe.Framework.Managers;
 using FarmCafe.Framework.Objects;
-using FarmCafe.Locations;
+using FarmCafe.Framework.Locations;
 using StardewModdingAPI;
 using StardewValley;
 using xTile.Dimensions;
@@ -38,7 +38,7 @@ namespace FarmCafe.Framework.Patching
             {
                 if (__instance.characters[i] is Customer)
                 {
-                    Debug.Log("Removing character before saving");
+                    Logger.Log("Removing character before saving");
                     __instance.characters.RemoveAt(i);
                 }
             }
@@ -46,15 +46,15 @@ namespace FarmCafe.Framework.Patching
 
         private static void CheckActionPostfix(GameLocation __instance, Location tileLocation, Rectangle viewport, Farmer who, ref bool __result)
         {
-            if (!FarmCafe.CafeLocations.Contains(__instance)) return;
+            if (!ModEntry.CafeLocations.Contains(__instance)) return;
 
-            foreach (MapTable table in FarmCafe.Tables.OfType<MapTable>())
+            foreach (MapTable table in ModEntry.Tables.OfType<MapTable>())
             {
                 if (table.BoundingBox.Contains(tileLocation.X * 64, tileLocation.Y * 64))
                 {
                     if (!Context.IsMainPlayer)
                     {
-                        Multiplayer.SendTableClick(table, who);
+                        Multiplayer.Sync.SendTableClick(table, who);
                     }
                     else
                     {

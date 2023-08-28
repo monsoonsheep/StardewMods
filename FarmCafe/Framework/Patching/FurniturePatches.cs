@@ -10,7 +10,8 @@ using FarmCafe.Framework.Characters;
 using Microsoft.Xna.Framework;
 using FarmCafe.Framework.Managers;
 using FarmCafe.Framework.Objects;
-using FarmCafe.Locations;
+using FarmCafe.Framework.Locations;
+using FarmCafe.Framework.Multiplayer;
 using HarmonyLib;
 using Netcode;
 using StardewValley.Network;
@@ -111,7 +112,7 @@ namespace FarmCafe.Framework.Patching
 
             // This is ldc.i4.1 (returning true)
             codelist[insertPoint].labels.Add(jumpLabel);
-            leaveLabel = (Label)codelist[insertPoint + 2].operand;
+            leaveLabel = (Label) codelist[insertPoint + 2].operand;
 
             List<CodeInstruction> addCodes = new()
             {
@@ -134,6 +135,7 @@ namespace FarmCafe.Framework.Patching
                 new CodeInstruction(OpCodes.Leave, leaveLabel)
             };
             codelist.InsertRange(insertPoint, addCodes);
+            Logger.Log(string.Join('\n', codelist));
             return codelist.AsEnumerable();
         }
 
@@ -141,7 +143,7 @@ namespace FarmCafe.Framework.Patching
         {
             if (IsTable(__instance))
             {
-                FurnitureTable trackedTable = FarmCafe.IsTableTracked(__instance, who.currentLocation);
+                FurnitureTable trackedTable = IsTableTracked(__instance, who.currentLocation);
                 if (trackedTable is { IsReserved: true })
                 {
                     __result = false;
@@ -163,10 +165,10 @@ namespace FarmCafe.Framework.Patching
                 {
                     __result = false;
                 } 
-                FurnitureTable trackedTable = FarmCafe.IsTableTracked(__instance, who.currentLocation);
+                FurnitureTable trackedTable = IsTableTracked(__instance, who.currentLocation);
                 if (trackedTable is { IsReserved: true })
                 {
-                    Debug.Log("Can't remove");
+                    Logger.Log("Can't remove");
                     __result = false;
                 }
             }
@@ -178,12 +180,12 @@ namespace FarmCafe.Framework.Patching
         {
             if (IsTable(__instance))
             {
-                FurnitureTable trackedTable = FarmCafe.IsTableTracked(__instance, who.currentLocation);
+                FurnitureTable trackedTable = IsTableTracked(__instance, who.currentLocation);
                 if (trackedTable is { IsReserved: true })
                 {
                     if (!Context.IsMainPlayer)
                     {
-                        Multiplayer.SendTableClick(trackedTable, who);
+                        Sync.SendTableClick(trackedTable, who);
                     }
                     else
                     {

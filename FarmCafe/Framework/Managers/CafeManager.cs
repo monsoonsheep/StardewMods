@@ -4,20 +4,13 @@ using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static FarmCafe.Framework.Utilities.Utility;
 using StardewModdingAPI;
 using FarmCafe.Framework.Characters;
 using FarmCafe.Framework.Models;
 using FarmCafe.Framework.Objects;
-using FarmCafe.Locations;
-using Microsoft.VisualBasic;
-using Microsoft.Xna.Framework.Graphics;
-using StardewValley.Objects;
-using xTile.Layers;
-using xTile.ObjectModel;
 using xTile.Tiles;
+using Point = Microsoft.Xna.Framework.Point;
 
 namespace FarmCafe.Framework.Managers
 {
@@ -30,6 +23,7 @@ namespace FarmCafe.Framework.Managers
         internal List<Customer> CurrentCustomers;
         internal NPC HelperNpc;
 
+        internal List<NPC> Basement;
 
         internal List<List<string>> RoutesToCafe;
 
@@ -39,8 +33,8 @@ namespace FarmCafe.Framework.Managers
 
         public Point BusPosition;
 
-        internal int openingTime = 0800;
-        internal int closingTime = 2100;
+        internal int OpeningTime = 0800;
+        internal int ClosingTime = 2100;
         internal int LastTimeCustomersArrived;
         internal short CustomerGroupsDinedToday;
         internal short NumberOfCustomerGroupsPresentRightNow;
@@ -53,14 +47,16 @@ namespace FarmCafe.Framework.Managers
             CurrentCustomers = customersList;
             HelperNpc = helperNpc;
 
+            Basement = new List<NPC>();
             CurrentGroups = new List<CustomerGroup>();
             CacheBusPosition();
         }
 
         internal bool CheckSpawnCustomers()
         {
-            int minutesTillCloses = Utility.CalculateMinutesBetweenTimes(Game1.timeOfDay, closingTime);
-            int minutesTillOpens = Utility.CalculateMinutesBetweenTimes(Game1.timeOfDay, closingTime);
+            return false;
+            int minutesTillCloses = Utility.CalculateMinutesBetweenTimes(Game1.timeOfDay, ClosingTime);
+            int minutesTillOpens = Utility.CalculateMinutesBetweenTimes(Game1.timeOfDay, OpeningTime);
             int minutesSinceLastCustomers = Utility.CalculateMinutesBetweenTimes(LastTimeCustomersArrived, Game1.timeOfDay);
             int freeTablesCount = TableManager.Tables.Count(t => !t.IsReserved);
 
@@ -105,7 +101,7 @@ namespace FarmCafe.Framework.Managers
             var tables = TableManager.GetFreeTables(memberCount);
             if (tables.Count == 0)
             {
-                Debug.LogWithHudMessage("No tables to spawn customers");
+                Logger.LogWithHudMessage("No tables to spawn customers");
                 return null;
             }
 
@@ -136,16 +132,36 @@ namespace FarmCafe.Framework.Managers
             }
 
             if (group.ReserveTable(table) is false)
-                Debug.Log("ERROR: Couldn't reserve table (was supposed to be able to reserve)", LogLevel.Error);
+                Logger.Log("ERROR: Couldn't reserve table (was supposed to be able to reserve)", LogLevel.Error);
 
             CurrentGroups.Add(group);
-            Multiplayer.AddCustomerGroup(group);
+            Multiplayer.Sync.AddCustomerGroup(group);
             return group;
+        }
+
+        
+        internal Customer VisitRegularNpc(NPC npc)
+        {
+            npc.ignoreScheduleToday = true;
+            npc.currentLocation.characters.Remove(npc);
+            Game1.removeThisCharacterFromAllLocations(npc);
+            Customer customer = new Customer(npc);
+            CustomerGroup group = new CustomerGroup();
+            group.Add(customer);
+            CurrentCustomers.Add(customer);
+            customer.OrderItem = GetRandomItemFromMenu();
+            CurrentGroups.Add(group);
+            //group.ReserveTable(TableManager.GetFreeTables().First());
+            customer.Group = group;
+            //customer.GoToSeat();
+            customer.HeadTowards(npc.currentLocation, npc.getTileLocationPoint() + new Point(3, 0), 3, customer.ConvertBack);
+
+            return null;
         }
 
         internal void SpawnGroupAtBus()
         {
-            var group = SpawnGroup(FarmCafe.GetLocationFromName("BusStop"), BusPosition);
+            var group = SpawnGroup(GetLocationFromName("BusStop"), BusPosition);
             if (group == null)
                 return;
 
@@ -158,7 +174,7 @@ namespace FarmCafe.Framework.Managers
                 group.Members[i].State.Set(CustomerState.ExitingBus);
             }
 
-            Debug.LogWithHudMessage($"{memberCount} customer(s) arriving");
+            Logger.LogWithHudMessage($"{memberCount} customer(s) arriving");
         }
 
         internal void PopulateRoutesToCafe()
@@ -166,10 +182,22 @@ namespace FarmCafe.Framework.Managers
             RoutesToCafe = new List<List<string>>();
             foreach (string loc in new[] { "BusStop", "Farm" })
             {
-                RoutesToCafe.Add(FindLocationRouteToCafe(FarmCafe.GetLocationFromName(loc), CafeLocations.First()));
+                RoutesToCafe.Add(FindLocationRouteToCafe(GetLocationFromName(loc), CafeLocations.First()));
             }
 
-            RoutesToCafe.ForEach((route) => Debug.Log(string.Join(" - ", route)));
+            var routesFromBus = RoutesToCafe.Where(r => r.First().Equals("BusStop"));
+
+            var routesToBus = ModEntry.ModHelper.Reflection
+                .GetField<List<List<string>>>(typeof(NPC), "routesFromLocationToLocation").GetValue()
+                .Where(route => route.Last() is "BusStop").Select(r => r.SkipLast(1));
+
+            var routesToAdd = (
+                from route in routesToBus 
+                from busRoute in routesFromBus 
+                select route.Concat(busRoute).ToList());
+
+            RoutesToCafe = RoutesToCafe.Concat(routesToAdd).ToList();
+            RoutesToCafe.ForEach((route) => Logger.Log(string.Join(" - ", route)));
         }
 
         public List<string> FindLocationRouteToCafe(GameLocation startLocation, GameLocation endLocation)
@@ -185,7 +213,7 @@ namespace FarmCafe.Framework.Managers
             while (frontier.Count > 0)
             {
                 string currentName = frontier.Dequeue();
-                GameLocation current = FarmCafe.GetLocationFromName(currentName);
+                GameLocation current = GetLocationFromName(currentName);
 
                 if (current == null)
                     continue;
@@ -283,9 +311,8 @@ namespace FarmCafe.Framework.Managers
                 name: $"CustomerNPC_{model.Name}{CurrentCustomers.Count + 1}",
                 targetTile: tilePosition,
                 location: location, 
-                portrait: FarmCafe.ModHelper.ModContent.Load<Texture2D>($"assets/Portraits/{model.PortraitName}.png"), 
-                tileSheetPath: model.TilesheetPath);
-            Debug.Log($"Customer {customer.Name} spawned");
+                sprite: new AnimatedSprite(model.TilesheetPath, 0, 16, 32));
+            Logger.Log($"Customer {customer.Name} spawned");
 
             CurrentCustomers.Add(customer);
             group.Add(customer);
@@ -302,17 +329,17 @@ namespace FarmCafe.Framework.Managers
 
         internal void CacheBusPosition()
         {
-            Tile[,] tiles = FarmCafe.GetLocationFromName("BusStop").Map.GetLayer("Back").Tiles.Array;
+            Tile[,] tiles = GetLocationFromName("BusStop").Map.GetLayer("Back").Tiles.Array;
             for (var i = 0; i < tiles.GetLength(0); i++)
             for (var j = 0; j < tiles.GetLength(1); j++)
                 if (tiles[i, j].Properties.ContainsKey("TouchAction") && tiles[i, j].Properties["TouchAction"] == "Bus")
                 {
                     BusPosition = new Point(i, j + 1);
-                    //Debug.Log($"bus position is {BusPosition}");
+                    //Logger.Log($"bus position is {BusPosition}");
                     return;
                 }
 
-            Debug.Log("Couldn't find Bus position in Bus Stop", LogLevel.Warn);
+            Logger.Log("Couldn't find Bus position in Bus Stop", LogLevel.Warn);
             BusPosition = new Point(12, 10);
         }
 
@@ -326,7 +353,7 @@ namespace FarmCafe.Framework.Managers
                     continue;
 
                 other.isCharging = true;
-                Debug.Log("Warping group, charging", LogLevel.Debug);
+                Logger.Log("Warping group, charging", LogLevel.Debug);
             }
         }
 
@@ -356,7 +383,7 @@ namespace FarmCafe.Framework.Managers
 
             var list = locationCustomers.Concat(buildingCustomers).ToList();
 
-            Debug.Log("Updating customers" + string.Join(' ', list));
+            Logger.Log("Updating customers" + string.Join(' ', list));
             return list;
         }
 
@@ -407,16 +434,17 @@ namespace FarmCafe.Framework.Managers
         internal static void FarmerClickTable(Table table, Farmer who)
         {
             CustomerGroup groupOnTable =
-                FarmCafe.CurrentCustomers.FirstOrDefault(c => c.Group.ReservedTable == table)?.Group;
+                ModEntry.CurrentCustomers.FirstOrDefault(c => c.Group.ReservedTable == table)?.Group;
 
             if (groupOnTable == null)
             {
-                Debug.Log("Didn't get group from table");
+                Logger.Log("Didn't get group from table");
                 return;
             }
 
             if (groupOnTable.Members.All(c => c.State.Value == CustomerState.OrderReady))
             {
+                table.IsReadyToOrder = false;
                 foreach (Customer customer in groupOnTable.Members)
                 {
                     customer.StartWaitForOrder();
@@ -428,7 +456,7 @@ namespace FarmCafe.Framework.Managers
                 {
                     if (customer.OrderItem != null && who.hasItemInInventory(customer.OrderItem.ParentSheetIndex, 1))
                     {
-                        Debug.Log($"Customer item = {customer.OrderItem.ParentSheetIndex}, inventory = {who.hasItemInInventory(customer.OrderItem.ParentSheetIndex, 1)}");
+                        Logger.Log($"Customer item = {customer.OrderItem.ParentSheetIndex}, inventory = {who.hasItemInInventory(customer.OrderItem.ParentSheetIndex, 1)}");
                         customer.OrderReceive();
                         who.removeFirstOfThisItemFromInventory(customer.OrderItem.ParentSheetIndex);
                     }
@@ -439,14 +467,14 @@ namespace FarmCafe.Framework.Managers
 
         public void RemoveAllCustomers()
         {
-            Debug.Log("Removing customers");
+            Logger.Log("Removing customers");
             foreach (var c in CurrentCustomers)
             {
                 Game1.removeThisCharacterFromAllLocations(c);
                 c.currentLocation?.characters?.Remove(c);
             }
 
-            Multiplayer.RemoveAllCustomers();
+            Multiplayer.Sync.RemoveAllCustomers();
             CurrentCustomers.Clear();
             CustomerModelsInUse?.Clear();
             CurrentGroups?.Clear();

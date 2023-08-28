@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using FarmCafe.Framework.Characters;
+using FarmCafe.Framework.Objects;
 using xTile.Tiles;
 
 namespace FarmCafe.Framework.Utilities
@@ -86,10 +87,10 @@ namespace FarmCafe.Framework.Utilities
 					if (i == 0 && j == 0) continue;
 
 					var pos = new Rectangle((startPos.X + i) * 64, (startPos.Y + j) * 64, 62, 62);
-					Debug.Log($"checking position {pos}");
+					Logger.Log($"checking position {pos}");
 					if (!location.isCollidingPosition(pos, Game1.viewport, character) && location.isCollidingWithWarp(pos, character) == null) // ???
 					{
-						Debug.Log($"New position {startPos}");
+						Logger.Log($"New position {startPos}");
 						yield return new Point(startPos.X + i, startPos.Y + j);
 					}
 
@@ -116,7 +117,44 @@ namespace FarmCafe.Framework.Utilities
 
         internal static string GetTileProperties(Tile tile)
         {
-            return tile == null ? "" : tile.Properties.Concat(tile.TileIndexProperties).Aggregate("", (currentTile, property) => currentTile + $"{property.Key}: {property.Value}, ");
+            return tile == null ? "there's no tile" : tile.Properties.Concat(tile.TileIndexProperties).Aggregate("", (currentTile, property) => currentTile + $"{property.Key}: {property.Value}, ");
         }
+
+        internal static GameLocation GetLocationFromName(string name)
+        {
+            return Game1.getLocationFromName(name) ?? ModEntry.CafeLocations.FirstOrDefault(a => a.Name == name);
+        }
+
+        internal static FurnitureTable IsTableTracked(Furniture table, GameLocation location)
+        {
+            return ModEntry.Tables
+                .OfType<FurnitureTable>().FirstOrDefault(t => t.CurrentLocation.Equals(location) && t.Position == table.TileLocation);
+        }
+
+        internal static List<(int, string, int)> GetLocationRouteFromSchedule(NPC npc)
+        {
+            List<(int, string, int)> route = new();
+            Dictionary<int, SchedulePathDescription> schedule = npc.Schedule;
+            GameLocation currentLoc = npc.currentLocation;
+            
+            var ordered = schedule.OrderBy(pair => pair.Key).ToList();
+            int steps = 0;
+            foreach (var pathDescription in ordered)
+            {
+                while (pathDescription.Value.route.Count > 0)
+                {
+                    steps++;
+                    Point cursor = pathDescription.Value.route.Pop();
+
+                    Warp w = currentLoc.isCollidingWithWarpOrDoor(new Rectangle(cursor.X * 64, cursor.Y * 64, 64, 64));
+                    if (w != null)
+                        currentLoc = Game1.getLocationFromName(w.TargetName);
+                }
+                route.Add((pathDescription.Key, currentLoc.Name, steps));
+            }
+
+            return route;
+        }
+
     }
 }

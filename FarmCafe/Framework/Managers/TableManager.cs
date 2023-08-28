@@ -6,10 +6,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using FarmCafe.Framework.Objects;
-using FarmCafe.Locations;
 using StardewModdingAPI;
 using xTile.Tiles;
-using Utility = FarmCafe.Framework.Utilities.Utility;
+using static FarmCafe.Framework.Utilities.Utility;
+using FarmCafe.Framework.Locations;
 
 namespace FarmCafe.Framework.Managers
 {
@@ -30,7 +30,7 @@ namespace FarmCafe.Framework.Managers
             {
                 foreach (Furniture table in location.furniture)
                 {
-                    if (!Utility.IsTable(table)) continue;
+                    if (!IsTable(table)) continue;
                     // If we already have this table object registered
                     if (Tables.OfType<FurnitureTable>().Any(
                             t =>  t.Position == table.TileLocation && t.CurrentLocation.Name == location.Name))
@@ -62,7 +62,7 @@ namespace FarmCafe.Framework.Managers
                 }
             }
             FreeAllTables();
-            Multiplayer.SyncTables();
+            Multiplayer.Sync.SyncTables();
         }
        
         internal bool TryAddTable(Table table, bool update = true)
@@ -72,9 +72,9 @@ namespace FarmCafe.Framework.Managers
 
             table.Free();
             Tables.Add(table);
-            Debug.Log("Adding table");
+            Logger.Log("Adding table");
             if (update)
-                Multiplayer.SyncTables();
+                Multiplayer.Sync.SyncTables();
             return true;
         }
 
@@ -89,14 +89,14 @@ namespace FarmCafe.Framework.Managers
 
             table.ActualTable.modData.Remove("FarmCafeTableIsReserved");
             if (!Tables.Contains(table))
-                Debug.Log("Trying to remove a table that isn't tracked", LogLevel.Warn);
+                Logger.Log("Trying to remove a table that isn't tracked", LogLevel.Warn);
             else
             {
-                Debug.Log($"Table removed");
+                Logger.Log($"Table removed");
                 Tables.Remove(table);
             }
 
-            Multiplayer.SyncTables();
+            Multiplayer.Sync.SyncTables();
         }
 
         internal List<Table> GetFreeTables(int minimumSeats = 1)
@@ -119,5 +119,22 @@ namespace FarmCafe.Framework.Managers
         {
             return Tables.Where(t => t.CurrentLocation.Equals(location)).FirstOrDefault(table => table.BoundingBox.Contains(position));
         }
+
+        internal FurnitureTable TryAddFurnitureTable(Furniture table, GameLocation location)
+        {
+            FurnitureTable trackedTable = IsTableTracked(table, location);
+
+            if (trackedTable == null)
+            {
+                trackedTable = new FurnitureTable(table, location)
+                {
+                    CurrentLocation = location
+                };
+                return TryAddTable(trackedTable) ? trackedTable : null;
+            }
+
+            return trackedTable;
+        }
+
     }
 }

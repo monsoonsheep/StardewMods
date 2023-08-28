@@ -1,7 +1,9 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Force.DeepCloner;
 using Microsoft.Xna.Framework;
 using StardewValley;
-using Utility = FarmCafe.Framework.Utilities.Utility;
+using static FarmCafe.Framework.Utilities.Utility;
 
 namespace FarmCafe.Framework.Characters
 {
@@ -16,7 +18,7 @@ namespace FarmCafe.Framework.Characters
             else
             {
                 collidesWithOtherCharacters.Set(false);
-                this.HeadTowards(FarmCafe.GetLocationFromName("BusStop"), BusConvenePoint, 2, StartConvening);
+                this.HeadTowards(GetLocationFromName("BusStop"), BusConvenePoint, 2, StartConvening);
             }
         }
 
@@ -93,7 +95,7 @@ namespace FarmCafe.Framework.Characters
         {
             IsSitting.Set(false);
             drawOffsetForSeat.Set(new Vector2(0, 0));
-            var nextPos = Position + (Utility.DirectionIntToDirectionVector(direction) * 64f);
+            var nextPos = Position + (DirectionIntToDirectionVector(direction) * 64f);
             LerpPosition(
                 Position,
                 nextPos,
@@ -105,10 +107,13 @@ namespace FarmCafe.Framework.Characters
         {
             State.Set(CustomerState.OrderReady);
             if (IsGroupLeader)
-                TableCenterForEmote = this.Group.ReservedTable.GetCenter() + new Vector2(-8, -64);
+                this.Group.ReservedTable.IsReadyToOrder = true;
 
-            Multiplayer.UpdateCustomerInfo(this, nameof(OrderItem), OrderItem.ParentSheetIndex);
-            Multiplayer.UpdateCustomerInfo(this, nameof(TableCenterForEmote), TableCenterForEmote.ToString());
+            //if (IsGroupLeader)
+            //    TableCenterForEmote = this.Group.ReservedTable.GetCenter() + new Vector2(-8, -64);
+
+            Multiplayer.Sync.UpdateCustomerInfo(this, nameof(OrderItem), OrderItem.ParentSheetIndex);
+            //Sync.UpdateCustomerInfo(this, nameof(TableCenterForEmote), TableCenterForEmote.ToString());
         }
 
         internal void OrderReceive()
@@ -127,8 +132,22 @@ namespace FarmCafe.Framework.Characters
         internal void FinishEating()
         {
             State.Set(CustomerState.Leaving);
-            int direction = Game1.random.Next(2) == 0 ? (FacingDirection + 1) % 4 : (FacingDirection + 3) % 4;
-            this.GetUpFromSeat(direction);
+            int[] directions = new[] { (FacingDirection + 1) % 4, (FacingDirection + 3) % 4, (FacingDirection + 2) % 4 };
+            foreach (int direction in directions)
+            {
+                var boundingBox = GetBoundingBox();
+                boundingBox.X += (int) DirectionIntToDirectionVector(direction).X * 64;
+                boundingBox.Y += (int) DirectionIntToDirectionVector(direction).Y * 64;
+
+                var nextPosition = Position + (DirectionIntToDirectionVector(direction) * 64f);
+                if (!currentLocation.isCollidingPosition(boundingBox, Game1.viewport, false, 0, glider: false, this))
+                {
+                    // location.isCollidingPosition(nextPosition(0), viewport, isFarmer: false, 0, glider: false, this) && !isCharging
+                    this.GetUpFromSeat(direction);
+                    return;
+                }
+            }
+            // Handle when customer can't get up from seat because of collisions
         }
 
         internal void DoNothingAndWait()
@@ -143,8 +162,12 @@ namespace FarmCafe.Framework.Characters
                 Group.ReservedTable.Free();
                 Group.ReservedTable = null;
             }
-            
-            this.HeadTowards(Game1.getLocationFromName("BusStop"), FarmCafe.CafeManager.BusPosition, 0, ReachHome);
+            if (OriginalNpc == null)
+                this.HeadTowards(Game1.getLocationFromName("BusStop"), ModEntry.CafeManager.BusPosition, 0, ReachHome);
+            else
+            {
+                this.HeadTowards(Game1.getLocationFromName("BusStop"), new Point(5, 23), 1, ConvertBack);
+            }
         }
 
         internal void ReachHome()
@@ -152,7 +175,34 @@ namespace FarmCafe.Framework.Characters
             IsInvisible = true;
             Game1.removeCharacterFromItsLocation(this.Name);
             if (Group.Members.All(c => c.IsInvisible))
-                FarmCafe.CafeManager.EndGroup(Group);
+                ModEntry.CafeManager.EndGroup(Group);
+        }
+
+        internal void ConvertBack()
+        {
+            this.currentLocation.characters.Remove(this);
+            Game1.removeThisCharacterFromAllLocations(this);
+
+            NPC original = new NPC(Sprite, getTileLocation(), DefaultMap, FacingDirection, Name, datable.Value, null, Portrait);
+            original.ignoreScheduleToday = false;
+            original.followSchedule = true;
+            original.syncedPortraitPath.Set(syncedPortraitPath.Value);
+            original.lastSeenMovieWeek.Set(lastSeenMovieWeek.Value);
+            original.Portrait = Portrait;
+            original.Schedule = Schedule;
+            original.Breather = Breather;
+            original.Schedule = Schedule;
+
+            original.currentLocation = currentLocation;
+            original.Position = Position;
+            original.faceDirection(FacingDirection);
+
+            this.currentLocation.addCharacter(original);
+
+            original.reloadData();
+            original.checkSchedule(Game1.timeOfDay);
+
+            ModEntry.CafeManager.EndGroup(Group);
         }
     }
 }
