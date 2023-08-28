@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using FarmCafe.Framework.Characters;
 using FarmCafe.Framework.Managers;
 using FarmCafe.Framework.Objects;
-using FarmCafe.Framework.Locations;
+using FarmCafe.Locations;
 using StardewModdingAPI;
 using StardewValley;
 using xTile.Dimensions;

@@ -1,4 +1,4 @@
-﻿using FarmCafe.Framework.Characters.Scheduling;
+﻿using FarmCafe.Framework.Models;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -31,7 +31,7 @@ namespace FarmCafe.Framework.Managers
             }
         }
 
-        internal static void SetupNpcSchedules(IModHelper helper)
+        internal static void LoadNpcSchedules(IModHelper helper)
         {
             var dir = new DirectoryInfo(Path.Combine(helper.DirectoryPath, "assets", "npc_schedules"));
             foreach (FileInfo f in dir.GetFiles())

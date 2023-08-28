@@ -1,19 +1,14 @@
-﻿using FarmCafe.Framework.Managers;
-using StardewModdingAPI;
+﻿using StardewModdingAPI;
 using StardewValley.Locations;
 using StardewValley.Objects;
 using StardewValley;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
-using Netcode;
 using xTile.Dimensions;
 using static FarmCafe.Framework.Utilities.Utility;
-using StardewValley.Tools;
-using FarmCafe.Framework.Locations;
+using FarmCafe.Locations;
 
 namespace FarmCafe.Framework.Characters
 {

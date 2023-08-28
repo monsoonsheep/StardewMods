@@ -5,21 +5,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using FarmCafe.Framework.Locations;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using FarmCafe.Framework.Managers;
 using Microsoft.Xna.Framework;
 using StardewValley.Menus;
 using StardewValley.Objects;
+using FarmCafe.Locations;
 
 namespace FarmCafe
 {
     internal class Debug
     {
-        public static void ButtonPress(SButton button)
+        public static void ButtonPress(object sender, ButtonPressedEventArgs e)
         {
-            switch (button)
+            if (!Context.IsMainPlayer || !Context.CanPlayerMove)
+                return;
+
+            switch (e.Button)
             {
                 case SButton.B:
                     break;

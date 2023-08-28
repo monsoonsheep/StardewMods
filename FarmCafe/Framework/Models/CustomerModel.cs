@@ -4,13 +4,11 @@
 	{
 		public string Name { get; set; }
 		public string TilesheetPath { get; set; }
-		public AnimationData Animation { get; set; }
-		public string PortraitName { get; set; } = "cat";
+		public string Portrait { get; set; }
 
 		public new string ToString()
 		{
-			return $"Model: [Name: {Name}, Tilesheet: {TilesheetPath}]"
-				   + $"Animation: {Animation.NumberOfFrames} frames, {Animation.Duration}ms each, Starting {Animation.StartingFrame}";
+			return $"Model: [Name: {Name}, Tilesheet: {TilesheetPath}, Portrait name: {Portrait}]";
 
 		}
 	}
