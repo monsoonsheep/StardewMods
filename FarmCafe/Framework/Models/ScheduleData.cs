@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FarmCafe.Framework.Characters.Scheduling
+namespace FarmCafe.Framework.Models
 {
     public class ScheduleData
     {

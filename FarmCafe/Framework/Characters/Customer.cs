@@ -6,7 +6,7 @@ using FarmCafe.Framework.Characters;
 using FarmCafe.Framework.Managers;
 using FarmCafe.Framework.Models;
 using FarmCafe.Framework.Objects;
-using FarmCafe.Framework.Locations;
+using FarmCafe.Locations;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Netcode;
@@ -86,7 +86,7 @@ namespace FarmCafe.Framework.Characters
         {
         }
 
-        public Customer(string name, Point targetTile, GameLocation location, AnimatedSprite sprite)
+        public Customer(string name, Point targetTile, GameLocation location, AnimatedSprite sprite, Texture2D portrait)
             : base(sprite, targetTile.ToVector2() * 64, 1, name)
         {
             willDestroyObjectsUnderfoot = true;
@@ -94,6 +94,7 @@ namespace FarmCafe.Framework.Characters
             eventActor = false;
             speed = 3;
 
+            Portrait = portrait;
             if (name.StartsWith("Customer"))
                 base.displayName = "Customer";
 

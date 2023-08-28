@@ -64,13 +64,13 @@ namespace FarmCafe.Framework.Objects
             => BoundingBox.Center.ToVector2();
     }
 
-    internal sealed class FurnitureTable : Table
+    internal class FurnitureTable : Table
     {
         internal Furniture ActualTable;
 
         public FurnitureTable(Furniture actualTable, GameLocation location) : base(location)
         {
-            this.Seats = new List<Seat>();
+            base.Seats = new List<Seat>();
             this.ActualTable = actualTable;
 
             PopulateChairs();
@@ -179,20 +179,20 @@ namespace FarmCafe.Framework.Objects
         }
     }
 
-    internal sealed class MapTable : Table {
+    internal class MapTable : Table {
         public MapTable(Rectangle boundingBox, GameLocation location, List<Vector2> seatPositions) : base(location)
         {
-            this.BoundingBox = boundingBox;
-            this.Position = boundingBox.Center.ToVector2();
+            base.BoundingBox = boundingBox;
+            base.Position = boundingBox.Center.ToVector2();
 
-            this.Seats = new List<Seat>();
+            base.Seats = new List<Seat>();
             foreach (var seat in seatPositions)
             {
                 var mapSeat = new MapChair(seat)
                 {
                     Table = this
                 };
-                this.Seats.Add(mapSeat);
+                base.Seats.Add(mapSeat);
             }
         }
     }

@@ -6,6 +6,11 @@
 		<GameModsPath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley\Mods</GameModsPath>
 		<Configurations>Debug;Release</Configurations>
 	</PropertyGroup>
+	<ItemGroup>
+	  <Compile Remove="FarmCafe\**" />
+	  <EmbeddedResource Remove="FarmCafe\**" />
+	  <None Remove="FarmCafe\**" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
@@ -19,10 +24,6 @@
 	    <HintPath>SolidFoundations.dll</HintPath>
 	    <Private>False</Private>
 	  </Reference>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="FarmCafe\" />
 	</ItemGroup>
 
 </Project>

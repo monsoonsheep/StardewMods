@@ -16,7 +16,7 @@ using xTile.Layers;
 using xTile.ObjectModel;
 using xTile.Tiles;
 
-namespace FarmCafe.Framework.Locations
+namespace FarmCafe.Locations
 {
     public class CafeLocation : DecoratableLocation
     {
@@ -30,13 +30,14 @@ namespace FarmCafe.Framework.Locations
         public CafeLocation(string mapPath, string name)
             : base(mapPath, name)
         {
+            MapTables = new Dictionary<Rectangle, List<Vector2>>();
         }
 
         internal void PopulateMapTables()
         {
-            if (MapTables.Count != 0)
+            if (MapTables?.Count != 0)
                 return;
-
+            MapTables = new Dictionary<Rectangle, List<Vector2>>();
             Layer layer = Map.GetLayer("Back");
 
             Dictionary<string, Rectangle> seatStringToTableRecs = new();

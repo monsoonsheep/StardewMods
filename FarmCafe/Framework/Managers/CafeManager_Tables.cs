@@ -1,31 +1,24 @@
-﻿using Microsoft.Xna.Framework;
-using StardewValley;
+﻿using FarmCafe.Framework.Objects;
+using FarmCafe.Locations;
+using StardewModdingAPI;
 using StardewValley.Objects;
+using StardewValley;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
-using FarmCafe.Framework.Objects;
-using StardewModdingAPI;
-using xTile.Tiles;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.Xna.Framework;
 using static FarmCafe.Framework.Utilities.Utility;
-using FarmCafe.Framework.Locations;
+using FarmCafe.Framework.Characters;
 
 namespace FarmCafe.Framework.Managers
 {
-    internal class TableManager
+    internal partial class CafeManager
     {
-        internal List<Table> Tables;
-
-        internal bool FurnitureShouldBeUpdated = false;
-
-        public TableManager(ref List<Table> tables)
-        {
-            Tables = tables;
-        }
-
         internal void PopulateTables(List<GameLocation> locations)
         {
+            // TODO: Test whether some tables are still tracked even after they refer to an outdated CafeLocation
             foreach (var location in locations)
             {
                 foreach (Furniture table in location.furniture)
@@ -51,6 +44,10 @@ namespace FarmCafe.Framework.Managers
             Tables.RemoveAll(t => t is FurnitureTable && !t.CurrentLocation.furniture
                     .Any(f => f.TileLocation == t.Position));
 
+            // Remove all tables whose location isn't being tracked
+            Tables.RemoveAll(t => !locations.Contains(t.CurrentLocation));
+
+            // Populate Map tables
             CafeLocation cafe = locations.OfType<CafeLocation>().FirstOrDefault();
             if (cafe != null)
             {
@@ -134,6 +131,98 @@ namespace FarmCafe.Framework.Managers
             }
 
             return trackedTable;
+        }
+
+        internal void HandleFurnitureChanged(IEnumerable<Furniture> added, IEnumerable<Furniture> removed, GameLocation location)
+        {
+            foreach (var f in removed)
+            {
+                if (IsChair(f))
+                {
+                    FurnitureChair trackedChair = Tables
+                        .OfType<FurnitureTable>()
+                        .SelectMany(t => t.Seats)
+                        .OfType<FurnitureChair>()
+                        .FirstOrDefault(seat => seat.Position == f.TileLocation && seat.Table.CurrentLocation.Equals(location));
+
+                    if (trackedChair?.Table is not FurnitureTable table)
+                        continue;
+
+                    if (table.IsReserved)
+                        Logger.Log("Removed a chair but the table was reserved");
+
+                    table.RemoveChair(f);
+                }
+                else if (IsTable(f))
+                {
+                    FurnitureTable trackedTable = IsTableTracked(f, location);
+
+                    if (trackedTable != null)
+                    {
+                        RemoveTable(trackedTable);
+                    }
+                }
+            }
+            foreach (var f in added)
+            {
+                if (IsChair(f))
+                {
+                    // Get position of table in front of the chair
+                    Vector2 tablePos = f.TileLocation + (DirectionIntToDirectionVector(f.currentRotation.Value) * new Vector2(1, -1));
+
+                    // Get table Furniture object
+                    Furniture facingFurniture = location.GetFurnitureAt(tablePos);
+
+                    if (facingFurniture == null ||
+                        !IsTable(facingFurniture) ||
+                        facingFurniture
+                            .getBoundingBox(facingFurniture.TileLocation)
+                            .Intersects(f.boundingBox.Value)) // if chair was placed on top of the table
+                    {
+                        continue;
+                    }
+
+                    FurnitureTable newTable = TryAddFurnitureTable(facingFurniture, location);
+                    newTable?.AddChair(f);
+                }
+                else if (IsTable(f))
+                {
+                    TryAddFurnitureTable(f, location);
+                }
+            }
+        }
+
+        internal static void FarmerClickTable(Table table, Farmer who)
+        {
+            CustomerGroup groupOnTable =
+                ModEntry.CurrentCustomers.FirstOrDefault(c => c.Group.ReservedTable == table)?.Group;
+
+            if (groupOnTable == null)
+            {
+                Logger.Log("Didn't get group from table");
+                return;
+            }
+
+            if (groupOnTable.Members.All(c => c.State.Value == CustomerState.OrderReady))
+            {
+                table.IsReadyToOrder = false;
+                foreach (Customer customer in groupOnTable.Members)
+                {
+                    customer.StartWaitForOrder();
+                }
+            }
+            else if (groupOnTable.Members.All(c => c.State.Value == CustomerState.WaitingForOrder))
+            {
+                foreach (Customer customer in groupOnTable.Members)
+                {
+                    if (customer.OrderItem != null && who.hasItemInInventory(customer.OrderItem.ParentSheetIndex, 1))
+                    {
+                        Logger.Log($"Customer item = {customer.OrderItem.ParentSheetIndex}, inventory = {who.hasItemInInventory(customer.OrderItem.ParentSheetIndex, 1)}");
+                        customer.OrderReceive();
+                        who.removeFirstOfThisItemFromInventory(customer.OrderItem.ParentSheetIndex);
+                    }
+                }
+            }
         }
 
     }

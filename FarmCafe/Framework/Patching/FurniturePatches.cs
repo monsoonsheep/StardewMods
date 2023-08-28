@@ -10,7 +10,7 @@ using FarmCafe.Framework.Characters;
 using Microsoft.Xna.Framework;
 using FarmCafe.Framework.Managers;
 using FarmCafe.Framework.Objects;
-using FarmCafe.Framework.Locations;
+using FarmCafe.Locations;
 using FarmCafe.Framework.Multiplayer;
 using HarmonyLib;
 using Netcode;
@@ -135,7 +135,7 @@ namespace FarmCafe.Framework.Patching
                 new CodeInstruction(OpCodes.Leave, leaveLabel)
             };
             codelist.InsertRange(insertPoint, addCodes);
-            Logger.Log(string.Join('\n', codelist));
+            //Logger.Log(string.Join('\n', codelist));
             return codelist.AsEnumerable();
         }
 

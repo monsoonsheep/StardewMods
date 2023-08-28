@@ -175,7 +175,7 @@ namespace FarmCafe.Framework.Characters
             IsInvisible = true;
             Game1.removeCharacterFromItsLocation(this.Name);
             if (Group.Members.All(c => c.IsInvisible))
-                ModEntry.CafeManager.EndGroup(Group);
+                ModEntry.CafeManager.DeleteGroup(Group);
         }
 
         internal void ConvertBack()
@@ -202,7 +202,7 @@ namespace FarmCafe.Framework.Characters
             original.reloadData();
             original.checkSchedule(Game1.timeOfDay);
 
-            ModEntry.CafeManager.EndGroup(Group);
+            ModEntry.CafeManager.DeleteGroup(Group);
         }
     }
 }
