@@ -27,12 +27,6 @@ namespace FarmCafe.Locations
             MapTables = new Dictionary<Rectangle, List<Vector2>>();
         }
 
-        public CafeLocation(string mapPath, string name)
-            : base(mapPath, name)
-        {
-            MapTables = new Dictionary<Rectangle, List<Vector2>>();
-        }
-
         internal void PopulateMapTables()
         {
             if (MapTables?.Count != 0)

@@ -1,0 +1,13 @@
+{
+  "Name": "My PassOutOnFarm",
+  "Author": "username",
+  "Version": "0.1.0",
+  "Description": "My PassOutOnFarm",
+  "UniqueID": "myself.mymod",
+  "EntryDll": "PassOutOnFarm.dll",
+  "MinimumApiVersion": "3.0.0",
+  "UpdateKeys": [],
+  "Dependencies": [
+   
+]
+}

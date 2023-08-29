@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using FarmCafe.Framework.Characters;
 using FarmCafe.Framework.Multiplayer;
@@ -29,6 +30,7 @@ using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using Object = StardewValley.Object;
 using StardewValley.Monsters;
 using FarmCafe.Locations;
+using SolidFoundations.Framework.Models.ContentPack;
 
 namespace FarmCafe
 {
@@ -55,7 +57,6 @@ namespace FarmCafe
 
         // Name to list of <startTime, endTime>
         internal static Dictionary<string, List<KeyValuePair<int, int>>> CustomerableNpcsToday;
-        internal static Dictionary<string, ScheduleData> NpcSchedules = new Dictionary<string, ScheduleData>();
 
         /// <inheritdoc/>
         public override void Entry(IModHelper helper)
@@ -129,18 +130,12 @@ namespace FarmCafe
 
             MenuItems = new List<Item>(new Item[27]);
             RecentlyAddedMenuItems = new List<Item>(new Item[9]);
-            MenuItems[0] = new Object(746, 1).getOne();
-            RecentlyAddedMenuItems[0] = new Object(746, 1).getOne();
 
-            CafeManager = new CafeManager()
-            {
-                OpeningTime = 0900,
-                ClosingTime = 2100
-            };
+            
+            CafeManager = new CafeManager();
 
-            LoadContentPacks();
+            AssetManager.LoadContentPacks(ModHelper, ref CafeManager.CustomerModels);
             AssetManager.LoadNpcSchedules(ModHelper);
-            ScheduleManager.SetupNpcSchedules();
         }
 
         private static void OnDayStarted(object sender, DayStartedEventArgs e)
@@ -151,9 +146,8 @@ namespace FarmCafe
             if (!Context.IsMainPlayer)
                 return;
 
-            CafeManager.PopulateRoutesToCafe();
-            CafeManager.PopulateTables(CafeLocations);
-            CafeManager.LastTimeCustomersArrived = CafeManager.OpeningTime;
+            CafeManager.DayUpdate();
+            // look at NPC schedules. 
         }
 
         /// <summary>
@@ -173,7 +167,15 @@ namespace FarmCafe
 
         private static void OnSaving(object sender, EventArgs e)
         {
-            return;
+            if (!Context.IsMainPlayer) 
+                return;
+
+            // TODO: Make sure they are in the same order as saved (Where() is ordered)
+            string itemsString = string.Join(" ", MenuItems.Where(i => i is not null));
+            Game1.player.modData["FarmCafeMenuItems"] = itemsString;
+
+            string openCloseTimeString = CafeManager.OpeningTime + " " + CafeManager.ClosingTime;
+            Game1.player.modData["FarmCafeOpenCloseTimes"] = openCloseTimeString;
         }
 
         private static void OnModMessageReceived(object sender, ModMessageReceivedEventArgs e)
@@ -365,40 +367,6 @@ namespace FarmCafe
             else
             {
                 Logger.Log($"building not placed. messag eis {building.Value}");
-            }
-        }
-
-        
-        private static void LoadContentPacks()
-        {
-            foreach (IContentPack contentPack in ModHelper.ContentPacks.GetOwned())
-            {
-                Logger.Log($"Loading content pack {contentPack.Manifest.Name} by {contentPack.Manifest.Author}");
-                var models = new DirectoryInfo(Path.Combine(contentPack.DirectoryPath, "Customers")).GetDirectories();
-                foreach (var modelFolder in models)
-                {
-                    CustomerModel model = contentPack.ReadJsonFile<CustomerModel>(Path.Combine("Customers", modelFolder.Name, "customer.json"));
-                    if (model == null)
-                    {
-                        Logger.Log("Couldn't read json for content pack");
-                        continue;
-                    }
-
-                    model.Name = model.Name.Replace(" ", "");
-                    model.TilesheetPath = contentPack.ModContent.GetInternalAssetName(Path.Combine("Customers", modelFolder.Name, "customer.png")).Name;
-
-                    if (contentPack.HasFile(Path.Combine("Customers", modelFolder.Name, "portrait.png")))
-                    {
-                        model.Portrait = contentPack.ModContent.GetInternalAssetName(Path.Combine("Customers", modelFolder.Name, "portrait.png")).Name;
-                    }
-                    else
-                    {
-                        string portraitName = string.IsNullOrEmpty(model.Portrait) ? "cat" : model.Portrait;
-                        model.Portrait = ModHelper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", portraitName + ".png")).Name;
-                    }
-                    
-                    CafeManager.CustomerModels.Add(model);
-                }
             }
         }
     }

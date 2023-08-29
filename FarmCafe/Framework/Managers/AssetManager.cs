@@ -27,7 +27,7 @@ namespace FarmCafe.Framework.Managers
             if (e.Name.IsDirectlyUnderPath("monsoonsheep.FarmCafe/NPCSchedules"))
             {
                 string npcname = e.Name.Name.Split('/').Last();
-                ModEntry.NpcSchedules[npcname] = Game1.content.Load<ScheduleData>("monsoonsheep.FarmCafe/NPCSchedules/" + npcname);
+                CafeManager.NpcSchedules[npcname] = Game1.content.Load<ScheduleData>("monsoonsheep.FarmCafe/NPCSchedules/" + npcname);
             }
         }
 
@@ -40,7 +40,40 @@ namespace FarmCafe.Framework.Managers
                 ScheduleData scheduleData = Game1.content.Load<ScheduleData>("monsoonsheep.FarmCafe/NPCSchedules/" + name);
                 if (scheduleData != null)
                 {
-                    ModEntry.NpcSchedules[name] = scheduleData;
+                    CafeManager.NpcSchedules[name] = scheduleData;
+                }
+            }
+        }
+
+        internal static void LoadContentPacks(IModHelper helper, ref List<CustomerModel> customerModels)
+        {
+            foreach (IContentPack contentPack in helper.ContentPacks.GetOwned())
+            {
+                Logger.Log($"Loading content pack {contentPack.Manifest.Name} by {contentPack.Manifest.Author}");
+                var modelsInPack = new DirectoryInfo(Path.Combine(contentPack.DirectoryPath, "Customers")).GetDirectories();
+                foreach (var modelFolder in modelsInPack)
+                {
+                    CustomerModel model = contentPack.ReadJsonFile<CustomerModel>(Path.Combine("Customers", modelFolder.Name, "customer.json"));
+                    if (model == null)
+                    {
+                        Logger.Log("Couldn't read json for content pack");
+                        continue;
+                    }
+
+                    model.Name = model.Name.Replace(" ", "");
+                    model.TilesheetPath = contentPack.ModContent.GetInternalAssetName(Path.Combine("Customers", modelFolder.Name, "customer.png")).Name;
+
+                    if (contentPack.HasFile(Path.Combine("Customers", modelFolder.Name, "portrait.png")))
+                    {
+                        model.Portrait = contentPack.ModContent.GetInternalAssetName(Path.Combine("Customers", modelFolder.Name, "portrait.png")).Name;
+                    }
+                    else
+                    {
+                        string portraitName = string.IsNullOrEmpty(model.Portrait) ? "cat" : model.Portrait;
+                        model.Portrait = helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", portraitName + ".png")).Name;
+                    }
+                    
+                    customerModels.Add(model);
                 }
             }
         }

@@ -12,7 +12,7 @@ namespace FarmCafe.Framework.Managers
 {
     internal partial class CafeManager
     {
-         internal static CafeLocation GetCafeLocation()
+        internal static CafeLocation GetCafeLocation()
         {
             return CafeLocations.OfType<CafeLocation>().FirstOrDefault();
         }
@@ -164,9 +164,15 @@ namespace FarmCafe.Framework.Managers
 
         internal List<string> GetLocationRoute(GameLocation start, GameLocation end)
         {
-            List<string> route = RoutesToCafe.FirstOrDefault(
+            List<string> route = GameRoutes?.FirstOrDefault(
                 r => r.First() == start.Name && r.Last() == end.Name
             )?.ToList();
+
+            if (route == null)
+                route = RoutesToCafe.FirstOrDefault(
+                r => r.First() == start.Name && r.Last() == end.Name
+            )?.ToList();
+
             if (route == null)
             {
                 route = RoutesToCafe.FirstOrDefault(

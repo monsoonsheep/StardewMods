@@ -146,7 +146,7 @@ namespace FarmCafe.Framework.Characters
             return path;
         }
 
-        internal static Stack<Point> FindPathInLocation(this NPC me, Point startTile, Point targetTile, GameLocation location, bool pathingToObject = false, int iterations = 600)
+        internal static Stack<Point> FindPathInLocation(this NPC me, Point startTile, Point targetTile, GameLocation location, bool pathingToObject = false, int iterations = 30000)
         {
             if (pathingToObject)
             {
@@ -159,10 +159,10 @@ namespace FarmCafe.Framework.Characters
             {
                 path = PathFindController.FindPathOnFarm(startTile, targetTile, location, iterations);
             }
-            //else if (!me.Name.Contains("Customer"))
-            //{
-            //    path = PathFindController.findPathForNPCSchedules(startTile, targetTile, location, 30000);
-            //}
+            else if (!me.Name.Contains("Customer"))
+            {
+                path = PathFindController.findPathForNPCSchedules(startTile, targetTile, location, 30000);
+            }
             
 
             path ??= PathFindController.findPath(

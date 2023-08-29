@@ -71,7 +71,7 @@ namespace FarmCafe.Framework.Patching
         // Drawing a chair's front texture requires that HasSittingFarmers returns true
         private static bool HasSittingFarmersPrefix(Furniture __instance, ref bool __result)
         {
-            if (IsChair(__instance) && TableManager.ChairIsReserved(__instance))
+            if (IsChair(__instance) && CafeManager.ChairIsReserved(__instance))
             {
                 __result = true;
                 return false;
@@ -82,7 +82,7 @@ namespace FarmCafe.Framework.Patching
 
         private static bool AddSittingFarmerPrefix(Furniture __instance, Farmer who, ref Vector2? __result)
         {
-            if (IsChair(__instance) && TableManager.ChairIsReserved(__instance))
+            if (IsChair(__instance) && CafeManager.ChairIsReserved(__instance))
             {
                 __result = null;
                 return false;

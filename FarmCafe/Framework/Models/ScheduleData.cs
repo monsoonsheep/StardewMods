@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace FarmCafe.Framework.Models
 {
@@ -10,16 +11,18 @@ namespace FarmCafe.Framework.Models
     {
         public Dictionary<string, List<BusyPeriod>> BusyTimes;
 
+        [JsonIgnore] 
+        internal (int, string, int) LastVisitedDate = new(1, "spring", 1);
+
         public ScheduleData()
         {
-
         }
     }
 
     public class BusyPeriod
     {
-        public int From;
-        public int To;
+        public int From = 600;
+        public int To = 2600;
         public int Priority = 4;
     }
 

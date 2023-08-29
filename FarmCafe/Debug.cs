@@ -47,7 +47,7 @@ namespace FarmCafe
                     Debug.ListCustomers();
                     break;
                 case SButton.NumPad5:
-                    ModEntry.CafeManager.VisitRegularNpc(Game1.getCharacterFromName("Shane"));
+                    //ModEntry.CafeManager.VisitRegularNpc(Game1.getCharacterFromName("Shane"));
                     //CafeLocations.OfType<CafeLocation>()?.FirstOrDefault()?.PopulateMapTables();
                     //OpenCafeMenu();
                     //NPC helper = Game1.getCharacterFromName("Sebastian");
@@ -79,7 +79,7 @@ namespace FarmCafe
                             c.Group?.ReservedTable?.Free();
                         }
                         Game1.warpCharacter(shane, Game1.player.currentLocation, Game1.player.getTileLocation() + new Vector2(0, -1));
-                        ModEntry.CafeManager.VisitRegularNpc(Game1.getCharacterFromName("Shane"));
+                        //ModEntry.CafeManager.VisitRegularNpc(Game1.getCharacterFromName("Shane"));
                     }
                     //CustomerGroup g = CafeManager.SpawnGroup(Game1.player.currentLocation,
                     //    Game1.player.getTileLocationPoint() + new Point(0, -1), 1);
@@ -111,7 +111,7 @@ namespace FarmCafe
                     Logger.Log("NPC: " + ch.Name);
 
             Logger.Log("Current customers: ");
-            foreach (var customer in ModEntry.CafeManager.CurrentCustomers) 
+            foreach (var customer in CafeManager.CurrentCustomers) 
                 Logger.Log(customer.ToString());
 
             Logger.Log("Current models: ");

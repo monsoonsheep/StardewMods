@@ -15,6 +15,7 @@ using Point = Microsoft.Xna.Framework.Point;
 using FarmCafe.Locations;
 using StardewValley.Buildings;
 using StardewValley.Objects;
+using Object = StardewValley.Object;
 
 namespace FarmCafe.Framework.Managers
 {
@@ -25,27 +26,59 @@ namespace FarmCafe.Framework.Managers
         internal static List<Customer> CurrentCustomers = ModEntry.CurrentCustomers;
         internal static NPC HelperNpc;
         internal static List<Table> Tables = ModEntry.Tables;
-        internal List<NPC> Basement;
+        internal static Dictionary<string, ScheduleData> NpcSchedules = new Dictionary<string, ScheduleData>();
+        internal static List<string> NpcsWhoCanVisitToday = new List<string>();
 
         internal List<List<string>> RoutesToCafe;
+        internal List<List<string>> GameRoutes =  ModEntry.ModHelper.Reflection.GetField<List<List<string>>>(typeof(NPC), "routesFromLocationToLocation").GetValue();
 
         internal List<CustomerModel> CustomerModels = new List<CustomerModel>();
         internal List<CustomerModel> CustomerModelsInUse = new List<CustomerModel>();
-        internal List<CustomerGroup> CurrentGroups;
+        internal List<CustomerGroup> CurrentGroups = new List<CustomerGroup>();
 
         public Point BusPosition;
 
-        internal int OpeningTime = 0800;
+        internal int OpeningTime = 1200;
         internal int ClosingTime = 2100;
         internal int LastTimeCustomersArrived;
         internal short CustomerGroupsDinedToday;
-        internal short NumberOfCustomerGroupsPresentRightNow;
 
         public CafeManager()
         {
-            Basement = new List<NPC>();
-            CurrentGroups = new List<CustomerGroup>();
+            if (Game1.player.modData.TryGetValue("FarmCafeMenuItems", out string menuItemsString))
+            {
+                var itemIds = menuItemsString.Split(' ');
+                foreach (var id in itemIds)
+                {
+                    try
+                    {
+                        Item item = new Object(int.Parse(id), 1);
+                        AddToMenu(item);
+                    }
+                    catch
+                    {
+                        Logger.Log("Invalid item ID in player's modData.", LogLevel.Warn);
+                        break;
+                    }
+                }
+            }
+
+            if (Game1.player.modData.TryGetValue("FarmCafeOpenCloseTimes", out string openCloseTimes))
+            {
+                OpeningTime = int.Parse(openCloseTimes.Split(' ')[0]);
+                ClosingTime = int.Parse(openCloseTimes.Split(' ')[1]);
+            }
+            
             CacheBusPosition();
+        }
+
+        internal void DayUpdate()
+        {
+            if (RoutesToCafe == null || RoutesToCafe.Count == 0)
+                PopulateRoutesToCafe();
+
+            PopulateTables(CafeLocations);
+            LastTimeCustomersArrived = OpeningTime;
         }
 
         internal void CacheBusPosition()

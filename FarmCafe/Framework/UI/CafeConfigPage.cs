@@ -36,9 +36,8 @@ namespace FarmCafe.Framework.UI
                     i.ToString()));
 
             
-            this.options.Add(new OptionTimeSet("Opening Time", ModEntry.CafeManager.OpeningTime, 0700, 1800, (v) => ModEntry.CafeManager.OpeningTime = v));
-            this.options.Add(new OptionTimeSet("Closing Time", ModEntry.CafeManager.ClosingTime, 1100, 2500, (v) => ModEntry.CafeManager.ClosingTime = v));
-
+            this.options.Add(new OptionTimeSet(I18n.Menu_OpeningTime(), ModEntry.CafeManager.OpeningTime, 0700, 1800, (v) => ModEntry.CafeManager.OpeningTime = v));
+            this.options.Add(new OptionTimeSet(I18n.Menu_ClosingTime(), ModEntry.CafeManager.ClosingTime, 1100, 2500, (v) => ModEntry.CafeManager.ClosingTime = v));
         }
 
 
