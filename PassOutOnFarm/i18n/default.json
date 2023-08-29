@@ -1,8 +1,9 @@
 {
 	// These are for development. To be expanded soon. If you want to contribute or translate, let me know! I'm not good at writing.
-	"PutToBedDialogues.shy.sunny.1": "You uh... You alright? You were out like a light out there so I brought you here.",  
+	"PutToBedDialogues.neutral.sunny.1": "Hey, you okay? You were out like a light out there.$s#$b#You need to take better care of yourself.$k",
+	"PutToBedDialogues.rude.sunny.1": "You're awake! You just passed out in the farm.#$b#I had to carry you all the way here.",
+	"PutToBedDialogues.shy.sunny.1": "You uh... You alright? You were out like a light out there. I had to carry you here...",  
 	"PutToBedDialogues.rude.rain.1": "...#$b#You can't just stay out like that in the rain. What if you got a cold?",
-	"PutToBedDialogues.rude.sunny.1": "You're awake! You just passed out in the farm. #$b#I had to carry you all the way here.",
 
-	"PutToBedDialogues.Abigail.rain.1": "Hey! You're awake! #$b#I couldn't sleep last night so I came out to check on you and you were on the ground."
+	"PutToBedDialogues.Abigail.rain.1": "Hey! You're awake!$h#$b#I couldn't sleep last night so I came out to check on you and you were on the ground."
 }

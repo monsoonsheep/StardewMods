@@ -85,7 +85,7 @@ namespace PassOutOnFarm.Framework.Patching
             if (who.isMarried())
             {
                 NPC spouse = who.getSpouse();
-                ModEntry.toStartWakeUpEvent = true;
+                ModEntry.ToStartWakeUpEvent = true;
             }
 
             who = null;
