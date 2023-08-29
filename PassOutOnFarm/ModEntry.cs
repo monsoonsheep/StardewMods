@@ -17,7 +17,7 @@ namespace PassOutOnFarm
         internal static IModHelper ModHelper;
         internal new static IManifest ModManifest;
 
-        internal static bool toStartWakeUpEvent = false;
+        internal static bool ToStartWakeUpEvent;
 
         public override void Entry(IModHelper helper)
         {
@@ -44,7 +44,7 @@ namespace PassOutOnFarm
 
         private void OnDayStarted(object sender, DayStartedEventArgs e)
         {
-            if (toStartWakeUpEvent)
+            if (!ToStartWakeUpEvent)
             {
                 NPC spouse = Game1.player.getSpouse();
                 Vector2 bedCoords = Game1.player.mostRecentBed;
@@ -54,27 +54,32 @@ namespace PassOutOnFarm
                 Vector2 centerCoords = bedCoords;
                 string locationName = Game1.player.homeLocation.Value;
 
+                List<int> giftItems = new List<int>()
+                {
+                    200, // vegetable medley
+                    199, // parsnip soup
+                    207, // bean hotpot
+                    211, // pancake
+                    218, // tom kha soup
+                    727, // chowder
+                };
+
+                int giftItemId = giftItems[Game1.random.Next(giftItems.Count)];
+
+                string putToBedDialogue = Dialogues.GetPutToBedDialogue(spouse, giftItemId);
+                int friendshipWithSpouse = Game1.player.friendshipData[spouse.Name].Points / 250;
+
                 string[] eventString = new[]
                 {
                     $"junimoStarSong/-100 -100/farmer {bedCoords.X} {bedCoords.Y} 3 {spouse.Name} {bedCoords.X-1} {bedCoords.Y} 1/makeInvisible {bedCoords.X-2} {bedCoords.Y-2} 2 3/",
                     $"ignoreCollisions {spouse.Name}/",
                     $"skippable/viewport {centerCoords.X} {centerCoords.Y}/pause 400/emote {spouse.Name} 16/pause 400/",
-                    $"speak {spouse.Name} \"{Dialogues.GetPutToBedDialogue(spouse)}\"/pause 400/end",
+                    $"speak {spouse.Name} \"{putToBedDialogue} [{giftItemId}]\"/pause 1000{(Game1.random.Next(friendshipWithSpouse) > 4 ? "/emote farmer 20" : "")}/end",
                 };
 
-                Event putToBedEvent = new(string.Join(string.Empty, eventString))
-                {
-                    onEventFinished = () =>
-                    {
-                        DelayedAction.functionAfterDelay(
-                            () =>
-                            {
-                                Game1.player.addItemByMenuIfNecessaryElseHoldUp(new StardewValley.Object(746, Game1.random.Next(2, 6)));
-                            }, 100);
-                    },
-                };
+                Event putToBedEvent = new(string.Join(string.Empty, eventString));
 
-                toStartWakeUpEvent = false;
+                ToStartWakeUpEvent = false;
                 Game1.getLocationFromName(Game1.player.homeLocation.Value).startEvent(putToBedEvent);
             }
         }

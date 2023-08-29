@@ -14,18 +14,20 @@ namespace PassOutOnFarm.Framework
     {
         internal static ITranslationHelper Translator = ModEntry.ModHelper.Translation;
 
-        internal static string? GetDialogueFromTranslation(string key)
+        internal static string? GetBedDialogueFromTranslation(string key)
         {
-            return Translator.Get(key).UsePlaceholder(false);
+            return Translator.Get($"PutToBedDialogues.{key}").UsePlaceholder(false);
         }
 
-        internal static string GetPutToBedDialogue(NPC npc)
+        internal static string GetPutToBedDialogue(NPC npc, int giftItemId)
         {
             string weather = "sunny";
             if (Game1.isRaining) weather = "rain";
             if (Game1.isSnowing) weather = "snow";
             if (Game1.isLightning) weather = "lightning";
             if (Game1.isDebrisWeather) weather = "debris";
+
+            Item giftItem = new StardewValley.Object(giftItemId, 1);
 
             string? manners = npc.Manners switch
             {
@@ -42,31 +44,31 @@ namespace PassOutOnFarm.Framework
 
             // find "name.weather.1", then "name.sunny.1", then "personality.weather.1", then "personality.sunny.1"
 
-            string? found = GetDialogueFromTranslation($"PutToBedDialogues.{npc.Name}.{weather}.1");
+            string? found = GetBedDialogueFromTranslation($"{npc.Name}.{weather}.1");
 
 
             if (string.IsNullOrEmpty(found))
-                found = GetDialogueFromTranslation($"PutToBedDialogues.{npc.Name}.sunny.1");
-
-
-
+                found = GetBedDialogueFromTranslation($"{npc.Name}.sunny.1");
 
             if (string.IsNullOrEmpty(found) || Game1.random.Next(5) == 0)
             {
                 List<string> possibleEntries = new List<string>();
-                possibleEntries.Add($"PutToBedDialogues.neutral.{weather}.1");
+                possibleEntries.Add($"neutral.{weather}.1");
 
-                if (manners == null)
+                // add key for rude or polite
+                if (manners != null)
                 {
-                    possibleEntries.Add($"PutToBedDialogues.{manners ?? "neutral"}.{weather}.1");
+                    possibleEntries.Add($"{manners}.{weather}.1");
                 }
 
-                if (socialAnxiety == null)
+                // add key for shy or outgoing
+                if (socialAnxiety != null)
                 {
-                    possibleEntries.Add($"PutToBedDialogues.{socialAnxiety ?? "neutral"}.{weather}.1");
+                    possibleEntries.Add($"{socialAnxiety}.{weather}.1");
                 }
+                // The weather added will be replaced by sunny if that weather isn't found.
 
-                // shuffle the second and third entries randomly
+                // shuffle the second and third entries randomly (if there are 3)
                 if (possibleEntries.Count == 3 && Game1.random.Next(2) == 0)
                 {
                     var tmp = possibleEntries[1];
@@ -76,14 +78,12 @@ namespace PassOutOnFarm.Framework
 
                 foreach (string entry in possibleEntries)
                 {
-                    found = GetDialogueFromTranslation(entry);
+                    found = GetBedDialogueFromTranslation(entry);
                     if (string.IsNullOrEmpty(found) && !weather.Equals("sunny"))
-                        found = GetDialogueFromTranslation(entry.Replace(weather, "sunny"));
+                        found = GetBedDialogueFromTranslation(entry.Replace(weather, "sunny"));
 
                     if (!string.IsNullOrEmpty(found))
-                    {
                         break;
-                    }
                 }
             }
 
@@ -95,7 +95,7 @@ namespace PassOutOnFarm.Framework
             {
                 for (int i = 2; i < 500; i++)
                 {
-                    string? alt = GetDialogueFromTranslation(found.Trim('1') + i);
+                    string? alt = GetBedDialogueFromTranslation(found.Trim('1') + i);
                     if (string.IsNullOrEmpty(alt))
                         break;
 
@@ -105,7 +105,7 @@ namespace PassOutOnFarm.Framework
             else
             {
                 Logger.Log("Couldn't find any suitable PutToBedDialogues. Defaulting.");
-                found = "Hey, you're awake. You passed out like night and I had to carry you here.";
+                found = "Hey, you're awake. You passed out last night.#$b#You shouldn't push yourself like that.";
             }
 
             alternates.Add(found);
