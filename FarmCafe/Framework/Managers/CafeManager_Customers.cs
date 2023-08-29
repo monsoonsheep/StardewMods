@@ -102,23 +102,57 @@ namespace FarmCafe.Framework.Managers
             return group;
         }
 
-        internal Customer VisitRegularNpc(NPC npc)
+        internal CustomerGroup GetRegularNpcCustomer(int timeOfDay)
         {
-            npc.ignoreScheduleToday = true;
-            npc.currentLocation.characters.Remove(npc);
-            Game1.removeThisCharacterFromAllLocations(npc);
-            Customer customer = new Customer(npc);
-            CustomerGroup group = new CustomerGroup();
-            group.Add(customer);
-            CurrentCustomers.Add(customer);
-            customer.OrderItem = GetRandomItemFromMenu();
-            CurrentGroups.Add(group);
-            //group.ReserveTable(TableManager.GetFreeTables().First());
-            customer.Group = group;
-            //customer.GoToSeat();
-            customer.HeadTowards(npc.currentLocation, npc.getTileLocationPoint() + new Point(3, 0), 3, customer.ConvertBack);
+            foreach (string name in NpcSchedules.Keys.OrderBy(_ => Game1.random.Next()))
+            {
+                NPC npc = Game1.getCharacterFromName(name);
+                if (!NpcCanVisitDuringTime(npc, timeOfDay))
+                    continue;
 
+                ScheduleData scheduleData = NpcSchedules[npc.Name];
+                if (npc.isSleeping.Value)
+                    continue;
+
+
+            }
+
+            
             return null;
+            //npc.ignoreScheduleToday = true;
+            //npc.currentLocation.characters.Remove(npc);
+            //Game1.removeThisCharacterFromAllLocations(npc);
+
+            //Customer customer = new Customer(npc);
+            //CustomerGroup group = new CustomerGroup();
+            //group.Add(customer);
+            //CurrentCustomers.Add(customer);
+            //CurrentGroups.Add(group);
+
+
+            //customer.Group = group;
+            //customer.OrderItem = GetRandomItemFromMenu();
+            //customer.HeadTowards(npc.currentLocation, npc.getTileLocationPoint() + new Point(3, 0), 3, customer.ConvertBack);
+
+            //return customer;
+        }
+
+        internal bool NpcCanVisitDuringTime(NPC npc, int timeOfDay)
+        {
+            foreach (var busyPeriod in NpcSchedules[npc.Name].BusyTimes[npc.dayScheduleName.Value])
+            {
+                if (Utility.CalculateMinutesBetweenTimes(timeOfDay, busyPeriod.From) <= 120
+                    && Utility.CalculateMinutesBetweenTimes(timeOfDay, busyPeriod.To) > 0)
+                {
+                    if (busyPeriod.Priority <= 3 && Game1.random.Next(6 * busyPeriod.Priority) == 0)
+                        return true;
+                    if (busyPeriod.Priority == 4 && Game1.random.Next(50) == 0)
+                        return true;
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         internal void SpawnGroupAtBus()

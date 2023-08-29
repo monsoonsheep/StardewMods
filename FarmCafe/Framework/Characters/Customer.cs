@@ -37,10 +37,21 @@ namespace FarmCafe.Framework.Characters
         Free,
     }
 
+    internal struct locationPathDescription
+    {
+        public int time;
+        public string locationName;
+        public int steps;
+
+        public locationPathDescription(int time, string locationName, int steps)
+        {
+            (this.time, this.locationName, this.steps) = (time, locationName, steps);
+        }
+    }
     public partial class Customer : NPC
     {
         [XmlIgnore] internal NPC OriginalNpc;
-
+        [XmlIgnore] internal List<locationPathDescription> OriginalScheduleLocations;
         [XmlIgnore] internal CustomerGroup Group;
 
         [XmlIgnore] internal Seat Seat;
@@ -113,7 +124,9 @@ namespace FarmCafe.Framework.Characters
             this.lastSeenMovieWeek.Set(npc.lastSeenMovieWeek.Value);
             this.Portrait = npc.Portrait;
             this.Breather = npc.Breather;
-            this.Schedule = npc.Schedule;
+            this.Schedule = npc.getSchedule(Game1.dayOfMonth);
+            this.CurrentDialogue = npc.CurrentDialogue;
+
 
             this.currentLocation = npc.currentLocation;
             this.Position = npc.Position;
@@ -124,7 +137,7 @@ namespace FarmCafe.Framework.Characters
             base.reloadData();
 
             this.OriginalNpc = npc;
-
+            this.OriginalScheduleLocations = GetLocationRouteFromSchedule(npc);
 
             // Problem: We can't create a good enough copy of an NPC in the form of a customer. 
             // We'd have to copy over a bunch of fields and props, so the player can interact with them the normal way,

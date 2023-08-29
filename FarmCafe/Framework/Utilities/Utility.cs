@@ -131,26 +131,30 @@ namespace FarmCafe.Framework.Utilities
                 .OfType<FurnitureTable>().FirstOrDefault(t => t.CurrentLocation.Equals(location) && t.Position == table.TileLocation);
         }
 
-        internal static List<(int, string, int)> GetLocationRouteFromSchedule(NPC npc)
+        internal static List<locationPathDescription> GetLocationRouteFromSchedule(NPC npc)
         {
-            List<(int, string, int)> route = new();
-            Dictionary<int, SchedulePathDescription> schedule = npc.Schedule;
-            GameLocation currentLoc = npc.currentLocation;
+			// time, location name, steps to get there
+            List<locationPathDescription> route = new();
+            Dictionary<int, SchedulePathDescription> schedule = npc.getSchedule(Game1.dayOfMonth);
+
+            GameLocation currentLoc = Game1.getLocationFromName(npc.DefaultMap);
             
             var ordered = schedule.OrderBy(pair => pair.Key).ToList();
-            int steps = 0;
             foreach (var pathDescription in ordered)
             {
+                int steps = 0;
+
                 while (pathDescription.Value.route.Count > 0)
                 {
                     steps++;
                     Point cursor = pathDescription.Value.route.Pop();
 
-                    Warp w = currentLoc.isCollidingWithWarpOrDoor(new Rectangle(cursor.X * 64, cursor.Y * 64, 64, 64));
+                    Warp w = currentLoc.isCollidingWithWarpOrDoor(new Rectangle(cursor.X * 64, cursor.Y * 64, 62, 62));
                     if (w != null)
                         currentLoc = Game1.getLocationFromName(w.TargetName);
                 }
-                route.Add((pathDescription.Key, currentLoc.Name, steps));
+
+                route.Add(new locationPathDescription(pathDescription.Key, currentLoc.Name, steps));
             }
 
             return route;

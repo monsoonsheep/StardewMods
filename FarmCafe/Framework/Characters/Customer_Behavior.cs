@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using FarmCafe.Framework.Managers;
 using Force.DeepCloner;
 using Microsoft.Xna.Framework;
 using StardewValley;
@@ -180,29 +182,67 @@ namespace FarmCafe.Framework.Characters
 
         internal void ConvertBack()
         {
+            // Remove this Customer object from the game and mod
             this.currentLocation.characters.Remove(this);
             Game1.removeThisCharacterFromAllLocations(this);
-
-            NPC original = new NPC(Sprite, getTileLocation(), DefaultMap, FacingDirection, Name, datable.Value, null, Portrait);
-            original.ignoreScheduleToday = false;
-            original.followSchedule = true;
-            original.syncedPortraitPath.Set(syncedPortraitPath.Value);
-            original.lastSeenMovieWeek.Set(lastSeenMovieWeek.Value);
-            original.Portrait = Portrait;
-            original.Schedule = Schedule;
-            original.Breather = Breather;
-            original.Schedule = Schedule;
-
-            original.currentLocation = currentLocation;
-            original.Position = Position;
-            original.faceDirection(FacingDirection);
-
-            this.currentLocation.addCharacter(original);
-
-            original.reloadData();
-            original.checkSchedule(Game1.timeOfDay);
-
             ModEntry.CafeManager.DeleteGroup(Group);
+
+            // We stored the original NPC object before Customer initialization
+            // Here we update any state that changed while the Customer was active
+            OriginalNpc.currentLocation = this.currentLocation;
+            OriginalNpc.Position = this.Position;
+            OriginalNpc.Schedule = this.Schedule;
+            OriginalNpc.faceDirection(this.FacingDirection);
+
+            // Add the original back to the game
+            this.currentLocation.addCharacter(OriginalNpc);
+            // Reload NPC's data (not sure if needed)
+            OriginalNpc.reloadData();
+
+            // Find a way to get back to what the original NPC was doing before
+            // being turned into a Customer
+            SchedulePathDescription toDoPath = null;
+            var activityTimes = Schedule.Keys.OrderBy(i => i).ToList();
+            
+            var timeOfCurrent = activityTimes.LastOrDefault(t => t <= Game1.timeOfDay);
+            var timeOfNext = activityTimes.FirstOrDefault(t => Game1.timeOfDay < t);
+
+            int timeOfActivity;
+            if (timeOfCurrent == 0)
+            {
+                timeOfActivity = activityTimes.First();
+               
+            }
+            else if (timeOfNext == 0)
+            {
+                timeOfActivity = activityTimes.Last();
+            }
+            else
+            {
+                var minutesSinceCurrentStarted = Utility.CalculateMinutesBetweenTimes(timeOfCurrent, Game1.timeOfDay);
+                var minutesTilNextStarts = Utility.CalculateMinutesBetweenTimes(Game1.timeOfDay, timeOfNext);
+                timeOfActivity = minutesSinceCurrentStarted < minutesTilNextStarts 
+                    ? timeOfCurrent : timeOfNext;
+            }
+
+            toDoPath = OriginalNpc.getSchedule(Game1.dayOfMonth)[timeOfActivity];
+            OriginalNpc.lastAttemptedSchedule = timeOfActivity;
+
+            GameLocation targetLocation = Game1.getLocationFromName(this.OriginalScheduleLocations?.First(t => t.time == timeOfActivity).locationName);
+            PathFindController.endBehavior endFunction = (PathFindController.endBehavior) typeof(NPC).GetMethod("getRouteEndBehaviorFunction", BindingFlags.NonPublic | BindingFlags.Instance)?.Invoke(OriginalNpc,  new object[] { toDoPath.endOfRouteBehavior, toDoPath.endOfRouteMessage }); 
+
+            if (targetLocation != null)
+            {
+                toDoPath.route = OriginalNpc.PathTo(OriginalNpc.currentLocation, OriginalNpc.getTileLocationPoint(), targetLocation, toDoPath.route.Last());
+                OriginalNpc.DirectionsToNewLocation = toDoPath;
+
+                OriginalNpc.controller = new PathFindController(toDoPath.route, OriginalNpc, Utility.getGameLocationOfCharacter(OriginalNpc))
+                {
+                    finalFacingDirection = toDoPath.facingDirection,
+                    endBehaviorFunction = endFunction
+                };
+            }
+            
         }
     }
 }
