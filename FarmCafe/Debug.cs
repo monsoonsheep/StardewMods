@@ -125,5 +125,19 @@ namespace FarmCafe
                 Logger.Log(f.modData.ToString());
             }
         }
+
+        private static void PlaceCafeBuilding(Vector2 position)
+        {
+            var building = ModEntry.SfApi.PlaceBuilding("FarmCafeSignboard", Game1.getFarm(), position);
+
+            if (building.Key)
+            {
+                Logger.Log($"building placed. message is {building.Value}");
+            }
+            else
+            {
+                Logger.Log($"building not placed. messag eis {building.Value}");
+            }
+        }
     }
 }

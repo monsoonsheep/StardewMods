@@ -11,7 +11,7 @@ using StardewModdingAPI;
 using StardewValley;
 using xTile.Dimensions;
 
-namespace FarmCafe.Framework.Patching
+namespace FarmCafe.Patching
 {
     internal class GameLocationPatches : PatchList
     {

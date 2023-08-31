@@ -12,31 +12,31 @@ using System.Reflection;
 using FarmCafe.Framework.Characters;
 using Netcode;
 using Object = StardewValley.Object;
-using static FarmCafe.Framework.Utilities.Utility;
+using static FarmCafe.Utility;
 
 // ReSharper disable UnusedParameter.Local
 // ReSharper disable InconsistentNaming
 
-namespace FarmCafe.Framework.Patching
+namespace FarmCafe.Patching
 {
     internal class Patch
-	{
-		internal MethodInfo _targetMethod;
-		internal string _prefixMethod;
-		internal string _postfixMethod;
-		internal string _transpilerMethod;
+    {
+        internal MethodInfo _targetMethod;
+        internal string _prefixMethod;
+        internal string _postfixMethod;
+        internal string _transpilerMethod;
 
-		public Patch(Type targetType, 
-			string targetMethodName, 
-			Type[] arguments,
-			string prefix = null, 
-			string postfix = null, 
-			string transpiler = null)	
+        public Patch(Type targetType,
+            string targetMethodName,
+            Type[] arguments,
+            string prefix = null,
+            string postfix = null,
+            string transpiler = null)
         {
             _targetMethod = AccessTools.Method(targetType, targetMethodName, arguments);
-			_prefixMethod = prefix;
-			_postfixMethod = postfix;
-			_transpilerMethod = transpiler;
+            _prefixMethod = prefix;
+            _postfixMethod = postfix;
+            _transpilerMethod = transpiler;
         }
     }
 

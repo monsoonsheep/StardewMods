@@ -1,9 +1,8 @@
-﻿
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
 
-namespace PassOutOnFarm
+namespace CollapseOnFarmFix
 {
     internal static class Logger
     {

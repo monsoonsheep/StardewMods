@@ -4,10 +4,9 @@ using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static FarmCafe.Framework.Utilities.Utility;
+using static FarmCafe.Utility;
 using StardewModdingAPI;
 using FarmCafe.Framework.Characters;
-using FarmCafe.Framework.Models;
 using FarmCafe.Framework.Objects;
 using Microsoft.Xna.Framework.Graphics;
 using xTile.Tiles;
@@ -16,6 +15,7 @@ using FarmCafe.Locations;
 using StardewValley.Buildings;
 using StardewValley.Objects;
 using Object = StardewValley.Object;
+using FarmCafe.Models;
 
 namespace FarmCafe.Framework.Managers
 {

@@ -1,4 +1,4 @@
-﻿using FarmCafe.Framework.Models;
+﻿using FarmCafe.Models;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -18,7 +18,7 @@ namespace FarmCafe.Framework.Managers
             if (e.Name.IsDirectlyUnderPath("monsoonsheep.FarmCafe/NPCSchedules"))
             {
                 string npcname = e.Name.Name.Split('/').Last();
-                e.LoadFromModFile<ScheduleData>("assets/npc_schedules/" + npcname + ".json", AssetLoadPriority.Low);
+                e.LoadFromModFile<ScheduleData>("assets/Schedules/" + npcname + ".json", AssetLoadPriority.Low);
             }
         }
 
@@ -33,7 +33,7 @@ namespace FarmCafe.Framework.Managers
 
         internal static void LoadNpcSchedules(IModHelper helper)
         {
-            var dir = new DirectoryInfo(Path.Combine(helper.DirectoryPath, "assets", "npc_schedules"));
+            var dir = new DirectoryInfo(Path.Combine(helper.DirectoryPath, "assets", "Schedules"));
             foreach (FileInfo f in dir.GetFiles())
             {
                 var name = f.Name.Replace(".json", null);
@@ -76,6 +76,29 @@ namespace FarmCafe.Framework.Managers
                     customerModels.Add(model);
                 }
             }
+        }
+
+        internal static void LoadCustomerModels(IModHelper helper, ref List<CustomerModel> customerModels)
+        {
+            var modelFolders = new DirectoryInfo(Path.Combine(helper.DirectoryPath, "Customers")).GetDirectories();
+            foreach (var modelFolder in modelFolders)
+            {
+                CustomerModel model = helper.ModContent.Load<CustomerModel>(Path.Combine("Customers", modelFolder.Name, "customer.json"));
+                if (model == null)
+                {
+                    Logger.Log("Couldn't read json for content pack");
+                    continue;
+                }
+
+                model.Name = model.Name.Replace(" ", "");
+                model.TilesheetPath = helper.ModContent.GetInternalAssetName(Path.Combine("Customers", modelFolder.Name, "customer.png")).Name;
+
+                string portraitName = "cat";
+                model.Portrait = helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", portraitName + ".png")).Name;
+
+                customerModels.Add(model);
+            }
+
         }
     }
 }

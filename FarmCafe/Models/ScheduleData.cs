@@ -5,13 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace FarmCafe.Framework.Models
+namespace FarmCafe.Models
 {
     public class ScheduleData
     {
         public Dictionary<string, List<BusyPeriod>> BusyTimes;
 
-        [JsonIgnore] 
+        [JsonIgnore]
         internal (int, string, int) LastVisitedDate = new(1, "spring", 1);
 
         public ScheduleData()

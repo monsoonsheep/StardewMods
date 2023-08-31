@@ -13,7 +13,7 @@ using StardewValley;
 using StardewValley.Objects;
 using Object = StardewValley.Object;
 
-namespace FarmCafe.Framework.Patching
+namespace FarmCafe.Patching
 {
     internal class CharacterPatches : PatchList
     {
