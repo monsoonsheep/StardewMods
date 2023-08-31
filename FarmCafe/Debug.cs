@@ -11,7 +11,7 @@ using FarmCafe.Framework.Managers;
 using Microsoft.Xna.Framework;
 using StardewValley.Menus;
 using StardewValley.Objects;
-using FarmCafe.Locations;
+using FarmCafe.Framework.Locations;
 
 namespace FarmCafe
 {

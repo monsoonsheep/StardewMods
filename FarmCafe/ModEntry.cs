@@ -29,8 +29,8 @@ using SolidFoundations.Framework.Interfaces.Internal;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using Object = StardewValley.Object;
 using StardewValley.Monsters;
-using FarmCafe.Locations;
 using SolidFoundations.Framework.Models.ContentPack;
+using FarmCafe.Framework.Locations;
 
 namespace FarmCafe
 {

@@ -16,7 +16,7 @@ using xTile.Layers;
 using xTile.ObjectModel;
 using xTile.Tiles;
 
-namespace FarmCafe.Locations
+namespace FarmCafe.Framework.Locations
 {
     public class CafeLocation : DecoratableLocation
     {

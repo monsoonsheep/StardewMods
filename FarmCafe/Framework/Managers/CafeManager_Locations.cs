@@ -1,5 +1,4 @@
-﻿using FarmCafe.Locations;
-using StardewValley.Locations;
+﻿using StardewValley.Locations;
 using StardewValley;
 using System;
 using System.Collections.Generic;
@@ -7,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static FarmCafe.Utility;
+using FarmCafe.Framework.Locations;
 
 namespace FarmCafe.Framework.Managers
 {

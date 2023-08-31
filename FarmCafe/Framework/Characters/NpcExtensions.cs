@@ -8,7 +8,7 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using xTile.Dimensions;
 using static FarmCafe.Utility;
-using FarmCafe.Locations;
+using FarmCafe.Framework.Locations;
 
 namespace FarmCafe.Framework.Characters
 {
