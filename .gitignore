@@ -369,4 +369,5 @@ FarmCafe/assets/Portraits/Temp*
 
 # Extras
 *.aseprite
-/Dummy
+./Dummy
+/Dummy/Dummy.csproj
