@@ -364,7 +364,8 @@ FodyWeavers.xsd
 
 
 # Assets from other mods
-FarmCafe/assets/Customers
+FarmCafe/assets/Customers/Temp*
+FarmCafe/assets/Portraits/Temp*
 
 # Extras
 *.aseprite
