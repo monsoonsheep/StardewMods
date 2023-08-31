@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using xTile.Dimensions;
-using static FarmCafe.Framework.Utilities.Utility;
+using static FarmCafe.Utility;
 using FarmCafe.Locations;
 
 namespace FarmCafe.Framework.Characters

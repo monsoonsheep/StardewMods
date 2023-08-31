@@ -15,13 +15,13 @@ using FarmCafe.Framework.Multiplayer;
 using HarmonyLib;
 using Netcode;
 using StardewValley.Network;
-using static FarmCafe.Framework.Utilities.Utility;
+using static FarmCafe.Utility;
 using StardewModdingAPI;
 using xTile;
 using OpCodes = System.Reflection.Emit.OpCodes;
 using xTile.Dimensions;
 
-namespace FarmCafe.Framework.Patching
+namespace FarmCafe.Patching
 {
     internal class FurniturePatches : PatchList
     {
@@ -112,7 +112,7 @@ namespace FarmCafe.Framework.Patching
 
             // This is ldc.i4.1 (returning true)
             codelist[insertPoint].labels.Add(jumpLabel);
-            leaveLabel = (Label) codelist[insertPoint + 2].operand;
+            leaveLabel = (Label)codelist[insertPoint + 2].operand;
 
             List<CodeInstruction> addCodes = new()
             {
@@ -127,7 +127,7 @@ namespace FarmCafe.Framework.Patching
                 new CodeInstruction(OpCodes.Ldstr, "FarmCafeTableIsReserved"),
                 CodeInstruction.Call(typeof(NetStringDictionary<string, NetString>), "get_Item"),
                 new CodeInstruction(OpCodes.Ldstr, "T"),
-                CodeInstruction.Call(typeof(String), "Equals", new[] { typeof(String) }),
+                CodeInstruction.Call(typeof(string), "Equals", new[] { typeof(string) }),
                 new CodeInstruction(OpCodes.Brfalse_S, jumpLabel),
 
                 new CodeInstruction(OpCodes.Ldc_I4_0),
@@ -150,7 +150,7 @@ namespace FarmCafe.Framework.Patching
                     return false;
                 }
             }
-            
+
             return true;
         }
 
@@ -164,7 +164,7 @@ namespace FarmCafe.Framework.Patching
                 if (!Context.IsMainPlayer && __instance.modData.TryGetValue("FarmCafeTableIsReserved", out var val) && val == "T")
                 {
                     __result = false;
-                } 
+                }
                 FurnitureTable trackedTable = IsTableTracked(__instance, who.currentLocation);
                 if (trackedTable is { IsReserved: true })
                 {

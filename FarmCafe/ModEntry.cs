@@ -10,7 +10,7 @@ using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Objects;
 using StardewValley.Buildings;
-using static FarmCafe.Framework.Utilities.Utility;
+using static FarmCafe.Utility;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -104,7 +104,7 @@ namespace FarmCafe
             helper.Events.Multiplayer.PeerConnected += OnPeerConnected;
             helper.Events.Multiplayer.ModMessageReceived += OnModMessageReceived;
 
-            Sprites = helper.ModContent.Load<Texture2D>("assets/cursors.png");
+            Sprites = helper.ModContent.Load<Texture2D>("assets/sprites.png");
 
         }
 
@@ -134,6 +134,7 @@ namespace FarmCafe
             
             CafeManager = new CafeManager();
 
+            AssetManager.LoadCustomerModels(ModHelper, ref CafeManager.CustomerModels);
             AssetManager.LoadContentPacks(ModHelper, ref CafeManager.CustomerModels);
             AssetManager.LoadNpcSchedules(ModHelper);
         }
@@ -204,17 +205,6 @@ namespace FarmCafe
                     case nameof(c.OrderItem):
                         c.OrderItem = new Object(e.ReadAs<int>(), 1).getOne();
                         break;
-                    case nameof(c.TableCenterForEmote):
-                        MatchCollection matches = Regex.Matches(e.ReadAs<string>(), @"\d+");
-                        if (matches.Count == 2 &&
-                            float.TryParse(matches[0].Value, out float x) &&
-                            float.TryParse(matches[1].Value, out float y))
-                        {
-                            c.TableCenterForEmote = new Vector2(x, y);
-                        }
-                        break;
-                    default:
-                        break;
                 }
             }
             else if (e.Type == "ClickTable" && Context.IsMainPlayer)
@@ -251,6 +241,7 @@ namespace FarmCafe
             // get list of reserved tables with center coords
             foreach (var table in Tables)
             {
+                // TODO Sync IsReadyToOrder for clients
                 if (table.IsReadyToOrder && Game1.currentLocation.Equals(table.CurrentLocation))
                 {
                     Vector2 offset = new Vector2(0,
@@ -291,7 +282,7 @@ namespace FarmCafe
             //}
 
             // spawn customers depending on probability logic
-            //CafeManager.CheckSpawnCustomers();
+            CafeManager.CheckSpawnCustomers();
         }
 
         private static void OnPeerConnected(object sender, PeerConnectedEventArgs e)
@@ -343,7 +334,6 @@ namespace FarmCafe
                 OpenCafeMenu();
         }
 
-        
         internal static void OpenCafeMenu()
         {
             if (!Context.IsMainPlayer)
@@ -353,20 +343,6 @@ namespace FarmCafe
             {
                 Logger.Log("Open menu!");
                 Game1.activeClickableMenu = new CafeMenu();
-            }
-        }
-
-        private static void PlaceCafeBuilding(Vector2 position)
-        {
-            var building = SfApi.PlaceBuilding("FarmCafeSignboard", Game1.getFarm(), position);
-
-            if (building.Key)
-            {
-                Logger.Log($"building placed. message is {building.Value}");
-            }
-            else
-            {
-                Logger.Log($"building not placed. messag eis {building.Value}");
             }
         }
     }

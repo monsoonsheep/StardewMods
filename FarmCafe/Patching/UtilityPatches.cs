@@ -8,9 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 using HarmonyLib;
 using xTile.Dimensions;
-using static FarmCafe.Framework.Utilities.Utility;
+using static FarmCafe.Utility;
 
-namespace FarmCafe.Framework.Patching
+namespace FarmCafe.Patching
 {
     internal class UtilityPatches : PatchList
     {

@@ -5,7 +5,7 @@ using FarmCafe.Framework.Managers;
 using Force.DeepCloner;
 using Microsoft.Xna.Framework;
 using StardewValley;
-using static FarmCafe.Framework.Utilities.Utility;
+using static FarmCafe.Utility;
 
 namespace FarmCafe.Framework.Characters
 {

@@ -3,7 +3,7 @@
 		<ModFolderName>FarmCafe</ModFolderName>
 		<TargetFramework>net5.0</TargetFramework>
 		<GamePath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley</GamePath>
-		<GameModsPath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley\Mods</GameModsPath>
+		<GameModsPath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley\Mods\My Mods\FarmCafe</GameModsPath>
 		<Configurations>Debug;Release</Configurations>
 	</PropertyGroup>
 	<ItemGroup>
@@ -24,6 +24,16 @@
 	    <HintPath>SolidFoundations.dll</HintPath>
 	    <Private>False</Private>
 	  </Reference>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="assets">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Framework\Utilities\" />
 	</ItemGroup>
 
 </Project>

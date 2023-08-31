@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static FarmCafe.Framework.Utilities.Utility;
+using static FarmCafe.Utility;
 
 namespace FarmCafe.Framework.Managers
 {

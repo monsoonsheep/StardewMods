@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
-using static FarmCafe.Framework.Utilities.Utility;
+using static FarmCafe.Utility;
 using FarmCafe.Framework.Characters;
 
 namespace FarmCafe.Framework.Managers

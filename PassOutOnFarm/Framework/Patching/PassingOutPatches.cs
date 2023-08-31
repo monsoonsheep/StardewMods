@@ -1,17 +1,12 @@
-﻿using HarmonyLib;
-using StardewValley;
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Emit;
-using System.Text;
 using Microsoft.Xna.Framework;
+using StardewValley;
 using StardewValley.Locations;
 using StardewValley.Network;
-using xTile.Dimensions;
+using Patch = CollapseOnFarmFix.Framework.Patching.Patch;
 
-namespace PassOutOnFarm.Framework.Patching
+namespace CollapseOnFarmFix.Framework.Patching
 {
     internal class PassingOutPatches : PatchList
     {
@@ -58,7 +53,9 @@ namespace PassOutOnFarm.Framework.Patching
         /// </remarks>
         private static bool LocationRequestWarpedPrefix(LocationRequest __instance, GameLocation location, out int __state)
         {
-            __state = __instance.Equals(RequestForBedWarp.request) ? RequestForBedWarp.farmer.Money : -1;
+            __state = __instance.Equals(RequestForBedWarp.request) 
+                ? RequestForBedWarp.farmer.Money 
+                : -1;
 
             return true;
         }
@@ -72,23 +69,35 @@ namespace PassOutOnFarm.Framework.Patching
             if (__state == -1 || __instance.Location is not FarmHouse)
                 return;
 
-            Farmer who = RequestForBedWarp.farmer;
-            string mailForPassout = who.mailForTomorrow.FirstOrDefault(m => m.StartsWith("passedOut"));
+            Farmer farmer = RequestForBedWarp.farmer;
+            string mailForPassout = farmer.mailForTomorrow.FirstOrDefault(m => m.StartsWith("passedOut"));
             if (string.IsNullOrEmpty(mailForPassout))
                 return;
 
             // Undo changes done by the game's pass out method
-            who.Money = __state;
-            who.mailForTomorrow.Remove(mailForPassout);
+            farmer.Money = __state;
+            farmer.mailForTomorrow.Remove(mailForPassout);
 
-            // Set the trigger for the "I carried you to bed" event for next day.
-            if (who.isMarried())
+            // Setup for next day's event. 
+            if (Game1.isRaining)
+                ModEntry.WeatherLastNight = "rain";
+            else if (Game1.isSnowing)
+                ModEntry.WeatherLastNight = "snow";
+            else if (Game1.isLightning)
+                ModEntry.WeatherLastNight = "lightning";
+            else if (Game1.isDebrisWeather)
+                ModEntry.WeatherLastNight = "debris";
+            else
+                ModEntry.WeatherLastNight = "sunny";
+
+            // Only setup the event if player is married or has a roommate
+            if (farmer.isMarried() || farmer.hasRoommate())
             {
-                NPC spouse = who.getSpouse();
+                ModEntry.PartnerNpc = farmer.spouse;
                 ModEntry.ToStartWakeUpEvent = true;
             }
 
-            who = null;
+            farmer = null;
             RequestForBedWarp.request = null;
         }
     }

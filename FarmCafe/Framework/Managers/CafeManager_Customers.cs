@@ -1,5 +1,4 @@
 ﻿using FarmCafe.Framework.Characters;
-using FarmCafe.Framework.Models;
 using FarmCafe.Framework.Objects;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
@@ -10,7 +9,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
-using static FarmCafe.Framework.Utilities.Utility;
+using static FarmCafe.Utility;
+using FarmCafe.Models;
 
 namespace FarmCafe.Framework.Managers
 {

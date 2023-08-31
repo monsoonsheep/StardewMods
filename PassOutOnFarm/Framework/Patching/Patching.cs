@@ -1,14 +1,12 @@
-﻿using HarmonyLib;
-using StardewModdingAPI;
-using StardewValley;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using HarmonyLib;
 
 // ReSharper disable UnusedParameter.Local
 // ReSharper disable InconsistentNaming
 
-namespace PassOutOnFarm.Framework.Patching
+namespace CollapseOnFarmFix.Framework.Patching
 {
     internal class Patch
     {

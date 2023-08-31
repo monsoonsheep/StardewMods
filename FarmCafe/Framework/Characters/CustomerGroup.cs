@@ -4,11 +4,11 @@ using StardewValley.Objects;
 using System.Collections.Generic;
 using FarmCafe.Framework.Characters;
 using FarmCafe.Framework.Objects;
-using static FarmCafe.Framework.Utilities.Utility;
+using static FarmCafe.Utility;
 
 namespace FarmCafe.Framework.Characters
 {
-	internal class CustomerGroup
+    internal class CustomerGroup
 	{
 		public List<Customer> Members;
 		public Table ReservedTable;

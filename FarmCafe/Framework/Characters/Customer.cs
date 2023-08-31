@@ -16,7 +16,7 @@ using StardewValley.Locations;
 using StardewValley.Objects;
 using xTile.Dimensions;
 using xTile.ObjectModel;
-using static FarmCafe.Framework.Utilities.Utility;
+using static FarmCafe.Utility;
 using static FarmCafe.Framework.Characters.CustomerState;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
