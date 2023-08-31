@@ -365,3 +365,6 @@ FodyWeavers.xsd
 
 # Assets from other mods
 FarmCafe/assets/Customers
+
+# Extras
+*.aseprite
