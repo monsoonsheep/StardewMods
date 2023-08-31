@@ -4,14 +4,13 @@ using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static FarmCafe.Utility;
+using static FarmCafe.Framework.Utility;
 using StardewModdingAPI;
 using FarmCafe.Framework.Characters;
 using FarmCafe.Framework.Objects;
 using Microsoft.Xna.Framework.Graphics;
 using xTile.Tiles;
 using Point = Microsoft.Xna.Framework.Point;
-using FarmCafe.Locations;
 using StardewValley.Buildings;
 using StardewValley.Objects;
 using Object = StardewValley.Object;
@@ -21,19 +20,20 @@ namespace FarmCafe.Framework.Managers
 {
     internal partial class CafeManager
     {
-        internal static List<GameLocation> CafeLocations = ModEntry.CafeLocations;
-        internal static IList<Item> MenuItems = ModEntry.MenuItems;
-        internal static List<Customer> CurrentCustomers = ModEntry.CurrentCustomers;
-        internal static NPC HelperNpc;
-        internal static List<Table> Tables = ModEntry.Tables;
+        internal static List<GameLocation> CafeLocations;
+        internal static IList<Item> MenuItems = new List<Item>(new Item[27]);
+        internal static IList<Item> RecentlyAddedMenuItems = new List<Item>(new Item[9]);
+
+        internal static List<Customer> CurrentCustomers = new List<Customer>();
+        internal static NPC EmployeeNpc;
+        internal static List<Table> Tables = new();
         internal static Dictionary<string, ScheduleData> NpcSchedules = new Dictionary<string, ScheduleData>();
-        internal static List<string> NpcsWhoCanVisitToday = new List<string>();
 
         internal List<List<string>> RoutesToCafe;
         internal List<List<string>> GameRoutes =  ModEntry.ModHelper.Reflection.GetField<List<List<string>>>(typeof(NPC), "routesFromLocationToLocation").GetValue();
 
         internal List<CustomerModel> CustomerModels = new List<CustomerModel>();
-        internal List<CustomerModel> CustomerModelsInUse = new List<CustomerModel>();
+        internal List<string> CustomerModelsInUse = new List<string>();
         internal List<CustomerGroup> CurrentGroups = new List<CustomerGroup>();
 
         public Point BusPosition;
@@ -45,29 +45,6 @@ namespace FarmCafe.Framework.Managers
 
         public CafeManager()
         {
-            if (Game1.player.modData.TryGetValue("FarmCafeMenuItems", out string menuItemsString))
-            {
-                var itemIds = menuItemsString.Split(' ');
-                foreach (var id in itemIds)
-                {
-                    try
-                    {
-                        Item item = new Object(int.Parse(id), 1);
-                        AddToMenu(item);
-                    }
-                    catch
-                    {
-                        Logger.Log("Invalid item ID in player's modData.", LogLevel.Warn);
-                        break;
-                    }
-                }
-            }
-
-            if (Game1.player.modData.TryGetValue("FarmCafeOpenCloseTimes", out string openCloseTimes))
-            {
-                OpeningTime = int.Parse(openCloseTimes.Split(' ')[0]);
-                ClosingTime = int.Parse(openCloseTimes.Split(' ')[1]);
-            }
             
             CacheBusPosition();
         }
@@ -136,20 +113,14 @@ namespace FarmCafe.Framework.Managers
             return tmp;
         }
 
+        internal IEnumerable<Item> GetMenuItems()
+        {
+            return MenuItems.Where(c => c != null);
+        }
+
         internal Item GetRandomItemFromMenu()
         {
             return MenuItems.Where(c => c != null).OrderBy((i) => Game1.random.Next()).FirstOrDefault();
         }
     }
-
-    public class ItemEqualityComparer : IEqualityComparer<Item>
-    {
-        public bool Equals(Item x, Item y)
-        {
-            return x != null && y != null && x.ParentSheetIndex == y.ParentSheetIndex;
-        }
-
-        public int GetHashCode(Item obj) => (obj != null) ? obj.ParentSheetIndex * 900 : -1;
-    }
-
 }

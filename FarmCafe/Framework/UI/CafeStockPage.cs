@@ -243,8 +243,8 @@ namespace FarmCafe.Framework.UI
             : base(x, y, width, height)
         {
             // TODO: Dependency injection somehow
-            this.menuItemsList = ModEntry.MenuItems;
-            this.recentlyAddedItemsList = ModEntry.RecentlyAddedMenuItems;
+            this.menuItemsList = CafeManager.MenuItems;
+            this.recentlyAddedItemsList = CafeManager.RecentlyAddedMenuItems;
             this.addFunction = ModEntry.CafeManager.AddToMenu;
             this.removeFunction = ModEntry.CafeManager.RemoveFromMenu;
 

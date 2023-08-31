@@ -5,8 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static FarmCafe.Utility;
-using FarmCafe.Framework.Locations;
+using static FarmCafe.Framework.Utility;
 
 namespace FarmCafe.Framework.Managers
 {

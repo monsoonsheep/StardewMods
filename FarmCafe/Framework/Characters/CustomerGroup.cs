@@ -1,10 +1,11 @@
-﻿using FarmCafe.Framework.Managers;
+﻿using System;
+using FarmCafe.Framework.Managers;
 using StardewValley;
 using StardewValley.Objects;
 using System.Collections.Generic;
 using FarmCafe.Framework.Characters;
 using FarmCafe.Framework.Objects;
-using static FarmCafe.Utility;
+using static FarmCafe.Framework.Utility;
 
 namespace FarmCafe.Framework.Characters
 {
@@ -13,17 +14,13 @@ namespace FarmCafe.Framework.Characters
 		public List<Customer> Members;
 		public Table ReservedTable;
 
-		public CustomerGroup()
-		{
-			Members = new List<Customer>();
-		}
-
-		public void Add(Customer customer)
+		public CustomerGroup(List<Customer> members, Table table)
         {
-            if (Members.Count == 0)
-                customer.IsGroupLeader.Set(true);
-            Members.Add(customer);
-		}
+            Members = members;
+            Members[0].IsGroupLeader.Set(true);
+            if (!ReserveTable(table))
+                throw new Exception("Couldn't reserve table. Bug!");
+        }
 
 		public bool ReserveTable(Table table)
 		{

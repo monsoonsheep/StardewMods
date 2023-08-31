@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using FarmCafe.Framework.Characters;
 using FarmCafe.Framework.Managers;
 using FarmCafe.Framework.Objects;
-using FarmCafe.Locations;
+using FarmCafe.Framework.Multiplayer;
 using StardewModdingAPI;
 using StardewValley;
 using xTile.Dimensions;
@@ -46,15 +46,15 @@ namespace FarmCafe.Patching
 
         private static void CheckActionPostfix(GameLocation __instance, Location tileLocation, Rectangle viewport, Farmer who, ref bool __result)
         {
-            if (!ModEntry.CafeLocations.Contains(__instance)) return;
+            if (!CafeManager.CafeLocations.Contains(__instance)) return;
 
-            foreach (MapTable table in ModEntry.Tables.OfType<MapTable>())
+            foreach (MapTable table in CafeManager.Tables.OfType<MapTable>())
             {
                 if (table.BoundingBox.Contains(tileLocation.X * 64, tileLocation.Y * 64))
                 {
                     if (!Context.IsMainPlayer)
                     {
-                        Multiplayer.Sync.SendTableClick(table, who);
+                        Sync.SendTableClick(table, who);
                     }
                     else
                     {

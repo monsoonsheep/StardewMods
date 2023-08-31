@@ -9,7 +9,7 @@ using FarmCafe.Framework.Characters;
 using FarmCafe.Framework.Objects;
 using xTile.Tiles;
 
-namespace FarmCafe
+namespace FarmCafe.Framework
 {
     internal class Utility
     {
@@ -91,19 +91,19 @@ namespace FarmCafe
 
         internal static GameLocation GetLocationFromName(string name)
         {
-            return Game1.getLocationFromName(name) ?? ModEntry.CafeLocations.FirstOrDefault(a => a.Name == name);
+            return Game1.getLocationFromName(name) ?? CafeManager.CafeLocations.FirstOrDefault(a => a.Name == name);
         }
 
         internal static FurnitureTable IsTableTracked(Furniture table, GameLocation location)
         {
-            return ModEntry.Tables
+            return CafeManager.Tables
                 .OfType<FurnitureTable>().FirstOrDefault(t => t.CurrentLocation.Equals(location) && t.Position == table.TileLocation);
         }
 
-        internal static List<locationPathDescription> GetLocationRouteFromSchedule(NPC npc)
+        internal static List<LocationPathDescription> GetLocationRouteFromSchedule(NPC npc)
         {
             // time, location name, steps to get there
-            List<locationPathDescription> route = new();
+            List<LocationPathDescription> route = new();
             Dictionary<int, SchedulePathDescription> schedule = npc.getSchedule(Game1.dayOfMonth);
 
             GameLocation currentLoc = Game1.getLocationFromName(npc.DefaultMap);
@@ -123,11 +123,21 @@ namespace FarmCafe
                         currentLoc = Game1.getLocationFromName(w.TargetName);
                 }
 
-                route.Add(new locationPathDescription(pathDescription.Key, currentLoc.Name, steps));
+                route.Add(new LocationPathDescription(pathDescription.Key, currentLoc.Name, steps));
             }
 
             return route;
         }
 
+    }
+
+    public class ItemEqualityComparer : IEqualityComparer<Item>
+    {
+        public bool Equals(Item x, Item y)
+        {
+            return x != null && y != null && x.ParentSheetIndex == y.ParentSheetIndex;
+        }
+
+        public int GetHashCode(Item obj) => obj != null ? obj.ParentSheetIndex * 900 : -1;
     }
 }

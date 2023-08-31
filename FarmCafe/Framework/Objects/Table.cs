@@ -13,7 +13,7 @@ using StardewValley.Objects;
 using xTile.Dimensions;
 using Microsoft.Xna.Framework;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
-using Utility = FarmCafe.Utility;
+using Utility = FarmCafe.Framework.Utility;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 

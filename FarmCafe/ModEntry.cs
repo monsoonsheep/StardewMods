@@ -1,7 +1,4 @@
-﻿using FarmCafe.Framework.Interfaces;
-using FarmCafe.Framework.Managers;
-using FarmCafe.Framework.Models;
-using FarmCafe.Framework.Patching;
+﻿using FarmCafe.Framework.Managers;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -10,7 +7,7 @@ using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Objects;
 using StardewValley.Buildings;
-using static FarmCafe.Utility;
+using static FarmCafe.Framework.Utility;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,6 +15,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using FarmCafe.Framework;
 using FarmCafe.Framework.Characters;
 using FarmCafe.Framework.Multiplayer;
 using FarmCafe.Framework.Objects;
@@ -30,7 +28,7 @@ using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using Object = StardewValley.Object;
 using StardewValley.Monsters;
 using SolidFoundations.Framework.Models.ContentPack;
-using FarmCafe.Framework.Locations;
+using FarmCafe.Patching;
 
 namespace FarmCafe
 {
@@ -42,16 +40,11 @@ namespace FarmCafe
         internal static IApi SfApi;
         internal new static IManifest ModManifest;
 
+        internal static Config Config;
+
         internal static Texture2D Sprites;
 
         internal static CafeManager CafeManager;
-
-        // To be synced in multiplayer
-        internal static List<GameLocation> CafeLocations = new();
-        internal static List<Customer> CurrentCustomers = new List<Customer>();
-        internal static List<Table> Tables = new();
-        internal static IList<Item> MenuItems = new List<Item>(new Item[27]);
-        internal static IList<Item> RecentlyAddedMenuItems = new List<Item>(new Item[9]);
 
         internal static NPC HelperNpc;
 
@@ -65,6 +58,8 @@ namespace FarmCafe
             ModHelper = helper;
             ModManifest = base.ModManifest;
             Logger.Monitor = Monitor;
+
+            Config = helper.ReadConfig<Config>();
 
             I18n.Init(helper.Translation);
             // Harmony patches
@@ -105,7 +100,6 @@ namespace FarmCafe
             helper.Events.Multiplayer.ModMessageReceived += OnModMessageReceived;
 
             Sprites = helper.ModContent.Load<Texture2D>("assets/sprites.png");
-
         }
 
         private static void OnGameLaunched(object sender, GameLaunchedEventArgs e)
@@ -120,20 +114,17 @@ namespace FarmCafe
         {
             if (!Context.IsMainPlayer)
             {
-                CurrentCustomers = Sync.GetAllCustomersInGame();
+                CafeManager.CurrentCustomers = CafeManager.GetAllCustomersInGame();
                 return;
             }
 
-            Tables = new();
-            CafeLocations = new();
-            CurrentCustomers = new();
+            CafeManager.Tables = new();
+            CafeManager.CafeLocations = new();
+            CafeManager.CurrentCustomers = new();
 
-            MenuItems = new List<Item>(new Item[27]);
-            RecentlyAddedMenuItems = new List<Item>(new Item[9]);
-
-            
             CafeManager = new CafeManager();
-
+            LoadValuesFromModData();
+            
             AssetManager.LoadCustomerModels(ModHelper, ref CafeManager.CustomerModels);
             AssetManager.LoadContentPacks(ModHelper, ref CafeManager.CustomerModels);
             AssetManager.LoadNpcSchedules(ModHelper);
@@ -142,7 +133,7 @@ namespace FarmCafe
         private static void OnDayStarted(object sender, DayStartedEventArgs e)
         {
             CafeManager.UpdateCafeLocation();
-            Logger.Log($"Cafe locations are {string.Join(", ", CafeLocations.Select(l => l.Name))}");
+            Logger.Log($"Cafe locations are {string.Join(", ", CafeManager.CafeLocations.Select(l => l.Name))}");
 
             if (!Context.IsMainPlayer)
                 return;
@@ -171,12 +162,10 @@ namespace FarmCafe
             if (!Context.IsMainPlayer) 
                 return;
 
-            // TODO: Make sure they are in the same order as saved (Where() is ordered)
-            string itemsString = string.Join(" ", MenuItems.Where(i => i is not null));
-            Game1.player.modData["FarmCafeMenuItems"] = itemsString;
-
-            string openCloseTimeString = CafeManager.OpeningTime + " " + CafeManager.ClosingTime;
-            Game1.player.modData["FarmCafeOpenCloseTimes"] = openCloseTimeString;
+            // Menu Items TODO: Make sure they are in the same order as saved (Where() is ordered)
+            Game1.player.modData["FarmCafeMenuItems"] = string.Join(" ", CafeManager.GetMenuItems());
+            // Opening and Closing Times
+            Game1.player.modData["FarmCafeOpenCloseTimes"] = $"{CafeManager.OpeningTime} {CafeManager.ClosingTime}";
         }
 
         private static void OnModMessageReceived(object sender, ModMessageReceivedEventArgs e)
@@ -189,11 +178,11 @@ namespace FarmCafe
             }
             else if (e.Type == "RemoveCustomers")
             {
-                CurrentCustomers.Clear();
+                CafeManager.CurrentCustomers.Clear();
             }
             else if (e.Type.StartsWith("UpdateCustomerInfo") && !Context.IsMainPlayer)
             {
-                Customer c = Sync.GetAllCustomersInGame().FirstOrDefault(c => c.Name == e.Type.Split('/')[1]);
+                Customer c = CafeManager.GetAllCustomersInGame().FirstOrDefault(c => c.Name == e.Type.Split('/')[1]);
                 if (c == null)
                 {
                     Logger.Log("Couldn't get customer to update");
@@ -227,19 +216,15 @@ namespace FarmCafe
             else if (e.Type == "CustomerDoEmote" && !Context.IsMainPlayer)
             {
                 var info = e.ReadAs<Dictionary<string, string>>();
-                Customer c = Sync.GetAllCustomersInGame().FirstOrDefault(c => c.Name == info["name"]);
+                Customer c = CafeManager.GetAllCustomersInGame().FirstOrDefault(c => c.Name == info["name"]);
                 c?.doEmote(int.Parse(info["emote"]));
-            }
-            else if (e.Type == "UpdateFurniture")
-            {
-                //CafeManagerFurnitureShouldBeUpdated = true;
             }
         }
 
         private static void OnRenderedWorld(object sender, RenderedWorldEventArgs e)
         {
             // get list of reserved tables with center coords
-            foreach (var table in Tables)
+            foreach (var table in CafeManager.Tables)
             {
                 // TODO Sync IsReadyToOrder for clients
                 if (table.IsReadyToOrder && Game1.currentLocation.Equals(table.CurrentLocation))
@@ -275,12 +260,6 @@ namespace FarmCafe
             if (!Context.IsMainPlayer)
                 return;
 
-            //if (CafeManager.FurnitureShouldBeUpdated)
-            //{
-            //    CafeManager.PopulateTables(CafeLocations);
-            //    CafeManager.FurnitureShouldBeUpdated = false;
-            //}
-
             // spawn customers depending on probability logic
             CafeManager.CheckSpawnCustomers();
         }
@@ -303,10 +282,44 @@ namespace FarmCafe
 
         private static void OnFurnitureListChanged(object sender, FurnitureListChangedEventArgs e)
         {
-            if (Context.IsMainPlayer && CafeLocations.Any(l => l.Equals(e.Location)))
+            if (Context.IsMainPlayer && CafeManager.CafeLocations.Any(l => l.Equals(e.Location)))
                 CafeManager.HandleFurnitureChanged(e.Added, e.Removed, e.Location);
         }
         
+        private static void LoadValuesFromModData()
+        {
+            if (Game1.player.modData.TryGetValue("FarmCafeMenuItems", out string menuItemsString))
+            {
+                var itemIds = menuItemsString.Split(' ');
+                if (itemIds.Length == 0)
+                {
+                    Logger.Log("The menu for the cafe has nothing in it!");
+                }
+                else
+                {
+                    foreach (var id in itemIds)
+                    {
+                        try
+                        {
+                            Item item = new Object(int.Parse(id), 1);
+                            CafeManager.AddToMenu(item);
+                        }
+                        catch
+                        {
+                            Logger.Log("Invalid item ID in player's modData.", LogLevel.Warn);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (Game1.player.modData.TryGetValue("FarmCafeOpenCloseTimes", out string openCloseTimes))
+            {
+                CafeManager.OpeningTime = int.Parse(openCloseTimes.Split(' ')[0]);
+                CafeManager.ClosingTime = int.Parse(openCloseTimes.Split(' ')[1]);
+            }
+        }
+
         private static void PrepareSolidFoundationsApi()
         {
             SfApi = ModHelper.ModRegistry.GetApi<IApi>(

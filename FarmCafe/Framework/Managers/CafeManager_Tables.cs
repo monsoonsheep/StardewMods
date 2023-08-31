@@ -8,9 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
-using static FarmCafe.Utility;
+using static FarmCafe.Framework.Utility;
 using FarmCafe.Framework.Characters;
-using FarmCafe.Framework.Locations;
 
 namespace FarmCafe.Framework.Managers
 {
@@ -98,7 +97,7 @@ namespace FarmCafe.Framework.Managers
 
         internal List<Table> GetFreeTables(int minimumSeats = 1)
         {
-            return Tables.OrderBy((_) => Game1.random.Next()).Where(t => !t.IsReserved && t.Seats.Count >= minimumSeats).ToList();
+            return Tables.OrderBy(_ => Game1.random.Next()).Where(t => !t.IsReserved && t.Seats.Count >= minimumSeats).ToList();
         }
 
         internal static bool ChairIsReserved(Furniture chair)
@@ -195,7 +194,7 @@ namespace FarmCafe.Framework.Managers
         internal static void FarmerClickTable(Table table, Farmer who)
         {
             CustomerGroup groupOnTable =
-                ModEntry.CurrentCustomers.FirstOrDefault(c => c.Group.ReservedTable == table)?.Group;
+                CurrentCustomers.FirstOrDefault(c => c.Group.ReservedTable == table)?.Group;
 
             if (groupOnTable == null)
             {
@@ -224,6 +223,5 @@ namespace FarmCafe.Framework.Managers
                 }
             }
         }
-
     }
 }

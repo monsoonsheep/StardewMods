@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using HarmonyLib;
 using xTile.Dimensions;
-using static FarmCafe.Utility;
+using static FarmCafe.Framework.Utility;
 
 namespace FarmCafe.Patching
 {

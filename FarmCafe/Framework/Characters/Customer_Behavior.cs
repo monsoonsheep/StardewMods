@@ -5,8 +5,8 @@ using FarmCafe.Framework.Managers;
 using Force.DeepCloner;
 using Microsoft.Xna.Framework;
 using StardewValley;
-using static FarmCafe.Utility;
-
+using static FarmCafe.Framework.Utility;
+using SUtility = StardewValley.Utility;
 namespace FarmCafe.Framework.Characters
 {
     public partial class Customer
@@ -113,7 +113,7 @@ namespace FarmCafe.Framework.Characters
 
             //if (IsGroupLeader)
             //    TableCenterForEmote = this.Group.ReservedTable.GetCenter() + new Vector2(-8, -64);
-
+            
             Multiplayer.Sync.UpdateCustomerInfo(this, nameof(OrderItem), OrderItem.ParentSheetIndex);
             //Sync.UpdateCustomerInfo(this, nameof(TableCenterForEmote), TableCenterForEmote.ToString());
         }
@@ -219,8 +219,8 @@ namespace FarmCafe.Framework.Characters
             }
             else
             {
-                var minutesSinceCurrentStarted = Utility.CalculateMinutesBetweenTimes(timeOfCurrent, Game1.timeOfDay);
-                var minutesTilNextStarts = Utility.CalculateMinutesBetweenTimes(Game1.timeOfDay, timeOfNext);
+                var minutesSinceCurrentStarted = SUtility.CalculateMinutesBetweenTimes(timeOfCurrent, Game1.timeOfDay);
+                var minutesTilNextStarts = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, timeOfNext);
                 timeOfActivity = minutesSinceCurrentStarted < minutesTilNextStarts 
                     ? timeOfCurrent : timeOfNext;
             }
@@ -236,7 +236,7 @@ namespace FarmCafe.Framework.Characters
                 toDoPath.route = OriginalNpc.PathTo(OriginalNpc.currentLocation, OriginalNpc.getTileLocationPoint(), targetLocation, toDoPath.route.Last());
                 OriginalNpc.DirectionsToNewLocation = toDoPath;
 
-                OriginalNpc.controller = new PathFindController(toDoPath.route, OriginalNpc, Utility.getGameLocationOfCharacter(OriginalNpc))
+                OriginalNpc.controller = new PathFindController(toDoPath.route, OriginalNpc, SUtility.getGameLocationOfCharacter(OriginalNpc))
                 {
                     finalFacingDirection = toDoPath.facingDirection,
                     endBehaviorFunction = endFunction

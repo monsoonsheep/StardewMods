@@ -12,7 +12,7 @@ using System.Reflection;
 using FarmCafe.Framework.Characters;
 using Netcode;
 using Object = StardewValley.Object;
-using static FarmCafe.Utility;
+using static FarmCafe.Framework.Utility;
 
 // ReSharper disable UnusedParameter.Local
 // ReSharper disable InconsistentNaming

@@ -11,6 +11,9 @@
 	  <EmbeddedResource Remove="FarmCafe\**" />
 	  <None Remove="FarmCafe\**" />
 	</ItemGroup>
+	<ItemGroup>
+	  <None Include="..\.editorconfig" Link=".editorconfig" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Lib.Harmony" Version="2.2.2" />

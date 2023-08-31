@@ -11,7 +11,6 @@ using FarmCafe.Framework.Managers;
 using Microsoft.Xna.Framework;
 using StardewValley.Menus;
 using StardewValley.Objects;
-using FarmCafe.Framework.Locations;
 
 namespace FarmCafe
 {
@@ -58,7 +57,7 @@ namespace FarmCafe
                     //helper.eventActor = true;
                     break;
                 case SButton.NumPad6:
-                    Logger.Log(string.Join(", ", ModEntry.MenuItems.Select(i => i.DisplayName)));
+                    Logger.Log(string.Join(", ", CafeManager.MenuItems.Select(i => i.DisplayName)));
                     break;
                 case SButton.M:
                     Logger.Log("Breaking");
@@ -75,7 +74,7 @@ namespace FarmCafe
                     {
                         if (shane is Customer c)
                         {
-                            ModEntry.CurrentCustomers.Remove(c);
+                            CafeManager.CurrentCustomers.Remove(c);
                             c.Group?.ReservedTable?.Free();
                         }
                         Game1.warpCharacter(shane, Game1.player.currentLocation, Game1.player.getTileLocation() + new Vector2(0, -1));
@@ -96,7 +95,7 @@ namespace FarmCafe
 
         public static void WarpToCafe()
         {
-            var cafe = ModEntry.CafeLocations.First(l => l is CafeLocation);
+            var cafe = CafeManager.CafeLocations.First(l => l is CafeLocation);
             var warp = cafe.warps.First();
             Game1.warpFarmer(cafe.Name, warp.X, warp.Y - 1, 0);
         }

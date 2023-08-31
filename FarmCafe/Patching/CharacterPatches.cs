@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FarmCafe.Framework.Characters;
 using FarmCafe.Framework.Managers;
+using FarmCafe.Framework.Multiplayer;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
@@ -107,7 +108,7 @@ namespace FarmCafe.Patching
         {
             if (__instance is Customer customer && Context.IsMainPlayer)
             {
-                Multiplayer.Sync.CustomerDoEmote(customer, whichEmote);
+                Sync.CustomerDoEmote(customer, whichEmote);
             }
         }
     }

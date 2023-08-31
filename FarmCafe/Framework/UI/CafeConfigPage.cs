@@ -6,6 +6,7 @@ using StardewValley;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using static StardewValley.Menus.CoopMenu;
+using SUtility = StardewValley.Utility;
 
 namespace FarmCafe.Framework.UI
 {
@@ -43,12 +44,12 @@ namespace FarmCafe.Framework.UI
 
         public string FormatTime(int time)
         {
-            return Game1.getTimeOfDayString(Utility.ConvertMinutesToTime(time*10)) + ", " + time.ToString();
+            return Game1.getTimeOfDayString(SUtility.ConvertMinutesToTime(time*10)) + ", " + time.ToString();
         }
 
         public void SetTimeFromMinutes(int time, out int target)
         {
-            target = Utility.ConvertMinutesToTime(time) * 10;
+            target = SUtility.ConvertMinutesToTime(time) * 10;
         }
 
 

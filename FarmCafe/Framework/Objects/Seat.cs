@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FarmCafe.Framework.Characters;
-using FarmCafe.Framework.Locations;
 using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.Objects;

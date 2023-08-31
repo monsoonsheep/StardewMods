@@ -62,22 +62,5 @@ namespace FarmCafe.Framework.Multiplayer
                 messageType: "UpdateFurniture", 
                 modIDs: new[] { ModEntry.ModManifest.UniqueID });
         }
-
-        internal static List<Customer> GetAllCustomersInGame()
-        {
-            var locationCustomers = Game1.locations
-                .SelectMany(l => l.getCharacters())
-                .OfType<Customer>();
-
-            var buildingCustomers = (Game1.getFarm().buildings
-                    .Where(b => b.indoors.Value != null)
-                    .SelectMany(b => b.indoors.Value.characters))
-                .OfType<Customer>();
-
-            var list = locationCustomers.Concat(buildingCustomers).ToList();
-
-            Logger.Log("Updating customers" + string.Join(' ', list));
-            return list;
-        }
     }
 }

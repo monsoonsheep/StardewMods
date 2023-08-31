@@ -4,9 +4,7 @@ using System.Linq;
 using System.Xml.Serialization;
 using FarmCafe.Framework.Characters;
 using FarmCafe.Framework.Managers;
-using FarmCafe.Framework.Models;
 using FarmCafe.Framework.Objects;
-using FarmCafe.Locations;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Netcode;
@@ -16,7 +14,8 @@ using StardewValley.Locations;
 using StardewValley.Objects;
 using xTile.Dimensions;
 using xTile.ObjectModel;
-using static FarmCafe.Utility;
+using static FarmCafe.Framework.Utility;
+using SUtility = StardewValley.Utility;
 using static FarmCafe.Framework.Characters.CustomerState;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
@@ -37,13 +36,13 @@ namespace FarmCafe.Framework.Characters
         Free,
     }
 
-    internal struct locationPathDescription
+    internal struct LocationPathDescription
     {
         public int time;
         public string locationName;
         public int steps;
 
-        public locationPathDescription(int time, string locationName, int steps)
+        public LocationPathDescription(int time, string locationName, int steps)
         {
             (this.time, this.locationName, this.steps) = (time, locationName, steps);
         }
@@ -51,21 +50,22 @@ namespace FarmCafe.Framework.Characters
     public partial class Customer : NPC
     {
         [XmlIgnore] internal NPC OriginalNpc;
-        [XmlIgnore] internal List<locationPathDescription> OriginalScheduleLocations;
+        [XmlIgnore] internal List<LocationPathDescription> OriginalScheduleLocations;
         [XmlIgnore] internal CustomerGroup Group;
 
-        [XmlIgnore] internal Seat Seat;
 
         [XmlIgnore] internal NetBool IsGroupLeader = new NetBool();
 
+        [XmlIgnore] internal Seat Seat;
         [XmlIgnore] internal NetBool IsSitting = new NetBool();
+        private readonly NetVector2 drawOffsetForSeat = new NetVector2(new Vector2(0, 0));
         [XmlIgnore] internal NetEnum<CustomerState> State = new(ExitingBus);
 
-        private int busDepartTimer = 0;
-        private int conveneWaitingTimer = 0;
-        private int lookAroundTimer = 0;
-        private int orderTimer = 0;
-        private int eatingTimer = 0;
+        private int busDepartTimer;
+        private int conveneWaitingTimer;
+        private int lookAroundTimer;
+        private int orderTimer;
+        private int eatingTimer;
 
         [XmlIgnore] internal Point BusConvenePoint;
 
@@ -78,9 +78,7 @@ namespace FarmCafe.Framework.Characters
         private LerpEnd lerpEndBehavior;
 
 
-        private readonly NetVector2 drawOffsetForSeat = new NetVector2(new Vector2(0, 0));
-
-        internal Vector2 TableCenterForEmote = new Vector2(0, 0);
+        [XmlIgnore] internal Vector2 TableCenterForEmote = new Vector2(0, 0);
 
         [XmlIgnore] internal List<int> LookingDirections = new() { 0, 1, 3 };
 
@@ -127,7 +125,6 @@ namespace FarmCafe.Framework.Characters
             this.Schedule = npc.getSchedule(Game1.dayOfMonth);
             this.CurrentDialogue = npc.CurrentDialogue;
 
-
             this.currentLocation = npc.currentLocation;
             this.Position = npc.Position;
             base.faceDirection(npc.FacingDirection);
@@ -161,21 +158,25 @@ namespace FarmCafe.Framework.Characters
             base.update(time, location);
             if (!Context.IsWorldReady || !Context.IsMainPlayer) return;
 
-            PropertyValue propertyValue = null;
-            location.map.GetLayer("Buildings").PickTile(nextPositionPoint(), Game1.viewport.Size)?.Properties.TryGetValue("Action", out propertyValue);
-            var strArray = propertyValue?.ToString().Split(Utility.CharSpace);
-            if (strArray == null)
+            // Regular NPCs turned into customers wouldn't open their room doors
+            if (OriginalNpc != null)
             {
-                var standingXy2 = getStandingXY();
-                location.map.GetLayer("Buildings").PickTile(new Location(standingXy2.X, standingXy2.Y), Game1.viewport.Size)?.Properties
-                    .TryGetValue("Action", out propertyValue);
-                strArray = propertyValue?.ToString().Split(Utility.CharSpace);
+                PropertyValue propertyValue = null;
+                location.map.GetLayer("Buildings").PickTile(nextPositionPoint(), Game1.viewport.Size)?.Properties.TryGetValue("Action", out propertyValue);
+                var strArray = propertyValue?.ToString().Split(SUtility.CharSpace);
+                if (strArray == null)
+                {
+                    var standingXy2 = getStandingXY();
+                    location.map.GetLayer("Buildings").PickTile(new Location(standingXy2.X, standingXy2.Y), Game1.viewport.Size)?.Properties
+                        .TryGetValue("Action", out propertyValue);
+                    strArray = propertyValue?.ToString().Split(SUtility.CharSpace);
+                }
+                if (strArray is { Length: >= 1 } && strArray[0].Contains("Door"))
+                {
+                    location.openDoor(new Location(nextPositionPoint().X / 64, nextPositionPoint().Y / 64), Game1.player.currentLocation.Equals(location));
+                }
             }
-            if (strArray is { Length: >= 1 } && strArray[0].Contains("Door"))
-            {
-                location.openDoor(new Location(nextPositionPoint().X / 64, nextPositionPoint().Y / 64), Game1.player.currentLocation.Equals(location));
-            }
-
+            
             speed = 4; // For debug
 
             // Spawning and waiting to leave the bus
@@ -238,8 +239,8 @@ namespace FarmCafe.Framework.Characters
                 }
 
                 Position = new Vector2(
-                    Utility.Lerp(lerpStartPosition.X, lerpEndPosition.X, lerpPosition / lerpDuration),
-                    Utility.Lerp(lerpStartPosition.Y, lerpEndPosition.Y, lerpPosition / lerpDuration)
+                    SUtility.Lerp(lerpStartPosition.X, lerpEndPosition.X, lerpPosition / lerpDuration),
+                    SUtility.Lerp(lerpStartPosition.Y, lerpEndPosition.Y, lerpPosition / lerpDuration)
                 );
 
                 if (lerpPosition >= lerpDuration)
@@ -344,7 +345,7 @@ namespace FarmCafe.Framework.Characters
                     position.Y -= speed + addedSpeed;
                     if (!ignoreMovementAnimation)
                     {
-                        Sprite.AnimateUp(time, (speed - 2 + addedSpeed) * -25, Utility.isOnScreen(getTileLocationPoint(), 1, location) ? "Cowboy_Footstep" : "");
+                        Sprite.AnimateUp(time, (speed - 2 + addedSpeed) * -25, SUtility.isOnScreen(getTileLocationPoint(), 1, location) ? "Cowboy_Footstep" : "");
                         faceDirection(0);
                     }
                 }
@@ -373,7 +374,7 @@ namespace FarmCafe.Framework.Characters
                     position.X += speed + addedSpeed;
                     if (!ignoreMovementAnimation)
                     {
-                        Sprite.AnimateRight(time, (speed - 2 + addedSpeed) * -25, Utility.isOnScreen(getTileLocationPoint(), 1, location) ? "Cowboy_Footstep" : "");
+                        Sprite.AnimateRight(time, (speed - 2 + addedSpeed) * -25, SUtility.isOnScreen(getTileLocationPoint(), 1, location) ? "Cowboy_Footstep" : "");
                         faceDirection(1);
                     }
                 }
@@ -402,7 +403,7 @@ namespace FarmCafe.Framework.Characters
                     position.Y += speed + addedSpeed;
                     if (!ignoreMovementAnimation)
                     {
-                        Sprite.AnimateDown(time, (speed - 2 + addedSpeed) * -25, Utility.isOnScreen(getTileLocationPoint(), 1, location) ? "Cowboy_Footstep" : "");
+                        Sprite.AnimateDown(time, (speed - 2 + addedSpeed) * -25, SUtility.isOnScreen(getTileLocationPoint(), 1, location) ? "Cowboy_Footstep" : "");
                         faceDirection(2);
                     }
                 }
@@ -431,7 +432,7 @@ namespace FarmCafe.Framework.Characters
                     position.X -= speed + addedSpeed;
                     if (!ignoreMovementAnimation)
                     {
-                        Sprite.AnimateLeft(time, (speed - 2 + addedSpeed) * -25, Utility.isOnScreen(getTileLocationPoint(), 1, location) ? "Cowboy_Footstep" : "");
+                        Sprite.AnimateLeft(time, (speed - 2 + addedSpeed) * -25, SUtility.isOnScreen(getTileLocationPoint(), 1, location) ? "Cowboy_Footstep" : "");
                         faceDirection(3);
                     }
                 }

@@ -8,9 +8,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FarmCafe.Framework.Multiplayer;
 using Microsoft.Xna.Framework;
-using static FarmCafe.Utility;
+using static FarmCafe.Framework.Utility;
 using FarmCafe.Models;
+using SUtility = StardewValley.Utility;
 
 namespace FarmCafe.Framework.Managers
 {
@@ -18,9 +20,9 @@ namespace FarmCafe.Framework.Managers
     {
         internal bool CheckSpawnCustomers()
         {
-            int minutesTillCloses = Utility.CalculateMinutesBetweenTimes(Game1.timeOfDay, ClosingTime);
-            int minutesTillOpens = Utility.CalculateMinutesBetweenTimes(Game1.timeOfDay, OpeningTime);
-            int minutesSinceLastCustomers = Utility.CalculateMinutesBetweenTimes(LastTimeCustomersArrived, Game1.timeOfDay);
+            int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, ClosingTime);
+            int minutesTillOpens = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, OpeningTime);
+            int minutesSinceLastCustomers = SUtility.CalculateMinutesBetweenTimes(LastTimeCustomersArrived, Game1.timeOfDay);
             int freeTablesCount = Tables.Count(t => !t.IsReserved);
 
             if (minutesTillOpens > 0
@@ -69,12 +71,13 @@ namespace FarmCafe.Framework.Managers
             }
 
             Table table;
-
             if (memberCount == 0)
             {
+                // If memberCount not specified, calculate how many members it should be based on
+                // the number of chairs on the table
                 table = tables.First();
                 int countSeats = table.Seats.Count;
-                memberCount = table.Seats.Count switch
+                memberCount = countSeats switch
                 {
                     1 => 1,
                     2 => Game1.random.Next(2) == 0 ? 2 : 1,
@@ -84,21 +87,35 @@ namespace FarmCafe.Framework.Managers
             }
             else
             {
+                // If memberCount is specified, get the table that has 
                 table = tables.OrderBy(t => t.Seats.Count).First();
             }
 
-            var group = new CustomerGroup();
+            // If not enough models free, adjust member count
+            List<CustomerModel> modelsToUse = GetRandomCustomerModels(memberCount);
+            if (modelsToUse.Count < memberCount)
+                memberCount = modelsToUse.Count;
+
+            List<Customer> customers = new List<Customer>();
             for (var i = 0; i < memberCount; i++)
             {
-                Customer c = SpawnCustomer(group, location, tilePosition);
+                Customer c = SpawnCustomer(location, tilePosition, modelsToUse[i]);
                 c.OrderItem = GetRandomItemFromMenu();
             }
 
-            if (group.ReserveTable(table) is false)
-                Logger.Log("ERROR: Couldn't reserve table (was supposed to be able to reserve)", LogLevel.Error);
+            CustomerGroup group;
+            try
+            {
+                group = new CustomerGroup(customers, table);
+            }
+            catch (Exception e)
+            {
+                Logger.Log("ERROR: " + e.Message, LogLevel.Error);
+                return null;
+            }
 
             CurrentGroups.Add(group);
-            Multiplayer.Sync.AddCustomerGroup(group);
+            Sync.AddCustomerGroup(group);
             return group;
         }
 
@@ -141,8 +158,8 @@ namespace FarmCafe.Framework.Managers
         {
             foreach (var busyPeriod in NpcSchedules[npc.Name].BusyTimes[npc.dayScheduleName.Value])
             {
-                if (Utility.CalculateMinutesBetweenTimes(timeOfDay, busyPeriod.From) <= 120
-                    && Utility.CalculateMinutesBetweenTimes(timeOfDay, busyPeriod.To) > 0)
+                if (SUtility.CalculateMinutesBetweenTimes(timeOfDay, busyPeriod.From) <= 120
+                    && SUtility.CalculateMinutesBetweenTimes(timeOfDay, busyPeriod.To) > 0)
                 {
                     if (busyPeriod.Priority <= 3 && Game1.random.Next(6 * busyPeriod.Priority) == 0)
                         return true;
@@ -157,6 +174,11 @@ namespace FarmCafe.Framework.Managers
 
         internal void SpawnGroupAtBus()
         {
+            // debugging
+            if (!GetMenuItems().Any())
+            {
+                return;
+            }
             var group = SpawnGroup(GetLocationFromName("BusStop"), BusPosition);
             if (group == null)
                 return;
@@ -192,12 +214,28 @@ namespace FarmCafe.Framework.Managers
             return CustomerModels.Any() ? CustomerModels[Game1.random.Next(CustomerModels.Count)] : null;
         }
 
-        internal Customer SpawnCustomer(CustomerGroup group, GameLocation location, Point tilePosition)
+        internal List<CustomerModel> GetRandomCustomerModels(int count = 0)
         {
-            CustomerModel model;
-            if ((model = GetRandomCustomerModel()) == null)
-                throw new Exception("Customer model not found.");
+            List<CustomerModel> results = new List<CustomerModel>();
+            if (count == 0)
+                count = CustomerModels.Count;
+            foreach (var model in CustomerModels)
+            {
+                if (CustomerModelsInUse.Contains(model.Name))
+                    continue;
+                if (count == 0)
+                    break;
 
+                count--;
+                CustomerModelsInUse.Add(model.Name);
+                results.Add(model);
+            }
+
+            return results;
+        }
+
+        internal Customer SpawnCustomer(GameLocation location, Point tilePosition, CustomerModel model)
+        {
             Customer customer = new Customer(
                 name: $"CustomerNPC_{model.Name}{CurrentCustomers.Count + 1}",
                 targetTile: tilePosition,
@@ -207,8 +245,6 @@ namespace FarmCafe.Framework.Managers
             Logger.Log($"Customer {customer.Name} spawned");
 
             CurrentCustomers.Add(customer);
-            group.Add(customer);
-            customer.Group = group;
             return customer;
         }
 
@@ -261,5 +297,21 @@ namespace FarmCafe.Framework.Managers
             FreeAllTables();
         }
 
+        internal static List<Customer> GetAllCustomersInGame()
+        {
+            var locationCustomers = Game1.locations
+                .SelectMany(l => l.getCharacters())
+                .OfType<Customer>();
+
+            var buildingCustomers = (Game1.getFarm().buildings
+                    .Where(b => b.indoors.Value != null)
+                    .SelectMany(b => b.indoors.Value.characters))
+                .OfType<Customer>();
+
+            var list = locationCustomers.Concat(buildingCustomers).ToList();
+
+            Logger.Log("Updating customers" + string.Join(' ', list));
+            return list;
+        }
     }
 }

@@ -80,10 +80,10 @@ namespace FarmCafe.Framework.Managers
 
         internal static void LoadCustomerModels(IModHelper helper, ref List<CustomerModel> customerModels)
         {
-            var modelFolders = new DirectoryInfo(Path.Combine(helper.DirectoryPath, "Customers")).GetDirectories();
+            var modelFolders = new DirectoryInfo(Path.Combine(helper.DirectoryPath, "assets", "Customers")).GetDirectories();
             foreach (var modelFolder in modelFolders)
             {
-                CustomerModel model = helper.ModContent.Load<CustomerModel>(Path.Combine("Customers", modelFolder.Name, "customer.json"));
+                CustomerModel model = helper.ModContent.Load<CustomerModel>(Path.Combine("assets", "Customers", modelFolder.Name, "customer.json"));
                 if (model == null)
                 {
                     Logger.Log("Couldn't read json for content pack");
@@ -91,7 +91,7 @@ namespace FarmCafe.Framework.Managers
                 }
 
                 model.Name = model.Name.Replace(" ", "");
-                model.TilesheetPath = helper.ModContent.GetInternalAssetName(Path.Combine("Customers", modelFolder.Name, "customer.png")).Name;
+                model.TilesheetPath = helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Customers", modelFolder.Name, "customer.png")).Name;
 
                 string portraitName = "cat";
                 model.Portrait = helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", portraitName + ".png")).Name;
