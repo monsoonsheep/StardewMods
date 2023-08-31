@@ -371,3 +371,5 @@ FarmCafe/assets/Portraits/Temp*
 *.aseprite
 /Dummy/
 /Dummy/*
+/FarmCafe/mynotes.md
+/FarmCafe/SolidFoundations.dll
