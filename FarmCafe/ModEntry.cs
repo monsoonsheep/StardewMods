@@ -107,7 +107,56 @@ namespace FarmCafe
             if (Context.IsMainPlayer)
             {
                 PrepareSolidFoundationsApi();
+                
             }
+        }
+
+        private static void InitConfig()
+        {
+            string GetFrequencyText(int n)
+            {
+                return n switch
+                {
+                    1 => "Very Low",
+                    2 => "Low",
+                    3 => "Medium",
+                    4 => "High",
+                    5 => "Very High",
+                    _ => "???"
+                };
+            }
+
+            // get Generic Mod Config Menu's API (if it's installed)
+            var configMenu = ModHelper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
+            if (configMenu is null)
+                return;
+
+            // register mod
+            configMenu.Register(
+                mod: ModManifest,
+                reset: () => Config = new Config(),
+                save: () => ModHelper.WriteConfig(Config)
+            );
+
+            // add some config options
+            configMenu.AddNumberOption(
+                mod: ModManifest,
+                name: I18n.Menu_CustomerFrequency,
+                tooltip: I18n.Menu_CustomerFrequencyTooltip,
+                getValue: () => Config.CustomerSpawnFrequency,
+                setValue: value => Config.CustomerSpawnFrequency = value,
+                min: 1, max: 5, 
+                formatValue: GetFrequencyText
+            );
+            configMenu.AddNumberOption(
+                mod: ModManifest,
+                name: I18n.Menu_NpcFrequency,
+                tooltip: I18n.Menu_NpcFrequency_Tooltip,
+                getValue: () => Config.NpcCustomerSpawnFrequency,
+                setValue: value => Config.NpcCustomerSpawnFrequency = value,
+                min: 1, max: 5, 
+                formatValue: GetFrequencyText
+            );
         }
 
         private static void OnSaveLoaded(object sender, SaveLoadedEventArgs e)
@@ -261,7 +310,7 @@ namespace FarmCafe
                 return;
 
             // spawn customers depending on probability logic
-            CafeManager.CheckSpawnCustomers();
+            CafeManager.TrySpawnCustomers();
         }
 
         private static void OnPeerConnected(object sender, PeerConnectedEventArgs e)

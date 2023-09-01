@@ -18,7 +18,7 @@ namespace FarmCafe.Framework.Managers
 {
     internal partial class CafeManager
     {
-        internal bool CheckSpawnCustomers()
+        internal bool TrySpawnCustomers()
         {
             int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, ClosingTime);
             int minutesTillOpens = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, OpeningTime);
@@ -61,6 +61,86 @@ namespace FarmCafe.Framework.Managers
             return false;
         }
 
+        internal CustomerGroup TryVisitNpcCustomers(int timeOfDay)
+        {
+            if (GetMenuItems().Any())
+                return null;
+            var tables = GetFreeTables();
+            if (tables.Count == 0)
+                return null;
+            
+            foreach (string name in NpcSchedules.Keys.OrderBy(_ => Game1.random.Next()))
+            {
+                // If currentlyCustomerNpcs contains this, skip
+                // 
+                NPC npc = Game1.getCharacterFromName(name);
+                // What can stop an NPC from starting to visit? 
+                // Being busy, sleeping, about to go to sleep, 
+                if (!NpcCanVisitDuringTime(npc, timeOfDay) || npc.isSleeping.Value)
+                    continue;
+                
+                ScheduleData scheduleData = NpcSchedules[npc.Name];
+
+                npc.ignoreScheduleToday = true;
+                npc.currentLocation.characters.Remove(npc);
+                Game1.removeThisCharacterFromAllLocations(npc);
+
+                Table table = tables.OrderBy(t => t.Seats.Count).First();
+
+                List<NPC> npcsToVisit = new List<NPC>() { npc };
+                List<Customer> customers = new List<Customer>();
+
+                foreach (var member in npcsToVisit)
+                {
+                    CurrentNpcCustomers.Add(member.Name);
+
+                    Customer customer = new Customer(member);
+                    customers.Add(customer);
+                    CurrentCustomers.Add(customer);
+
+                    customer.OrderItem = GetRandomItemFromMenu();
+                }
+
+
+                CustomerGroup group = new CustomerGroup(customers, table);
+                CurrentGroups.Add(group);
+
+                foreach (var customer in customers)
+                {
+                    customer.GoToSeat();
+                }
+
+                return group;
+
+            }
+
+            return null;
+            
+        }
+
+        internal void SpawnGroupAtBus()
+        {
+            // debugging
+            if (!GetMenuItems().Any())
+            {
+                return;
+            }
+            var group = SpawnGroup(GetLocationFromName("BusStop"), BusPosition);
+            if (group == null)
+                return;
+
+            var memberCount = group.Members.Count;
+            var convenePoints = GetBusConvenePoints(memberCount);
+            for (var i = 0; i < memberCount; i++)
+            {
+                group.Members[i].SetBusConvene(convenePoints[i], i * 800 + 1);
+                group.Members[i].faceDirection(2);
+                group.Members[i].State.Set(CustomerState.ExitingBus);
+            }
+
+            Logger.LogWithHudMessage($"{memberCount} customer(s) arriving");
+        }
+
         internal CustomerGroup SpawnGroup(GameLocation location, Point tilePosition, int memberCount = 0)
         {
             var tables = GetFreeTables(memberCount);
@@ -100,6 +180,7 @@ namespace FarmCafe.Framework.Managers
             for (var i = 0; i < memberCount; i++)
             {
                 Customer c = SpawnCustomer(location, tilePosition, modelsToUse[i]);
+                customers.Add(c);
                 c.OrderItem = GetRandomItemFromMenu();
             }
 
@@ -119,44 +200,12 @@ namespace FarmCafe.Framework.Managers
             return group;
         }
 
-        internal CustomerGroup GetRegularNpcCustomer(int timeOfDay)
-        {
-            foreach (string name in NpcSchedules.Keys.OrderBy(_ => Game1.random.Next()))
-            {
-                NPC npc = Game1.getCharacterFromName(name);
-                if (!NpcCanVisitDuringTime(npc, timeOfDay))
-                    continue;
-
-                ScheduleData scheduleData = NpcSchedules[npc.Name];
-                if (npc.isSleeping.Value)
-                    continue;
-
-
-            }
-
-            
-            return null;
-            //npc.ignoreScheduleToday = true;
-            //npc.currentLocation.characters.Remove(npc);
-            //Game1.removeThisCharacterFromAllLocations(npc);
-
-            //Customer customer = new Customer(npc);
-            //CustomerGroup group = new CustomerGroup();
-            //group.Add(customer);
-            //CurrentCustomers.Add(customer);
-            //CurrentGroups.Add(group);
-
-
-            //customer.Group = group;
-            //customer.OrderItem = GetRandomItemFromMenu();
-            //customer.HeadTowards(npc.currentLocation, npc.getTileLocationPoint() + new Point(3, 0), 3, customer.ConvertBack);
-
-            //return customer;
-        }
-
         internal bool NpcCanVisitDuringTime(NPC npc, int timeOfDay)
         {
-            foreach (var busyPeriod in NpcSchedules[npc.Name].BusyTimes[npc.dayScheduleName.Value])
+            NpcSchedules[npc.Name].BusyTimes.TryGetValue(npc.dayScheduleName.Value, out var busyPeriods);
+            if (busyPeriods == null)
+                return true;
+            foreach (BusyPeriod busyPeriod in busyPeriods)
             {
                 if (SUtility.CalculateMinutesBetweenTimes(timeOfDay, busyPeriod.From) <= 120
                     && SUtility.CalculateMinutesBetweenTimes(timeOfDay, busyPeriod.To) > 0)
@@ -170,29 +219,6 @@ namespace FarmCafe.Framework.Managers
             }
 
             return true;
-        }
-
-        internal void SpawnGroupAtBus()
-        {
-            // debugging
-            if (!GetMenuItems().Any())
-            {
-                return;
-            }
-            var group = SpawnGroup(GetLocationFromName("BusStop"), BusPosition);
-            if (group == null)
-                return;
-
-            var memberCount = group.Members.Count;
-            var convenePoints = GetBusConvenePoints(memberCount);
-            for (var i = 0; i < memberCount; i++)
-            {
-                group.Members[i].SetBusConvene(convenePoints[i], i * 800 + 1);
-                group.Members[i].faceDirection(2);
-                group.Members[i].State.Set(CustomerState.ExitingBus);
-            }
-
-            Logger.LogWithHudMessage($"{memberCount} customer(s) arriving");
         }
 
         internal List<Point> GetBusConvenePoints(int count)

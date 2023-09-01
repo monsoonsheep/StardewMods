@@ -35,11 +35,7 @@ namespace FarmCafe
                     ModEntry.CafeManager.RemoveAllCustomers();
                     break;
                 case SButton.NumPad3:
-                    if (ModEntry.CafeManager.CurrentGroups.Any())
-                    {
-                        ModEntry.CafeManager.WarpGroup(ModEntry.CafeManager.CurrentGroups.First(), Game1.getFarm(), new Point(78, 16));
-                    }
-
+                    ModEntry.CafeManager.TryVisitNpcCustomers(Game1.timeOfDay);
                     break;
                 case SButton.NumPad4:
                     Game1.activeClickableMenu = new CarpenterMenu();

@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SUtility = StardewValley.Utility;
 
 namespace FarmCafe.Framework.Managers
 {
@@ -18,7 +19,11 @@ namespace FarmCafe.Framework.Managers
             if (e.Name.IsDirectlyUnderPath("monsoonsheep.FarmCafe/NPCSchedules"))
             {
                 string npcname = e.Name.Name.Split('/').Last();
-                e.LoadFromModFile<ScheduleData>("assets/Schedules/" + npcname + ".json", AssetLoadPriority.Low);
+                var file = ModEntry.ModHelper.Data.ReadJsonFile<ScheduleData>("assets/Schedules/" + npcname + ".json");
+                if (file != null)
+                {
+                    e.LoadFrom(() => file, AssetLoadPriority.Low);
+                }
             }
         }
 
@@ -33,16 +38,26 @@ namespace FarmCafe.Framework.Managers
 
         internal static void LoadNpcSchedules(IModHelper helper)
         {
-            var dir = new DirectoryInfo(Path.Combine(helper.DirectoryPath, "assets", "Schedules"));
-            foreach (FileInfo f in dir.GetFiles())
+            List<NPC> npcList = new List<NPC>();
+            SUtility.getAllCharacters(npcList);
+            int count = 0;
+            foreach (NPC npc in npcList)
             {
-                var name = f.Name.Replace(".json", null);
-                ScheduleData scheduleData = Game1.content.Load<ScheduleData>("monsoonsheep.FarmCafe/NPCSchedules/" + name);
-                if (scheduleData != null)
+                try
                 {
-                    CafeManager.NpcSchedules[name] = scheduleData;
+                    ScheduleData scheduleData = Game1.content.Load<ScheduleData>("monsoonsheep.FarmCafe/NPCSchedules/" + npc.Name);
+                    if (scheduleData != null)
+                    {
+                        CafeManager.NpcSchedules[npc.Name] = scheduleData;
+                        count++;
+                    }
+                }
+                catch
+                {
+                    // ignored
                 }
             }
+            Logger.Log($"{count} NPCs have Schedule Data. The other {npcList.Count - count} won't visit the cafe.");
         }
 
         internal static void LoadContentPacks(IModHelper helper, ref List<CustomerModel> customerModels)

@@ -25,6 +25,7 @@ namespace FarmCafe.Framework.Managers
         internal static IList<Item> RecentlyAddedMenuItems = new List<Item>(new Item[9]);
 
         internal static List<Customer> CurrentCustomers = new List<Customer>();
+        internal static List<string> CurrentNpcCustomers = new List<string>();
         internal static NPC EmployeeNpc;
         internal static List<Table> Tables = new();
         internal static Dictionary<string, ScheduleData> NpcSchedules = new Dictionary<string, ScheduleData>();

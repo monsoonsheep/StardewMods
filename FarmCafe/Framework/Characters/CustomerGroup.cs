@@ -18,6 +18,11 @@ namespace FarmCafe.Framework.Characters
         {
             Members = members;
             Members[0].IsGroupLeader.Set(true);
+            foreach (var member in members)
+            {
+                member.Group = this;
+            }
+
             if (!ReserveTable(table))
                 throw new Exception("Couldn't reserve table. Bug!");
         }

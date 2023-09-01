@@ -9,6 +9,7 @@ namespace FarmCafe.Models
 {
     public class ScheduleData
     {
+        public List<string> Partners; // will be changed to something more sophisticated soon
         public Dictionary<string, List<BusyPeriod>> BusyTimes;
 
         [JsonIgnore]

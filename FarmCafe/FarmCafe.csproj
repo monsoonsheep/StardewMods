@@ -12,7 +12,7 @@
 	  <None Remove="FarmCafe\**" />
 	</ItemGroup>
 	<ItemGroup>
-	  <None Include="..\.editorconfig" Link=".editorconfig" />
+	  <None Remove="SolidFoundations.dll" />
 	</ItemGroup>
 
 	<ItemGroup>
