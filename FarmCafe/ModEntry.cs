@@ -107,7 +107,7 @@ namespace FarmCafe
             if (Context.IsMainPlayer)
             {
                 PrepareSolidFoundationsApi();
-                
+                InitConfig();
             }
         }
 
@@ -310,7 +310,7 @@ namespace FarmCafe
                 return;
 
             // spawn customers depending on probability logic
-            CafeManager.TrySpawnCustomers();
+            //CafeManager.TrySpawnCustomers();
         }
 
         private static void OnPeerConnected(object sender, PeerConnectedEventArgs e)

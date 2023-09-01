@@ -63,23 +63,50 @@ namespace FarmCafe.Framework.Managers
 
         internal CustomerGroup TryVisitNpcCustomers(int timeOfDay)
         {
-            if (GetMenuItems().Any())
-                return null;
             var tables = GetFreeTables();
-            if (tables.Count == 0)
+            if (!GetMenuItems().Any() || tables.Count == 0)
                 return null;
             
             foreach (string name in NpcSchedules.Keys.OrderBy(_ => Game1.random.Next()))
             {
-                // If currentlyCustomerNpcs contains this, skip
-                // 
+                if (CurrentNpcCustomers.Contains(name))
+                    continue;
                 NPC npc = Game1.getCharacterFromName(name);
+                if (npc == null)
+                {
+                    Logger.Log("Checking NPC for spawn but NPC wasn't found in any location");
+                    continue;
+                }
+
                 // What can stop an NPC from starting to visit? 
                 // Being busy, sleeping, about to go to sleep, 
-                if (!NpcCanVisitDuringTime(npc, timeOfDay) || npc.isSleeping.Value)
+                if (npc.isSleeping.Value)
                     continue;
                 
                 ScheduleData scheduleData = NpcSchedules[npc.Name];
+                bool canVisit = true;
+
+                scheduleData.BusyTimes.TryGetValue(npc.dayScheduleName.Value, out var busyPeriods);
+                if (busyPeriods != null)
+                {
+                    foreach (BusyPeriod busyPeriod in busyPeriods)
+                    {
+                        if (SUtility.CalculateMinutesBetweenTimes(timeOfDay, busyPeriod.From) <= 120
+                            && SUtility.CalculateMinutesBetweenTimes(timeOfDay, busyPeriod.To) > 0)
+                        {
+                            if (
+                                !(busyPeriod.Priority <= 3 && Game1.random.Next(6 * busyPeriod.Priority) == 0) &&
+                                !(busyPeriod.Priority == 4 && Game1.random.Next(50) == 0))
+                            {
+                                canVisit = false;
+                                break;
+                            }                            
+                        }
+                    }
+                }
+
+                if (!canVisit)
+                    continue;
 
                 npc.ignoreScheduleToday = true;
                 npc.currentLocation.characters.Remove(npc);
@@ -92,6 +119,7 @@ namespace FarmCafe.Framework.Managers
 
                 foreach (var member in npcsToVisit)
                 {
+                    Logger.LogWithHudMessage($"{member.Name} is visiting the cafe");
                     CurrentNpcCustomers.Add(member.Name);
 
                     Customer customer = new Customer(member);
@@ -115,7 +143,6 @@ namespace FarmCafe.Framework.Managers
             }
 
             return null;
-            
         }
 
         internal void SpawnGroupAtBus()
@@ -175,7 +202,8 @@ namespace FarmCafe.Framework.Managers
             List<CustomerModel> modelsToUse = GetRandomCustomerModels(memberCount);
             if (modelsToUse.Count < memberCount)
                 memberCount = modelsToUse.Count;
-
+            if (memberCount == 0)
+                return null;
             List<Customer> customers = new List<Customer>();
             for (var i = 0; i < memberCount; i++)
             {
@@ -191,34 +219,13 @@ namespace FarmCafe.Framework.Managers
             }
             catch (Exception e)
             {
-                Logger.Log("ERROR: " + e.Message, LogLevel.Error);
+                Logger.Log("Error while creating a customer group: " + e.Message, LogLevel.Error);
                 return null;
             }
 
             CurrentGroups.Add(group);
             Sync.AddCustomerGroup(group);
             return group;
-        }
-
-        internal bool NpcCanVisitDuringTime(NPC npc, int timeOfDay)
-        {
-            NpcSchedules[npc.Name].BusyTimes.TryGetValue(npc.dayScheduleName.Value, out var busyPeriods);
-            if (busyPeriods == null)
-                return true;
-            foreach (BusyPeriod busyPeriod in busyPeriods)
-            {
-                if (SUtility.CalculateMinutesBetweenTimes(timeOfDay, busyPeriod.From) <= 120
-                    && SUtility.CalculateMinutesBetweenTimes(timeOfDay, busyPeriod.To) > 0)
-                {
-                    if (busyPeriod.Priority <= 3 && Game1.random.Next(6 * busyPeriod.Priority) == 0)
-                        return true;
-                    if (busyPeriod.Priority == 4 && Game1.random.Next(50) == 0)
-                        return true;
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         internal List<Point> GetBusConvenePoints(int count)
@@ -277,7 +284,10 @@ namespace FarmCafe.Framework.Managers
         public void DeleteGroup(CustomerGroup group)
         {
             foreach (Customer c in group.Members)
+            {
                 CurrentCustomers.Remove(c);
+                CurrentNpcCustomers.Remove(c.Name);
+            }           
             CurrentGroups.Remove(group);
         }
 
@@ -316,8 +326,9 @@ namespace FarmCafe.Framework.Managers
                 c.currentLocation?.characters?.Remove(c);
             }
 
-            Multiplayer.Sync.RemoveAllCustomers();
+            Sync.RemoveAllCustomers();
             CurrentCustomers.Clear();
+            CurrentNpcCustomers.Clear();
             CustomerModelsInUse?.Clear();
             CurrentGroups?.Clear();
             FreeAllTables();

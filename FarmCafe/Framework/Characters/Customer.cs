@@ -18,6 +18,7 @@ using static FarmCafe.Framework.Utility;
 using SUtility = StardewValley.Utility;
 using static FarmCafe.Framework.Characters.CustomerState;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
+using Microsoft.CodeAnalysis;
 
 namespace FarmCafe.Framework.Characters
 {
@@ -117,7 +118,7 @@ namespace FarmCafe.Framework.Characters
             followSchedule = false;
             ignoreScheduleToday = true;
             isSleeping.Set(false);
-
+            base.Sprite.StopAnimation();
             this.syncedPortraitPath.Set(npc.syncedPortraitPath.Value);
             this.lastSeenMovieWeek.Set(npc.lastSeenMovieWeek.Value);
             this.Portrait = npc.Portrait;
@@ -153,29 +154,53 @@ namespace FarmCafe.Framework.Characters
             base.initNetFields();
         }
 
+        public void HaltOrOpenDoor(GameLocation location)
+        {
+            if (OriginalNpc != null)
+            {
+                PropertyValue door = null;
+                location.map.GetLayer("Buildings").PickTile(nextPositionPoint(), Game1.viewport.Size)?.Properties.TryGetValue("Action", out door);
+                var isDoor = door?.ToString().Split(SUtility.CharSpace);
+
+                if (isDoor == null)
+                {
+                    var standing = getStandingXY();
+                    location.map.GetLayer("Buildings").PickTile(new xTile.Dimensions.Location(standing.X, standing.Y), Game1.viewport.Size)?.Properties
+                        .TryGetValue("Action", out door);
+                    isDoor = door?.ToString().Split(SUtility.CharSpace);
+                }
+
+                if (isDoor is { Length: >= 1 } && isDoor[0].Contains("Door"))
+                {
+                    Logger.Log("Opened door");
+                    location.openDoor(new xTile.Dimensions.Location(nextPositionPoint().X / 64, nextPositionPoint().Y / 64), Game1.player.currentLocation.Equals(location));
+                }
+                else
+                {
+                    Halt();
+                }
+            }
+            else
+            {
+                Halt();
+            }
+        }
+
         public override void update(GameTime time, GameLocation location)
         {
             base.update(time, location);
+
             if (!Context.IsWorldReady || !Context.IsMainPlayer) return;
+            //if (moveUp)
+            //    Logger.Log($"up ");
+            //if (moveRight)
+            //    Logger.Log($"right");
+            //if (moveDown)
+            //    Logger.Log($"down");
+            //if (moveLeft)
+            //    Logger.Log($"left");
 
             // Regular NPCs turned into customers wouldn't open their room doors
-            if (OriginalNpc != null)
-            {
-                PropertyValue propertyValue = null;
-                location.map.GetLayer("Buildings").PickTile(nextPositionPoint(), Game1.viewport.Size)?.Properties.TryGetValue("Action", out propertyValue);
-                var strArray = propertyValue?.ToString().Split(SUtility.CharSpace);
-                if (strArray == null)
-                {
-                    var standingXy2 = getStandingXY();
-                    location.map.GetLayer("Buildings").PickTile(new Location(standingXy2.X, standingXy2.Y), Game1.viewport.Size)?.Properties
-                        .TryGetValue("Action", out propertyValue);
-                    strArray = propertyValue?.ToString().Split(SUtility.CharSpace);
-                }
-                if (strArray is { Length: >= 1 } && strArray[0].Contains("Door"))
-                {
-                    location.openDoor(new Location(nextPositionPoint().X / 64, nextPositionPoint().Y / 64), Game1.player.currentLocation.Equals(location));
-                }
-            }
             
             speed = 4; // For debug
 
@@ -326,7 +351,7 @@ namespace FarmCafe.Framework.Characters
                 {
                     if (!location.isTilePassable(nextPosition(0), viewport))
                         // TODO: Repath
-                        Halt();
+                        HaltOrOpenDoor(location);
                     else
                     {
                         if (location.characterDestroyObjectWithinRectangle(nextPosition(0), showDestroyedObject: true))
@@ -355,7 +380,7 @@ namespace FarmCafe.Framework.Characters
                 if (location.isCollidingPosition(nextPosition(1), viewport, isFarmer: false, 0, glider: false, this) && !isCharging)
                 {
                     if (!location.isTilePassable(nextPosition(1), viewport))
-                        Halt();
+                        HaltOrOpenDoor(location);
                     else
                     {
                         if (location.characterDestroyObjectWithinRectangle(nextPosition(1), showDestroyedObject: true))
@@ -384,7 +409,7 @@ namespace FarmCafe.Framework.Characters
                 if (location.isCollidingPosition(nextPosition(2), viewport, isFarmer: false, 0, glider: false, this) && !isCharging)
                 {
                     if (!location.isTilePassable(nextPosition(2), viewport))
-                        Halt();
+                        HaltOrOpenDoor(location);
                     else
                     {
                         if (location.characterDestroyObjectWithinRectangle(nextPosition(2), showDestroyedObject: true))
@@ -413,7 +438,7 @@ namespace FarmCafe.Framework.Characters
                 if (location.isCollidingPosition(nextPosition(3), viewport, isFarmer: false, 0, glider: false, this) && !isCharging)
                 {
                     if (!location.isTilePassable(nextPosition(3), viewport))
-                        Halt();
+                        HaltOrOpenDoor(location);
                     else
                     {
                         if (location.characterDestroyObjectWithinRectangle(nextPosition(3), showDestroyedObject: true))
