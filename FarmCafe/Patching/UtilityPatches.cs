@@ -1,12 +1,6 @@
 ﻿using StardewValley.Tools;
 using StardewValley;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
-using HarmonyLib;
 using xTile.Dimensions;
 using static FarmCafe.Framework.Utility;
 
@@ -42,7 +36,8 @@ namespace FarmCafe.Patching
                     //RepositionCustomer(x, y);
                     break;
                 case Hoe:
-                    Logger.Log($"{x}, {y}: {GetTileProperties(location.Map.GetLayer("Buildings").PickTile(new Location(x, y), Game1.viewport.Size))}");
+                    Logger.Log($"Buildings {x}, {y}: {GetTileProperties(location.Map.GetLayer("Buildings").PickTile(new Location(x, y), Game1.viewport.Size))}");
+                    Logger.Log($"Back {x}, {y}: {GetTileProperties(location.Map.GetLayer("Back").PickTile(new Location(x, y), Game1.viewport.Size))}");
                     break;
                 case FishingRod:
                     break;

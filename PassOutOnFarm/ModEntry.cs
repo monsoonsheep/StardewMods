@@ -43,12 +43,6 @@ namespace CollapseOnFarmFix
             helper.Events.GameLoop.DayStarted += OnDayStarted;
             helper.Events.Content.AssetRequested += OnAssetRequested;
 
-            #if DEBUG
-            helper.Events.GameLoop.SaveLoaded += delegate
-            {
-                Game1.player.health = 5;
-            };
-            #endif
             
         }
 

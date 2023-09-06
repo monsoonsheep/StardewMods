@@ -1,9 +1,5 @@
 ﻿using System;
-using FarmCafe.Framework.Managers;
-using StardewValley;
-using StardewValley.Objects;
 using System.Collections.Generic;
-using FarmCafe.Framework.Characters;
 using FarmCafe.Framework.Objects;
 using static FarmCafe.Framework.Utility;
 
@@ -45,7 +41,7 @@ namespace FarmCafe.Framework.Characters
 				{
 					if (member.Equals(other)) continue;
 					member.LookingDirections.Add(
-						DirectionIntFromVectors(member.getTileLocation(), other.BusConvenePoint.ToVector2()));
+						DirectionIntFromVectors(member.Tile, other.BusConvenePoint.ToVector2()));
 				}
 			}
 		}

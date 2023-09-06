@@ -1,18 +1,7 @@
-﻿using FarmCafe.Framework.Managers;
-using HarmonyLib;
-using Microsoft.Xna.Framework;
-using StardewModdingAPI;
-using StardewValley;
-using StardewValley.Objects;
-using StardewValley.Tools;
+﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using FarmCafe.Framework.Characters;
-using Netcode;
-using Object = StardewValley.Object;
-using static FarmCafe.Framework.Utility;
 
 // ReSharper disable UnusedParameter.Local
 // ReSharper disable InconsistentNaming

@@ -374,7 +374,7 @@ namespace FarmCafe.Framework.UI
             if (hoverText != null && (hoveredItem == null || cafeStockInventory == null))
             {
                 if (hoverAmount > 0)
-                    drawToolTip(b, hoverText, "", null, heldItem: true, -1, 0, -1, -1, null, hoverAmount);
+                    drawToolTip(b, hoverText, "", null, heldItem: true, -1, 0, null, -1, null, moneyAmountToShowAtBottom: hoverAmount);
                 else
                     drawHoverText(b, hoverText, Game1.smallFont);
             }

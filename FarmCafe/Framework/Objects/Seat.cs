@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using FarmCafe.Framework.Characters;
 using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.Objects;
-using xTile.Tiles;
+using static FarmCafe.Framework.Utility;
 
 namespace FarmCafe.Framework.Objects
 {
@@ -76,9 +72,9 @@ namespace FarmCafe.Framework.Objects
             if (!base.Reserve(customer))
                 return false;
 
-            if (Table.CurrentLocation is CafeLocation cafe)
+            if (IsLocationCafe(Table.CurrentLocation))
             {
-                MapSeat mapSeat = cafe.mapSeats.FirstOrDefault(s => s.tilePosition.Value.Equals(this.Position));
+                MapSeat mapSeat = Table.CurrentLocation.mapSeats.FirstOrDefault(s => s.tilePosition.Value.Equals(this.Position));
                 mapSeat?.sittingFarmers.Add(Game1.MasterPlayer.UniqueMultiplayerID, 0);
             }
             return true;
@@ -87,9 +83,9 @@ namespace FarmCafe.Framework.Objects
         internal override void Free()
         {
             base.Free();
-            if (Table.CurrentLocation is CafeLocation cafe)
+            if (IsLocationCafe(Table.CurrentLocation))
             {
-                MapSeat mapSeat = cafe.mapSeats.ToList().FirstOrDefault(s => s.tilePosition.Value.Equals(this.Position));
+                MapSeat mapSeat = Table.CurrentLocation.mapSeats.ToList().FirstOrDefault(s => s.tilePosition.Value.Equals(this.Position));
                 mapSeat?.RemoveSittingFarmer(Game1.MasterPlayer);
             }
         }

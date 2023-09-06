@@ -2,12 +2,9 @@
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SUtility = StardewValley.Utility;
 
 namespace FarmCafe.Framework.Managers
@@ -38,8 +35,7 @@ namespace FarmCafe.Framework.Managers
 
         internal static void LoadNpcSchedules(IModHelper helper)
         {
-            List<NPC> npcList = new List<NPC>();
-            SUtility.getAllCharacters(npcList);
+            List<NPC> npcList = SUtility.getAllCharacters();
             int count = 0;
             foreach (NPC npc in npcList)
             {
@@ -108,7 +104,7 @@ namespace FarmCafe.Framework.Managers
                 model.Name = model.Name.Replace(" ", "");
                 model.TilesheetPath = helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Customers", modelFolder.Name, "customer.png")).Name;
 
-                string portraitName = "cat";
+                string portraitName = "Tempcat";
                 model.Portrait = helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", portraitName + ".png")).Name;
 
                 customerModels.Add(model);

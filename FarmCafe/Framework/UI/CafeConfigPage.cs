@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using StardewValley;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using static StardewValley.Menus.CoopMenu;
 using SUtility = StardewValley.Utility;
 
 namespace FarmCafe.Framework.UI

@@ -1,19 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using FarmCafe.Framework.Characters;
-using StardewModdingAPI;
-using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Objects;
-using xTile.Dimensions;
-using Microsoft.Xna.Framework;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
-using Utility = FarmCafe.Framework.Utility;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 

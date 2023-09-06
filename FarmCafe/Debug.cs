@@ -1,16 +1,11 @@
 ﻿using FarmCafe.Framework.Characters;
 using StardewValley;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using FarmCafe.Framework.Managers;
 using Microsoft.Xna.Framework;
-using StardewValley.Menus;
-using StardewValley.Objects;
+using static FarmCafe.Framework.Utility;
 
 namespace FarmCafe
 {
@@ -38,7 +33,6 @@ namespace FarmCafe
                     ModEntry.CafeManager.TryVisitNpcCustomers(Game1.timeOfDay);
                     break;
                 case SButton.NumPad4:
-                    Game1.activeClickableMenu = new CarpenterMenu();
                     Debug.ListCustomers();
                     break;
                 case SButton.NumPad5:
@@ -59,9 +53,6 @@ namespace FarmCafe
                     Logger.Log("Breaking");
                     break;
                 case SButton.N:
-                    Logger.Log(Game1.MasterPlayer.ActiveObject?.ParentSheetIndex.ToString());
-                    Game1.MasterPlayer.addItemToInventory(new Furniture(1220, new Vector2(0, 0)).getOne());
-                    Game1.MasterPlayer.addItemToInventory(new Furniture(21, new Vector2(0, 0)).getOne());
                     break;
                 case SButton.V:
                     NPC shane = Game1.getCharacterFromName("Shane");
@@ -73,7 +64,7 @@ namespace FarmCafe
                             CafeManager.CurrentCustomers.Remove(c);
                             c.Group?.ReservedTable?.Free();
                         }
-                        Game1.warpCharacter(shane, Game1.player.currentLocation, Game1.player.getTileLocation() + new Vector2(0, -1));
+                        Game1.warpCharacter(shane, Game1.player.currentLocation, Game1.player.Tile + new Vector2(0, -1));
                         //ModEntry.CafeManager.VisitRegularNpc(Game1.getCharacterFromName("Shane"));
                     }
                     //CustomerGroup g = CafeManager.SpawnGroup(Game1.player.currentLocation,
@@ -91,7 +82,7 @@ namespace FarmCafe
 
         public static void WarpToCafe()
         {
-            var cafe = CafeManager.CafeLocations.First(l => l is CafeLocation);
+            var cafe = CafeManager.CafeLocations.First(IsLocationCafe);
             var warp = cafe.warps.First();
             Game1.warpFarmer(cafe.Name, warp.X, warp.Y - 1, 0);
         }
@@ -121,18 +112,5 @@ namespace FarmCafe
             }
         }
 
-        private static void PlaceCafeBuilding(Vector2 position)
-        {
-            var building = ModEntry.SfApi.PlaceBuilding("FarmCafeSignboard", Game1.getFarm(), position);
-
-            if (building.Key)
-            {
-                Logger.Log($"building placed. message is {building.Value}");
-            }
-            else
-            {
-                Logger.Log($"building not placed. messag eis {building.Value}");
-            }
-        }
     }
 }

@@ -1,10 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Reflection;
-using FarmCafe.Framework.Managers;
-using Force.DeepCloner;
 using Microsoft.Xna.Framework;
 using StardewValley;
+using StardewValley.Pathfinding;
 using static FarmCafe.Framework.Utility;
 using SUtility = StardewValley.Utility;
 namespace FarmCafe.Framework.Characters
@@ -86,7 +84,7 @@ namespace FarmCafe.Framework.Characters
                 1 => new Vector2(12f, -8f), // right
                 2 => new Vector2(0f, 0f), // down 
                 3 => new Vector2(-12f, -8f), // left
-                _ => drawOffsetForSeat
+                _ => drawOffsetForSeat.Value
             };
 
             drawOffsetForSeat.Set(vec);
@@ -175,7 +173,7 @@ namespace FarmCafe.Framework.Characters
         internal void ReachHome()
         {
             IsInvisible = true;
-            Game1.removeCharacterFromItsLocation(this.Name);
+            base.currentLocation.characters.Remove(this);
             if (Group.Members.All(c => c.IsInvisible))
                 ModEntry.CafeManager.DeleteGroup(Group);
         }
@@ -184,14 +182,13 @@ namespace FarmCafe.Framework.Characters
         {
             // Remove this Customer object from the game and mod
             this.currentLocation.characters.Remove(this);
-            Game1.removeThisCharacterFromAllLocations(this);
             ModEntry.CafeManager.DeleteGroup(Group);
 
             // We stored the original NPC object before Customer initialization
             // Here we update any state that changed while the Customer was active
             OriginalNpc.currentLocation = this.currentLocation;
             OriginalNpc.Position = this.Position;
-            OriginalNpc.Schedule = this.Schedule;
+            OriginalNpc.TryLoadSchedule(this.ScheduleKey) ;
             OriginalNpc.faceDirection(this.FacingDirection);
 
             // Add the original back to the game
@@ -225,7 +222,7 @@ namespace FarmCafe.Framework.Characters
                     ? timeOfCurrent : timeOfNext;
             }
 
-            toDoPath = OriginalNpc.getSchedule(Game1.dayOfMonth)[timeOfActivity];
+            toDoPath = OriginalNpc.Schedule[timeOfActivity];
             OriginalNpc.lastAttemptedSchedule = timeOfActivity;
 
             GameLocation targetLocation = Game1.getLocationFromName(this.OriginalScheduleLocations?.First(t => t.time == timeOfActivity).locationName);
@@ -233,7 +230,7 @@ namespace FarmCafe.Framework.Characters
 
             if (targetLocation != null)
             {
-                toDoPath.route = OriginalNpc.PathTo(OriginalNpc.currentLocation, OriginalNpc.getTileLocationPoint(), targetLocation, toDoPath.route.Last());
+                toDoPath.route = OriginalNpc.PathTo(OriginalNpc.currentLocation, OriginalNpc.TilePoint, targetLocation, toDoPath.route.Last());
                 OriginalNpc.DirectionsToNewLocation = toDoPath;
 
                 OriginalNpc.controller = new PathFindController(toDoPath.route, OriginalNpc, SUtility.getGameLocationOfCharacter(OriginalNpc))

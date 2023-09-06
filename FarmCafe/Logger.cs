@@ -1,7 +1,4 @@
-﻿using FarmCafe.Framework.Characters;
-using FarmCafe.Framework.Managers;
-using Microsoft.Xna.Framework;
-using StardewModdingAPI;
+﻿using StardewModdingAPI;
 using StardewValley;
 
 namespace FarmCafe
@@ -17,7 +14,7 @@ namespace FarmCafe
 
         public static void LogWithHudMessage(string message)
         {
-			Game1.addHUDMessage(new HUDMessage(message, Color.White, 2000));
+			Game1.addHUDMessage(new HUDMessage(message, 2000));
             Monitor.Log(message, LogLevel.Debug);
         }
     }

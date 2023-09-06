@@ -1,11 +1,11 @@
 ﻿using StardewModdingAPI;
-using StardewValley.Locations;
 using StardewValley.Objects;
 using StardewValley;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
+using StardewValley.Pathfinding;
 using xTile.Dimensions;
 using static FarmCafe.Framework.Utility;
 
@@ -24,7 +24,7 @@ namespace FarmCafe.Framework.Characters
             me.controller = null;
             me.isCharging = false;
 
-            Stack<Point> path = PathTo(me, me.currentLocation, me.getTileLocationPoint(), targetLocation, targetTile);
+            Stack<Point> path = PathTo(me, me.currentLocation, me.TilePoint, targetLocation, targetTile);
 
             if (path == null || !path.Any())
             {
@@ -47,7 +47,7 @@ namespace FarmCafe.Framework.Characters
                 //GoHome();
             }
 
-            Logger.Log($"Pathing from {me.getTileLocationPoint()} to {targetTile}");
+            Logger.Log($"Pathing from {me.TilePoint} to {targetTile}");
         }
 
 
@@ -69,7 +69,7 @@ namespace FarmCafe.Framework.Characters
             Point locationStartPoint = startTile;
             if (startingLocation.Name.Equals(targetLocation.Name, StringComparison.Ordinal))
             {
-                if ((targetLocation is CafeLocation && !targetLocation.isTilePassable(new Location(targetTile.X, targetTile.Y), Game1.viewport)) 
+                if ((IsLocationCafe(targetLocation) && !targetLocation.isTilePassable(new Location(targetTile.X, targetTile.Y), Game1.viewport)) 
                     || targetLocation.GetFurnitureAt(targetTile.ToVector2()) != null)
                 {
                     return FindPathInLocation(me, locationStartPoint, targetTile, startingLocation, pathingToObject: true);
@@ -80,31 +80,21 @@ namespace FarmCafe.Framework.Characters
                 }
             }
 
-            List<string> locationsRoute = ModEntry.CafeManager.GetLocationRoute(startingLocation, targetLocation);
+            string[] locationsRoute = ModEntry.CafeManager.GetLocationRoute(startingLocation, targetLocation);
             if (locationsRoute == null)
                 throw new Exception("Location route not found");
 
             Stack<Point> path = new Stack<Point>();
-            for (int i = 0; i < locationsRoute.Count; i++)
+            for (int i = 0; i < locationsRoute.Length; i++)
             {
                 GameLocation current = GetLocationFromName(locationsRoute[i]);
-                if (i < locationsRoute.Count - 1)
+                if (i < locationsRoute.Length - 1)
                 {
                     Point target = current.getWarpPointTo(locationsRoute[i + 1]);
-
-                    // If the next location in the route is a Cafe Indoors (getWarpPointTo doesn't find SF indoors)
-                    if (target == Point.Zero && GetLocationFromName(locationsRoute[i + 1]) is CafeLocation &&
-                        current is BuildableGameLocation buildableLocation)
+                    if (target.Equals(Point.Zero))
                     {
-                        var building = buildableLocation.buildings
-                            .FirstOrDefault(b => b.indoors.Value is CafeLocation);
-                        if (building == null)
-                            throw new Exception("schedule pathing tried to find a warp point that doesn't exist.");
-                        target = building.humanDoor.Value;
-                    }
-
-                    if (target.Equals(Point.Zero)) // || locationStartPoint.Equals(Point.Zero))
                         throw new Exception("Error finding route to cafe. Couldn't find warp point");
+                    }
 
 
                     Stack<Point> nextPath = FindPathInLocation(me, locationStartPoint, target, current);
@@ -117,10 +107,10 @@ namespace FarmCafe.Framework.Characters
                     locationStartPoint = current.getWarpPointTarget(target);
                     if (locationStartPoint == Point.Zero)
                     {
-                        var building = (current as BuildableGameLocation)?.getBuildingAt(target.ToVector2());
-                        if (building?.indoors.Value != null)
+                        var building = current.getBuildingAt(target.ToVector2());
+                        if (building.GetIndoors() != null)
                         {
-                            Warp w = building.indoors.Value.warps.FirstOrDefault();
+                            Warp w = building.GetIndoors().warps.FirstOrDefault();
                             locationStartPoint = new Point(w.X, w.Y - 1);
                         }
                     }
@@ -128,7 +118,7 @@ namespace FarmCafe.Framework.Characters
                 else
                 {
                     Stack<Point> nextPathToAppend;
-                    if ((targetLocation is CafeLocation && !targetLocation.isTilePassable(new Location(targetTile.X, targetTile.Y), Game1.viewport)) 
+                    if ((IsLocationCafe(targetLocation) && !targetLocation.isTilePassable(new Location(targetTile.X, targetTile.Y), Game1.viewport)) 
                         || targetLocation.GetFurnitureAt(targetTile.ToVector2()) != null)
                     {
                         nextPathToAppend = FindPathInLocation(me, locationStartPoint, targetTile, current, pathingToObject: true);
@@ -154,24 +144,29 @@ namespace FarmCafe.Framework.Characters
 
             Stack<Point> path = null;
 
-            if (location is Farm)
+            if (location is Farm || IsLocationCafe(location))
             {
-                path = PathFindController.FindPathOnFarm(startTile, targetTile, location, iterations);
+                // findPath checks for collisiong with location.isCollidingPosition, passing in glider = false, pathfinding = true.
+                // We do this on the farm because a. We put furniture there and b. Buildings on the farm aren't on the "Buildings" layer in the map for some reason,
+                // so characters path and walk through the buildings if we do the other pathing method.
+                path = PathFindController.findPath(
+                    startTile,
+                    targetTile,
+                    PathFindController.isAtEndPoint,
+                    location,
+                    me,
+                    iterations);
             }
-            else if (!me.Name.Contains("Customer"))
-            {
-                path = PathFindController.findPathForNPCSchedules(startTile, targetTile, location, 30000);
-            }
+            // findPathForNPCSchedules doesn't look at collisions. It checks for tiles in the Buildings layer, pathing if 
+            // there's a Passable or NPCPassable property, and not pathing through "NoPath" properties. It also 
+            // checks for location.isTerrainFeatureAt(x, y)
+            // We do this in NPC's homes because otherwise they can't go through their own doors
+            path ??= PathFindController.findPathForNPCSchedules(startTile, targetTile, location, 30000);
             
-
-            path ??= PathFindController.findPath(
-                startTile,
-                targetTile,
-                PathFindController.isAtEndPoint,
-                location,
-                me,
-                iterations);
-
+            if (path == null)
+            {
+                Logger.Log($"Couldn't find path in {location.Name}");
+            }
             return path;
         }
 
@@ -187,7 +182,7 @@ namespace FarmCafe.Framework.Characters
 
             Furniture seat = location.GetFurnitureAt((targetTile).ToVector2());
             if (IsChair(seat) && !seat.Name.ToLower().Contains("stool"))
-                directions.RemoveAt(seat.GetSittingDirection()); // 3 is left
+                directions.RemoveAt(seat.GetSittingDirection());
 
             MapSeat mapSeat = location.mapSeats.FirstOrDefault(s => s.OccupiesTile(targetTile.X, targetTile.Y));
             if (mapSeat != null)

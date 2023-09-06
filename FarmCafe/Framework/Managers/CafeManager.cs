@@ -1,20 +1,15 @@
 ﻿using StardewValley;
-using StardewValley.Locations;
 using Microsoft.Xna.Framework;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using static FarmCafe.Framework.Utility;
 using StardewModdingAPI;
 using FarmCafe.Framework.Characters;
 using FarmCafe.Framework.Objects;
-using Microsoft.Xna.Framework.Graphics;
 using xTile.Tiles;
 using Point = Microsoft.Xna.Framework.Point;
-using StardewValley.Buildings;
-using StardewValley.Objects;
-using Object = StardewValley.Object;
 using FarmCafe.Models;
+using StardewValley.Pathfinding;
 
 namespace FarmCafe.Framework.Managers
 {
@@ -25,13 +20,14 @@ namespace FarmCafe.Framework.Managers
         internal static IList<Item> RecentlyAddedMenuItems = new List<Item>(new Item[9]);
 
         internal static List<Customer> CurrentCustomers = new List<Customer>();
-        internal static List<string> CurrentNpcCustomers = new List<string>();
+        internal List<string> CurrentNpcCustomers = new List<string>();
         internal static NPC EmployeeNpc;
         internal static List<Table> Tables = new();
         internal static Dictionary<string, ScheduleData> NpcSchedules = new Dictionary<string, ScheduleData>();
 
-        internal List<List<string>> RoutesToCafe;
-        internal List<List<string>> GameRoutes =  ModEntry.ModHelper.Reflection.GetField<List<List<string>>>(typeof(NPC), "routesFromLocationToLocation").GetValue();
+        private static readonly Dictionary<string, List<LocationWarpRoute>> RoutesToCafe = new Dictionary<string, List<LocationWarpRoute>>();
+
+        internal Dictionary<Rectangle, List<Vector2>> MapTablesInCafeLocation = new Dictionary<Rectangle, List<Vector2>>();
 
         internal List<CustomerModel> CustomerModels = new List<CustomerModel>();
         internal List<string> CustomerModelsInUse = new List<string>();
@@ -46,7 +42,6 @@ namespace FarmCafe.Framework.Managers
 
         public CafeManager()
         {
-            
             CacheBusPosition();
         }
 
@@ -57,6 +52,7 @@ namespace FarmCafe.Framework.Managers
 
             PopulateTables(CafeLocations);
             LastTimeCustomersArrived = OpeningTime;
+
         }
 
         internal void CacheBusPosition()

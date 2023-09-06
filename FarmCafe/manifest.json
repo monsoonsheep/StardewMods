@@ -6,11 +6,5 @@
   "UniqueID": "monsoonsheep.farmcafe",
   "EntryDll": "FarmCafe.dll",
   "MinimumApiVersion": "3.0.0",
-  "UpdateKeys": [],
-  "Dependencies": [
-   {
-      "UniqueID": "PeacefulEnd.SolidFoundations",
-      "MinimumVersion": "1.15.0" // optional. If specified, older versions won't meet the requirement.
-   }
-]
+  "UpdateKeys": []
 }

@@ -7,12 +7,31 @@ using System.Collections.Generic;
 using System.Linq;
 using FarmCafe.Framework.Characters;
 using FarmCafe.Framework.Objects;
+using StardewValley.Buildings;
+using StardewValley.Pathfinding;
 using xTile.Tiles;
+using SObject = StardewValley.Object;
 
 namespace FarmCafe.Framework
 {
     internal class Utility
     {
+        internal static bool IsLocationCafe(GameLocation location)
+        {
+            return IsBuildingCafe(location?.GetContainingBuilding());
+        }
+
+        internal static bool IsBuildingCafe(Building building)
+        {
+            return building != null && building.modData.ContainsKey("IsCafeBuilding");
+
+        }
+
+        internal static Item GetItem(string id)
+        {
+            return new SObject(id, 1).getOne();
+        }
+
         internal static bool IsChair(Furniture furniture)
         {
             return furniture != null && furniture.furniture_type.Value is 0 or 1 or 2;
@@ -86,7 +105,7 @@ namespace FarmCafe.Framework
 
         internal static string GetTileProperties(Tile tile)
         {
-            return tile == null ? "there's no tile" : tile.Properties.Concat(tile.TileIndexProperties).Aggregate("", (currentTile, property) => currentTile + $"{property.Key}: {property.Value}, ");
+            return tile == null ? "there's no tile" : tile.Properties.Concat(tile.TileIndexProperties.GetCollection()?.ToList() ?? new List<KeyValuePair<string, string>>()).Aggregate("", (currentTile, property) => currentTile + $"{property.Key}: {property.Value}, ");
         }
 
         internal static GameLocation GetLocationFromName(string name)
@@ -96,6 +115,8 @@ namespace FarmCafe.Framework
 
         internal static FurnitureTable IsTableTracked(Furniture table, GameLocation location)
         {
+            if (table == null || location == null)
+                return null;
             return CafeManager.Tables
                 .OfType<FurnitureTable>().FirstOrDefault(t => t.CurrentLocation.Equals(location) && t.Position == table.TileLocation);
         }
@@ -104,7 +125,7 @@ namespace FarmCafe.Framework
         {
             // time, location name, steps to get there
             List<LocationPathDescription> route = new();
-            Dictionary<int, SchedulePathDescription> schedule = npc.getSchedule(Game1.dayOfMonth);
+            Dictionary<int, SchedulePathDescription> schedule = npc.Schedule;
 
             GameLocation currentLoc = Game1.getLocationFromName(npc.DefaultMap);
 

@@ -1,14 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
-using StardewValley.Buildings;
 using StardewValley.Menus;
-using StardewValley.Objects;
-using static FarmCafe.Framework.UI.CafeStockPage;
-using static StardewValley.Menus.CharacterCustomization;
 
 // ReSharper disable InconsistentNaming
 

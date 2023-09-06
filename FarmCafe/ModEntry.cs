@@ -5,29 +5,17 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
-using StardewValley.Objects;
-using StardewValley.Buildings;
 using static FarmCafe.Framework.Utility;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
 using FarmCafe.Framework;
 using FarmCafe.Framework.Characters;
-using FarmCafe.Framework.Multiplayer;
 using FarmCafe.Framework.Objects;
 using FarmCafe.Framework.UI;
-using Sickhead.Engine.Util;
-using StardewValley.Menus;
-using xTile.Dimensions;
-using SolidFoundations.Framework.Interfaces.Internal;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using Object = StardewValley.Object;
-using StardewValley.Monsters;
-using SolidFoundations.Framework.Models.ContentPack;
 using FarmCafe.Patching;
 
 namespace FarmCafe
@@ -37,7 +25,6 @@ namespace FarmCafe
     {
         internal new static IMonitor Monitor;
         internal static IModHelper ModHelper;
-        internal static IApi SfApi;
         internal new static IManifest ModManifest;
 
         internal static Config Config;
@@ -100,13 +87,13 @@ namespace FarmCafe
             helper.Events.Multiplayer.ModMessageReceived += OnModMessageReceived;
 
             Sprites = helper.ModContent.Load<Texture2D>("assets/sprites.png");
+            GameLocation.RegisterTileAction("FarmCafe_OpenCafeMenu", OpenCafeMenu);
         }
 
         private static void OnGameLaunched(object sender, GameLaunchedEventArgs e)
         {
             if (Context.IsMainPlayer)
             {
-                PrepareSolidFoundationsApi();
                 InitConfig();
             }
         }
@@ -191,18 +178,11 @@ namespace FarmCafe
             // look at NPC schedules. 
         }
 
-        /// <summary>
-        /// Remove all customers before Solid Foundations can try to serialize them (it serializes locations, and the NPCs in them)
-        /// </summary>
-        /// <remarks>The <see cref="EventPriority"/> is set to High + 1, because SF has set its to High. This always has to go first</remarks>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        [EventPriority(EventPriority.High + 1)]
         private static void OnDayEnding(object sender, DayEndingEventArgs e)
         {
             if (Context.IsMainPlayer)
             {
-                CafeManager?.RemoveAllCustomers();
+                CafeManager.RemoveAllCustomers();
             }
         }
 
@@ -212,7 +192,7 @@ namespace FarmCafe
                 return;
 
             // Menu Items TODO: Make sure they are in the same order as saved (Where() is ordered)
-            Game1.player.modData["FarmCafeMenuItems"] = string.Join(" ", CafeManager.GetMenuItems());
+            Game1.player.modData["FarmCafeMenuItems"] = string.Join(" ", CafeManager.GetMenuItems().Select(i => i.ItemId));
             // Opening and Closing Times
             Game1.player.modData["FarmCafeOpenCloseTimes"] = $"{CafeManager.OpeningTime} {CafeManager.ClosingTime}";
         }
@@ -241,7 +221,7 @@ namespace FarmCafe
                 switch (e.Type.Split('/')[2])
                 {
                     case nameof(c.OrderItem):
-                        c.OrderItem = new Object(e.ReadAs<int>(), 1).getOne();
+                        c.OrderItem = GetItem(e.ReadAs<string>());
                         break;
                 }
             }
@@ -310,7 +290,7 @@ namespace FarmCafe
                 return;
 
             // spawn customers depending on probability logic
-            //CafeManager.TrySpawnCustomers();
+            CafeManager.TrySpawnCustomers();
         }
 
         private static void OnPeerConnected(object sender, PeerConnectedEventArgs e)
@@ -322,7 +302,7 @@ namespace FarmCafe
         {
             foreach (var removed in e.Removed)
             {
-                if (removed is CafeLocation)
+                if (IsLocationCafe(removed))
                 {
                     CafeManager.UpdateCafeLocation();
                 }
@@ -350,13 +330,14 @@ namespace FarmCafe
                     {
                         try
                         {
-                            Item item = new Object(int.Parse(id), 1);
+                            Item item = new Object(id, 1);
                             CafeManager.AddToMenu(item);
                         }
                         catch
                         {
                             Logger.Log("Invalid item ID in player's modData.", LogLevel.Warn);
                             break;
+                            
                         }
                     }
                 }
@@ -369,43 +350,18 @@ namespace FarmCafe
             }
         }
 
-        private static void PrepareSolidFoundationsApi()
-        {
-            SfApi = ModHelper.ModRegistry.GetApi<IApi>(
-                "PeacefulEnd.SolidFoundations");
-            if (SfApi == null)
-                throw new Exception("SF Api failed");
-
-            SfApi.BroadcastSpecialActionTriggered += OnBuildingBroadcastTriggered;
-        }
-
-        private static void OnBuildingBroadcastTriggered(object sender, IApi.BroadcastEventArgs e)
-        {
-            var buildingId = e.BuildingId;
-            var buildingObject = e.Building;
-            var farmerObject = e.Farmer;
-            var tileWhereTriggered = e.TriggerTile;
-            var sentMessage = e.Message;
-
-            if (!Context.IsWorldReady) 
-                return;
-            if (Game1.activeClickableMenu != null || (!Context.IsPlayerFree)) 
-                return;
-
-            if (sentMessage.ToLower() == "opencafemenu")
-                OpenCafeMenu();
-        }
-
-        internal static void OpenCafeMenu()
+        internal static bool OpenCafeMenu(GameLocation location, string[] args, Farmer player, Point tile)
         {
             if (!Context.IsMainPlayer)
-                return;
+                return false;
 
             if (Game1.activeClickableMenu == null && Context.IsPlayerFree)
             {
                 Logger.Log("Open menu!");
                 Game1.activeClickableMenu = new CafeMenu();
             }
+
+            return true;
         }
     }
 }

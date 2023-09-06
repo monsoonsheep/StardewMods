@@ -2,11 +2,8 @@
 using StardewModdingAPI;
 using StardewValley.Objects;
 using StardewValley;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using static FarmCafe.Framework.Utility;
 using FarmCafe.Framework.Characters;
@@ -47,10 +44,10 @@ namespace FarmCafe.Framework.Managers
             Tables.RemoveAll(t => !locations.Contains(t.CurrentLocation));
 
             // Populate Map tables
-            CafeLocation cafe = locations.OfType<CafeLocation>().FirstOrDefault();
+            GameLocation cafe = locations.FirstOrDefault(IsLocationCafe);
             if (cafe != null)
             {
-                foreach (var pair in cafe.MapTables)
+                foreach (var pair in MapTablesInCafeLocation)
                 {
                     Rectangle newRectangle = new Rectangle(pair.Key.X * 64, pair.Key.Y * 64, pair.Key.Width * 64, pair.Key.Height * 64);
                     MapTable mapTable = new MapTable(newRectangle, cafe, pair.Value);
@@ -175,7 +172,7 @@ namespace FarmCafe.Framework.Managers
                     if (facingFurniture == null ||
                         !IsTable(facingFurniture) ||
                         facingFurniture
-                            .getBoundingBox(facingFurniture.TileLocation)
+                            .GetBoundingBox()
                             .Intersects(f.boundingBox.Value)) // if chair was placed on top of the table
                     {
                         continue;
@@ -214,11 +211,11 @@ namespace FarmCafe.Framework.Managers
             {
                 foreach (Customer customer in groupOnTable.Members)
                 {
-                    if (customer.OrderItem != null && who.hasItemInInventory(customer.OrderItem.ParentSheetIndex, 1))
+                    if (customer.OrderItem != null && who.Items.ContainsId(customer.OrderItem.ItemId, 1))
                     {
-                        Logger.Log($"Customer item = {customer.OrderItem.ParentSheetIndex}, inventory = {who.hasItemInInventory(customer.OrderItem.ParentSheetIndex, 1)}");
+                        Logger.Log($"Customer item = {customer.OrderItem.ParentSheetIndex}, inventory = {who.Items.ContainsId(customer.OrderItem.ItemId, 1)}");
                         customer.OrderReceive();
-                        who.removeFirstOfThisItemFromInventory(customer.OrderItem.ParentSheetIndex);
+                        who.removeFirstOfThisItemFromInventory(customer.OrderItem.ItemId);
                     }
                 }
             }

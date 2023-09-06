@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
 using FarmCafe.Framework.Characters;
-using FarmCafe.Framework.Managers;
 using FarmCafe.Framework.Multiplayer;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
-using StardewValley.Objects;
+using StardewValley.Pathfinding;
 using Object = StardewValley.Object;
 
 namespace FarmCafe.Patching
@@ -25,7 +21,7 @@ namespace FarmCafe.Patching
                 new (
                     typeof(PathFindController),
                     "moveCharacter",
-                    null,
+                    new [] { typeof(GameTime) },
                     transpiler: nameof(MoveCharacterTranspiler)),
                 new (
                     typeof(Character),
@@ -35,7 +31,7 @@ namespace FarmCafe.Patching
                 new (
                     typeof(NPC),
                     "tryToReceiveActiveObject",
-                    new[] { typeof(Farmer) },
+                    new[] { typeof(Farmer), typeof(bool) },
                     prefix: nameof(TryToReceiveActiveObjectPrefix)),
                 new (
                     typeof(Game1),

@@ -6,8 +6,6 @@ using StardewValley;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using FarmCafe.Framework.Multiplayer;
 using Microsoft.Xna.Framework;
 using static FarmCafe.Framework.Utility;
@@ -43,7 +41,7 @@ namespace FarmCafe.Framework.Managers
                 _ => 0.6f
             };
 
-            float percentageOfTablesFree = (float) freeTablesCount / (float) CafeManager.Tables.Count();
+            float percentageOfTablesFree = (float) freeTablesCount / (float) Tables.Count();
             prob += (percentageOfTablesFree) switch
             {
                 <= 0.2f => 0.1f,
@@ -85,8 +83,9 @@ namespace FarmCafe.Framework.Managers
                 
                 ScheduleData scheduleData = NpcSchedules[npc.Name];
                 bool canVisit = true;
-
-                scheduleData.BusyTimes.TryGetValue(npc.dayScheduleName.Value, out var busyPeriods);
+                if (npc.ScheduleKey == null)
+                    continue;
+                scheduleData.BusyTimes.TryGetValue(npc.ScheduleKey, out var busyPeriods);
                 if (busyPeriods != null)
                 {
                     foreach (BusyPeriod busyPeriod in busyPeriods)
@@ -110,7 +109,6 @@ namespace FarmCafe.Framework.Managers
 
                 npc.ignoreScheduleToday = true;
                 npc.currentLocation.characters.Remove(npc);
-                Game1.removeThisCharacterFromAllLocations(npc);
 
                 Table table = tables.OrderBy(t => t.Seats.Count).First();
 
@@ -200,14 +198,18 @@ namespace FarmCafe.Framework.Managers
 
             // If not enough models free, adjust member count
             List<CustomerModel> modelsToUse = GetRandomCustomerModels(memberCount);
-            if (modelsToUse.Count < memberCount)
-                memberCount = modelsToUse.Count;
-            if (memberCount == 0)
-                return null;
+            //if (modelsToUse.Count < memberCount)
+            //    memberCount = modelsToUse.Count;
+            //if (memberCount == 0)
+            //{
+            //    Logger.Log("No more models to use for customers");
+            //    return null;
+            //}
+
             List<Customer> customers = new List<Customer>();
             for (var i = 0; i < memberCount; i++)
             {
-                Customer c = SpawnCustomer(location, tilePosition, modelsToUse[i]);
+                Customer c = SpawnCustomer(location, tilePosition, modelsToUse[0]);
                 customers.Add(c);
                 c.OrderItem = GetRandomItemFromMenu();
             }
@@ -260,7 +262,7 @@ namespace FarmCafe.Framework.Managers
                     break;
 
                 count--;
-                CustomerModelsInUse.Add(model.Name);
+                //CustomerModelsInUse.Add(model.Name);
                 results.Add(model);
             }
 
@@ -297,7 +299,7 @@ namespace FarmCafe.Framework.Managers
             {
                 if (other.Equals(customer)
                     || !other.currentLocation.Equals(customer.currentLocation)
-                    || !other.getTileLocation().Equals(customer.getTileLocation()))
+                    || !other.Tile.Equals(customer.Tile))
                     continue;
 
                 other.isCharging = true;
@@ -322,7 +324,6 @@ namespace FarmCafe.Framework.Managers
             Logger.Log("Removing customers");
             foreach (var c in CurrentCustomers)
             {
-                Game1.removeThisCharacterFromAllLocations(c);
                 c.currentLocation?.characters?.Remove(c);
             }
 
@@ -337,12 +338,13 @@ namespace FarmCafe.Framework.Managers
         internal static List<Customer> GetAllCustomersInGame()
         {
             var locationCustomers = Game1.locations
-                .SelectMany(l => l.getCharacters())
+                .SelectMany(l => l.characters)
                 .OfType<Customer>();
 
+            
             var buildingCustomers = (Game1.getFarm().buildings
-                    .Where(b => b.indoors.Value != null)
-                    .SelectMany(b => b.indoors.Value.characters))
+                    .Where(b => b.GetIndoors() != null)
+                    .SelectMany(b => b.GetIndoors().characters))
                 .OfType<Customer>();
 
             var list = locationCustomers.Concat(buildingCustomers).ToList();
