@@ -29,7 +29,7 @@ namespace FarmCafe.Framework.Managers
             if (e.Name.IsDirectlyUnderPath("monsoonsheep.FarmCafe/NPCSchedules"))
             {
                 string npcname = e.Name.Name.Split('/').Last();
-                CafeManager.NpcSchedules[npcname] = Game1.content.Load<ScheduleData>("monsoonsheep.FarmCafe/NPCSchedules/" + npcname);
+                CafeManager.NpcCustomerSchedules[npcname] = Game1.content.Load<ScheduleData>("monsoonsheep.FarmCafe/NPCSchedules/" + npcname);
             }
         }
 
@@ -44,7 +44,7 @@ namespace FarmCafe.Framework.Managers
                     ScheduleData scheduleData = Game1.content.Load<ScheduleData>("monsoonsheep.FarmCafe/NPCSchedules/" + npc.Name);
                     if (scheduleData != null)
                     {
-                        CafeManager.NpcSchedules[npc.Name] = scheduleData;
+                        CafeManager.NpcCustomerSchedules[npc.Name] = scheduleData;
                         count++;
                     }
                 }

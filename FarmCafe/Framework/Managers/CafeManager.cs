@@ -23,7 +23,7 @@ namespace FarmCafe.Framework.Managers
         internal List<string> CurrentNpcCustomers = new List<string>();
         internal static NPC EmployeeNpc;
         internal static List<Table> Tables = new();
-        internal static Dictionary<string, ScheduleData> NpcSchedules = new Dictionary<string, ScheduleData>();
+        internal static Dictionary<string, ScheduleData> NpcCustomerSchedules = new Dictionary<string, ScheduleData>();
 
         private static readonly Dictionary<string, List<LocationWarpRoute>> RoutesToCafe = new Dictionary<string, List<LocationWarpRoute>>();
 

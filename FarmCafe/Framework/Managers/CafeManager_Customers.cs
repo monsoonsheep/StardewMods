@@ -11,6 +11,7 @@ using Microsoft.Xna.Framework;
 using static FarmCafe.Framework.Utility;
 using FarmCafe.Models;
 using SUtility = StardewValley.Utility;
+using StardewValley.Buildings;
 
 namespace FarmCafe.Framework.Managers
 {
@@ -18,21 +19,24 @@ namespace FarmCafe.Framework.Managers
     {
         internal bool TrySpawnCustomers()
         {
+            var tables = GetFreeTables();
             int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, ClosingTime);
             int minutesTillOpens = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, OpeningTime);
             int minutesSinceLastCustomers = SUtility.CalculateMinutesBetweenTimes(LastTimeCustomersArrived, Game1.timeOfDay);
-            int freeTablesCount = Tables.Count(t => !t.IsReserved);
+            float percentageOfTablesFree = (float)tables.Count / Tables.Count;
 
             if (minutesTillOpens > 0
                 || minutesTillCloses <= 30 // Don't spawn customers after 30 minutes before closing time
-                || freeTablesCount == 0)
+                || tables.Count == 0
+                || !GetMenuItems().Any())
                 return false;
+
+            // get regular NPC customer visit
+            TryVisitNpcCustomers(Game1.timeOfDay);
             
             float prob = 0f;
 
-            if (minutesTillCloses <= 60)
-                prob += (Game1.random.Next(20 + (minutesTillCloses / 3)) >= 28) ? 0.2f : -0.5f;
-
+            // more chance if it's been a while since last customers
             prob += minutesSinceLastCustomers switch
             {
                 <= 20 => 0f,
@@ -41,7 +45,7 @@ namespace FarmCafe.Framework.Managers
                 _ => 0.6f
             };
 
-            float percentageOfTablesFree = (float) freeTablesCount / (float) Tables.Count();
+            // more chance if a higher percent of tables are free
             prob += (percentageOfTablesFree) switch
             {
                 <= 0.2f => 0.1f,
@@ -50,6 +54,11 @@ namespace FarmCafe.Framework.Managers
                 _ => 0.7f
             };
 
+            // slight chance to spawn if last hour of open time
+            if (minutesTillCloses <= 60)
+                prob += (Game1.random.Next(20 + (minutesTillCloses / 3)) >= 28) ? 0.2f : -0.5f;
+
+            // proc the chance to spawn
             if ((float) Game1.random.NextDouble() < prob)
             {
                 LastTimeCustomersArrived = Game1.timeOfDay;
@@ -59,13 +68,9 @@ namespace FarmCafe.Framework.Managers
             return false;
         }
 
-        internal CustomerGroup TryVisitNpcCustomers(int timeOfDay)
+        internal bool TryVisitNpcCustomers(int timeOfDay)
         {
-            var tables = GetFreeTables();
-            if (!GetMenuItems().Any() || tables.Count == 0)
-                return null;
-            
-            foreach (string name in NpcSchedules.Keys.OrderBy(_ => Game1.random.Next()))
+            foreach (string name in NpcCustomerSchedules.Keys.OrderBy(_ => Game1.random.Next()))
             {
                 if (CurrentNpcCustomers.Contains(name))
                     continue;
@@ -81,7 +86,7 @@ namespace FarmCafe.Framework.Managers
                 if (npc.isSleeping.Value)
                     continue;
                 
-                ScheduleData scheduleData = NpcSchedules[npc.Name];
+                ScheduleData scheduleData = NpcCustomerSchedules[npc.Name];
                 bool canVisit = true;
                 if (npc.ScheduleKey == null)
                     continue;
@@ -110,7 +115,7 @@ namespace FarmCafe.Framework.Managers
                 npc.ignoreScheduleToday = true;
                 npc.currentLocation.characters.Remove(npc);
 
-                Table table = tables.OrderBy(t => t.Seats.Count).First();
+                Table table = GetFreeTables().OrderBy(t => t.Seats.Count).First();
 
                 List<NPC> npcsToVisit = new List<NPC>() { npc };
                 List<Customer> customers = new List<Customer>();
@@ -136,11 +141,11 @@ namespace FarmCafe.Framework.Managers
                     customer.GoToSeat();
                 }
 
-                return group;
+                return true;
 
             }
 
-            return null;
+            return false;
         }
 
         internal void SpawnGroupAtBus()
