@@ -58,7 +58,7 @@ namespace FarmCafe.Framework.Objects
         internal override void Free()
         {
             base.Free();
-            this.ActualChair.modData.Remove("FarmCafeChairIsReserved");
+            this.ActualChair.modData.Remove(ModKeys.MODDATA_CHAIRRESERVED);
         }
     }
 

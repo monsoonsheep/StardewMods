@@ -113,7 +113,7 @@ namespace FarmCafe.Patching
 
             if (IsTable(__instance))
             {
-                if (!Context.IsMainPlayer && __instance.modData.TryGetValue("FarmCafeTableIsReserved", out var val) && val == "T")
+                if (!Context.IsMainPlayer && __instance.modData.TryGetValue(ModKeys.MODDATA_TABLERESERVED, out var val) && val == "T")
                 {
                     __result = false;
                 }
@@ -141,7 +141,7 @@ namespace FarmCafe.Patching
                     }
                     else
                     {
-                        CafeManager.FarmerClickTable(trackedTable, who);
+                        ModEntry.CafeManager.FarmerClickTable(trackedTable, who);
                     }
                     __result = true;
                     return false;

@@ -1,15 +1,17 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
+using StardewValley;
 
 namespace FarmCafe.Models
 {
     public class ScheduleData
     {
+        public int Frequency = 2;
         public List<string> Partners; // will be changed to something more sophisticated soon
         public Dictionary<string, List<BusyPeriod>> BusyTimes;
 
-        [JsonIgnore]
-        internal (int, string, int) LastVisitedDate = new(1, "spring", 1);
+        internal WorldDate LastVisitedDate = new(1,Season.Spring, 1);
+        internal bool CanVisitToday = false;
 
         public ScheduleData()
         {

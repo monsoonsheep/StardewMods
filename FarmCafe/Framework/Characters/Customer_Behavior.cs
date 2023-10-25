@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Microsoft.Xna.Framework;
 using StardewValley;
@@ -101,6 +102,8 @@ namespace FarmCafe.Framework.Characters
                 nextPos,
                 0.15f,
                 GoHome);
+
+            OnFinishedDined?.Invoke(this);
         }
 
         internal void ReadyToOrder()
@@ -111,7 +114,7 @@ namespace FarmCafe.Framework.Characters
 
             //if (IsGroupLeader)
             //    TableCenterForEmote = this.Group.ReservedTable.GetCenter() + new Vector2(-8, -64);
-            
+
             Multiplayer.Sync.UpdateCustomerInfo(this, nameof(OrderItem), OrderItem.ParentSheetIndex);
             //Sync.UpdateCustomerInfo(this, nameof(TableCenterForEmote), TableCenterForEmote.ToString());
         }
@@ -136,8 +139,8 @@ namespace FarmCafe.Framework.Characters
             foreach (int direction in directions)
             {
                 var boundingBox = GetBoundingBox();
-                boundingBox.X += (int) DirectionIntToDirectionVector(direction).X * 64;
-                boundingBox.Y += (int) DirectionIntToDirectionVector(direction).Y * 64;
+                boundingBox.X += (int)DirectionIntToDirectionVector(direction).X * 64;
+                boundingBox.Y += (int)DirectionIntToDirectionVector(direction).Y * 64;
 
                 var nextPosition = Position + (DirectionIntToDirectionVector(direction) * 64f);
                 if (!currentLocation.isCollidingPosition(boundingBox, Game1.viewport, false, 0, glider: false, this))
@@ -166,7 +169,7 @@ namespace FarmCafe.Framework.Characters
                 this.HeadTowards(Game1.getLocationFromName("BusStop"), ModEntry.CafeManager.BusPosition, 0, ReachHome);
             else
             {
-                this.HeadTowards(Game1.getLocationFromName("BusStop"), new Point(5, 23), 1, ConvertBack);
+                this.HeadTowards(Game1.getLocationFromName("BusStop"), new Point(5, 23), 1, RevertAndReturnOriginalNpc);
             }
         }
 
@@ -178,7 +181,7 @@ namespace FarmCafe.Framework.Characters
                 ModEntry.CafeManager.DeleteGroup(Group);
         }
 
-        internal void ConvertBack()
+        internal void RevertOriginalNpc()
         {
             // Remove this Customer object from the game and mod
             this.currentLocation.characters.Remove(this);
@@ -188,58 +191,98 @@ namespace FarmCafe.Framework.Characters
             // Here we update any state that changed while the Customer was active
             OriginalNpc.currentLocation = this.currentLocation;
             OriginalNpc.Position = this.Position;
-            OriginalNpc.TryLoadSchedule(this.ScheduleKey) ;
+            OriginalNpc.TryLoadSchedule(this.ScheduleKey);
             OriginalNpc.faceDirection(this.FacingDirection);
+            OriginalNpc.ignoreScheduleToday = false;
 
             // Add the original back to the game
             this.currentLocation.addCharacter(OriginalNpc);
-            // Reload NPC's data (not sure if needed)
-            OriginalNpc.reloadData();
+        }
 
-            // Find a way to get back to what the original NPC was doing before
-            // being turned into a Customer
-            SchedulePathDescription toDoPath = null;
+        internal void RevertAndReturnOriginalNpc()
+        {
+            RevertOriginalNpc();
+
+            ReturnOriginalNpcToSchedule();
+        }
+
+        /// <summary>
+        /// Find a way to get back to what the original NPC was doing before
+        /// being turned into a Customer
+        /// </summary>
+        internal void ReturnOriginalNpcToSchedule()
+        {
+            //OriginalNpc.lastAttemptedSchedule = timeOfActivity;
+            //GameLocation targetLocation = Game1.getLocationFromName(this.OriginalScheduleLocations?.First(t => t.time == timeOfActivity).locationName);
+            //PathFindController.endBehavior endFunction = (PathFindController.endBehavior) typeof(NPC)
+            //    .GetMethod("getRouteEndBehaviorFunction", BindingFlags.NonPublic | BindingFlags.Instance)?
+            //    .Invoke(OriginalNpc,  new object[] { originalPathDescription.endOfRouteBehavior, originalPathDescription.endOfRouteMessage }); 
+
+            SchedulePathDescription originalPathDescription = OriginalNpc.Schedule[GetTimeOfActivityAfterReverting()];
+
+            GameLocation targetLocation = Game1.getLocationFromName(originalPathDescription.targetLocationName);
+            if (targetLocation != null)
+            {
+                Stack<Point> routeToScheduleItem = OriginalNpc.PathTo(OriginalNpc.currentLocation, OriginalNpc.TilePoint, targetLocation, originalPathDescription.targetTile);
+
+                SchedulePathDescription toInsert = new SchedulePathDescription(
+                    routeToScheduleItem,
+                    originalPathDescription.facingDirection,
+                    originalPathDescription.endOfRouteBehavior,
+                    originalPathDescription.endOfRouteMessage,
+                    targetLocation.Name,
+                    originalPathDescription.targetTile)
+                {
+                    time = Game1.timeOfDay
+                };
+
+                OriginalNpc.queuedSchedulePaths.Clear();
+                OriginalNpc.Schedule[Game1.timeOfDay] = toInsert;
+                OriginalNpc.checkSchedule(Game1.timeOfDay);
+
+                //OriginalNpc.DirectionsToNewLocation = originalPathDescription;
+                //OriginalNpc.controller = new PathFindController(originalPathDescription.route, OriginalNpc, SUtility.getGameLocationOfCharacter(OriginalNpc))
+                //{
+                //    finalFacingDirection = originalPathDescription.facingDirection,
+                //    endBehaviorFunction = endFunction
+                //};
+            }
+        }
+
+        /// <summary>
+        /// Get the time of day for the activity that's either right before or right after the current time, based on distance
+        /// </summary>
+        /// <returns></returns>
+        internal int GetTimeOfActivityAfterReverting()
+        {
             var activityTimes = Schedule.Keys.OrderBy(i => i).ToList();
-            
-            var timeOfCurrent = activityTimes.LastOrDefault(t => t <= Game1.timeOfDay);
-            var timeOfNext = activityTimes.FirstOrDefault(t => Game1.timeOfDay < t);
+
+            int timeOfCurrent = activityTimes.LastOrDefault(t => t <= Game1.timeOfDay);
+            int timeOfNext = activityTimes.FirstOrDefault(t => t > Game1.timeOfDay);
+
+            var minutesSinceCurrentStarted = SUtility.CalculateMinutesBetweenTimes(timeOfCurrent, Game1.timeOfDay);
+            var minutesTillNextStarts = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, timeOfNext);
 
             int timeOfActivity;
-            if (timeOfCurrent == 0)
+            if (timeOfCurrent == 0) // Means it's the start of the day
             {
                 timeOfActivity = activityTimes.First();
-               
             }
-            else if (timeOfNext == 0)
+            else if (timeOfNext == 0) // Means it's the end of the day
             {
                 timeOfActivity = activityTimes.Last();
             }
             else
             {
-                var minutesSinceCurrentStarted = SUtility.CalculateMinutesBetweenTimes(timeOfCurrent, Game1.timeOfDay);
-                var minutesTilNextStarts = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, timeOfNext);
-                timeOfActivity = minutesSinceCurrentStarted < minutesTilNextStarts 
-                    ? timeOfCurrent : timeOfNext;
+                if ((minutesTillNextStarts < minutesSinceCurrentStarted) && minutesTillNextStarts <= 30)
+                    // If we're very close to the next item, 
+                    timeOfActivity = timeOfNext;
+                else
+                    timeOfActivity = timeOfCurrent;
+
             }
 
-            toDoPath = OriginalNpc.Schedule[timeOfActivity];
-            OriginalNpc.lastAttemptedSchedule = timeOfActivity;
-
-            GameLocation targetLocation = Game1.getLocationFromName(this.OriginalScheduleLocations?.First(t => t.time == timeOfActivity).locationName);
-            PathFindController.endBehavior endFunction = (PathFindController.endBehavior) typeof(NPC).GetMethod("getRouteEndBehaviorFunction", BindingFlags.NonPublic | BindingFlags.Instance)?.Invoke(OriginalNpc,  new object[] { toDoPath.endOfRouteBehavior, toDoPath.endOfRouteMessage }); 
-
-            if (targetLocation != null)
-            {
-                toDoPath.route = OriginalNpc.PathTo(OriginalNpc.currentLocation, OriginalNpc.TilePoint, targetLocation, toDoPath.route.Last());
-                OriginalNpc.DirectionsToNewLocation = toDoPath;
-
-                OriginalNpc.controller = new PathFindController(toDoPath.route, OriginalNpc, SUtility.getGameLocationOfCharacter(OriginalNpc))
-                {
-                    finalFacingDirection = toDoPath.facingDirection,
-                    endBehaviorFunction = endFunction
-                };
-            }
-            
+            return timeOfActivity;
         }
     }
 }

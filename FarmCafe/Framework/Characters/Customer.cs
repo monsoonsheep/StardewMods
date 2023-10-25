@@ -44,19 +44,31 @@ namespace FarmCafe.Framework.Characters
             (this.time, this.locationName, this.steps) = (time, locationName, steps);
         }
     }
+
     public partial class Customer : NPC
     {
-        [XmlIgnore] internal NPC OriginalNpc;
-        [XmlIgnore] internal List<LocationPathDescription> OriginalScheduleLocations;
-        [XmlIgnore] internal CustomerGroup Group;
+        [XmlIgnore] 
+        internal NPC OriginalNpc;
 
+        [XmlIgnore] 
+        internal List<LocationPathDescription> OriginalScheduleLocations;
 
-        [XmlIgnore] internal NetBool IsGroupLeader = new NetBool();
+        [XmlIgnore] 
+        internal CustomerGroup Group;
 
-        [XmlIgnore] internal Seat Seat;
-        [XmlIgnore] internal NetBool IsSitting = new NetBool();
+        [XmlIgnore] 
+        internal NetBool IsGroupLeader = new NetBool();
+
+        [XmlIgnore] 
+        internal Seat Seat;
+
+        [XmlIgnore] 
+        internal NetBool IsSitting = new NetBool();
+
         private readonly NetVector2 drawOffsetForSeat = new NetVector2(new Vector2(0, 0));
-        [XmlIgnore] internal NetEnum<CustomerState> State = new(ExitingBus);
+
+        [XmlIgnore] 
+        internal NetEnum<CustomerState> State = new(ExitingBus);
 
         private int busDepartTimer;
         private int conveneWaitingTimer;
@@ -64,7 +76,8 @@ namespace FarmCafe.Framework.Characters
         private int orderTimer;
         private int eatingTimer;
 
-        [XmlIgnore] internal Point BusConvenePoint;
+        [XmlIgnore] 
+        internal Point BusConvenePoint;
 
         internal delegate void LerpEnd();
 
@@ -74,12 +87,12 @@ namespace FarmCafe.Framework.Characters
         private Vector2 lerpEndPosition;
         private LerpEnd lerpEndBehavior;
 
+        [XmlIgnore] 
+        internal List<int> LookingDirections = new() { 0, 1, 3 };
 
-        [XmlIgnore] internal Vector2 TableCenterForEmote = new Vector2(0, 0);
+        internal Item OrderItem { get; set; }
 
-        [XmlIgnore] internal List<int> LookingDirections = new() { 0, 1, 3 };
-
-        [XmlIgnore] internal Item OrderItem { get; set; }
+        internal event Action<Customer> OnFinishedDined;
 
         [XmlIgnore]
         internal bool FreezeMotion
@@ -106,6 +119,7 @@ namespace FarmCafe.Framework.Characters
 
             currentLocation = location;
             location.addCharacter(this);
+            
         }
 
         public Customer(NPC npc) : base(npc.Sprite, npc.Position, npc.DefaultMap, npc.FacingDirection, npc.Name, npc.datable.Value, null, npc.Portrait)
@@ -113,23 +127,24 @@ namespace FarmCafe.Framework.Characters
             IsInvisible = false;
             followSchedule = false;
             ignoreScheduleToday = true;
-            base.eventActor = true;
+            eventActor = true;
             isSleeping.Set(false);
             base.Sprite.StopAnimation();
-            this.syncedPortraitPath.Set(npc.syncedPortraitPath.Value);
+
             this.lastSeenMovieWeek.Set(npc.lastSeenMovieWeek.Value);
             this.Portrait = npc.Portrait;
             this.Breather = npc.Breather;
-            //this.TryLoadSchedule(npc.ScheduleKey);
             base.CurrentDialogue = npc.CurrentDialogue;
-            base.TryLoadSchedule();
+            this.TryLoadSchedule();
             this.currentLocation = npc.currentLocation;
             this.Position = npc.Position;
             base.faceDirection(npc.FacingDirection);
-            this.currentLocation.addCharacter(this);
 
             base.reloadData();
 
+            this.currentLocation.addCharacter(this);
+
+            npc.currentLocation.characters.Remove(npc);
 
             this.OriginalNpc = npc;
             this.OriginalScheduleLocations = GetLocationRouteFromSchedule(npc);
@@ -139,8 +154,6 @@ namespace FarmCafe.Framework.Characters
             // like give gifts and propose and even get custom modded behavior.
         }
 
-        #region Overrides
-
         public override bool shouldCollideWithBuildingLayer(GameLocation location) => true;
 
         public override bool canPassThroughActionTiles() => true;
@@ -149,33 +162,6 @@ namespace FarmCafe.Framework.Characters
         {
             base.initNetFields();
             NetFields.AddField(drawOffsetForSeat).AddField(State).AddField(IsGroupLeader).AddField(IsSitting);
-        }
-
-        public void HaltOrOpenDoor(GameLocation location, Rectangle pos)
-        {
-            if (OriginalNpc != null)
-            {
-                //Layer buildingsLayer = location.Map?.RequireLayer("Buildings");
-                //Point tileLocation = new Point(pos.Center.X / 64, pos.Bottom / 64);
-                //Tile tile2 = buildingsLayer?.Tiles[tileLocation.X, tileLocation.Y];
-                //if (tile2 != null && tile2.Properties.ContainsKey("Action"))
-                //{
-                //    location.openDoor(new Location(tileLocation.X, tileLocation.Y), Game1.currentLocation.Equals(location));
-                //}
-                //else
-                //{
-                //    tileLocation = new Point(pos.Center.X / 64, pos.Top / 64);
-                //    tile2 = buildingsLayer?.Tiles[tileLocation.X, tileLocation.Y];
-                //    if (tile2 != null && tile2.Properties.ContainsKey("Action"))
-                //    {
-                //        location.openDoor(new Location(tileLocation.X, tileLocation.Y), Game1.currentLocation.Equals(location));
-                //    }
-                //}
-            }
-            else
-            {
-                Halt();
-            }
         }
 
         public override void update(GameTime time, GameLocation location)
@@ -283,7 +269,7 @@ namespace FarmCafe.Framework.Characters
                 new Vector2(Sprite.SpriteWidth / 2, Sprite.SpriteHeight * 3f / 4f),
                 Math.Max(0.2f, scale.Value) * 4f,
                 SpriteEffects.None,
-                Math.Max(0f, base.StandingPixel.Y / 10000f + ((IsSitting.Value is true) ? 0.002f : 0.0001f)));
+                Math.Max(0f, base.StandingPixel.Y / 10000f + ((IsSitting.Value) ? 0.005f : 0.0001f)));
 
             if (Breather && shakeTimer <= 0 && !swimming && Sprite.currentFrame < 16 && !farmerPassesThrough)
             {
@@ -344,7 +330,7 @@ namespace FarmCafe.Framework.Characters
                 {
                     if (!location.isTilePassable(nextPosition(0), viewport))
                         // TODO: Repath
-                        HaltOrOpenDoor(location, nextPosition(0));
+                        Halt();
                     else
                     {
                         if (location.characterDestroyObjectWithinRectangle(nextPosition(0), showDestroyedObject: true))
@@ -373,7 +359,7 @@ namespace FarmCafe.Framework.Characters
                 if (location.isCollidingPosition(nextPosition(1), viewport, isFarmer: false, 0, glider: false, this) && !isCharging)
                 {
                     if (!location.isTilePassable(nextPosition(1), viewport))
-                        HaltOrOpenDoor(location, nextPosition(1));
+                        Halt();
                     else
                     {
                         if (location.characterDestroyObjectWithinRectangle(nextPosition(1), showDestroyedObject: true))
@@ -402,7 +388,7 @@ namespace FarmCafe.Framework.Characters
                 if (location.isCollidingPosition(nextPosition(2), viewport, isFarmer: false, 0, glider: false, this) && !isCharging)
                 {
                     if (!location.isTilePassable(nextPosition(2), viewport))
-                        HaltOrOpenDoor(location, nextPosition(2));
+                        Halt();
                     else
                     {
                         if (location.characterDestroyObjectWithinRectangle(nextPosition(2), showDestroyedObject: true))
@@ -431,7 +417,7 @@ namespace FarmCafe.Framework.Characters
                 if (location.isCollidingPosition(nextPosition(3), viewport, isFarmer: false, 0, glider: false, this) && !isCharging)
                 {
                     if (!location.isTilePassable(nextPosition(3), viewport))
-                        HaltOrOpenDoor(location, nextPosition(3));
+                        Halt();
                     else
                     {
                         if (location.characterDestroyObjectWithinRectangle(nextPosition(3), showDestroyedObject: true))
@@ -459,6 +445,7 @@ namespace FarmCafe.Framework.Characters
             {
                 Sprite.animateOnce(time);
             }
+
             if (blockedInterval >= 3000 && blockedInterval <= 3750)
             {
                 doEmote((Game1.random.NextDouble() < 0.5) ? 8 : 40);
@@ -470,8 +457,6 @@ namespace FarmCafe.Framework.Characters
                 blockedInterval = 0;
             }
         }
-
-        #endregion
 
         internal void LerpPosition(Vector2 startPos, Vector2 endPos, float duration, LerpEnd action)
         {
@@ -492,18 +477,11 @@ namespace FarmCafe.Framework.Characters
 
         public override string ToString()
         {
-            return $"[Customer]\n"
-                   + $"Name: {Name}\n"
-                   //+ $"Active path: " + this.GetCurrentPathStackShort() + "\n"
-                   + $"Location: {currentLocation}, Position: {Position}, Tile: {base.Tile}\n"
-                   + $"Bus depart timer: {busDepartTimer}, Convene timer: {conveneWaitingTimer}\n"
-                   + $"State: {State}\n";
-
-            //+ $"Group members: {Group.Members.Count}\n"
-            //+ $"Animation: {Model.Animation.NumberOfFrames} frames, {Model.Animation.Duration}ms each, Starting {Model.Animation.StartingFrame}\n"
-            //+ $"Sprite info: {Sprite} current frame = {Sprite.CurrentFrame}, "
-            //+ $"Texture name = {Sprite.Texture.Name}\n"
-            //+ $"Facing direction {FacingDirection}, IsMoving = {isMoving()}";
+            return $"[Customer] \n"
+                   + $"Name: {Name} \n"
+                   + $"Location: {currentLocation}, Position: {Position}, Tile: {base.Tile} \n"
+                   + $"Bus depart timer: {busDepartTimer}, Convene timer: {conveneWaitingTimer} \n"
+                   + $"State: {State} \n";
         }
     }
 }

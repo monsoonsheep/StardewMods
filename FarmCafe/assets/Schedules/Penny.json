@@ -1,4 +1,8 @@
 {
+        "Frequency": 2,
+        "Companions": [
+            "Jas", 
+        ],
         "BusyTimes": {
             "9": [
                 {

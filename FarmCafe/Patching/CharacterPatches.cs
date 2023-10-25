@@ -41,11 +41,11 @@ namespace FarmCafe.Patching
             };
         }
 
-        private static bool TryToReceiveActiveObjectPrefix(NPC __instance, Farmer who)
+        private static bool TryToReceiveActiveObjectPrefix(NPC __instance, Farmer who, bool probe)
         {
-            if (__instance is Customer customer) // TODO: make work for regular NPCs
+            if (!probe && __instance is Customer customer) // TODO: make work for regular NPCs
             {
-                if (who.ActiveObject == null || who.ActiveObject.ParentSheetIndex != customer.OrderItem.ParentSheetIndex)
+                if (who.ActiveObject?.ItemId != customer.OrderItem.ItemId)
                     return true;
 
                 customer.OrderReceive();

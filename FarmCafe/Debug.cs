@@ -5,6 +5,8 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using FarmCafe.Framework.Managers;
 using Microsoft.Xna.Framework;
+using StardewValley.Buildings;
+using StardewValley.Objects;
 using static FarmCafe.Framework.Utility;
 
 namespace FarmCafe
@@ -18,10 +20,8 @@ namespace FarmCafe
 
             switch (e.Button)
             {
-                case SButton.B:
-                    break;
                 case SButton.NumPad0:
-                    ModEntry.CafeManager.SpawnGroupAtBus();
+                    ModEntry.CafeManager.TryVisitCustomers();
                     break;
                 case SButton.NumPad1:
                     Debug.WarpToBus();
@@ -30,24 +30,24 @@ namespace FarmCafe
                     ModEntry.CafeManager.RemoveAllCustomers();
                     break;
                 case SButton.NumPad3:
-                    ModEntry.CafeManager.TryVisitNpcCustomers(Game1.timeOfDay);
+                    //ModEntry.CafeManager.TryVisitNpcCustomers();
                     break;
                 case SButton.NumPad4:
                     Debug.ListCustomers();
                     break;
                 case SButton.NumPad5:
-                    //ModEntry.CafeManager.VisitRegularNpc(Game1.getCharacterFromName("Shane"));
-                    //CafeLocations.OfType<CafeLocation>()?.FirstOrDefault()?.PopulateMapTables();
-                    //OpenCafeMenu();
-                    //NPC helper = Game1.getCharacterFromName("Sebastian");
-                    //helper.clearSchedule();
-                    //helper.ignoreScheduleToday = true;
-                    //Game1.warpCharacter(helper, "BusStop", CustomerManager.BusPosition);
-                    //helper.HeadTowards(CafeManager.CafeLocations.First(), new Point(12, 18), 2);
-                    //helper.eventActor = true;
+                    Building sign = GetSignboardBuilding();
+                    if (sign != null)
+                    {
+                        Logger.Log(sign.GetData().Size.ToString());
+                    }
                     break;
                 case SButton.NumPad6:
-                    Logger.Log(string.Join(", ", CafeManager.MenuItems.Select(i => i.DisplayName)));
+                    Logger.Log(string.Join(", ", ModEntry.CafeManager.MenuItems.Where(i => i != null).Select(i => i.DisplayName)));
+                    Logger.Log(Game1.player.ActiveObject?.ItemId);
+                    Game1.player.addItemToInventory(new Furniture("1220", new Vector2(0,0)).getOne());
+                    Game1.player.addItemToInventory(new Furniture("21", new Vector2(0,0)).getOne());
+                    Game1.player.addItemToInventory(new Furniture("21", new Vector2(0, 0)).getOne());
                     break;
                 case SButton.M:
                     Logger.Log("Breaking");
@@ -61,13 +61,13 @@ namespace FarmCafe
                     {
                         if (shane is Customer c)
                         {
-                            CafeManager.CurrentCustomers.Remove(c);
+                            ModEntry.CafeManager.CurrentCustomers.Remove(c);
                             c.Group?.ReservedTable?.Free();
                         }
                         Game1.warpCharacter(shane, Game1.player.currentLocation, Game1.player.Tile + new Vector2(0, -1));
                         //ModEntry.CafeManager.VisitRegularNpc(Game1.getCharacterFromName("Shane"));
                     }
-                    //CustomerGroup g = CafeManager.SpawnGroup(Game1.player.currentLocation,
+                    //CustomerGroup g = CafeManager.CreateCustomerGroup(Game1.player.currentLocation,
                     //    Game1.player.getTileLocationPoint() + new Point(0, -1), 1);
                     //g?.Members?.First()?.GoToSeat();
                     break;
@@ -75,6 +75,12 @@ namespace FarmCafe
                     return;
             }
         }
+
+        public static Building GetSignboardBuilding()
+        {
+            return Game1.getFarm().buildings.FirstOrDefault(b => b.buildingType.Value == "monsoonsheep.FarmCafe_CafeSignboard");
+        }
+
         public static void WarpToBus()
         {
             Game1.warpFarmer("BusStop", 12, 15, false);
@@ -82,7 +88,7 @@ namespace FarmCafe
 
         public static void WarpToCafe()
         {
-            var cafe = CafeManager.CafeLocations.First(IsLocationCafe);
+            var cafe = ModEntry.CafeManager.CafeLocations.First(IsLocationCafe);
             var warp = cafe.warps.First();
             Game1.warpFarmer(cafe.Name, warp.X, warp.Y - 1, 0);
         }
@@ -97,7 +103,7 @@ namespace FarmCafe
                     Logger.Log("NPC: " + ch.Name);
 
             Logger.Log("Current customers: ");
-            foreach (var customer in CafeManager.CurrentCustomers) 
+            foreach (var customer in ModEntry.CafeManager.CurrentCustomers) 
                 Logger.Log(customer.ToString());
 
             Logger.Log("Current models: ");

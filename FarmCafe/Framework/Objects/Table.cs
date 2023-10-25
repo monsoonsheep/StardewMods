@@ -70,7 +70,7 @@ namespace FarmCafe.Framework.Objects
             => ActualTable.TileLocation;
 
         internal override bool IsReserved 
-            => this.ActualTable.modData.TryGetValue("FarmCafeTableIsReserved", out var val) && val == "T";
+            => this.ActualTable.modData.TryGetValue(ModKeys.MODDATA_TABLERESERVED, out var val) && val == "T";
 
         internal override Rectangle BoundingBox 
             => this.ActualTable.boundingBox.Value;
@@ -78,7 +78,7 @@ namespace FarmCafe.Framework.Objects
         internal override void Free()
         {
             base.Free();
-            this.ActualTable.modData["FarmCafeTableIsReserved"] = "F";
+            this.ActualTable.modData[ModKeys.MODDATA_TABLERESERVED] = "F";
         }
 
         internal override bool Reserve(List<Customer> customers)
@@ -86,7 +86,7 @@ namespace FarmCafe.Framework.Objects
             if (!base.Reserve(customers))
                 return false;
 
-            this.ActualTable.modData["FarmCafeTableIsReserved"] = "T";
+            this.ActualTable.modData[ModKeys.MODDATA_TABLERESERVED] = "T";
             return true;
         }
 
@@ -162,7 +162,7 @@ namespace FarmCafe.Framework.Objects
                 return false;
             }
 
-            chairToRemove.modData.Remove("FarmCafeChairIsReserved");
+            chairToRemove.modData.Remove(ModKeys.MODDATA_CHAIRRESERVED);
             Seats = Seats.TakeWhile(c => c.Position != chairToRemove.TileLocation).ToList();
             Logger.Log("Removed chair from table");
             return true;

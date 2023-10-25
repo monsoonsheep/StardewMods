@@ -12,15 +12,21 @@ namespace FarmCafe.Framework.Managers
 {
     internal partial class CafeManager
     {
+        /// <summary>
+        /// Add furniture-based and map-based tables from all registered Cafe Locations. Only the tables with at least one chair are added
+        /// </summary>
         internal void PopulateTables(List<GameLocation> locations)
         {
+            int count = 0;
             // TODO: Test whether some tables are still tracked even after they refer to an outdated CafeLocation
             foreach (var location in locations)
             {
                 foreach (Furniture table in location.furniture)
                 {
-                    if (!IsTable(table)) continue;
-                    // If we already have this table object registered
+                    if (!IsTable(table)) 
+                        continue;
+
+                    // If we already have this table object registered, skip
                     if (Tables.OfType<FurnitureTable>().Any(
                             t =>  t.Position == table.TileLocation && t.CurrentLocation.Name == location.Name))
                     {
@@ -31,9 +37,13 @@ namespace FarmCafe.Framework.Managers
                     {
                         CurrentLocation = location
                     };
-                    TryAddTable(tableToAdd, update: false);
+
+                    if (TryAddTable(tableToAdd))
+                        count++;
                 }
             }
+            Logger.Log($"{count} new furniture tables found in cafe locations.");
+            count = 0;
 
             // Make sure every table in TrackedTables satisfies the condition that
             // its location reference contains it in its furniture list
@@ -51,36 +61,42 @@ namespace FarmCafe.Framework.Managers
                 {
                     Rectangle newRectangle = new Rectangle(pair.Key.X * 64, pair.Key.Y * 64, pair.Key.Width * 64, pair.Key.Height * 64);
                     MapTable mapTable = new MapTable(newRectangle, cafe, pair.Value);
-                    TryAddTable(mapTable);
+                    if (TryAddTable(mapTable))
+                        count++;
                 }
             }
+            Logger.Log($"{count} new map-based tables found in cafe locations.");
+
             FreeAllTables();
             Multiplayer.Sync.SyncTables();
         }
-       
-        internal bool TryAddTable(Table table, bool update = true)
+
+        /// <summary>
+        /// Add a <see cref="Table"/> to the Tables list, only if it has at least one chair facing it next to it. 
+        /// </summary>
+        internal bool TryAddTable(Table table)
         {
-            if (table == null || table.Seats.Count == 0)
+            if (table.Seats.Count == 0)
                 return false;
 
             table.Free();
             Tables.Add(table);
-            Logger.Log("Adding table");
-            if (update)
-                Multiplayer.Sync.SyncTables();
             return true;
         }
 
+        /// <summary>
+        /// Remove a table from tracking. Called when a farmer breaks a furniture table or breaks a chair and its corresponding table doesn't have any more chairs left
+        /// </summary>
         internal void RemoveTable(FurnitureTable table)
         {
             foreach (var seat in table.Seats)
             {
-                var chair = (FurnitureChair) seat;
-                chair.ActualChair.modData.Remove("FarmCafeChairIsReserved");
-                chair.ActualChair.modData.Remove("FarmCafeChairTable");
+                FurnitureChair chair = (FurnitureChair) seat;
+                chair.ActualChair.modData.Remove(ModKeys.MODDATA_CHAIRRESERVED);
+                chair.ActualChair.modData.Remove(ModKeys.MODDATA_CHAIRTABLE);
             }
 
-            table.ActualTable.modData.Remove("FarmCafeTableIsReserved");
+            table.ActualTable.modData.Remove(ModKeys.MODDATA_TABLERESERVED);
             if (!Tables.Contains(table))
                 Logger.Log("Trying to remove a table that isn't tracked", LogLevel.Warn);
             else
@@ -92,43 +108,52 @@ namespace FarmCafe.Framework.Managers
             Multiplayer.Sync.SyncTables();
         }
 
+        /// <summary>
+        /// Return a list of <see cref="Table"/>s that aren't reserved
+        /// </summary>
         internal List<Table> GetFreeTables(int minimumSeats = 1)
         {
             return Tables.OrderBy(_ => Game1.random.Next()).Where(t => !t.IsReserved && t.Seats.Count >= minimumSeats).ToList();
         }
 
+        /// <summary>
+        /// Returns true if the given furniture (assumed a chair) is reserved by a customer
+        /// </summary>
         internal static bool ChairIsReserved(Furniture chair)
         {
-            return chair.modData.TryGetValue("FarmCafeChairIsReserved", out var val) && val == "T";
+            return chair.modData.TryGetValue(ModKeys.MODDATA_CHAIRRESERVED, out var val) && val == "T";
         }
 
-        internal void FreeAllTables()
-        {
-            foreach (var table in Tables)
-                table.Free();
-        }
-
+        /// <summary>
+        /// Remove the reserved flags for all tracked tables
+        /// </summary>
+        internal void FreeAllTables() => Tables.ForEach(t => t.Free());
+        
+        /// <summary>
+        /// Get the <see cref="Table"/> (furniture or map-based) located at the given pixel position in the given location
+        /// </summary>
         internal Table GetTableAt(GameLocation location, Vector2 position)
         {
             return Tables.Where(t => t.CurrentLocation.Equals(location)).FirstOrDefault(table => table.BoundingBox.Contains(position));
         }
 
+        /// <summary>
+        /// Add a furniture table to the tracked list, after a farmer either places down a table or a chair. Called when after the placement, there is now a table that has at least one chair.
+        /// </summary>
         internal FurnitureTable TryAddFurnitureTable(Furniture table, GameLocation location)
         {
-            FurnitureTable trackedTable = IsTableTracked(table, location);
-
-            if (trackedTable == null)
+            FurnitureTable newTable = new FurnitureTable(table, location)
             {
-                trackedTable = new FurnitureTable(table, location)
-                {
-                    CurrentLocation = location
-                };
-                return TryAddTable(trackedTable) ? trackedTable : null;
-            }
+                CurrentLocation = location
+            };
 
-            return trackedTable;
+            return TryAddTable(newTable) 
+                ? newTable : null;
         }
 
+        /// <summary>
+        /// Add and/or remove furniture tables when the FurnitureListChanged Event fires. If a chair is added, its table is located and if not found, the table is also added
+        /// </summary>
         internal void HandleFurnitureChanged(IEnumerable<Furniture> added, IEnumerable<Furniture> removed, GameLocation location)
         {
             foreach (var f in removed)
@@ -178,17 +203,23 @@ namespace FarmCafe.Framework.Managers
                         continue;
                     }
 
-                    FurnitureTable newTable = TryAddFurnitureTable(facingFurniture, location);
-                    newTable?.AddChair(f);
+                    FurnitureTable table = IsTableTracked(facingFurniture, location) 
+                                           ?? TryAddFurnitureTable(facingFurniture, location);
+                    table.AddChair(f);
                 }
                 else if (IsTable(f))
                 {
-                    TryAddFurnitureTable(f, location);
+                    FurnitureTable table = IsTableTracked(f, location);
+                    if (table == null)
+                        TryAddFurnitureTable(f, location);
                 }
             }
         }
 
-        internal static void FarmerClickTable(Table table, Farmer who)
+        /// <summary>
+        /// Execute the function for a farmer clicking a table (map-based or furniture), like for taking a table's order or serving their food
+        /// </summary>
+        internal void FarmerClickTable(Table table, Farmer who)
         {
             CustomerGroup groupOnTable =
                 CurrentCustomers.FirstOrDefault(c => c.Group.ReservedTable == table)?.Group;

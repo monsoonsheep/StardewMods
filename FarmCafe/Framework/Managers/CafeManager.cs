@@ -9,23 +9,24 @@ using FarmCafe.Framework.Objects;
 using xTile.Tiles;
 using Point = Microsoft.Xna.Framework.Point;
 using FarmCafe.Models;
+using StardewValley.Menus;
 using StardewValley.Pathfinding;
 
 namespace FarmCafe.Framework.Managers
 {
     internal partial class CafeManager
     {
-        internal static List<GameLocation> CafeLocations;
-        internal static IList<Item> MenuItems = new List<Item>(new Item[27]);
-        internal static IList<Item> RecentlyAddedMenuItems = new List<Item>(new Item[9]);
+        internal List<GameLocation> CafeLocations;
+        internal IList<Item> MenuItems = new List<Item>(new Item[27]);
+        internal IList<Item> RecentlyAddedMenuItems = new List<Item>(new Item[9]);
 
-        internal static List<Customer> CurrentCustomers = new List<Customer>();
+        internal List<Customer> CurrentCustomers = new List<Customer>();
         internal List<string> CurrentNpcCustomers = new List<string>();
-        internal static NPC EmployeeNpc;
-        internal static List<Table> Tables = new();
-        internal static Dictionary<string, ScheduleData> NpcCustomerSchedules = new Dictionary<string, ScheduleData>();
+        internal NPC EmployeeNpc;
+        internal List<Table> Tables = new();
+        internal Dictionary<string, ScheduleData> NpcCustomerSchedules = new Dictionary<string, ScheduleData>();
 
-        private static readonly Dictionary<string, List<LocationWarpRoute>> RoutesToCafe = new Dictionary<string, List<LocationWarpRoute>>();
+        private readonly Dictionary<string, List<LocationWarpRoute>> RoutesToCafe = new Dictionary<string, List<LocationWarpRoute>>();
 
         internal Dictionary<Rectangle, List<Vector2>> MapTablesInCafeLocation = new Dictionary<Rectangle, List<Vector2>>();
 
@@ -53,22 +54,24 @@ namespace FarmCafe.Framework.Managers
             PopulateTables(CafeLocations);
             LastTimeCustomersArrived = OpeningTime;
 
-        }
-
-        internal void CacheBusPosition()
-        {
-            Tile[,] tiles = GetLocationFromName("BusStop").Map.GetLayer("Back").Tiles.Array;
-            for (var i = 0; i < tiles.GetLength(0); i++)
-            for (var j = 0; j < tiles.GetLength(1); j++)
-                if (tiles[i, j].Properties.ContainsKey("TouchAction") && tiles[i, j].Properties["TouchAction"] == "Bus")
+            // Set which NPCs can visit today based on how many days it's been since their last visit, and their 
+            // visit frequency level given in their visit data.
+            foreach (var npcDataPair in NpcCustomerSchedules)
+            {
+                int daysSinceLastVisit = Game1.Date.TotalDays - npcDataPair.Value.LastVisitedDate.TotalDays;
+                int daysAllowedBetweenVisits = npcDataPair.Value.Frequency switch
                 {
-                    BusPosition = new Point(i, j + 1);
-                    //Logger.Log($"bus position is {BusPosition}");
-                    return;
-                }
+                    0 => 200,
+                    1 => 28,
+                    2 => 15,
+                    3 => 8,
+                    4 => 2,
+                    5 => 0,
+                    _ => 999999
+                };
 
-            Logger.Log("Couldn't find Bus position in Bus Stop", LogLevel.Warn);
-            BusPosition = new Point(12, 10);
+                npcDataPair.Value.CanVisitToday = daysSinceLastVisit > daysAllowedBetweenVisits;
+            }
         }
 
         public bool AddToMenu(Item itemToAdd)
@@ -117,7 +120,27 @@ namespace FarmCafe.Framework.Managers
 
         internal Item GetRandomItemFromMenu()
         {
-            return MenuItems.Where(c => c != null).OrderBy((i) => Game1.random.Next()).FirstOrDefault();
+            return MenuItems.Where(c => c != null).MinBy((i) => Game1.random.Next());
+        }
+
+        internal void CacheBusPosition()
+        {
+            var tiles = GetLocationFromName("BusStop").Map.GetLayer("Back").Tiles.Array;
+
+            for (var i = 0; i < tiles.GetLength(0); i++)
+            {
+                for (var j = 0; j < tiles.GetLength(1); j++)
+                {
+                    if (tiles[i, j].Properties.ContainsKey("TouchAction") && tiles[i, j].Properties["TouchAction"] == "Bus")
+                    {
+                        BusPosition = new Point(i, j + 1);
+                        return;
+                    }
+                }
+            }
+            
+            Logger.Log("Couldn't find Bus position in Bus Stop", LogLevel.Warn);
+            BusPosition = new Point(12, 10);
         }
     }
 }

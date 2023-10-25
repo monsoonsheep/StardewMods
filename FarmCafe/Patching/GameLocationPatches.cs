@@ -43,9 +43,9 @@ namespace FarmCafe.Patching
 
         private static void CheckActionPostfix(GameLocation __instance, Location tileLocation, Rectangle viewport, Farmer who, ref bool __result)
         {
-            if (!CafeManager.CafeLocations.Contains(__instance)) return;
+            if (!ModEntry.CafeManager.CafeLocations.Contains(__instance)) return;
 
-            foreach (MapTable table in CafeManager.Tables.OfType<MapTable>())
+            foreach (MapTable table in ModEntry.CafeManager.Tables.OfType<MapTable>())
             {
                 if (table.BoundingBox.Contains(tileLocation.X * 64, tileLocation.Y * 64))
                 {
@@ -55,7 +55,7 @@ namespace FarmCafe.Patching
                     }
                     else
                     {
-                        CafeManager.FarmerClickTable(table, who);
+                        ModEntry.CafeManager.FarmerClickTable(table, who);
                     }
 
                     __result = true;

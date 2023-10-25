@@ -1,4 +1,5 @@
-﻿using FarmCafe.Models;
+﻿using System;
+using FarmCafe.Models;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -29,33 +30,45 @@ namespace FarmCafe.Framework.Managers
             if (e.Name.IsDirectlyUnderPath("monsoonsheep.FarmCafe/NPCSchedules"))
             {
                 string npcname = e.Name.Name.Split('/').Last();
-                CafeManager.NpcCustomerSchedules[npcname] = Game1.content.Load<ScheduleData>("monsoonsheep.FarmCafe/NPCSchedules/" + npcname);
+                ModEntry.CafeManager.NpcCustomerSchedules[npcname] = Game1.content.Load<ScheduleData>("monsoonsheep.FarmCafe/NPCSchedules/" + npcname);
             }
         }
 
+        /// <summary>
+        /// Go through all villagers and load mod content for their <see cref="ScheduleData"/>
+        /// </summary>
+        /// <param name="helper">Mod Helper</param>
         internal static void LoadNpcSchedules(IModHelper helper)
         {
-            List<NPC> npcList = SUtility.getAllCharacters();
-            int count = 0;
-            foreach (NPC npc in npcList)
+            int count = 0, doneCount = 0;
+            SUtility.ForEachVillager((npc =>
             {
                 try
                 {
-                    ScheduleData scheduleData = Game1.content.Load<ScheduleData>("monsoonsheep.FarmCafe/NPCSchedules/" + npc.Name);
+                    ScheduleData scheduleData = Game1.content.Load<ScheduleData>(ModKeys.ASSETS_NPCSCHEDULE_PREFIX + npc.Name);
                     if (scheduleData != null)
                     {
-                        CafeManager.NpcCustomerSchedules[npc.Name] = scheduleData;
-                        count++;
+                        ModEntry.CafeManager.NpcCustomerSchedules[npc.Name] = scheduleData;
+                        doneCount++;
                     }
                 }
                 catch
                 {
                     // ignored
                 }
-            }
-            Logger.Log($"{count} NPCs have Schedule Data. The other {npcList.Count - count} won't visit the cafe.");
+
+                count++;
+                return true;
+            }));
+
+            Logger.Log($"{doneCount} NPCs have Schedule Data. The other {count} won't visit the cafe.");
         }
 
+        /// <summary>
+        /// Load content packs for this mod
+        /// </summary>
+        /// <param name="helper"></param>
+        /// <param name="customerModels"></param>
         internal static void LoadContentPacks(IModHelper helper, ref List<CustomerModel> customerModels)
         {
             foreach (IContentPack contentPack in helper.ContentPacks.GetOwned())

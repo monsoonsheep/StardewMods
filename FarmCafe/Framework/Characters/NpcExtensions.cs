@@ -8,6 +8,10 @@ using Microsoft.Xna.Framework;
 using StardewValley.Pathfinding;
 using xTile.Dimensions;
 using static FarmCafe.Framework.Utility;
+using static StardewValley.Pathfinding.PathFindController;
+using System.Diagnostics.Metrics;
+using System.Threading;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace FarmCafe.Framework.Characters
 {

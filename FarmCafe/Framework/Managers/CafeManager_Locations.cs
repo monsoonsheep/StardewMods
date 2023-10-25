@@ -6,13 +6,14 @@ using StardewValley.Pathfinding;
 using static FarmCafe.Framework.Utility;
 using StardewModdingAPI;
 using xTile.Layers;
+using xTile.ObjectModel;
 using xTile.Tiles;
 
 namespace FarmCafe.Framework.Managers
 {
     internal partial class CafeManager
     {
-        internal static GameLocation GetCafeLocation()
+        internal GameLocation GetCafeLocation()
         {
             return CafeLocations.FirstOrDefault(IsLocationCafe);
         }
@@ -57,7 +58,6 @@ namespace FarmCafe.Framework.Managers
 
             return true;
         }
-
 
         internal void PopulateRoutesToCafe()
         {
@@ -196,7 +196,7 @@ namespace FarmCafe.Framework.Managers
             if (MapTablesInCafeLocation?.Count != 0)
                 return;
             MapTablesInCafeLocation = new Dictionary<Rectangle, List<Vector2>>();
-            Layer layer = location.Map.GetLayer("Back");
+            Layer layer = location.Map.GetLayer("Buildings");
 
             Dictionary<string, Rectangle> seatStringToTableRecs = new();
 
@@ -208,12 +208,12 @@ namespace FarmCafe.Framework.Managers
                     if (tile == null)
                         continue;
 
-                    if (!tile.TileIndexProperties.TryGetValue("FarmCafeSeats", out string val) &&
-                        !tile.Properties.TryGetValue("FarmCafeSeats", out val))
+                    if (!tile.TileIndexProperties.TryGetValue(ModKeys.MAPSEATS_TILEPROPERTY, out PropertyValue val) &&
+                        !tile.Properties.TryGetValue(ModKeys.MAPSEATS_TILEPROPERTY, out val))
                         continue;
 
                     Rectangle thisTile = new Rectangle(i, j, 1, 1);
-
+                    
                     seatStringToTableRecs[val] = seatStringToTableRecs.TryGetValue(val, out var existingTileKey)
                         ? Rectangle.Union(thisTile, existingTileKey)
                         : thisTile;

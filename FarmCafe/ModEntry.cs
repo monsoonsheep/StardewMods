@@ -33,11 +33,6 @@ namespace FarmCafe
 
         internal static CafeManager CafeManager;
 
-        internal static NPC HelperNpc;
-
-        // Name to list of <startTime, endTime>
-        internal static Dictionary<string, List<KeyValuePair<int, int>>> CustomerableNpcsToday;
-
         /// <inheritdoc/>
         public override void Entry(IModHelper helper)
         {
@@ -71,13 +66,11 @@ namespace FarmCafe
             helper.Events.GameLoop.Saving += OnSaving;
 
 
-            helper.Events.Display.RenderedWorld += OnRenderedWorld;
             helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
             helper.Events.GameLoop.TimeChanged += OnTimeChanged;
             helper.Events.Input.ButtonPressed += Debug.ButtonPress;
             helper.Events.Content.AssetRequested += AssetManager.OnAssetRequested;
             helper.Events.Content.AssetReady += AssetManager.OnAssetReady;
-
 
             helper.Events.World.LocationListChanged += OnLocationListChanged;
             helper.Events.World.FurnitureListChanged += OnFurnitureListChanged;
@@ -87,7 +80,7 @@ namespace FarmCafe
             helper.Events.Multiplayer.ModMessageReceived += OnModMessageReceived;
 
             Sprites = helper.ModContent.Load<Texture2D>("assets/sprites.png");
-            GameLocation.RegisterTileAction("FarmCafe_OpenCafeMenu", OpenCafeMenu);
+            GameLocation.RegisterTileAction(ModKeys.SIGNBOARD_BUILDING_CLICK_EVENT_KEY, OpenCafeMenu);
         }
 
         private static void OnGameLaunched(object sender, GameLaunchedEventArgs e)
@@ -150,20 +143,21 @@ namespace FarmCafe
         {
             if (!Context.IsMainPlayer)
             {
-                CafeManager.CurrentCustomers = CafeManager.GetAllCustomersInGame();
+                //CafeManager.CurrentCustomers = CafeManager.GetAllCustomersInGame();
                 return;
             }
+
+            CafeManager = new CafeManager();
 
             CafeManager.Tables = new();
             CafeManager.CafeLocations = new();
             CafeManager.CurrentCustomers = new();
 
-            CafeManager = new CafeManager();
-            LoadValuesFromModData();
-            
             AssetManager.LoadCustomerModels(ModHelper, ref CafeManager.CustomerModels);
             AssetManager.LoadContentPacks(ModHelper, ref CafeManager.CustomerModels);
             AssetManager.LoadNpcSchedules(ModHelper);
+
+            LoadValuesFromModData();
         }
 
         private static void OnDayStarted(object sender, DayStartedEventArgs e)
@@ -176,11 +170,14 @@ namespace FarmCafe
 
             CafeManager.DayUpdate();
             // look at NPC schedules. 
+
+            ModHelper.Events.Display.RenderedWorld += OnRenderedWorld;
+
         }
 
         private static void OnDayEnding(object sender, DayEndingEventArgs e)
         {
-            if (Context.IsMainPlayer)
+            if (Context.IsMainPlayer && CafeManager != null)
             {
                 CafeManager.RemoveAllCustomers();
             }
@@ -192,33 +189,32 @@ namespace FarmCafe
                 return;
 
             // Menu Items TODO: Make sure they are in the same order as saved (Where() is ordered)
-            Game1.player.modData["FarmCafeMenuItems"] = string.Join(" ", CafeManager.GetMenuItems().Select(i => i.ItemId));
+            Game1.player.modData[ModKeys.MODDATA_MENUITEMSLIST] = string.Join(" ", CafeManager.GetMenuItems().Select(i => i.ItemId));
+
             // Opening and Closing Times
-            Game1.player.modData["FarmCafeOpenCloseTimes"] = $"{CafeManager.OpeningTime} {CafeManager.ClosingTime}";
+            Game1.player.modData[ModKeys.MODDATA_OPENCLOSETIMES] = $"{CafeManager.OpeningTime} {CafeManager.ClosingTime}";
+
+            // NPCs' last visited date in the format "Name year,season,dayOfMonth/Name year,season,dayOfMonth"
+            Game1.player.modData[ModKeys.MODDATA_NPCSLASTVISITEDDATES] = string.Join(' ',
+                CafeManager.NpcCustomerSchedules.Select(pair =>
+                    $"{pair.Key} {pair.Value.LastVisitedDate.Year},{pair.Value.LastVisitedDate.SeasonIndex},{pair.Value.LastVisitedDate.DayOfMonth}"));
         }
 
         private static void OnModMessageReceived(object sender, ModMessageReceivedEventArgs e)
         {
             if (e.FromModID != ModManifest.UniqueID) return;
 
-            if (e.Type == "UpdateCustomers")
+            if (e.Type.StartsWith("UpdateCustomerInfo") && !Context.IsMainPlayer)
             {
-                //ClientShouldUpdateCustomers = true;
-            }
-            else if (e.Type == "RemoveCustomers")
-            {
-                CafeManager.CurrentCustomers.Clear();
-            }
-            else if (e.Type.StartsWith("UpdateCustomerInfo") && !Context.IsMainPlayer)
-            {
-                Customer c = CafeManager.GetAllCustomersInGame().FirstOrDefault(c => c.Name == e.Type.Split('/')[1]);
+                var split = e.Type.Split('/');
+                Customer c = CafeManager.GetCustomerFromName(split[1]);
                 if (c == null)
                 {
                     Logger.Log("Couldn't get customer to update");
                     return;
                 }
                
-                switch (e.Type.Split('/')[2])
+                switch (split[2])
                 {
                     case nameof(c.OrderItem):
                         c.OrderItem = GetItem(e.ReadAs<string>());
@@ -227,26 +223,36 @@ namespace FarmCafe
             }
             else if (e.Type == "ClickTable" && Context.IsMainPlayer)
             {
-                var info = e.ReadAs<Dictionary<string, string>>();
-                long.TryParse(info["farmer"], out long farmerId);
-                Farmer who = Game1.getFarmer(farmerId);
-
-                MatchCollection matches = Regex.Matches(info["table"], @"\d+");
-                if (matches.Count == 2 &&
-                    float.TryParse(matches[0].Value, out float x) &&
-                    float.TryParse(matches[1].Value, out float y))
+                try
                 {
-                    // Also add functionality for map tables
-                    Table table = CafeManager.GetTableAt(who.currentLocation, new Vector2(x, y));
-                    if (table != null)
+                    var data = e.ReadAs<Dictionary<string, string>>();
+                    Farmer who = Game1.getFarmer(long.Parse(data["farmer"]));
+                    MatchCollection matches = Regex.Matches(data["table"], @"\d+");
+
+                    if (matches.Count == 2)
+                    {
+                        // Also add functionality for map tables
+                        Table table = CafeManager.GetTableAt(who.currentLocation, new Vector2(float.Parse(matches[0].Value), float.Parse(matches[1].Value)));
                         CafeManager.FarmerClickTable(table, who);
+                    }
+                }
+                catch
+                {
+                    Logger.Log("Invalid message from host", LogLevel.Warn);
                 }
             }
             else if (e.Type == "CustomerDoEmote" && !Context.IsMainPlayer)
             {
-                var info = e.ReadAs<Dictionary<string, string>>();
-                Customer c = CafeManager.GetAllCustomersInGame().FirstOrDefault(c => c.Name == info["name"]);
-                c?.doEmote(int.Parse(info["emote"]));
+                try
+                {
+                    var info = e.ReadAs<Dictionary<string, string>>();
+                    Customer c = CafeManager.GetCustomerFromName(info["name"]);
+                    c?.doEmote(int.Parse(info["emote"]));
+                }
+                catch
+                {
+                    Logger.Log("Invalid message from host", LogLevel.Warn);
+                }
             }
         }
 
@@ -290,7 +296,9 @@ namespace FarmCafe
                 return;
 
             // spawn customers depending on probability logic
-            CafeManager.TrySpawnCustomers();
+            if (CafeManager.TrySpawnCustomers())
+                CafeManager.LastTimeCustomersArrived = Game1.timeOfDay;
+
         }
 
         private static void OnPeerConnected(object sender, PeerConnectedEventArgs e)
@@ -317,7 +325,7 @@ namespace FarmCafe
         
         private static void LoadValuesFromModData()
         {
-            if (Game1.player.modData.TryGetValue("FarmCafeMenuItems", out string menuItemsString))
+            if (Game1.player.modData.TryGetValue(ModKeys.MODDATA_MENUITEMSLIST, out string menuItemsString))
             {
                 var itemIds = menuItemsString.Split(' ');
                 if (itemIds.Length == 0)
@@ -343,10 +351,23 @@ namespace FarmCafe
                 }
             }
 
-            if (Game1.player.modData.TryGetValue("FarmCafeOpenCloseTimes", out string openCloseTimes))
+            if (Game1.player.modData.TryGetValue(ModKeys.MODDATA_OPENCLOSETIMES, out string openCloseTimes))
             {
                 CafeManager.OpeningTime = int.Parse(openCloseTimes.Split(' ')[0]);
                 CafeManager.ClosingTime = int.Parse(openCloseTimes.Split(' ')[1]);
+            }
+
+            if (Game1.player.modData.TryGetValue(ModKeys.MODDATA_NPCSLASTVISITEDDATES, out string npcsLastVisited))
+            {
+                var split = npcsLastVisited.Split(' ');
+                for (var index = 0; index < split.Length; index += 2)
+                {
+                    string npcName = split[index];
+                    string[] date = split[index + 1].Split(',');
+
+                    CafeManager.NpcCustomerSchedules[npcName].LastVisitedDate =
+                        new WorldDate(int.Parse(date[0]), (Season)int.Parse(date[1]), int.Parse(date[2]));
+                }
             }
         }
 

@@ -2,8 +2,8 @@
 	<PropertyGroup>
 		<ModFolderName>FarmCafe</ModFolderName>
 		<TargetFramework>net6.0</TargetFramework>
-		<GamePath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley 1.6 Alpha</GamePath>
-		<GameModsPath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley 1.6 Alpha\Mods\My Mods\FarmCafe</GameModsPath>
+		<GamePath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley</GamePath>
+		<GameModsPath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley\Mods\FarmCafe</GameModsPath>
 		<Configurations>Debug;Release</Configurations>
 	</PropertyGroup>
 

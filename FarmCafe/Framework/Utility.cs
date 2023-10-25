@@ -9,6 +9,7 @@ using FarmCafe.Framework.Characters;
 using FarmCafe.Framework.Objects;
 using StardewValley.Buildings;
 using StardewValley.Pathfinding;
+using xTile.ObjectModel;
 using xTile.Tiles;
 using SObject = StardewValley.Object;
 
@@ -40,6 +41,14 @@ namespace FarmCafe.Framework
         internal static bool IsTable(Furniture furniture)
         {
             return furniture.furniture_type.Value == 11;
+        }
+
+        internal static FurnitureTable IsTableTracked(Furniture table, GameLocation location)
+        {
+            if (table == null || location == null)
+                return null;
+            return ModEntry.CafeManager.Tables
+                .OfType<FurnitureTable>().FirstOrDefault(t => t.CurrentLocation.Equals(location) && t.Position == table.TileLocation);
         }
 
         internal static Vector2 DirectionIntToDirectionVector(int direction)
@@ -105,20 +114,12 @@ namespace FarmCafe.Framework
 
         internal static string GetTileProperties(Tile tile)
         {
-            return tile == null ? "there's no tile" : tile.Properties.Concat(tile.TileIndexProperties.GetCollection()?.ToList() ?? new List<KeyValuePair<string, string>>()).Aggregate("", (currentTile, property) => currentTile + $"{property.Key}: {property.Value}, ");
+            return tile == null ? "there's no tile" : tile.Properties.ToList().Concat(tile.TileIndexProperties.ToList() ?? new List<KeyValuePair<string, PropertyValue>>()).Aggregate("", (currentTile, property) => currentTile + $"{property.Key}: {property.Value}, ");
         }
 
         internal static GameLocation GetLocationFromName(string name)
         {
-            return Game1.getLocationFromName(name) ?? CafeManager.CafeLocations.FirstOrDefault(a => a.Name == name);
-        }
-
-        internal static FurnitureTable IsTableTracked(Furniture table, GameLocation location)
-        {
-            if (table == null || location == null)
-                return null;
-            return CafeManager.Tables
-                .OfType<FurnitureTable>().FirstOrDefault(t => t.CurrentLocation.Equals(location) && t.Position == table.TileLocation);
+            return Game1.getLocationFromName(name) ?? ModEntry.CafeManager.CafeLocations.FirstOrDefault(a => a.Name == name);
         }
 
         internal static List<LocationPathDescription> GetLocationRouteFromSchedule(NPC npc)
@@ -149,7 +150,6 @@ namespace FarmCafe.Framework
 
             return route;
         }
-
     }
 
     public class ItemEqualityComparer : IEqualityComparer<Item>
