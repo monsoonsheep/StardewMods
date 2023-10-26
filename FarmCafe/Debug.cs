@@ -30,7 +30,10 @@ namespace FarmCafe
                     ModEntry.CafeManager.RemoveAllCustomers();
                     break;
                 case SButton.NumPad3:
-                    //ModEntry.CafeManager.TryVisitNpcCustomers();
+                    if (ModEntry.BusManager.BusGone)
+                        ModEntry.BusManager.BusReturn();
+                    else
+                        ModEntry.BusManager.BusLeave();
                     break;
                 case SButton.NumPad4:
                     Debug.ListCustomers();

@@ -17,6 +17,8 @@ using FarmCafe.Framework.UI;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using Object = StardewValley.Object;
 using FarmCafe.Patching;
+using StardewValley.Locations;
+using System.Reflection;
 
 namespace FarmCafe
 {
@@ -32,6 +34,7 @@ namespace FarmCafe
         internal static Texture2D Sprites;
 
         internal static CafeManager CafeManager;
+        internal static BusManager BusManager;
 
         /// <inheritdoc/>
         public override void Entry(IModHelper helper)
@@ -83,14 +86,6 @@ namespace FarmCafe
             GameLocation.RegisterTileAction(ModKeys.SIGNBOARD_BUILDING_CLICK_EVENT_KEY, OpenCafeMenu);
         }
 
-        private static void OnGameLaunched(object sender, GameLaunchedEventArgs e)
-        {
-            if (Context.IsMainPlayer)
-            {
-                InitConfig();
-            }
-        }
-
         private static void InitConfig()
         {
             string GetFrequencyText(int n)
@@ -139,6 +134,14 @@ namespace FarmCafe
             );
         }
 
+        private static void OnGameLaunched(object sender, GameLaunchedEventArgs e)
+        {
+            if (Context.IsMainPlayer)
+            {
+                InitConfig();
+            }
+        }
+
         private static void OnSaveLoaded(object sender, SaveLoadedEventArgs e)
         {
             if (!Context.IsMainPlayer)
@@ -148,6 +151,7 @@ namespace FarmCafe
             }
 
             CafeManager = new CafeManager();
+            BusManager = new BusManager();
 
             CafeManager.Tables = new();
             CafeManager.CafeLocations = new();
@@ -162,6 +166,7 @@ namespace FarmCafe
 
         private static void OnDayStarted(object sender, DayStartedEventArgs e)
         {
+            BusManager.UpdateBusStopLocation();
             CafeManager.UpdateCafeLocation();
             Logger.Log($"Cafe locations are {string.Join(", ", CafeManager.CafeLocations.Select(l => l.Name))}");
 
@@ -198,6 +203,72 @@ namespace FarmCafe
             Game1.player.modData[ModKeys.MODDATA_NPCSLASTVISITEDDATES] = string.Join(' ',
                 CafeManager.NpcCustomerSchedules.Select(pair =>
                     $"{pair.Key} {pair.Value.LastVisitedDate.Year},{pair.Value.LastVisitedDate.SeasonIndex},{pair.Value.LastVisitedDate.DayOfMonth}"));
+        }
+
+        private static void OnUpdateTicked(object sender, UpdateTickedEventArgs e)
+        {
+            if (!Context.IsWorldReady)
+                return;
+
+            //if (!Context.IsMainPlayer && ClientShouldUpdateCustomers)
+            //{
+            //    CurrentCustomers = CafeManager.GetAllCustomersInGame();
+            //    ClientShouldUpdateCustomers = false;
+            //}
+        }
+
+        private static void OnTimeChanged(object sender, TimeChangedEventArgs e)
+        {
+            if (!Context.IsMainPlayer)
+                return;
+
+            // spawn customers depending on probability logic
+            if (CafeManager.TrySpawnCustomers())
+                CafeManager.LastTimeCustomersArrived = Game1.timeOfDay;
+
+
+        }
+
+        private static void OnLocationListChanged(object sender, LocationListChangedEventArgs e)
+        {
+            foreach (var removed in e.Removed)
+            {
+                if (IsLocationCafe(removed))
+                {
+                    CafeManager.UpdateCafeLocation();
+                }
+            }
+        }
+
+        private static void OnFurnitureListChanged(object sender, FurnitureListChangedEventArgs e)
+        {
+            if (Context.IsMainPlayer && CafeManager.CafeLocations.Any(l => l.Equals(e.Location)))
+                CafeManager.HandleFurnitureChanged(e.Added, e.Removed, e.Location);
+        }
+
+        private static void OnRenderedWorld(object sender, RenderedWorldEventArgs e)
+        {
+            // get list of reserved tables with center coords
+            foreach (var table in CafeManager.Tables)
+            {
+                // TODO Sync IsReadyToOrder for clients
+                if (table.IsReadyToOrder && Game1.currentLocation.Equals(table.CurrentLocation))
+                {
+                    Vector2 offset = new Vector2(0,
+                                (float)Math.Round(4f * Math.Sin(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 250.0)));
+
+                    e.SpriteBatch.Draw(
+                        Game1.mouseCursors,
+                        Game1.GlobalToLocal(table.GetCenter()  + new Vector2(-8, -64)) + offset,
+                        new Rectangle(402, 495, 7, 16),
+                        Color.Crimson,
+                        0f,
+                        new Vector2(1f, 4f),
+                        4f,
+                        SpriteEffects.None,
+                        1f);
+                }
+            }
         }
 
         private static void OnModMessageReceived(object sender, ModMessageReceivedEventArgs e)
@@ -256,73 +327,11 @@ namespace FarmCafe
             }
         }
 
-        private static void OnRenderedWorld(object sender, RenderedWorldEventArgs e)
-        {
-            // get list of reserved tables with center coords
-            foreach (var table in CafeManager.Tables)
-            {
-                // TODO Sync IsReadyToOrder for clients
-                if (table.IsReadyToOrder && Game1.currentLocation.Equals(table.CurrentLocation))
-                {
-                    Vector2 offset = new Vector2(0,
-                                (float)Math.Round(4f * Math.Sin(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 250.0)));
-
-                    e.SpriteBatch.Draw(
-                        Game1.mouseCursors,
-                        Game1.GlobalToLocal(table.GetCenter()  + new Vector2(-8, -64)) + offset,
-                        new Rectangle(402, 495, 7, 16),
-                        Color.Crimson,
-                        0f,
-                        new Vector2(1f, 4f),
-                        4f,
-                        SpriteEffects.None,
-                        1f);
-                }
-            }
-        }
-
-        private static void OnUpdateTicked(object sender, UpdateTickedEventArgs e)
-        {
-            //if (!Context.IsMainPlayer && ClientShouldUpdateCustomers)
-            //{
-            //    CurrentCustomers = CafeManager.GetAllCustomersInGame();
-            //    ClientShouldUpdateCustomers = false;
-            //}
-        }
-
-        private static void OnTimeChanged(object sender, TimeChangedEventArgs e)
-        {
-            if (!Context.IsMainPlayer)
-                return;
-
-            // spawn customers depending on probability logic
-            if (CafeManager.TrySpawnCustomers())
-                CafeManager.LastTimeCustomersArrived = Game1.timeOfDay;
-
-        }
-
         private static void OnPeerConnected(object sender, PeerConnectedEventArgs e)
         {
             return;
         }
 
-        private static void OnLocationListChanged(object sender, LocationListChangedEventArgs e)
-        {
-            foreach (var removed in e.Removed)
-            {
-                if (IsLocationCafe(removed))
-                {
-                    CafeManager.UpdateCafeLocation();
-                }
-            }
-        }
-
-        private static void OnFurnitureListChanged(object sender, FurnitureListChangedEventArgs e)
-        {
-            if (Context.IsMainPlayer && CafeManager.CafeLocations.Any(l => l.Equals(e.Location)))
-                CafeManager.HandleFurnitureChanged(e.Added, e.Removed, e.Location);
-        }
-        
         private static void LoadValuesFromModData()
         {
             if (Game1.player.modData.TryGetValue(ModKeys.MODDATA_MENUITEMSLIST, out string menuItemsString))
