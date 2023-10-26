@@ -117,7 +117,7 @@ namespace FarmCafe.Framework.Managers
         }
 
         /// <summary>
-        /// Returns true if the given furniture (assumed a chair) is reserved by a customer
+        /// Returns true if the given furniture (assumed a chair) is reserved by a Visitor
         /// </summary>
         internal static bool ChairIsReserved(Furniture chair)
         {
@@ -221,8 +221,8 @@ namespace FarmCafe.Framework.Managers
         /// </summary>
         internal void FarmerClickTable(Table table, Farmer who)
         {
-            CustomerGroup groupOnTable =
-                CurrentCustomers.FirstOrDefault(c => c.Group.ReservedTable == table)?.Group;
+            VisitorGroup groupOnTable =
+                CurrentVisitors.FirstOrDefault(c => c.Group.ReservedTable == table)?.Group;
 
             if (groupOnTable == null)
             {
@@ -230,23 +230,23 @@ namespace FarmCafe.Framework.Managers
                 return;
             }
 
-            if (groupOnTable.Members.All(c => c.State.Value == CustomerState.OrderReady))
+            if (groupOnTable.Members.All(c => c.State.Value == VisitorState.OrderReady))
             {
                 table.IsReadyToOrder = false;
-                foreach (Customer customer in groupOnTable.Members)
+                foreach (Visitor Visitor in groupOnTable.Members)
                 {
-                    customer.StartWaitForOrder();
+                    Visitor.StartWaitForOrder();
                 }
             }
-            else if (groupOnTable.Members.All(c => c.State.Value == CustomerState.WaitingForOrder))
+            else if (groupOnTable.Members.All(c => c.State.Value == VisitorState.WaitingForOrder))
             {
-                foreach (Customer customer in groupOnTable.Members)
+                foreach (Visitor Visitor in groupOnTable.Members)
                 {
-                    if (customer.OrderItem != null && who.Items.ContainsId(customer.OrderItem.ItemId, 1))
+                    if (Visitor.OrderItem != null && who.Items.ContainsId(Visitor.OrderItem.ItemId, 1))
                     {
-                        Logger.Log($"Customer item = {customer.OrderItem.ParentSheetIndex}, inventory = {who.Items.ContainsId(customer.OrderItem.ItemId, 1)}");
-                        customer.OrderReceive();
-                        who.removeFirstOfThisItemFromInventory(customer.OrderItem.ItemId);
+                        Logger.Log($"Visitor item = {Visitor.OrderItem.ParentSheetIndex}, inventory = {who.Items.ContainsId(Visitor.OrderItem.ItemId, 1)}");
+                        Visitor.OrderReceive();
+                        who.removeFirstOfThisItemFromInventory(Visitor.OrderItem.ItemId);
                     }
                 }
             }

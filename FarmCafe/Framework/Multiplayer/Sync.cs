@@ -9,19 +9,19 @@ namespace FarmCafe.Framework.Multiplayer
 {
     internal class Sync
     {
-        internal static void AddCustomerGroup(CustomerGroup group)
+        internal static void AddVisitorGroup(VisitorGroup group)
         {
-            ModEntry.ModHelper.Multiplayer.SendMessage(group.Members.Select(c => c.Name).ToList(), "UpdateCustomers", modIDs: new[] { ModEntry.ModManifest.UniqueID });
+            ModEntry.ModHelper.Multiplayer.SendMessage(group.Members.Select(c => c.Name).ToList(), "UpdateVisitors", modIDs: new[] { ModEntry.ModManifest.UniqueID });
         }
 
-        internal static void RemoveAllCustomers()
+        internal static void RemoveAllVisitors()
         {
-            ModEntry.ModHelper.Multiplayer.SendMessage(new List<string>() {}, "RemoveCustomers", modIDs: new[] { ModEntry.ModManifest.UniqueID });
+            ModEntry.ModHelper.Multiplayer.SendMessage(new List<string>() {}, "RemoveVisitors", modIDs: new[] { ModEntry.ModManifest.UniqueID });
         }
 
-        internal static void UpdateCustomerInfo(Customer customer, string fieldName, object value)
+        internal static void UpdateVisitorInfo(Visitor Visitor, string fieldName, object value)
         {
-            ModEntry.ModHelper.Multiplayer.SendMessage(value, $"UpdateCustomerInfo/{customer.Name}/{fieldName}", modIDs: new[] { ModEntry.ModManifest.UniqueID });
+            ModEntry.ModHelper.Multiplayer.SendMessage(value, $"UpdateVisitorInfo/{Visitor.Name}/{fieldName}", modIDs: new[] { ModEntry.ModManifest.UniqueID });
 
         }
 
@@ -43,15 +43,15 @@ namespace FarmCafe.Framework.Multiplayer
                 modIDs: new[] { ModEntry.ModManifest.UniqueID });
         }
 
-        internal static void CustomerDoEmote(Customer customer, int emote)
+        internal static void VisitorDoEmote(Visitor Visitor, int emote)
         {
             ModEntry.ModHelper.Multiplayer.SendMessage(
                 message: new Dictionary<string, string>()
                 {
-                    { "name", customer.Name },
+                    { "name", Visitor.Name },
                     { "emote", emote.ToString() }
                 },
-                messageType: "CustomerDoEmote",
+                messageType: "VisitorDoEmote",
                 modIDs: new[] { ModEntry.ModManifest.UniqueID });
         }
 

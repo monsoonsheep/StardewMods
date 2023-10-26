@@ -1,6 +1,6 @@
 ﻿namespace FarmCafe.Models
 {
-    public class CustomerModel
+    public class VisitorModel
     {
         public string Name { get; set; }
         public string TilesheetPath { get; set; }

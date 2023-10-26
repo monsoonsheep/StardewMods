@@ -13,12 +13,12 @@ using xTile.Layers;
 using xTile.Tiles;
 using static FarmCafe.Framework.Utility;
 using SUtility = StardewValley.Utility;
-using static FarmCafe.Framework.Characters.CustomerState;
+using static FarmCafe.Framework.Characters.VisitorState;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace FarmCafe.Framework.Characters
 {
-    public enum CustomerState : byte
+    public enum VisitorState : byte
     {
         ExitingBus,
         Convening,
@@ -45,7 +45,7 @@ namespace FarmCafe.Framework.Characters
         }
     }
 
-    public partial class Customer : NPC
+    public partial class Visitor : NPC
     {
         [XmlIgnore] 
         internal NPC OriginalNpc;
@@ -54,7 +54,7 @@ namespace FarmCafe.Framework.Characters
         internal List<LocationPathDescription> OriginalScheduleLocations;
 
         [XmlIgnore] 
-        internal CustomerGroup Group;
+        internal VisitorGroup Group;
 
         [XmlIgnore] 
         internal NetBool IsGroupLeader = new NetBool();
@@ -68,7 +68,7 @@ namespace FarmCafe.Framework.Characters
         private readonly NetVector2 drawOffsetForSeat = new NetVector2(new Vector2(0, 0));
 
         [XmlIgnore] 
-        internal NetEnum<CustomerState> State = new(ExitingBus);
+        internal NetEnum<VisitorState> State = new(ExitingBus);
 
         private int busDepartTimer;
         private int conveneWaitingTimer;
@@ -92,7 +92,7 @@ namespace FarmCafe.Framework.Characters
 
         internal Item OrderItem { get; set; }
 
-        internal event Action<Customer> OnFinishedDined;
+        internal event Action<Visitor> OnFinishedDined;
 
         [XmlIgnore]
         internal bool FreezeMotion
@@ -101,11 +101,11 @@ namespace FarmCafe.Framework.Characters
             set => freezeMotion = value;
         }
 
-        public Customer() : base()
+        public Visitor() : base()
         {
         }
 
-        public Customer(string name, Point targetTile, GameLocation location, AnimatedSprite sprite, Texture2D portrait)
+        public Visitor(string name, Point targetTile, GameLocation location, AnimatedSprite sprite, Texture2D portrait)
             : base(sprite, targetTile.ToVector2() * 64, 1, name)
         {
             willDestroyObjectsUnderfoot = true;
@@ -114,15 +114,15 @@ namespace FarmCafe.Framework.Characters
             speed = 3;
 
             Portrait = portrait;
-            if (name.StartsWith("Customer"))
-                base.displayName = "Customer";
+            if (name.StartsWith("Visitor"))
+                base.displayName = "Visitor";
 
             currentLocation = location;
             location.addCharacter(this);
             
         }
 
-        public Customer(NPC npc) : base(npc.Sprite, npc.Position, npc.DefaultMap, npc.FacingDirection, npc.Name, npc.datable.Value, null, npc.Portrait)
+        public Visitor(NPC npc) : base(npc.Sprite, npc.Position, npc.DefaultMap, npc.FacingDirection, npc.Name, npc.datable.Value, null, npc.Portrait)
         {
             IsInvisible = false;
             followSchedule = false;
@@ -149,7 +149,7 @@ namespace FarmCafe.Framework.Characters
             this.OriginalNpc = npc;
             this.OriginalScheduleLocations = GetLocationRouteFromSchedule(npc);
 
-            // Problem: We can't create a good enough copy of an NPC in the form of a customer. 
+            // Problem: We can't create a good enough copy of an NPC in the form of a Visitor. 
             // We'd have to copy over a bunch of fields and props, so the player can interact with them the normal way,
             // like give gifts and propose and even get custom modded behavior.
         }
@@ -178,7 +178,7 @@ namespace FarmCafe.Framework.Characters
             //if (moveLeft)
             //    Logger.Log($"left");
 
-            // Regular NPCs turned into customers wouldn't open their room doors
+            // Regular NPCs turned into Visitors wouldn't open their room doors
             
             speed = 5; // For debug
 
@@ -477,7 +477,7 @@ namespace FarmCafe.Framework.Characters
 
         public override string ToString()
         {
-            return $"[Customer] \n"
+            return $"[Visitor] \n"
                    + $"Name: {Name} \n"
                    + $"Location: {currentLocation}, Position: {Position}, Tile: {base.Tile} \n"
                    + $"Bus depart timer: {busDepartTimer}, Convene timer: {conveneWaitingTimer} \n"

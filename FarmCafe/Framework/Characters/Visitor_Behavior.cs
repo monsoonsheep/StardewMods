@@ -8,7 +8,7 @@ using static FarmCafe.Framework.Utility;
 using SUtility = StardewValley.Utility;
 namespace FarmCafe.Framework.Characters
 {
-    public partial class Customer
+    public partial class Visitor
     {
         internal void LeaveBus()
         {
@@ -31,7 +31,7 @@ namespace FarmCafe.Framework.Characters
 
         internal void GoToSeat()
         {
-            State.Set(CustomerState.MovingToTable);
+            State.Set(VisitorState.MovingToTable);
             collidesWithOtherCharacters.Set(false);
             this.HeadTowards(
                 Group.ReservedTable.CurrentLocation,
@@ -44,17 +44,17 @@ namespace FarmCafe.Framework.Characters
         {
             controller = null;
             conveneWaitingTimer = Game1.random.Next(500, 3000);
-            State.Set(CustomerState.Convening);
+            State.Set(VisitorState.Convening);
             Group.GetLookingDirections();
         }
 
         internal void FinishConvening()
         {
-            State.Set(CustomerState.MovingToTable);
-            if (Group.Members.Any(c => c.State.Value != CustomerState.MovingToTable))
+            State.Set(VisitorState.MovingToTable);
+            if (Group.Members.Any(c => c.State.Value != VisitorState.MovingToTable))
                 return;
 
-            foreach (Customer mate in Group.Members)
+            foreach (Visitor mate in Group.Members)
                 mate.GoToSeat();
         }
 
@@ -66,7 +66,7 @@ namespace FarmCafe.Framework.Characters
         internal void SitDown()
         {
             IsSitting.Set(true);
-            State.Set(CustomerState.Sitting);
+            State.Set(VisitorState.Sitting);
             controller = null;
             isCharging = true;
 
@@ -108,20 +108,20 @@ namespace FarmCafe.Framework.Characters
 
         internal void ReadyToOrder()
         {
-            State.Set(CustomerState.OrderReady);
+            State.Set(VisitorState.OrderReady);
             if (IsGroupLeader)
                 this.Group.ReservedTable.IsReadyToOrder = true;
 
             //if (IsGroupLeader)
             //    TableCenterForEmote = this.Group.ReservedTable.GetCenter() + new Vector2(-8, -64);
 
-            Multiplayer.Sync.UpdateCustomerInfo(this, nameof(OrderItem), OrderItem.ParentSheetIndex);
-            //Sync.UpdateCustomerInfo(this, nameof(TableCenterForEmote), TableCenterForEmote.ToString());
+            Multiplayer.Sync.UpdateVisitorInfo(this, nameof(OrderItem), OrderItem.ParentSheetIndex);
+            //Sync.UpdateVisitorInfo(this, nameof(TableCenterForEmote), TableCenterForEmote.ToString());
         }
 
         internal void OrderReceive()
         {
-            State.Set(CustomerState.Eating);
+            State.Set(VisitorState.Eating);
             if (IsGroupLeader)
                 doEmote(20);
             this.eatingTimer = 2000;
@@ -129,12 +129,12 @@ namespace FarmCafe.Framework.Characters
 
         internal void StartWaitForOrder()
         {
-            State.Set(CustomerState.WaitingForOrder);
+            State.Set(VisitorState.WaitingForOrder);
         }
 
         internal void FinishEating()
         {
-            State.Set(CustomerState.Leaving);
+            State.Set(VisitorState.Leaving);
             int[] directions = new[] { (FacingDirection + 1) % 4, (FacingDirection + 3) % 4, (FacingDirection + 2) % 4 };
             foreach (int direction in directions)
             {
@@ -150,12 +150,12 @@ namespace FarmCafe.Framework.Characters
                     return;
                 }
             }
-            // Handle when customer can't get up from seat because of collisions
+            // Handle when Visitor can't get up from seat because of collisions
         }
 
         internal void DoNothingAndWait()
         {
-            State.Set(CustomerState.Free);
+            State.Set(VisitorState.Free);
         }
 
         internal void GoHome()
@@ -183,12 +183,12 @@ namespace FarmCafe.Framework.Characters
 
         internal void RevertOriginalNpc()
         {
-            // Remove this Customer object from the game and mod
+            // Remove this Visitor object from the game and mod
             this.currentLocation.characters.Remove(this);
             ModEntry.CafeManager.DeleteGroup(Group);
 
-            // We stored the original NPC object before Customer initialization
-            // Here we update any state that changed while the Customer was active
+            // We stored the original NPC object before Visitor initialization
+            // Here we update any state that changed while the Visitor was active
             OriginalNpc.currentLocation = this.currentLocation;
             OriginalNpc.Position = this.Position;
             OriginalNpc.TryLoadSchedule(this.ScheduleKey);
@@ -208,7 +208,7 @@ namespace FarmCafe.Framework.Characters
 
         /// <summary>
         /// Find a way to get back to what the original NPC was doing before
-        /// being turned into a Customer
+        /// being turned into a Visitor
         /// </summary>
         internal void ReturnOriginalNpcToSchedule()
         {

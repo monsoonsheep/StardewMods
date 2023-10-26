@@ -13,24 +13,25 @@ using FarmCafe.Models;
 using SUtility = StardewValley.Utility;
 using StardewValley.Buildings;
 using System.Xml.Linq;
+using StardewValley.Audio;
 
 namespace FarmCafe.Framework.Managers
 {
     internal partial class CafeManager
     {
         /// <summary>
-        /// Get a number from 0 to 1 as a chance for customers to visit, based on various factors
+        /// Get a number from 0 to 1 as a chance for Visitors to visit, based on various factors
         /// </summary>
         /// <returns></returns>
-        internal float GetChanceToSpawnCustomers()
+        internal float GetChanceToSpawnVisitors()
         {
             var tables = GetFreeTables();
             int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, ClosingTime);
             int minutesTillOpens = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, OpeningTime);
-            int minutesSinceLastCustomers = SUtility.CalculateMinutesBetweenTimes(LastTimeCustomersArrived, Game1.timeOfDay);
+            int minutesSinceLastVisitors = SUtility.CalculateMinutesBetweenTimes(LastTimeVisitorsArrived, Game1.timeOfDay);
             float percentageOfTablesFree = (float)tables.Count / Tables.Count;
 
-            // Can't spawn customers if:
+            // Can't spawn Visitors if:
             if (minutesTillOpens > 0 // Hasn't opened yet
                 || minutesTillCloses <= 30 // It's less than 30 minutes to closing time
                 || tables.Count == 0 // There are no free tables
@@ -39,8 +40,8 @@ namespace FarmCafe.Framework.Managers
 
             float prob = 0f;
 
-            // more chance if it's been a while since last customers
-            prob += minutesSinceLastCustomers switch
+            // more chance if it's been a while since last Visitors
+            prob += minutesSinceLastVisitors switch
             {
                 <= 20 => 0f,
                 <= 30 => Game1.random.Next(5) == 0 ? 0.05f : -0.1f,
@@ -57,6 +58,7 @@ namespace FarmCafe.Framework.Managers
                 _ => 0.2f
             };
 
+            
             // slight chance to spawn if last hour of open time
             if (minutesTillCloses <= 60)
                 prob += (Game1.random.Next(20 + (minutesTillCloses / 3)) >= 28) ? 0.2f : -0.5f;
@@ -65,25 +67,25 @@ namespace FarmCafe.Framework.Managers
         }
 
         /// <summary>
-        /// Ran every 10 minutes. Use probability logic to create custom customers or NPC customers 
+        /// Ran every 10 minutes. Use probability logic to create custom Visitors or NPC Visitors 
         /// </summary>
         /// <returns></returns>
-        internal bool TrySpawnCustomers()
+        internal bool TrySpawnVisitors()
         {
-            float prob = GetChanceToSpawnCustomers();
+            float prob = GetChanceToSpawnVisitors();
             bool success = false;
 
-            // proc the chance to spawn Custom Customers
+            // proc the chance to spawn Custom Visitors
             if (Game1.random.NextDouble() < prob)
             {
-                Game1.delayedActions.Add(new DelayedAction(Game1.random.Next(400, 4500), TryVisitCustomers));
+                Game1.delayedActions.Add(new DelayedAction(Game1.random.Next(400, 4500), TryVisitVisitors));
                 success = true;
             }
 
-            // proc the chance again to spawn NPC Customers
+            // proc the chance again to spawn NPC Visitors
             if (Game1.random.NextDouble() < prob && GetFreeTables().Count > 0)
             {
-                Game1.delayedActions.Add(new DelayedAction(Game1.random.Next(400, 4500), TryVisitNpcCustomers));
+                Game1.delayedActions.Add(new DelayedAction(Game1.random.Next(400, 4500), TryVisitNpcVisitors));
                 success = true;
             }
 
@@ -91,15 +93,15 @@ namespace FarmCafe.Framework.Managers
         }
 
         /// <summary>
-        /// Iterate through <see cref="NpcCustomerSchedules"/> randomly and select an NPC to convert to customer and send to the cafe.
+        /// Iterate through <see cref="NpcVisitorSchedules"/> randomly and select an NPC to convert to Visitor and send to the cafe.
         /// </summary>
         /// <param name="timeOfDay">The curernt time of day</param>
         /// <returns></returns>
-        internal void TryVisitNpcCustomers()
+        internal void TryVisitNpcVisitors()
         {
-            foreach (string name in NpcCustomerSchedules.Keys.OrderBy(_ => Game1.random.Next()))
+            foreach (string name in NpcVisitorSchedules.Keys.OrderBy(_ => Game1.random.Next()))
             {
-                if (TryVisitNpcCustomer(name))
+                if (TryVisitNpcVisitor(name))
                 {
                     return;
                 }
@@ -111,7 +113,7 @@ namespace FarmCafe.Framework.Managers
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        internal bool TryVisitNpcCustomer(string name)
+        internal bool TryVisitNpcVisitor(string name)
         {
             NPC npc = Game1.getCharacterFromName(name);
             
@@ -139,74 +141,74 @@ namespace FarmCafe.Framework.Managers
 
             Table table = GetFreeTables().OrderBy(t => t.Seats.Count).First(t => t.Seats.Count >= npcsToVisit.Count);
 
-            List<Customer> customers = new List<Customer>();
+            List<Visitor> Visitors = new List<Visitor>();
 
-            // Make a Customer from each NPC
+            // Make a Visitor from each NPC
             bool failed = false;
             for (var i = 0; i < npcsToVisit.Count; i++)
             {
                 var member = npcsToVisit[i];
 
-                CurrentNpcCustomers.Add(member.Name);
-                Customer customer = CreateCustomerFromNpc(member);
-                if (customer == null)
+                CurrentNpcVisitors.Add(member.Name);
+                Visitor Visitor = CreateVisitorFromNpc(member);
+                if (Visitor == null)
                 {
                     failed = true;
                     break;
                 }
 
-                customers.Add(customer);
-                CurrentCustomers.Add(customer);
+                Visitors.Add(Visitor);
+                CurrentVisitors.Add(Visitor);
 
-                customer.OrderItem = npcsToVisitOrderItems[i][Game1.random.Next(npcsToVisitOrderItems[i].Count)];
+                Visitor.OrderItem = npcsToVisitOrderItems[i][Game1.random.Next(npcsToVisitOrderItems[i].Count)];
             }
 
-            // If any of the NPCs failed to convert to customers, revert them all back
+            // If any of the NPCs failed to convert to Visitors, revert them all back
             if (failed)
             {
-                foreach (var customer in customers)
+                foreach (var Visitor in Visitors)
                 {
-                    customer.RevertOriginalNpc();
-                    CurrentCustomers.Remove(customer);
+                    Visitor.RevertOriginalNpc();
+                    CurrentVisitors.Remove(Visitor);
                 }
 
                 foreach (var member in npcsToVisit)
                 {
                     if (member.currentLocation == null)
-                        CurrentNpcCustomers.Remove(member.Name);
+                        CurrentNpcVisitors.Remove(member.Name);
                 }
 
-                Logger.Log("Failed to convert NPCs to customers", LogLevel.Warn);
+                Logger.Log("Failed to convert NPCs to Visitors", LogLevel.Warn);
                 return false;
             }
 
-            CustomerGroup group = new CustomerGroup(customers, table);
+            VisitorGroup group = new VisitorGroup(Visitors, table);
             CurrentGroups.Add(group);
 
             // Make them all go to the cafe
-            foreach (var customer in customers)
+            foreach (var Visitor in Visitors)
             {
-                Logger.LogWithHudMessage($"{customer.Name} is visiting the cafe");
-                customer.GoToSeat();
+                Logger.LogWithHudMessage($"{Visitor.Name} is visiting the cafe");
+                Visitor.GoToSeat();
             }
 
             // If any of them fail to go to the cafe (due to pathfinding problems), revert them all back
-            if (customers.Any(c => c.controller == null))
+            if (Visitors.Any(c => c.controller == null))
             {
-                Logger.Log($"NPC customer(s) ({string.Join(", ", customers.Where(c => c.controller == null))}) couldn't find path, converting back.",
+                Logger.Log($"NPC Visitor(s) ({string.Join(", ", Visitors.Where(c => c.controller == null))}) couldn't find path, converting back.",
                     LogLevel.Warn);
-                customers.ForEach(c => c.RevertAndReturnOriginalNpc());
+                Visitors.ForEach(c => c.RevertAndReturnOriginalNpc());
             }
 
             return true;
         }
 
         /// <summary>
-        /// Spawn a group of Custom Customers from the bus
+        /// Spawn a group of Custom Visitors from the bus
         /// </summary>
-        internal void TryVisitCustomers()
+        internal void TryVisitVisitors()
         {
-            CustomerGroup group = CreateCustomerGroup(GetLocationFromName("BusStop"), BusPosition);
+            VisitorGroup group = CreateVisitorGroup(GetLocationFromName("BusStop"), BusPosition);
 
             if (group == null)
                 return;
@@ -218,10 +220,10 @@ namespace FarmCafe.Framework.Managers
             {
                 group.Members[i].SetBusConvene(convenePoints[i], i * 800 + 1);
                 group.Members[i].faceDirection(2);
-                group.Members[i].State.Set(CustomerState.ExitingBus);
+                group.Members[i].State.Set(VisitorState.ExitingBus);
             }
 
-            Logger.LogWithHudMessage($"{memberCount} customer(s) arriving");
+            Logger.LogWithHudMessage($"{memberCount} Visitor(s) arriving");
         }
 
         /// <summary>
@@ -233,10 +235,10 @@ namespace FarmCafe.Framework.Managers
         /// <returns></returns>
         internal bool CanNpcVisitDuringTime(NPC npc, int timeOfDay)
         {
-            ScheduleData visitData = NpcCustomerSchedules[npc.Name];
+            ScheduleData visitData = NpcVisitorSchedules[npc.Name];
 
             // NPC can't visit cafe if:
-            if (CurrentNpcCustomers.Contains(npc.Name) // The NPC is already a customer right now
+            if (CurrentNpcVisitors.Contains(npc.Name) // The NPC is already a Visitor right now
                 || npc.isSleeping.Value // They're sleeping
                 || npc.ScheduleKey == null // Their schedule today isn't selected
                 || !visitData.CanVisitToday // If we've marked them as can't visit for today
@@ -266,35 +268,35 @@ namespace FarmCafe.Framework.Managers
         }
 
         /// <summary>
-        /// Instantiate a Customer from an NPC by calling its secondary constructor
+        /// Instantiate a Visitor from an NPC by calling its secondary constructor
         /// </summary>
         /// <param name="npc">The NPC to convert</param>
         /// <returns></returns>
-        internal Customer CreateCustomerFromNpc(NPC npc)
+        internal Visitor CreateVisitorFromNpc(NPC npc)
         {
-            Customer c;
+            Visitor c;
             try
             {
-                c = new Customer(npc);
+                c = new Visitor(npc);
             }
             catch
             {
                 return null;
             }
 
-            c.OnFinishedDined += OnCustomerDined;
+            c.OnFinishedDined += OnVisitorDined;
             return c;
         }
 
         /// <summary>
-        /// The Customer fires an event when they get up from their table, so we can save their <see cref="ScheduleData.LastVisitedDate"/>
+        /// The Visitor fires an event when they get up from their table, so we can save their <see cref="ScheduleData.LastVisitedDate"/>
         /// </summary>
-        /// <param name="customer">The NPC Customer to evaluate</param>
-        internal void OnCustomerDined(Customer customer)
+        /// <param name="Visitor">The NPC Visitor to evaluate</param>
+        internal void OnVisitorDined(Visitor Visitor)
         {
-            if (customer.OriginalNpc != null)
+            if (Visitor.OriginalNpc != null)
             {
-                NpcCustomerSchedules[customer.Name].LastVisitedDate = Game1.Date;
+                NpcVisitorSchedules[Visitor.Name].LastVisitedDate = Game1.Date;
             }
         }
 
@@ -311,14 +313,14 @@ namespace FarmCafe.Framework.Managers
         }
 
         /// <summary>
-        /// Create <see cref="Customer"/>s based on a random free table found, then put them in a <see cref="CustomerGroup"/> and adds them to the given location at the given position
+        /// Create <see cref="Visitor"/>s based on a random free table found, then put them in a <see cref="VisitorGroup"/> and adds them to the given location at the given position
         /// </summary>
-        internal CustomerGroup CreateCustomerGroup(GameLocation location, Point tilePosition, int memberCount = 0)
+        internal VisitorGroup CreateVisitorGroup(GameLocation location, Point tilePosition, int memberCount = 0)
         {
             var tables = GetFreeTables(memberCount);
             if (tables.Count == 0)
             {
-                Logger.LogWithHudMessage("No tables to spawn customers");
+                Logger.LogWithHudMessage("No tables to spawn Visitors");
                 return null;
             }
 
@@ -344,33 +346,33 @@ namespace FarmCafe.Framework.Managers
             }
 
             // If not enough models free, adjust member count
-            List<CustomerModel> modelsToUse = GetRandomCustomerModels(memberCount);
+            List<VisitorModel> modelsToUse = GetRandomVisitorModels(memberCount);
             //if (modelsToUse.Count < memberCount)
             //    memberCount = modelsToUse.Count;
             //if (memberCount == 0)
             //{
-            //    Logger.Log("No more models to use for customers");
+            //    Logger.Log("No more models to use for Visitors");
             //    return null;
             //}
 
-            List<Customer> customers = new List<Customer>();
+            List<Visitor> Visitors = new List<Visitor>();
             for (var i = 0; i < memberCount; i++)
             {
-                Customer c = SpawnCustomer(location, tilePosition, modelsToUse[0]);
-                customers.Add(c);
+                Visitor c = SpawnVisitor(location, tilePosition, modelsToUse[0]);
+                Visitors.Add(c);
                 c.OrderItem = GetRandomItemFromMenu();
             }
 
-            CustomerGroup group = new CustomerGroup(customers, table);
+            VisitorGroup group = new VisitorGroup(Visitors, table);
             CurrentGroups.Add(group);
 
 
-            //Sync.AddCustomerGroup(group);
+            //Sync.AddVisitorGroup(group);
             return group;
         }
 
         /// <summary>
-        /// Return a list of positions that a group can convene on. After customers depart from the bus, they have to stand in a small area and look around for a few seconds. Those positions are based on the bus position.
+        /// Return a list of positions that a group can convene on. After Visitors depart from the bus, they have to stand in a small area and look around for a few seconds. Those positions are based on the bus position.
         /// </summary>
         internal List<Point> GetBusConvenePoints(int count)
         {
@@ -387,22 +389,22 @@ namespace FarmCafe.Framework.Managers
         }
 
         /// <summary>
-        /// Return a list of usable <see cref="CustomerModel"/>s that are used for creating customers. This also registers them as used and adds them to <see cref="CustomerModelsInUse"/>
+        /// Return a list of usable <see cref="VisitorModel"/>s that are used for creating Visitors. This also registers them as used and adds them to <see cref="VisitorModelsInUse"/>
         /// </summary>
-        internal List<CustomerModel> GetRandomCustomerModels(int count = 0)
+        internal List<VisitorModel> GetRandomVisitorModels(int count = 0)
         {
-            List<CustomerModel> results = new List<CustomerModel>();
+            List<VisitorModel> results = new List<VisitorModel>();
             if (count == 0)
-                count = CustomerModels.Count;
-            foreach (var model in CustomerModels)
+                count = VisitorModels.Count;
+            foreach (var model in VisitorModels)
             {
-                if (CustomerModelsInUse.Contains(model.Name))
+                if (VisitorModelsInUse.Contains(model.Name))
                     continue;
                 if (count == 0)
                     break;
 
                 count--;
-                //CustomerModelsInUse.Add(model.Name);
+                //VisitorModelsInUse.Add(model.Name);
                 results.Add(model);
             }
 
@@ -410,45 +412,45 @@ namespace FarmCafe.Framework.Managers
         }
 
         /// <summary>
-        /// Calls the <see cref="Customer"/> contructor and creates an instance
+        /// Calls the <see cref="Visitor"/> contructor and creates an instance
         /// </summary>
-        internal Customer SpawnCustomer(GameLocation location, Point tilePosition, CustomerModel model)
+        internal Visitor SpawnVisitor(GameLocation location, Point tilePosition, VisitorModel model)
         {
-            Customer customer = new Customer(
-                name: $"CustomerNPC_{model.Name}{CurrentCustomers.Count + 1}",
+            Visitor Visitor = new Visitor(
+                name: $"VisitorNPC_{model.Name}{CurrentVisitors.Count + 1}",
                 targetTile: tilePosition,
                 location: location, 
                 sprite: new AnimatedSprite(model.TilesheetPath, 0, 16, 32),
                 portrait: Game1.content.Load<Texture2D>(model.Portrait));
-            Logger.Log($"Customer {customer.Name} spawned");
+            Logger.Log($"Visitor {Visitor.Name} spawned");
 
-            CurrentCustomers.Add(customer);
-            return customer;
+            CurrentVisitors.Add(Visitor);
+            return Visitor;
         }
 
         /// <summary>
-        /// After a <see cref="CustomerGroup"/> is done visiting and all members are gone, we call this to remove the group and all members from tracking.
+        /// After a <see cref="VisitorGroup"/> is done visiting and all members are gone, we call this to remove the group and all members from tracking.
         /// </summary>
-        public void DeleteGroup(CustomerGroup group)
+        public void DeleteGroup(VisitorGroup group)
         {
-            foreach (Customer c in group.Members)
+            foreach (Visitor c in group.Members)
             {
-                CurrentCustomers.Remove(c);
-                CurrentNpcCustomers.Remove(c.Name);
+                CurrentVisitors.Remove(c);
+                CurrentNpcVisitors.Remove(c.Name);
             }           
             CurrentGroups.Remove(group);
         }
 
         /// <summary>
-        /// When a customer warps, it may end up overlapping with another customer so we make one of them charging
+        /// When a Visitor warps, it may end up overlapping with another Visitor so we make one of them charging
         /// </summary>
-        internal void HandleWarp(Customer customer, GameLocation location, Vector2 position)
+        internal void HandleWarp(Visitor Visitor, GameLocation location, Vector2 position)
         {
-            foreach (var other in CurrentCustomers)
+            foreach (var other in CurrentVisitors)
             {
-                if (other.Equals(customer)
-                    || !other.currentLocation.Equals(customer.currentLocation)
-                    || !other.Tile.Equals(customer.Tile))
+                if (other.Equals(Visitor)
+                    || !other.currentLocation.Equals(Visitor.currentLocation)
+                    || !other.Tile.Equals(Visitor.Tile))
                     continue;
 
                 other.isCharging = true;
@@ -457,12 +459,12 @@ namespace FarmCafe.Framework.Managers
         }
 
         /// <summary>
-        /// Warp all members of a <see cref="CustomerGroup"/> to the given position and make them repath to their destination
+        /// Warp all members of a <see cref="VisitorGroup"/> to the given position and make them repath to their destination
         /// </summary>
         /// <param name="group"></param>
         /// <param name="location"></param>
         /// <param name="warpPosition"></param>
-        internal void WarpGroup(CustomerGroup group, GameLocation location, Point warpPosition)
+        internal void WarpGroup(VisitorGroup group, GameLocation location, Point warpPosition)
         {
             var points = AdjacentTiles(warpPosition).ToList();
             if (points.Count < group.Members.Count)
@@ -475,52 +477,52 @@ namespace FarmCafe.Framework.Managers
         }
 
         /// <summary>
-        /// Clear all tracked customers and free all tables
+        /// Clear all tracked Visitors and free all tables
         /// </summary>
-        public void RemoveAllCustomers()
+        public void RemoveAllVisitors()
         {
-            Logger.Log("Removing customers");
-            foreach (var c in CurrentCustomers)
+            Logger.Log("Removing Visitors");
+            foreach (var c in CurrentVisitors)
             {
                 c.currentLocation?.characters?.Remove(c);
             }
 
-            Sync.RemoveAllCustomers();
-            CurrentCustomers.Clear();
-            CurrentNpcCustomers.Clear();
-            CustomerModelsInUse?.Clear();
+            Sync.RemoveAllVisitors();
+            CurrentVisitors.Clear();
+            CurrentNpcVisitors.Clear();
+            VisitorModelsInUse?.Clear();
             CurrentGroups?.Clear();
             FreeAllTables();
         }
 
         /// <summary>
-        /// Locate every NPC instance in every location that is an instance of the <see cref="Customer"/> class
+        /// Locate every NPC instance in every location that is an instance of the <see cref="Visitor"/> class
         /// </summary>
-        internal static List<Customer> GetAllCustomersInGame()
+        internal static List<Visitor> GetAllVisitorsInGame()
         {
-            var locationCustomers = Game1.locations
+            var locationVisitors = Game1.locations
                 .SelectMany(l => l.characters)
-                .OfType<Customer>();
+                .OfType<Visitor>();
 
             
-            var buildingCustomers = (Game1.getFarm().buildings
+            var buildingVisitors = (Game1.getFarm().buildings
                     .Where(b => b.GetIndoors() != null)
                     .SelectMany(b => b.GetIndoors().characters))
-                .OfType<Customer>();
+                .OfType<Visitor>();
 
-            var list = locationCustomers.Concat(buildingCustomers).ToList();
+            var list = locationVisitors.Concat(buildingVisitors).ToList();
 
             return list;
         }
 
         /// <summary>
-        /// Search <see cref="Customer"/> objects in all locations and buildings and return one with the given name.
+        /// Search <see cref="Visitor"/> objects in all locations and buildings and return one with the given name.
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        internal static Customer GetCustomerFromName(string name)
+        internal static Visitor GetVisitorFromName(string name)
         {
-            return GetAllCustomersInGame().FirstOrDefault(c => c.name == name);
+            return GetAllVisitorsInGame().FirstOrDefault(c => c.name == name);
         }
     }
 }

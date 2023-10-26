@@ -80,7 +80,7 @@ namespace FarmCafe.Framework
             return -1;
         }
 
-        internal static IEnumerable<Point> AdjacentTilesCollision(Point startPos, GameLocation location, Customer character, int reach = 1)
+        internal static IEnumerable<Point> AdjacentTilesCollision(Point startPos, GameLocation location, Visitor character, int reach = 1)
         {
             for (int i = startPos.X - reach; i < startPos.X + reach; i++)
             {

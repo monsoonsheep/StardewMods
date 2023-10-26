@@ -13,22 +13,22 @@ namespace FarmCafe.Framework.Objects
 
         internal virtual Vector2 Position { get; set; }
 
-        internal virtual Customer ReservingCustomer { get; set; }
+        internal virtual Visitor ReservingVisitor { get; set; }
 
-        internal virtual bool Reserve(Customer customer)
+        internal virtual bool Reserve(Visitor Visitor)
         {
-            if (ReservingCustomer != null)
+            if (ReservingVisitor != null)
                 return false;
 
-            ReservingCustomer = customer;
+            ReservingVisitor = Visitor;
             return true;
         }
 
         internal virtual void Free() 
-            => ReservingCustomer = null;
+            => ReservingVisitor = null;
 
         internal virtual bool IsReserved 
-            => (ReservingCustomer != null);
+            => (ReservingVisitor != null);
 
         internal abstract int SittingDirection { get; }
     }
@@ -46,9 +46,9 @@ namespace FarmCafe.Framework.Objects
         internal override int SittingDirection 
             => this.ActualChair.GetSittingDirection();
 
-        internal override bool Reserve(Customer customer)
+        internal override bool Reserve(Visitor Visitor)
         {
-            if (!base.Reserve(customer)) 
+            if (!base.Reserve(Visitor)) 
                 return false;
 
             this.ActualChair.modData["FarmCafeChairIsReserved"] = "T";
@@ -67,9 +67,9 @@ namespace FarmCafe.Framework.Objects
         public MapChair(Vector2 position) 
             => this.Position = position;
         
-        internal override bool Reserve(Customer customer)
+        internal override bool Reserve(Visitor Visitor)
         {
-            if (!base.Reserve(customer))
+            if (!base.Reserve(Visitor))
                 return false;
 
             if (IsLocationCafe(Table.CurrentLocation))

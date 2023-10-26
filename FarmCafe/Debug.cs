@@ -21,13 +21,13 @@ namespace FarmCafe
             switch (e.Button)
             {
                 case SButton.NumPad0:
-                    ModEntry.CafeManager.TryVisitCustomers();
+                    ModEntry.CafeManager.TryVisitVisitors();
                     break;
                 case SButton.NumPad1:
                     WarpToBus();
                     break;
                 case SButton.NumPad2:
-                    ModEntry.CafeManager.RemoveAllCustomers();
+                    ModEntry.CafeManager.RemoveAllVisitors();
                     break;
                 case SButton.NumPad3:
                     if (BusManager.BusGone)
@@ -36,7 +36,7 @@ namespace FarmCafe
                         BusManager.BusLeave();
                     break;
                 case SButton.NumPad4:
-                    ListCustomers();
+                    ListVisitors();
                     break;
                 case SButton.NumPad5:
                     Building sign = GetSignboardBuilding();
@@ -62,15 +62,15 @@ namespace FarmCafe
                     
                     if (shane != null)
                     {
-                        if (shane is Customer c)
+                        if (shane is Visitor c)
                         {
-                            ModEntry.CafeManager.CurrentCustomers.Remove(c);
+                            ModEntry.CafeManager.CurrentVisitors.Remove(c);
                             c.Group?.ReservedTable?.Free();
                         }
                         Game1.warpCharacter(shane, Game1.player.currentLocation, Game1.player.Tile + new Vector2(0, -1));
                         //ModEntry.CafeManager.VisitRegularNpc(Game1.getCharacterFromName("Shane"));
                     }
-                    //CustomerGroup g = CafeManager.CreateCustomerGroup(Game1.player.currentLocation,
+                    //VisitorGroup g = CafeManager.CreateVisitorGroup(Game1.player.currentLocation,
                     //    Game1.player.getTileLocationPoint() + new Point(0, -1), 1);
                     //g?.Members?.First()?.GoToSeat();
                     break;
@@ -96,21 +96,21 @@ namespace FarmCafe
             Game1.warpFarmer(cafe.Name, warp.X, warp.Y - 1, 0);
         }
 
-        internal static void ListCustomers()
+        internal static void ListVisitors()
         {
             Logger.Log("Characters in current");
             foreach (var ch in Game1.currentLocation.characters)
-                if (ch is Customer)
+                if (ch is Visitor)
                     Logger.Log(ch.ToString());
                 else
                     Logger.Log("NPC: " + ch.Name);
 
-            Logger.Log("Current customers: ");
-            foreach (var customer in ModEntry.CafeManager.CurrentCustomers) 
-                Logger.Log(customer.ToString());
+            Logger.Log("Current Visitors: ");
+            foreach (var Visitor in ModEntry.CafeManager.CurrentVisitors) 
+                Logger.Log(Visitor.ToString());
 
             Logger.Log("Current models: ");
-            foreach (var model in ModEntry.CafeManager.CustomerModels) 
+            foreach (var model in ModEntry.CafeManager.VisitorModels) 
                 Logger.Log(model.ToString());
 
             foreach (var f in Game1.getFarm().furniture)

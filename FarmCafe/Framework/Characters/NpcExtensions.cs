@@ -228,7 +228,7 @@ namespace FarmCafe.Framework.Characters
 
         public static bool IsAcceptingOfOrder(this NPC me)
         {
-            return me is Customer; // later do regular NPC stuff
+            return me is Visitor; // later do regular NPC stuff
         }
     }
 }

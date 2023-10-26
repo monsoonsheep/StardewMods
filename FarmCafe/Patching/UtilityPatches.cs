@@ -30,10 +30,10 @@ namespace FarmCafe.Patching
             switch (__instance)
             {
                 case Axe:
-                    //RepathCustomer(x, y);
+                    //RepathVisitor(x, y);
                     break;
                 case Pickaxe:
-                    //RepositionCustomer(x, y);
+                    //RepositionVisitor(x, y);
                     break;
                 case Hoe:
                     Logger.Log($"Buildings {x}, {y}: {GetTileProperties(location.Map.GetLayer("Buildings").PickTile(new Location(x, y), Game1.viewport.Size))}");

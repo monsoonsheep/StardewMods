@@ -35,15 +35,15 @@ namespace FarmCafe.Framework.Objects
             IsReserved = false;
         }
 
-        internal virtual bool Reserve(List<Customer> customers)
+        internal virtual bool Reserve(List<Visitor> Visitors)
         {
-            if (IsReserved || Seats.Count < customers.Count)
+            if (IsReserved || Seats.Count < Visitors.Count)
                 return false;
 
-            for (int i = 0; i < customers.Count; i++)
+            for (int i = 0; i < Visitors.Count; i++)
             {
-                customers[i].Seat = Seats[i];
-                Seats[i].Reserve(customers[i]);
+                Visitors[i].Seat = Seats[i];
+                Seats[i].Reserve(Visitors[i]);
             }
 
             IsReserved = true;
@@ -81,9 +81,9 @@ namespace FarmCafe.Framework.Objects
             this.ActualTable.modData[ModKeys.MODDATA_TABLERESERVED] = "F";
         }
 
-        internal override bool Reserve(List<Customer> customers)
+        internal override bool Reserve(List<Visitor> Visitors)
         {
-            if (!base.Reserve(customers))
+            if (!base.Reserve(Visitors))
                 return false;
 
             this.ActualTable.modData[ModKeys.MODDATA_TABLERESERVED] = "T";

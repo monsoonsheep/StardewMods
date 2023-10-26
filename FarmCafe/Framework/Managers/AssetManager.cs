@@ -30,7 +30,7 @@ namespace FarmCafe.Framework.Managers
             if (e.Name.IsDirectlyUnderPath("monsoonsheep.FarmCafe/NPCSchedules"))
             {
                 string npcname = e.Name.Name.Split('/').Last();
-                ModEntry.CafeManager.NpcCustomerSchedules[npcname] = Game1.content.Load<ScheduleData>("monsoonsheep.FarmCafe/NPCSchedules/" + npcname);
+                ModEntry.CafeManager.NpcVisitorSchedules[npcname] = Game1.content.Load<ScheduleData>("monsoonsheep.FarmCafe/NPCSchedules/" + npcname);
             }
         }
 
@@ -48,7 +48,7 @@ namespace FarmCafe.Framework.Managers
                     ScheduleData scheduleData = Game1.content.Load<ScheduleData>(ModKeys.ASSETS_NPCSCHEDULE_PREFIX + npc.Name);
                     if (scheduleData != null)
                     {
-                        ModEntry.CafeManager.NpcCustomerSchedules[npc.Name] = scheduleData;
+                        ModEntry.CafeManager.NpcVisitorSchedules[npc.Name] = scheduleData;
                         doneCount++;
                     }
                 }
@@ -68,16 +68,16 @@ namespace FarmCafe.Framework.Managers
         /// Load content packs for this mod
         /// </summary>
         /// <param name="helper"></param>
-        /// <param name="customerModels"></param>
-        internal static void LoadContentPacks(IModHelper helper, ref List<CustomerModel> customerModels)
+        /// <param name="VisitorModels"></param>
+        internal static void LoadContentPacks(IModHelper helper, ref List<VisitorModel> VisitorModels)
         {
             foreach (IContentPack contentPack in helper.ContentPacks.GetOwned())
             {
                 Logger.Log($"Loading content pack {contentPack.Manifest.Name} by {contentPack.Manifest.Author}");
-                var modelsInPack = new DirectoryInfo(Path.Combine(contentPack.DirectoryPath, "Customers")).GetDirectories();
+                var modelsInPack = new DirectoryInfo(Path.Combine(contentPack.DirectoryPath, "Visitors")).GetDirectories();
                 foreach (var modelFolder in modelsInPack)
                 {
-                    CustomerModel model = contentPack.ReadJsonFile<CustomerModel>(Path.Combine("Customers", modelFolder.Name, "customer.json"));
+                    VisitorModel model = contentPack.ReadJsonFile<VisitorModel>(Path.Combine("Visitors", modelFolder.Name, "Visitor.json"));
                     if (model == null)
                     {
                         Logger.Log("Couldn't read json for content pack");
@@ -85,11 +85,11 @@ namespace FarmCafe.Framework.Managers
                     }
 
                     model.Name = model.Name.Replace(" ", "");
-                    model.TilesheetPath = contentPack.ModContent.GetInternalAssetName(Path.Combine("Customers", modelFolder.Name, "customer.png")).Name;
+                    model.TilesheetPath = contentPack.ModContent.GetInternalAssetName(Path.Combine("Visitors", modelFolder.Name, "Visitor.png")).Name;
 
-                    if (contentPack.HasFile(Path.Combine("Customers", modelFolder.Name, "portrait.png")))
+                    if (contentPack.HasFile(Path.Combine("Visitors", modelFolder.Name, "portrait.png")))
                     {
-                        model.Portrait = contentPack.ModContent.GetInternalAssetName(Path.Combine("Customers", modelFolder.Name, "portrait.png")).Name;
+                        model.Portrait = contentPack.ModContent.GetInternalAssetName(Path.Combine("Visitors", modelFolder.Name, "portrait.png")).Name;
                     }
                     else
                     {
@@ -97,17 +97,17 @@ namespace FarmCafe.Framework.Managers
                         model.Portrait = helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", portraitName + ".png")).Name;
                     }
                     
-                    customerModels.Add(model);
+                    VisitorModels.Add(model);
                 }
             }
         }
 
-        internal static void LoadCustomerModels(IModHelper helper, ref List<CustomerModel> customerModels)
+        internal static void LoadVisitorModels(IModHelper helper, ref List<VisitorModel> VisitorModels)
         {
-            var modelFolders = new DirectoryInfo(Path.Combine(helper.DirectoryPath, "assets", "Customers")).GetDirectories();
+            var modelFolders = new DirectoryInfo(Path.Combine(helper.DirectoryPath, "assets", "Visitors")).GetDirectories();
             foreach (var modelFolder in modelFolders)
             {
-                CustomerModel model = helper.ModContent.Load<CustomerModel>(Path.Combine("assets", "Customers", modelFolder.Name, "customer.json"));
+                VisitorModel model = helper.ModContent.Load<VisitorModel>(Path.Combine("assets", "Visitors", modelFolder.Name, "Visitor.json"));
                 if (model == null)
                 {
                     Logger.Log("Couldn't read json for content pack");
@@ -115,12 +115,12 @@ namespace FarmCafe.Framework.Managers
                 }
 
                 model.Name = model.Name.Replace(" ", "");
-                model.TilesheetPath = helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Customers", modelFolder.Name, "customer.png")).Name;
+                model.TilesheetPath = helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Visitors", modelFolder.Name, "Visitor.png")).Name;
 
                 string portraitName = "Tempcat";
                 model.Portrait = helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", portraitName + ".png")).Name;
 
-                customerModels.Add(model);
+                VisitorModels.Add(model);
             }
 
         }

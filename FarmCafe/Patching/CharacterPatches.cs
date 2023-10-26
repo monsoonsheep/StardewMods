@@ -43,12 +43,12 @@ namespace FarmCafe.Patching
 
         private static bool TryToReceiveActiveObjectPrefix(NPC __instance, Farmer who, bool probe)
         {
-            if (!probe && __instance is Customer customer) // TODO: make work for regular NPCs
+            if (!probe && __instance is Visitor Visitor) // TODO: make work for regular NPCs
             {
-                if (who.ActiveObject?.ItemId != customer.OrderItem.ItemId)
+                if (who.ActiveObject?.ItemId != Visitor.OrderItem.ItemId)
                     return true;
 
-                customer.OrderReceive();
+                Visitor.OrderReceive();
                 who.reduceActiveItemByOne();
                 return false;
             }
@@ -79,7 +79,7 @@ namespace FarmCafe.Patching
                 {
                     new (OpCodes.Ldarg_0), // this
 			        new (OpCodes.Ldfld, fPathfindercharacter), // this.character
-                    new (OpCodes.Isinst, typeof(Customer)),
+                    new (OpCodes.Isinst, typeof(Visitor)),
                     new (OpCodes.Brtrue, jumpLabel) // branch to the same one found earlier
 		        };
 
@@ -93,18 +93,18 @@ namespace FarmCafe.Patching
 
         private static void WarpCharacterPostfix(NPC character, GameLocation targetLocation, Vector2 position)
         {
-            if (character is Customer customer)
+            if (character is Visitor Visitor)
             {
-                Logger.Log($"Warped customer to {targetLocation.Name} - {position}");
-                ModEntry.CafeManager.HandleWarp(customer, targetLocation, position);
+                Logger.Log($"Warped Visitor to {targetLocation.Name} - {position}");
+                ModEntry.CafeManager.HandleWarp(Visitor, targetLocation, position);
             }
         }
 
         private static void DoEmotePostfix(Character __instance, int whichEmote, bool playSound, bool nextEventCommand)
         {
-            if (__instance is Customer customer && Context.IsMainPlayer)
+            if (__instance is Visitor Visitor && Context.IsMainPlayer)
             {
-                Sync.CustomerDoEmote(customer, whichEmote);
+                Sync.VisitorDoEmote(Visitor, whichEmote);
             }
         }
     }

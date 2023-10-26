@@ -116,10 +116,10 @@ namespace FarmCafe
             // add some config options
             configMenu.AddNumberOption(
                 mod: ModManifest,
-                name: I18n.Menu_CustomerFrequency,
-                tooltip: I18n.Menu_CustomerFrequencyTooltip,
-                getValue: () => Config.CustomerSpawnFrequency,
-                setValue: value => Config.CustomerSpawnFrequency = value,
+                name: I18n.Menu_VisitorFrequency,
+                tooltip: I18n.Menu_VisitorFrequencyTooltip,
+                getValue: () => Config.VisitorSpawnFrequency,
+                setValue: value => Config.VisitorSpawnFrequency = value,
                 min: 1, max: 5, 
                 formatValue: GetFrequencyText
             );
@@ -127,8 +127,8 @@ namespace FarmCafe
                 mod: ModManifest,
                 name: I18n.Menu_NpcFrequency,
                 tooltip: I18n.Menu_NpcFrequency_Tooltip,
-                getValue: () => Config.NpcCustomerSpawnFrequency,
-                setValue: value => Config.NpcCustomerSpawnFrequency = value,
+                getValue: () => Config.NpcVisitorSpawnFrequency,
+                setValue: value => Config.NpcVisitorSpawnFrequency = value,
                 min: 1, max: 5, 
                 formatValue: GetFrequencyText
             );
@@ -146,7 +146,7 @@ namespace FarmCafe
         {
             if (!Context.IsMainPlayer)
             {
-                //CafeManager.CurrentCustomers = CafeManager.GetAllCustomersInGame();
+                //CafeManager.CurrentVisitors = CafeManager.GetAllVisitorsInGame();
                 return;
             }
 
@@ -154,11 +154,11 @@ namespace FarmCafe
             {
                 Tables = new(),
                 CafeLocations = new(),
-                CurrentCustomers = new()
+                CurrentVisitors = new()
             };
 
-            AssetManager.LoadCustomerModels(ModHelper, ref CafeManager.CustomerModels);
-            AssetManager.LoadContentPacks(ModHelper, ref CafeManager.CustomerModels);
+            AssetManager.LoadVisitorModels(ModHelper, ref CafeManager.VisitorModels);
+            AssetManager.LoadContentPacks(ModHelper, ref CafeManager.VisitorModels);
             AssetManager.LoadNpcSchedules(ModHelper);
 
             LoadValuesFromModData();
@@ -188,7 +188,7 @@ namespace FarmCafe
         {
             if (Context.IsMainPlayer && CafeManager != null)
             {
-                CafeManager.RemoveAllCustomers();
+                CafeManager.RemoveAllVisitors();
             }
         }
 
@@ -205,7 +205,7 @@ namespace FarmCafe
 
             // NPCs' last visited date in the format "Name year,season,dayOfMonth/Name year,season,dayOfMonth"
             Game1.player.modData[ModKeys.MODDATA_NPCSLASTVISITEDDATES] = string.Join(' ',
-                CafeManager.NpcCustomerSchedules.Select(pair =>
+                CafeManager.NpcVisitorSchedules.Select(pair =>
                     $"{pair.Key} {pair.Value.LastVisitedDate.Year},{pair.Value.LastVisitedDate.SeasonIndex},{pair.Value.LastVisitedDate.DayOfMonth}"));
         }
 
@@ -214,10 +214,10 @@ namespace FarmCafe
             if (!Context.IsWorldReady)
                 return;
 
-            //if (!Context.IsMainPlayer && ClientShouldUpdateCustomers)
+            //if (!Context.IsMainPlayer && ClientShouldUpdateVisitors)
             //{
-            //    CurrentCustomers = CafeManager.GetAllCustomersInGame();
-            //    ClientShouldUpdateCustomers = false;
+            //    CurrentVisitors = CafeManager.GetAllVisitorsInGame();
+            //    ClientShouldUpdateVisitors = false;
             //}
         }
 
@@ -226,9 +226,9 @@ namespace FarmCafe
             if (!Context.IsMainPlayer)
                 return;
 
-            // spawn customers depending on probability logic
-            if (CafeManager.TrySpawnCustomers())
-                CafeManager.LastTimeCustomersArrived = e.NewTime;
+            // spawn Visitors depending on probability logic
+            if (CafeManager.TrySpawnVisitors())
+                CafeManager.LastTimeVisitorsArrived = e.NewTime;
 
             if (BusManager.BusDeparturesToday < BusManager.BusDepartureTimes.Length && !BusManager.BusGone)
             {
@@ -298,13 +298,13 @@ namespace FarmCafe
         {
             if (e.FromModID != ModManifest.UniqueID) return;
 
-            if (e.Type.StartsWith("UpdateCustomerInfo") && !Context.IsMainPlayer)
+            if (e.Type.StartsWith("UpdateVisitorInfo") && !Context.IsMainPlayer)
             {
                 var split = e.Type.Split('/');
-                Customer c = CafeManager.GetCustomerFromName(split[1]);
+                Visitor c = CafeManager.GetVisitorFromName(split[1]);
                 if (c == null)
                 {
-                    Logger.Log("Couldn't get customer to update");
+                    Logger.Log("Couldn't get Visitor to update");
                     return;
                 }
                
@@ -335,12 +335,12 @@ namespace FarmCafe
                     Logger.Log("Invalid message from host", LogLevel.Warn);
                 }
             }
-            else if (e.Type == "CustomerDoEmote" && !Context.IsMainPlayer)
+            else if (e.Type == "VisitorDoEmote" && !Context.IsMainPlayer)
             {
                 try
                 {
                     var info = e.ReadAs<Dictionary<string, string>>();
-                    Customer c = CafeManager.GetCustomerFromName(info["name"]);
+                    Visitor c = CafeManager.GetVisitorFromName(info["name"]);
                     c?.doEmote(int.Parse(info["emote"]));
                 }
                 catch
@@ -397,7 +397,7 @@ namespace FarmCafe
                     string npcName = split[index];
                     string[] date = split[index + 1].Split(',');
 
-                    CafeManager.NpcCustomerSchedules[npcName].LastVisitedDate =
+                    CafeManager.NpcVisitorSchedules[npcName].LastVisitedDate =
                         new WorldDate(int.Parse(date[0]), (Season)int.Parse(date[1]), int.Parse(date[2]));
                 }
             }

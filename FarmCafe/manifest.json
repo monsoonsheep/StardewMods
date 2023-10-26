@@ -2,7 +2,7 @@
   "Name": "FarmCafe",
   "Author": "monsoonsheep",
   "Version": "0.1.0",
-  "Description": "Make a Cafe where customers will visit",
+  "Description": "Make a Cafe where Visitors will visit",
   "UniqueID": "monsoonsheep.farmcafe",
   "EntryDll": "FarmCafe.dll",
   "MinimumApiVersion": "3.0.0",

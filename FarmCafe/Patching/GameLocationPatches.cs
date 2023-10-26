@@ -45,28 +45,22 @@ namespace FarmCafe.Patching
             if ((!BusManager.BusLeaving && !BusManager.BusReturning) || BusManager.busPosition == null)
                 return;
 
+            Vector2 busMotionValue = (Vector2) BusManager.busMotion.GetValue(__instance);
+            Vector2 busPositionValue = (Vector2) BusManager.busPosition.GetValue(__instance);
+
             if (BusManager.BusLeaving && !BusManager.BusGone)
             {
-                if (BusManager.busMotion == null || BusManager.busPosition == null)
-                {
-                    BusManager.BusLeaving = false;
-                    BusManager.BusGone = true;
-                    Logger.Log("busPosition or busMotion was null", LogLevel.Error);
-                    return;
-                }
-
                 if (__instance.farmers.Count == 0)
                 {
-                    BusManager.busPosition.SetValue(__instance, new Vector2(-1000f, ((Vector2) BusManager.busPosition.GetValue(__instance)).Y));
+                    BusManager.busPosition.SetValue(__instance, new Vector2(-1000f, busPositionValue.Y));
                     BusManager.BusLeaving = false;
                     BusManager.BusGone = true;
                     return;
                 }
 
-                Vector2 busMotionValue = (Vector2) BusManager.busMotion.GetValue(__instance);
-                Vector2 busPositionValue = (Vector2) BusManager.busPosition.GetValue(__instance);
-
+                // Accelerate toward left
                 BusManager.busMotion.SetValue(__instance,  new Vector2(busMotionValue.X - 0.075f, busMotionValue.Y));
+
                 if (busPositionValue.X + 512f < 0f)
                 {
                     BusManager.BusGone = true;
@@ -76,17 +70,14 @@ namespace FarmCafe.Patching
 
             if (BusManager.BusReturning)
             {
-                Vector2 busMotionValue = (Vector2) BusManager.busMotion.GetValue(__instance);
-                Vector2 busPositionValue = (Vector2) BusManager.busPosition.GetValue(__instance);
-
                 // Instantly teleport to position if no farmer is watching
                 if (__instance.farmers.Count == 0)
                 {
-                    BusManager.BusFinishReturning(false);
+                    BusManager.BusFinishReturning(animate: false);
                     return;
                 }
 
-                if (Math.Abs(busPositionValue.X - 704f) <= Math.Abs(((Vector2) BusManager.busMotion.GetValue(__instance)).X * 1.5f))
+                if (Math.Abs(busPositionValue.X - 704f) <= Math.Abs(busMotionValue.X * 1.5f))
                 {
                     BusManager.BusFinishReturning();
                     return;
@@ -100,12 +91,11 @@ namespace FarmCafe.Patching
             }
         }
 
-        
         private static void CleanupBeforeSavePostfix(GameLocation __instance)
         {
             for (int i = __instance.characters.Count - 1; i >= 0; i--)
             {
-                if (__instance.characters[i] is Customer)
+                if (__instance.characters[i] is Visitor)
                 {
                     Logger.Log("Removing character before saving");
                     __instance.characters.RemoveAt(i);

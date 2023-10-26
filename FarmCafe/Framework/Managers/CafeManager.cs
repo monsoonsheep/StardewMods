@@ -20,26 +20,26 @@ namespace FarmCafe.Framework.Managers
         internal IList<Item> MenuItems = new List<Item>(new Item[27]);
         internal IList<Item> RecentlyAddedMenuItems = new List<Item>(new Item[9]);
 
-        internal List<Customer> CurrentCustomers = new List<Customer>();
-        internal List<string> CurrentNpcCustomers = new List<string>();
+        internal List<Visitor> CurrentVisitors = new List<Visitor>();
+        internal List<string> CurrentNpcVisitors = new List<string>();
         internal NPC EmployeeNpc;
         internal List<Table> Tables = new();
-        internal Dictionary<string, ScheduleData> NpcCustomerSchedules = new Dictionary<string, ScheduleData>();
+        internal Dictionary<string, ScheduleData> NpcVisitorSchedules = new Dictionary<string, ScheduleData>();
 
         private readonly Dictionary<string, List<LocationWarpRoute>> RoutesToCafe = new Dictionary<string, List<LocationWarpRoute>>();
 
         internal Dictionary<Rectangle, List<Vector2>> MapTablesInCafeLocation = new Dictionary<Rectangle, List<Vector2>>();
 
-        internal List<CustomerModel> CustomerModels = new List<CustomerModel>();
-        internal List<string> CustomerModelsInUse = new List<string>();
-        internal List<CustomerGroup> CurrentGroups = new List<CustomerGroup>();
+        internal List<VisitorModel> VisitorModels = new List<VisitorModel>();
+        internal List<string> VisitorModelsInUse = new List<string>();
+        internal List<VisitorGroup> CurrentGroups = new List<VisitorGroup>();
 
         public Point BusPosition;
 
         internal int OpeningTime = 1200;
         internal int ClosingTime = 2100;
-        internal int LastTimeCustomersArrived;
-        internal short CustomerGroupsDinedToday;
+        internal int LastTimeVisitorsArrived;
+        internal short VisitorGroupsDinedToday;
 
         public CafeManager()
         {
@@ -52,11 +52,11 @@ namespace FarmCafe.Framework.Managers
                 PopulateRoutesToCafe();
 
             PopulateTables(CafeLocations);
-            LastTimeCustomersArrived = OpeningTime;
+            LastTimeVisitorsArrived = OpeningTime;
 
             // Set which NPCs can visit today based on how many days it's been since their last visit, and their 
             // visit frequency level given in their visit data.
-            foreach (var npcDataPair in NpcCustomerSchedules)
+            foreach (var npcDataPair in NpcVisitorSchedules)
             {
                 int daysSinceLastVisit = Game1.Date.TotalDays - npcDataPair.Value.LastVisitedDate.TotalDays;
                 int daysAllowedBetweenVisits = npcDataPair.Value.Frequency switch

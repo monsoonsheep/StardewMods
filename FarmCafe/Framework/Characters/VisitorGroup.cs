@@ -5,12 +5,14 @@ using static FarmCafe.Framework.Utility;
 
 namespace FarmCafe.Framework.Characters
 {
-    internal class CustomerGroup
+    internal class VisitorGroup
 	{
-		public List<Customer> Members;
+		public List<Visitor> Members;
 		public Table ReservedTable;
 
-		public CustomerGroup(List<Customer> members, Table table)
+		// SCHEDULES HERE
+
+		public VisitorGroup(List<Visitor> members, Table table)
         {
             Members = members;
             Members[0].IsGroupLeader.Set(true);
@@ -34,10 +36,10 @@ namespace FarmCafe.Framework.Characters
 
 		public void GetLookingDirections()
 		{
-			foreach (Customer member in Members)
+			foreach (Visitor member in Members)
 			{
 				member.LookingDirections.Clear();
-				foreach (Customer other in Members)
+				foreach (Visitor other in Members)
 				{
 					if (member.Equals(other)) continue;
 					member.LookingDirections.Add(
