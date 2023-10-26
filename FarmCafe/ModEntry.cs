@@ -19,6 +19,7 @@ using Object = StardewValley.Object;
 using FarmCafe.Patching;
 using StardewValley.Locations;
 using System.Reflection;
+using StardewValley.Tools;
 
 namespace FarmCafe
 {
@@ -34,7 +35,6 @@ namespace FarmCafe
         internal static Texture2D Sprites;
 
         internal static CafeManager CafeManager;
-        internal static BusManager BusManager;
 
         /// <inheritdoc/>
         public override void Entry(IModHelper helper)
@@ -150,12 +150,12 @@ namespace FarmCafe
                 return;
             }
 
-            CafeManager = new CafeManager();
-            BusManager = new BusManager();
-
-            CafeManager.Tables = new();
-            CafeManager.CafeLocations = new();
-            CafeManager.CurrentCustomers = new();
+            CafeManager = new CafeManager
+            {
+                Tables = new(),
+                CafeLocations = new(),
+                CurrentCustomers = new()
+            };
 
             AssetManager.LoadCustomerModels(ModHelper, ref CafeManager.CustomerModels);
             AssetManager.LoadContentPacks(ModHelper, ref CafeManager.CustomerModels);
@@ -174,10 +174,14 @@ namespace FarmCafe
                 return;
 
             CafeManager.DayUpdate();
-            // look at NPC schedules. 
+            // TODO: look at NPC schedules. 
 
             ModHelper.Events.Display.RenderedWorld += OnRenderedWorld;
 
+            if (Game1.MasterPlayer.mailReceived.Contains("ccVault"))
+            {
+                BusManager.BusDepartureTimes = new[] { 1110, 1430, 1800 };
+            }
         }
 
         private static void OnDayEnding(object sender, DayEndingEventArgs e)
@@ -224,9 +228,28 @@ namespace FarmCafe
 
             // spawn customers depending on probability logic
             if (CafeManager.TrySpawnCustomers())
-                CafeManager.LastTimeCustomersArrived = Game1.timeOfDay;
+                CafeManager.LastTimeCustomersArrived = e.NewTime;
 
+            if (BusManager.BusDeparturesToday < BusManager.BusDepartureTimes.Length && !BusManager.BusGone)
+            {
+                if (e.NewTime == BusManager.BusDepartureTimes[BusManager.BusDeparturesToday])
+                {
+                    NPC pam = Game1.getCharacterFromName("Pam");
+                    if (BusManager.BusLocation.characters.Contains(pam) && pam.TilePoint is { X: 11, Y: 10 })
+                    {
+                        BusManager.BusLeave();
+                    }
+                }
+            }
 
+            if (BusManager.BusGone)
+            {
+                int minutes = BusManager.MinutesSinceBusLeft += 10;
+                if ((minutes >= 30 && Game1.random.Next(4) == 0) || minutes >= 60)
+                {
+                    BusManager.BusReturn();
+                }
+            }
         }
 
         private static void OnLocationListChanged(object sender, LocationListChangedEventArgs e)

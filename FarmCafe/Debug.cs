@@ -24,19 +24,19 @@ namespace FarmCafe
                     ModEntry.CafeManager.TryVisitCustomers();
                     break;
                 case SButton.NumPad1:
-                    Debug.WarpToBus();
+                    WarpToBus();
                     break;
                 case SButton.NumPad2:
                     ModEntry.CafeManager.RemoveAllCustomers();
                     break;
                 case SButton.NumPad3:
-                    if (ModEntry.BusManager.BusGone)
-                        ModEntry.BusManager.BusReturn();
+                    if (BusManager.BusGone)
+                        BusManager.BusReturn();
                     else
-                        ModEntry.BusManager.BusLeave();
+                        BusManager.BusLeave();
                     break;
                 case SButton.NumPad4:
-                    Debug.ListCustomers();
+                    ListCustomers();
                     break;
                 case SButton.NumPad5:
                     Building sign = GetSignboardBuilding();
