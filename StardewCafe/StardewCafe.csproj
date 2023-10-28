@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<ModFolderName>StardewCafe</ModFolderName>
+		<TargetFramework>net6.0</TargetFramework>
+		<GamePath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley</GamePath>
+		<GameModsPath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley\Mods\StardewCafe</GameModsPath>
+		<Configurations>Debug;Release</Configurations>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <None Remove="i18n\default.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <AdditionalFiles Include="i18n\default.json" />
+	</ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Lib.Harmony" Version="2.2.2" />
+    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FarmCafe\VisitorFramework.csproj" />
+  </ItemGroup>
+
+</Project>

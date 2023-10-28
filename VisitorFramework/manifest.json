@@ -1,0 +1,10 @@
+{
+  "Name": "VisitorFramework",
+  "Author": "monsoonsheep",
+  "Version": "0.1.0",
+  "Description": "Pelican Town gets visitors",
+  "UniqueID": "monsoonsheep.VisitorFramework",
+  "EntryDll": "VisitorFramework.dll",
+  "MinimumApiVersion": "3.0.0",
+  "UpdateKeys": []
+}
