@@ -1,11 +1,13 @@
-﻿using System;
+﻿#region Usings
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using VisitorFramework.Framework.Characters;
-using VisitorFramework.Framework.Managers;
+using VisitorFramework.Framework.Visitors;
 using StardewValley;
+using VisitorFramework.Framework.Managers;
+#endregion
 
 namespace VisitorFramework.Framework.Api
 {

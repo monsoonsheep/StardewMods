@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using StardewCafe.Framework.Objects;
+using VisitorFramework.Framework.Visitors;
 
 namespace StardewCafe.Framework
 {
@@ -21,7 +22,7 @@ namespace StardewCafe.Framework
             {
                 foreach (Furniture table in location.furniture)
                 {
-                    if (!IsTable(table)) 
+                    if (!Utility.IsTable(table)) 
                         continue;
 
                     // If we already have this table object registered, skip
@@ -52,7 +53,7 @@ namespace StardewCafe.Framework
             Tables.RemoveAll(t => !locations.Contains(t.CurrentLocation));
 
             // Populate Map tables
-            GameLocation cafe = locations.FirstOrDefault(IsLocationCafe);
+            GameLocation cafe = locations.FirstOrDefault(Utility.IsLocationCafe);
             if (cafe != null)
             {
                 foreach (var pair in MapTablesInCafeLocation)
@@ -66,7 +67,7 @@ namespace StardewCafe.Framework
             Logger.Log($"{count} new map-based tables found in cafe locations.");
 
             FreeAllTables();
-            Multiplayer.Sync.SyncTables();
+            //Multiplayer.Sync.SyncTables();
         }
 
         /// <summary>
@@ -103,7 +104,7 @@ namespace StardewCafe.Framework
                 Tables.Remove(table);
             }
 
-            Multiplayer.Sync.SyncTables();
+            //Multiplayer.Sync.SyncTables();
         }
 
         /// <summary>
@@ -191,7 +192,7 @@ namespace StardewCafe.Framework
         {
             foreach (var f in removed)
             {
-                if (IsChair(f))
+                if (Utility.IsChair(f))
                 {
                     FurnitureChair trackedChair = Tables
                         .OfType<FurnitureTable>()
@@ -207,9 +208,9 @@ namespace StardewCafe.Framework
 
                     table.RemoveChair(f);
                 }
-                else if (IsTable(f))
+                else if (Utility.IsTable(f))
                 {
-                    FurnitureTable trackedTable = IsTableTracked(f, location);
+                    FurnitureTable trackedTable = Utility.IsTableTracked(f, location);
 
                     if (trackedTable != null)
                     {
@@ -219,16 +220,16 @@ namespace StardewCafe.Framework
             }
             foreach (var f in added)
             {
-                if (IsChair(f))
+                if (Utility.IsChair(f))
                 {
                     // Get position of table in front of the chair
-                    Vector2 tablePos = f.TileLocation + (DirectionIntToDirectionVector(f.currentRotation.Value) * new Vector2(1, -1));
+                    Vector2 tablePos = f.TileLocation + (Utility.DirectionIntToDirectionVector(f.currentRotation.Value) * new Vector2(1, -1));
 
                     // Get table Furniture object
                     Furniture facingFurniture = location.GetFurnitureAt(tablePos);
 
                     if (facingFurniture == null ||
-                        !IsTable(facingFurniture) ||
+                        !Utility.IsTable(facingFurniture) ||
                         facingFurniture
                             .GetBoundingBox()
                             .Intersects(f.boundingBox.Value)) // if chair was placed on top of the table
@@ -236,13 +237,13 @@ namespace StardewCafe.Framework
                         continue;
                     }
 
-                    FurnitureTable table = IsTableTracked(facingFurniture, location) 
+                    FurnitureTable table = Utility.IsTableTracked(facingFurniture, location) 
                                            ?? TryAddFurnitureTable(facingFurniture, location);
                     table.AddChair(f);
                 }
-                else if (IsTable(f))
+                else if (Utility.IsTable(f))
                 {
-                    FurnitureTable table = IsTableTracked(f, location);
+                    FurnitureTable table = Utility.IsTableTracked(f, location);
                     if (table == null)
                         TryAddFurnitureTable(f, location);
                 }
@@ -254,35 +255,35 @@ namespace StardewCafe.Framework
         /// </summary>
         internal static void FarmerClickTable(Table table, Farmer who)
         {
-            VisitorGroup groupOnTable =
-                CurrentVisitors.FirstOrDefault(c => c.Group.ReservedTable == table)?.Group;
+            //VisitorGroup groupOnTable =
+            //    CurrentVisitors.FirstOrDefault(c => c.Group.ReservedTable == table)?.Group;
 
-            if (groupOnTable == null)
-            {
-                Logger.Log("Didn't get group from table");
-                return;
-            }
+            //if (groupOnTable == null)
+            //{
+            //    Logger.Log("Didn't get group from table");
+            //    return;
+            //}
 
-            if (groupOnTable.Members.All(c => c.State.Value == VisitorState.OrderReady))
-            {
-                table.IsReadyToOrder = false;
-                foreach (Visitor Visitor in groupOnTable.Members)
-                {
-                    Visitor.StartWaitForOrder();
-                }
-            }
-            else if (groupOnTable.Members.All(c => c.State.Value == VisitorState.WaitingForOrder))
-            {
-                foreach (Visitor Visitor in groupOnTable.Members)
-                {
-                    if (Visitor.OrderItem != null && who.Items.ContainsId(Visitor.OrderItem.ItemId, 1))
-                    {
-                        Logger.Log($"Visitor item = {Visitor.OrderItem.ParentSheetIndex}, inventory = {who.Items.ContainsId(Visitor.OrderItem.ItemId, 1)}");
-                        Visitor.OrderReceive();
-                        who.removeFirstOfThisItemFromInventory(Visitor.OrderItem.ItemId);
-                    }
-                }
-            }
+            //if (groupOnTable.Members.All(c => c.State.Value == VisitorState.OrderReady))
+            //{
+            //    table.IsReadyToOrder = false;
+            //    foreach (Visitor Visitor in groupOnTable.Members)
+            //    {
+            //        Visitor.StartWaitForOrder();
+            //    }
+            //}
+            //else if (groupOnTable.Members.All(c => c.State.Value == VisitorState.WaitingForOrder))
+            //{
+            //    foreach (Visitor Visitor in groupOnTable.Members)
+            //    {
+            //        if (Visitor.OrderItem != null && who.Items.ContainsId(Visitor.OrderItem.ItemId, 1))
+            //        {
+            //            Logger.Log($"Visitor item = {Visitor.OrderItem.ParentSheetIndex}, inventory = {who.Items.ContainsId(Visitor.OrderItem.ItemId, 1)}");
+            //            Visitor.OrderReceive();
+            //            who.removeFirstOfThisItemFromInventory(Visitor.OrderItem.ItemId);
+            //        }
+            //    }
+            //}
         }
     }
 }

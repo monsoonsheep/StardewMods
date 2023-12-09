@@ -1,0 +1,9 @@
+{
+    "Format": "1.29.0",
+    "Changes": [
+        {
+            "Action": "Include",
+            "FromFile": "Buildings/signboard.json"
+        },
+    ]
+}

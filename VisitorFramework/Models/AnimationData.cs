@@ -1,7 +1,5 @@
-﻿using Newtonsoft.Json;
-namespace VisitorFramework.Models
+﻿namespace VisitorFramework.Models
 {
-    [JsonObject]
     public class AnimationData
     {
         public AnimationData()

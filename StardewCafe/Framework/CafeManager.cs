@@ -35,7 +35,7 @@ namespace StardewCafe.Framework
             PopulateTables(CafeLocations);
             LastTimeCustomersArrived = Game1.timeOfDay;
 
-            VisitorManager.UpdateNpcSchedules();
+            CustomerManager.UpdateNpcSchedules();
         }
 
         /// <summary>

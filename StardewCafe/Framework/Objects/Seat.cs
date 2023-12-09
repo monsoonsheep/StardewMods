@@ -49,7 +49,7 @@ namespace StardewCafe.Framework.Objects
             if (!base.Reserve(customer))
                 return false;
 
-            ActualChair.modData["FarmCafeChairIsReserved"] = "T";
+            ActualChair.modData["VisitorFrameworkChairIsReserved"] = "T";
             return true;
         }
 

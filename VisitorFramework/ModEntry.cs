@@ -1,24 +1,25 @@
-﻿using VisitorFramework.Framework.Managers;
+﻿#region Usings
 using HarmonyLib;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
-using StardewValley;
-using static VisitorFramework.Framework.Utility;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
-using VisitorFramework.Framework;
-using VisitorFramework.Framework.Characters;
-using Rectangle = Microsoft.Xna.Framework.Rectangle;
-using Object = StardewValley.Object;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using StardewValley;
+using StardewValley.GameData.Characters;
+using VisitorFramework.Framework.Managers;
+using VisitorFramework.Framework.Visitors;
 using VisitorFramework.Patching;
+using Patch = VisitorFramework.Patching.Patch;
 using StardewValley.Locations;
-using System.Reflection;
-using StardewValley.Tools;
-using VisitorFramework;
+
+#endregion
 
 namespace VisitorFramework
 {
@@ -29,26 +30,24 @@ namespace VisitorFramework
         internal static IModHelper ModHelper;
         internal new static IManifest ModManifest;
 
+
         /// <inheritdoc/>
         public override void Entry(IModHelper helper)
         {
             Monitor = base.Monitor;
             ModHelper = helper;
             ModManifest = base.ModManifest;
-            Logger.Monitor = Monitor;
+            Log.Monitor = Monitor;
 
             // Harmony patches
-            try
-            {
+            try {
                 var harmony = new Harmony(ModManifest.UniqueID);
-                new GameLocationPatches().ApplyAll(harmony);
-                new CharacterPatches().ApplyAll(harmony);
-                new UtilityPatches().ApplyAll(harmony);
-                new FurniturePatches().ApplyAll(harmony);
+                List<PatchList> patchLists = new List<PatchList>() { new GameLocationPatches(), new CharacterPatches() };
+                patchLists.ForEach(l => l.ApplyAll(harmony));
             }
             catch (Exception e)
             {
-                Logger.Log($"Couldn't patch methods - {e}", LogLevel.Error);
+                Log.Debug($"Couldn't patch methods - {e}", LogLevel.Error);
                 return;
             }
 
@@ -56,68 +55,149 @@ namespace VisitorFramework
             helper.Events.GameLoop.DayStarted += OnDayStarted;
             helper.Events.GameLoop.DayEnding += OnDayEnding;
 
+            helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
             helper.Events.GameLoop.TimeChanged += OnTimeChanged;
+            helper.Events.GameLoop.TimeChanged += BusManager.TenMinuteUpdate;
+
+            helper.Events.Content.AssetRequested += OnAssetRequested;
+            helper.Events.Content.AssetReady += OnAssetReady;
+
+            #if DEBUG
             helper.Events.Input.ButtonPressed += Debug.ButtonPress;
+            #endif
         }
 
         private static void OnSaveLoaded(object sender, SaveLoadedEventArgs e)
         {
             if (!Context.IsMainPlayer)
                 return;
-            
-            AssetManager.LoadVisitorModels(ModHelper, ref VisitorManager.VisitorModels);
-            AssetManager.LoadContentPacks(ModHelper, ref VisitorManager.VisitorModels);
+
+            BusManager.BusDoorOpen += BusManager.OnBusDoorOpen;
+            BusManager.BusDoorOpen += delegate
+            {
+                VisitorManager.SpawnVisitors();
+            };
+        }
+
+        private static void OnUpdateTicked(object sender, UpdateTickedEventArgs e)
+        {
+            if (!Context.IsMainPlayer)
+                return;
         }
 
         private static void OnDayStarted(object sender, DayStartedEventArgs e)
         {
-            BusManager.UpdateBusStopLocation();
+            VisitorManager.DayUpdate();
 
-            if (!Context.IsMainPlayer)
-                return;
-
-            if (Game1.MasterPlayer.mailReceived.Contains("ccVault"))
-            {
-                BusManager.BusDepartureTimes = new[] { 1110, 1430, 1800 };
-            }
+            AssetManager.LoadActivities(ModHelper);
+            BusManager.DayUpdate(ModHelper);
         }
 
         private static void OnDayEnding(object sender, DayEndingEventArgs e)
         {
-            if (Context.IsMainPlayer)
-            {
-                VisitorManager.RemoveAllVisitors();
-            }
+            if (!Context.IsMainPlayer) 
+                return;
+
+            VisitorManager.RemoveAllVisitors();
+            //Game1.player.modData[ModKeys.ModDataVisitorDataList] = JsonSerializer.Serialize(VisitorManager.LoadedVisitorData);
         }
 
         private static void OnTimeChanged(object sender, TimeChangedEventArgs e)
         {
-            if (!Context.IsMainPlayer)
-                return;
+            //Game1.realMilliSecondsPerGameMinute = 300;
+            //Game1.realMilliSecondsPerGameTenMinutes = 3000;
+        }
 
-            // Bus departure
-            if (BusManager.BusDeparturesToday < BusManager.BusDepartureTimes.Length && !BusManager.BusGone)
+        private static void OnAssetRequested(object sender, AssetRequestedEventArgs e)
+        {
+            if (e.Name.IsEquivalentTo("Data/Characters"))
             {
-                if (e.NewTime == BusManager.BusDepartureTimes[BusManager.BusDeparturesToday])
-                {
-                    NPC pam = Game1.getCharacterFromName("Pam");
-                    if (BusManager.BusLocation.characters.Contains(pam) && pam.TilePoint is { X: 11, Y: 10 })
+                e.Edit(asset =>
                     {
-                        BusManager.BusLeave();
-                    }
-                }
+                        foreach (var pair in asset.AsDictionary<string, CharacterData>().Data)
+                        {
+                            if (pair.Value is { Home.Count: > 0 } && pair.Value.Home[0].Location.Equals("BusStop"))
+                            {
+                                Log.Debug($"Adding visitor {pair.Key}");
+                                pair.Value.Home[0].Tile = new Point(-10, -10);
+                                VisitorManager.VisitorsData.Add(pair.Key, new VisitorData() { GameData = pair.Value });
+                            }
+                        }
+                    }, 
+                    AssetEditPriority.Late);
             }
-
-            // Bus arrival
-            if (BusManager.BusGone)
+            else if (e.Name.IsDirectlyUnderPath("Characters/schedules"))
             {
-                int minutes = BusManager.MinutesSinceBusLeft += 10;
-                if ((minutes >= 30 && Game1.random.Next(4) == 0) || minutes >= 60)
+                string npcName = e.Name.BaseName.Replace("Characters/schedules/", "");
+                if (!VisitorManager.VisitorsData.ContainsKey(npcName))
+                    return;
+
+                e.Edit(asset =>
+                    {
+                        EditSchedule(npcName, asset);
+                    }, 
+                    AssetEditPriority.Late
+                );
+            }
+        }
+
+        private static void EditSchedule(string npcName, IAssetData schedule)
+        {
+            var assetData = schedule.AsDictionary<string, string>();
+
+            VisitorData visitorData = VisitorManager.VisitorsData[npcName];
+
+            Regex busTimeRegex = new Regex(@"Bus([0123])");
+            foreach (var entry in assetData.Data)
+            {
+                var split = NPC.SplitScheduleCommands(entry.Value);
+                int index = 0;
+
+                if (split[0].StartsWith("NOT friendship"))
                 {
-                    BusManager.BusReturn();
+                    index = 1;
+                } else if (split[0].StartsWith("MAIL"))
+                {
+                    index = 2;
+                }
+
+                Match m = busTimeRegex.Match(split[index].Split(' ')[0]);
+                if ((m.Success))
+                {
+                    int busArrivalIndex = int.Parse(m.Groups[1].Value);
+
+                    split[index] = split[index].Replace(m.Value, BusManager.BusArrivalTimes[busArrivalIndex].ToString());
+
+                    // Leaving time (Look at last command in schedule entry)
+                    int busDepartureIndex;
+                    string lastCommand = split[^1];
+                    Match d = busTimeRegex.Match(lastCommand);
+                    if (d.Success && split.Length > index + 1)
+                    {
+                        busDepartureIndex = int.Parse(d.Groups[1].Value);
+                    }
+                    else
+                    {
+                        busDepartureIndex = 4;
+                        split = split.AddItem("").ToArray();
+                    }
+
+                    split[^1] = "a" + (BusManager.BusArrivalTimes[busDepartureIndex]) + $" BusStop {BusManager.BusDoorPosition.X} {BusManager.BusDoorPosition.Y} 0 BoardBus";
+
+                    visitorData.ScheduleKeysForBusArrival.Add(entry.Key, (busArrivalIndex, busDepartureIndex));
+
+                    // Perform Edit on the asset
+                    assetData.Data[entry.Key] = string.Join('/', split);
                 }
             }
         }
 
+        private static void OnAssetReady(object sender, AssetReadyEventArgs e)
+        {
+            if (e.Name.IsEquivalentTo($"{ModManifest.UniqueID}/VisitorsData"))
+            {
+                VisitorManager.VisitorsData = Game1.content.Load<Dictionary<string, VisitorData>>($"{ModManifest.UniqueID}/VisitorsData");
+            }
+        }
     }
 }

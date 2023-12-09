@@ -9,7 +9,7 @@ using StardewCafe.Framework;
 using StardewCafe.Framework.Objects;
 using StardewValley.Buildings;
 using StardewValley.Pathfinding;
-using VisitorFramework.Framework.Characters;
+using VisitorFramework.Framework.Visitors;
 using xTile.ObjectModel;
 using xTile.Tiles;
 using SObject = StardewValley.Object;

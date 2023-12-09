@@ -1,14 +1,14 @@
-﻿#region Usings
-using HarmonyLib;
+﻿using HarmonyLib;
+using StardewModdingAPI;
+using StardewValley;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-#endregion
 
 // ReSharper disable UnusedParameter.Local
 // ReSharper disable InconsistentNaming
 
-namespace VisitorFramework.Patching
+namespace PanWithHats.Framework.Patching
 {
     internal class Patch
     {

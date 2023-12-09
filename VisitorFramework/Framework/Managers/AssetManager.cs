@@ -1,4 +1,5 @@
-﻿using System;
+﻿#region Usings
+using System;
 using VisitorFramework.Models;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -9,73 +10,149 @@ using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using StardewValley.Tools;
+using VisitorFramework.Framework.Visitors;
+using VisitorFramework.Framework.Visitors.Activities;
 using SUtility = StardewValley.Utility;
+using System.Diagnostics;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using StardewValley.GameData.Characters;
+
+#endregion
 
 namespace VisitorFramework.Framework.Managers
 {
-    internal class AssetManager
+    internal static class AssetManager
     {
+
+        internal static void LoadNpcVisitorsData()
+        {
+            //foreach (var d in Game1.content.Load<Dictionary<string, VisitorData>>(ModKeys.AssetVisitorsData))
+            //{
+            //    if (Game1.characterData.TryGetValue(d.Key, out var npcData))
+            //    {
+            //        npcData.SpawnIfMissing = false;
+            //        d.Value.GameData = npcData;
+            //        VisitorManager.LoadedVisitorData[d.Key] = d.Value;
+            //    }
+            //    else
+            //    {
+            //        Log.Warn("Trying to add a custom NPC to visitors list but couldn't find the NPC's data");
+            //    }
+            //}
+        }
+
+        internal static void LoadCachedVisitorData()
+        {
+            if (!Game1.player.modData.ContainsKey(ModKeys.ModDataVisitorDataList))
+                return;
+
+            //Dictionary<string, VisitorData> dataFromSave = JsonSerializer.Deserialize<Dictionary<string, VisitorData>>(Game1.player.modData[ModKeys.ModDataVisitorDataList]);
+            //if (dataFromSave == null)
+            //    return;
+
+            //foreach (var data in dataFromSave)
+            //{
+            //    VisitorData existing = VisitorManager.LoadedVisitorData[data.Key];
+            //    if (existing != null)
+            //    {
+            //        existing.ActivitiesEngagedIn = data.Value.ActivitiesEngagedIn;
+            //        existing.LastVisited = data.Value.LastVisited;
+            //    }
+            //    else
+            //    {
+            //        Log.Warn("Visitor data found in save but there's no visitor loaded that has the same name.");
+            //    }
+            //}
+        }
+
         /// <summary>
         /// Load content packs for this mod
         /// </summary>
         /// <param name="helper"></param>
         /// <param name="visitorModels"></param>
-        internal static void LoadContentPacks(IModHelper helper, ref List<VisitorModel> visitorModels)
+        internal static void LoadContentPacks(IModHelper helper)
         {
-            foreach (IContentPack contentPack in helper.ContentPacks.GetOwned())
+            //foreach (IContentPack contentPack in helper.ContentPacks.GetOwned())
+            //{
+            //    Log.Debug($"Loading content pack {contentPack.Manifest.Name} by {contentPack.Manifest.Author}");
+            //    var modelsInPack = new DirectoryInfo(Path.Combine(contentPack.DirectoryPath, "Visitors")).GetDirectories();
+            //    int count = 0;
+            //    foreach (var modelFolder in modelsInPack)
+            //    {
+            //        VisitorData data = contentPack.ReadJsonFile<VisitorData>(Path.Combine("Visitors", modelFolder.Name, "visitor.json"));
+
+            //        if (data == null)
+            //        {
+            //            Log.Debug($"Invalid data for visitor model: {modelFolder.Name}");
+            //            continue;
+            //        }
+
+            //        data.TexturesPath = contentPack.ModContent.GetInternalAssetName(Path.Combine(modelFolder.Parent!.Name, modelFolder.Name)).Name;
+
+            //        if (VisitorManager.LoadedVisitorData.ContainsKey(modelFolder.Name))
+            //        {
+            //            Log.Debug($"Already existing visitor model: {modelFolder.Name}");
+            //        }
+            //        else
+            //        {
+            //            VisitorManager.LoadedVisitorData[modelFolder.Name] = data;
+            //            count++;
+            //        }
+            //    }
+
+            //    Log.Debug($"Loaded {count} visitors");
+            }
+
+        internal static void LoadActivities(IModHelper helper)
+        {
+            List<ActivityModel> models = helper.Data.ReadJsonFile<List<ActivityModel>>("assets/activities.json");
+            if (models == null)
             {
-                Logger.Log($"Loading content pack {contentPack.Manifest.Name} by {contentPack.Manifest.Author}");
-                var modelsInPack = new DirectoryInfo(Path.Combine(contentPack.DirectoryPath, "Visitors")).GetDirectories();
-                foreach (var modelFolder in modelsInPack)
+                Log.Error("Couldn't load activities");
+                return;
+            }
+            foreach (ActivityModel model in models)
+            {
+                VisitorActivity activity = new VisitorActivity
                 {
-                    VisitorModel model = contentPack.ReadJsonFile<VisitorModel>(Path.Combine("Visitors", modelFolder.Name, "Visitor.json"));
-                    if (model == null)
+                    Name = model.Id,
+                    Location = model.Location,
+                };
+
+                foreach (ActionModel actionModel in model.Actions)
+                {
+                    if (actionModel.Behavior == null)
                     {
-                        Logger.Log("Couldn't read json for content pack");
-                        continue;
+                        Log.Warn($"Invalid action behavior in activity {model.Id}");
+                        actionModel.Behavior = "-1";
                     }
 
-                    model.Name = model.Name.Replace(" ", "");
-                    model.TilesheetPath = contentPack.ModContent.GetInternalAssetName(Path.Combine("Visitors", modelFolder.Name, "Visitor.png")).Name;
+                    VisitAction action;
 
-                    if (contentPack.HasFile(Path.Combine("Visitors", modelFolder.Name, "portrait.png")))
+                    if (actionModel.Behavior.StartsWith("square"))
                     {
-                        model.Portrait = contentPack.ModContent.GetInternalAssetName(Path.Combine("Visitors", modelFolder.Name, "portrait.png")).Name;
+                        string[] split = actionModel.Behavior.Split('_');
+                        int width = int.Parse(split[1]);
+                        int height = int.Parse(split[2]);
+                        int preferredDirection = (split.Length == 4) ? int.Parse(split[3]) : -1;
+
+                        action = new ActionWalkInSquare(Game1.getLocationFromName(model.Location), actionModel.Position.ToPoint(), width, height, preferredDirection);
+                    }
+                    else if (int.TryParse(Regex.Match(actionModel.Behavior, @"^([0123])$").Value, out int d))
+                    {
+                        action = new VisitAction(Game1.getLocationFromName(model.Location), actionModel.Position.ToPoint(), d);
                     }
                     else
                     {
-                        string portraitName = string.IsNullOrEmpty(model.Portrait) ? "cat" : model.Portrait;
-                        model.Portrait = helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", portraitName + ".png")).Name;
+                        action = new VisitAction(Game1.getLocationFromName(model.Location), actionModel.Position.ToPoint(), -1);
                     }
-                    
-                    visitorModels.Add(model);
-                }
-            }
-        }
 
-        internal static void LoadVisitorModels(IModHelper helper, ref List<VisitorModel> visitorModels)
-        {
-            var modelFolders = new DirectoryInfo(Path.Combine(helper.DirectoryPath, "assets", "Visitors")).GetDirectories();
-            foreach (var modelFolder in modelFolders)
-            {
-                VisitorModel model = helper.ModContent.Load<VisitorModel>(Path.Combine("assets", "Visitors", modelFolder.Name, "Visitor.json"));
-                if (model == null)
-                {
-                    Logger.Log("Couldn't read json for content pack");
-                    continue;
+                    activity.Actions.Add(action);
                 }
 
-                model.Name = model.Name.Replace(" ", "");
-                model.TilesheetPath = helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Visitors", modelFolder.Name, "Visitor.png")).Name;
-
-                string portraitName = "Tempcat";
-                model.Portrait = helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", portraitName + ".png")).Name;
-
-                visitorModels.Add(model);
+                ActivityManager.Activities[model.Id] = activity;
             }
-
-            Axe axe = new() { UpgradeLevel = 3 };
-            typeof(Axe).GetField("lastUser")?.SetValue(axe, Game1.player);
         }
     }
 }

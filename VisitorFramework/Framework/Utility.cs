@@ -1,21 +1,27 @@
-﻿using VisitorFramework.Framework.Managers;
+﻿#region Usings
 using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.Objects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using VisitorFramework.Framework.Characters;
+using VisitorFramework.Framework.Visitors;
 using StardewValley.Buildings;
 using StardewValley.Pathfinding;
 using xTile.ObjectModel;
 using xTile.Tiles;
 using SObject = StardewValley.Object;
+#endregion
 
 namespace VisitorFramework.Framework
 {
     internal class Utility
     {
+        /// <summary>
+        /// Input a direction (0,1,2,3) and get a Vector that's a step in that direction from (0, 0)
+        /// </summary>
+        /// <param name="direction"></param>
+        /// <returns></returns>
         internal static Vector2 DirectionIntToDirectionVector(int direction)
         {
             return direction switch
@@ -28,6 +34,10 @@ namespace VisitorFramework.Framework
             };
         }
 
+        /// <summary>
+        /// Input two vectors and return a direction int (0,1,2,3) that's in the direction from the starting vector to the facing vector
+        /// </summary>
+        /// <returns></returns>
         internal static int DirectionIntFromVectors(Vector2 startTile, Vector2 facingTile)
         {
             int xDist = (int)Math.Abs(startTile.X - facingTile.X);
@@ -45,26 +55,37 @@ namespace VisitorFramework.Framework
             return -1;
         }
 
-        internal static IEnumerable<Point> AdjacentTilesCollision(Point startPos, GameLocation location, Visitor character, int reach = 1)
+        /// <summary>
+        /// Return an enumerable of free tiles adjacent to the input tile in the given location. Collisions are checked based on the input <see cref="Character"/>
+        /// </summary>
+        /// <returns></returns>
+        internal static List<Point> AdjacentTilesCollision(Point startPos, GameLocation location, int reach = 1)
         {
+            List<Point> points = new List<Point>();
             for (int i = startPos.X - reach; i < startPos.X + reach; i++)
             {
-                for (int j = startPos.Y - reach; i < startPos.Y + reach; j++)
+                for (int j = startPos.Y - reach; j < startPos.Y + reach; j++)
                 {
                     if (i == 0 && j == 0) continue;
 
-                    var pos = new Rectangle((startPos.X + i) * 64, (startPos.Y + j) * 64, 62, 62);
-                    Logger.Log($"checking position {pos}");
-                    if (!location.isCollidingPosition(pos, Game1.viewport, character) && location.isCollidingWithWarp(pos, character) == null) // ???
-                    {
-                        Logger.Log($"New position {startPos}");
-                        yield return new Point(startPos.X + i, startPos.Y + j);
-                    }
+                    Rectangle pos = new Rectangle((i) * 64, (j) * 64, 62, 62);
 
+                    if (!location.isCollidingPosition(pos, Game1.viewport, false, 0, false, null, pathfinding: true, projectile: false, ignoreCharacterRequirement: true) && location.isCollidingWithWarp(pos, null) == null) // ???
+                    {
+                        points.Add(new Point(i, j));
+                    }
                 }
             }
+
+            return points;
         }
 
+        /// <summary>
+        /// Return an enumerable of tiles around the given tile within the given radius, without checking for collisions.
+        /// </summary>
+        /// <param name="startPos">Starting tile</param>
+        /// <param name="reach">The radius</param>
+        /// <returns></returns>
         internal static IEnumerable<Point> AdjacentTiles(Point startPos, int reach = 1)
         {
             for (int i = startPos.X - reach; i <= startPos.X + reach; i++)
@@ -77,43 +98,29 @@ namespace VisitorFramework.Framework
             }
         }
 
+        /// <summary>
+        /// Get a string containing a list of properterties on a tile in the Map
+        /// </summary>
+        /// <param name="tile"></param>
+        /// <returns></returns>
         internal static string GetTileProperties(Tile tile)
         {
             return tile == null ? "there's no tile" : tile.Properties.ToList().Concat(tile.TileIndexProperties.ToList() ?? new List<KeyValuePair<string, PropertyValue>>()).Aggregate("", (currentTile, property) => currentTile + $"{property.Key}: {property.Value}, ");
         }
 
+        /// <summary>
+        /// Returns true if the given tile in the given location is colliding with something (An object or terrain feature or building)
+        /// </summary>
+        /// <returns></returns>
+        internal static bool IsTileCollidingInLocation(GameLocation location, Point tilePoint)
+        {
+            Rectangle tileRec = new Rectangle((tilePoint.X) * 64, (tilePoint.Y) * 64, 62, 62);
+            return (location.isCollidingPosition(tileRec, Game1.viewport, false, 0, false, null) && location.isCollidingWithWarp(tileRec, null) == null);
+        }
+
         internal static GameLocation GetLocationFromName(string name)
         {
             return Game1.getLocationFromName(name);
-        }
-
-        internal static List<LocationPathDescription> GetLocationRouteFromSchedule(NPC npc)
-        {
-            // time, location name, steps to get there
-            List<LocationPathDescription> route = new();
-            Dictionary<int, SchedulePathDescription> schedule = npc.Schedule;
-
-            GameLocation currentLoc = Game1.getLocationFromName(npc.DefaultMap);
-
-            var ordered = schedule.OrderBy(pair => pair.Key).ToList();
-            foreach (var pathDescription in ordered)
-            {
-                int steps = 0;
-
-                while (pathDescription.Value.route.Count > 0)
-                {
-                    steps++;
-                    Point cursor = pathDescription.Value.route.Pop();
-
-                    Warp w = currentLoc.isCollidingWithWarpOrDoor(new Rectangle(cursor.X * 64, cursor.Y * 64, 62, 62));
-                    if (w != null)
-                        currentLoc = Game1.getLocationFromName(w.TargetName);
-                }
-
-                route.Add(new LocationPathDescription(pathDescription.Key, currentLoc.Name, steps));
-            }
-
-            return route;
         }
     }
 }

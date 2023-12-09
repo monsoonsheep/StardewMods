@@ -1,0 +1,53 @@
+[
+    {
+        "Id": "LookAtBusStopFences",
+        "Location": "BusStop",
+        "Actions": [
+            {
+                "Position": {
+                    "X": 18,
+                    "Y": 22
+                },
+                "Behavior": "square_2_0_0"
+            },
+            {
+                "Position": {
+                    "X": 20,
+                    "Y": 22
+                },
+                "Behavior": "square_2_0_0"
+            }
+        ],
+        "TimeFrames": ["morning", "afternoon", "evening"]
+    },
+    {
+        "Id": "SeedShopShelves",
+        "Location": "SeedShop",
+        "Actions": [
+            {
+                "Position": {
+                    "X": 13,
+                    "Y": 29
+                },
+                "Behavior": "1"
+
+            }
+        ],
+        "TimeFrames": ["morning", "afternoon"]
+    },
+    {
+        "Id": "BeachHangOut",
+        "Location": "Beach",
+        "Actions": [
+            {
+                "Position": {
+                    "X": 44,
+                    "Y": 12
+                },
+                "Behavior": "square_2_2"
+
+            }
+        ],
+        "TimeFrames": ["morning", "afternoon"]
+    }
+]

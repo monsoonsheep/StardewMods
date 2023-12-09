@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using VisitorFramework.Framework.Characters;
+using VisitorFramework.Framework.Visitors;
 using VisitorFramework.Models;
 
 namespace StardewCafe.Framework

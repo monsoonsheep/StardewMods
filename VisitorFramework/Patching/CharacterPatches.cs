@@ -1,15 +1,19 @@
-﻿using System.Collections.Generic;
+﻿#region Usings
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
-using VisitorFramework.Framework.Characters;
-using VisitorFramework.Framework.Managers;
-using VisitorFramework.Framework.Multiplayer;
+using VisitorFramework.Framework.Visitors;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Pathfinding;
 using Object = StardewValley.Object;
+using VisitorFramework.Framework;
+using VisitorFramework.Framework.Managers;
+using Utility = VisitorFramework.Framework.Utility;
+
+#endregion
 
 namespace VisitorFramework.Patching
 {
@@ -25,13 +29,27 @@ namespace VisitorFramework.Patching
                     new [] { typeof(GameTime) },
                     transpiler: nameof(MoveCharacterTranspiler)),
                 new (
-                    typeof(Game1),
-                    "warpCharacter",
-                    new[] { typeof(NPC), typeof(GameLocation), typeof(Vector2) },
-                    postfix: nameof(WarpCharacterPostfix)),
+                    typeof(NPC),
+                    "getRouteEndBehaviorFunction",
+                    new [] { typeof(string), typeof(string) },
+                    postfix: nameof(NpcGetRoundEndBehaviorPostfix)),
             };
         }
 
+        private static void NpcGetRoundEndBehaviorPostfix(NPC __instance, string behaviorName, string endMessage, ref PathFindController.endBehavior __result)
+        {
+            if (__result == null && VisitorManager.VisitorsData.ContainsKey(__instance.Name) && __instance.Schedule != null && behaviorName == "BoardBus")
+            {
+                __result = VisitorManager.CharacterReachBusEndBehavior;
+            }
+        }
+
+        /// <summary>
+        /// Patch <see cref="PathFindController"/>'s moveCharacter method to skip the isPassable line so our custom characters can move on the farm
+        /// </summary>
+        /// <param name="instructions"></param>
+        /// <param name="generator"></param>
+        /// <returns></returns>
         private static IEnumerable<CodeInstruction> MoveCharacterTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
             var fPathfindercharacter = AccessTools.Field(typeof(PathFindController), "character");
@@ -62,18 +80,9 @@ namespace VisitorFramework.Patching
                 codeList.InsertRange(start_pos + 1, patchCodes);
             }
             else
-                Logger.Log("Couldn't find the break after isPassable check", LogLevel.Error);
+                Log.Debug("Couldn't find the break after isPassable check", LogLevel.Error);
 
             return codeList.AsEnumerable();
-        }
-
-        private static void WarpCharacterPostfix(NPC character, GameLocation targetLocation, Vector2 position)
-        {
-            if (character is Visitor Visitor)
-            {
-                Logger.Log($"Warped Visitor to {targetLocation.Name} - {position}");
-                VisitorManager.HandleWarp(Visitor, targetLocation, position);
-            }
         }
     }
 }

@@ -1,0 +1,27 @@
+{
+    "Changes": [{
+        "Action": "EditData",
+        "Target": "Data/Buildings",
+        "Entries": {
+            "monsoonsheep.FarmCafe_CafeSignboard": {
+                "Name": "Cafe Signboard",
+                "Description": "Signboard to start your cafe",
+                "Texture": "monsoonsheep.FarmCafe_CafeSignboard_Texture",
+                "Builder": "Robin",
+                "BuildCost": 100,
+                "BuildDays": 0,
+                "Size": {
+                    "X": 1,
+                    "Y": 2
+                },
+                "CollisionMap": "O\nX",
+                "DefaultAction": "monsoonsheep.FarmCafe_OpenCafeMenu",
+                "DrawShadow": false
+            }
+        }
+    }, {
+        "Action": "Load",
+        "Target": "monsoonsheep.FarmCafe_CafeSignboard_Texture",
+        "FromFile": "Buildings/signboard.png"
+    }]
+}

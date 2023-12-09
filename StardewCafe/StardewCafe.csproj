@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FarmCafe\VisitorFramework.csproj" />
+    <ProjectReference Include="..\VisitorFramework\VisitorFramework.csproj" />
   </ItemGroup>
 
 </Project>

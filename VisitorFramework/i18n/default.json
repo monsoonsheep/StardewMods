@@ -1,8 +1,0 @@
-{
-	"menu.opening-time": "Opening Time",
-	"menu.closing-time": "Closing Time",
-	"menu.Visitor-frequency": "Visitor Frequency",
-	"menu.Visitor-frequency-tooltip": "The higher, the more change Visitors will visit",
-	"menu.npc-frequency": "NPC Visit Frequency",
-	"menu.npc-frequency.tooltip": "The higher, the more change NPCs will visit"
-}

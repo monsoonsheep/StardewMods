@@ -14,13 +14,13 @@ namespace StardewCafe.Framework
     {
         internal static GameLocation GetCafeLocation()
         {
-            return CafeLocations.FirstOrDefault(IsLocationCafe);
+            return CafeLocations.FirstOrDefault(Utility.IsLocationCafe);
         }
 
         internal static bool UpdateCafeLocation()
         {
             GameLocation foundCafe = Game1.getFarm().buildings
-                .FirstOrDefault(IsBuildingCafe)
+                .FirstOrDefault(Utility.IsBuildingCafe)
                 ?.GetIndoors();
 
             GameLocation cachedCafeLocation = GetCafeLocation();
@@ -65,7 +65,7 @@ namespace StardewCafe.Framework
 
             foreach (string start in new[] { "BusStop", "Farm" })
             {
-                GameLocation startLocation = GetLocationFromName(start);
+                GameLocation startLocation = Utility.GetLocationFromName(start);
                 if (!RoutesToCafe.ContainsKey(start))
                     RoutesToCafe[start] = new List<LocationWarpRoute>();
                 
@@ -100,7 +100,7 @@ namespace StardewCafe.Framework
             while (frontier.Count > 0)
             {
                 string currentName = frontier.Dequeue();
-                GameLocation current = GetLocationFromName(currentName);
+                GameLocation current = Utility.GetLocationFromName(currentName);
 
                 if (current == null)
                     continue;
@@ -152,7 +152,6 @@ namespace StardewCafe.Framework
             return new LocationWarpRoute(path.ToArray(), null);
         }
 
-        
         internal static void PopulateMapTables(GameLocation location)
         {
             if (MapTablesInCafeLocation?.Count != 0)
