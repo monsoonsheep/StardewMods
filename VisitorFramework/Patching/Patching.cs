@@ -10,7 +10,7 @@ using HarmonyLib;
 // ReSharper disable UnusedParameter.Local
 // ReSharper disable InconsistentNaming
 
-namespace VisitorFramework.Patching;
+namespace BusSchedules.Patching;
 
 internal class Patch
 {
@@ -33,7 +33,7 @@ internal class Patch
     }
 }
 
-internal abstract class PatchList
+internal abstract class PatchCollection
 {
     internal List<Patch> Patches;
 

@@ -2,7 +2,8 @@
 
 #endregion
 
-namespace VisitorFramework.Framework.Api;
+
+namespace BusSchedules.Api;
 
 public interface IApi
 {

@@ -1,10 +1,10 @@
 {
-  "Name": "VisitorFramework",
+  "Name": "Bus Schedules",
   "Author": "monsoonsheep",
   "Version": "0.1.0",
-  "Description": "Pelican Town gets visitors",
-  "UniqueID": "monsoonsheep.VisitorFramework",
-  "EntryDll": "VisitorFramework.dll",
+  "Description": "Makes the bus bring in NPCs and lets modders make their Custom NPCs arrive through the bus",
+  "UniqueID": "monsoonsheep.BusSchedules",
+  "EntryDll": "BusSchedules.dll",
   "MinimumApiVersion": "3.0.0",
   "UpdateKeys": []
 }

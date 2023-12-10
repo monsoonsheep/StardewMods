@@ -6,9 +6,9 @@ using StardewValley.Pathfinding;
 
 #endregion
 
-namespace VisitorFramework.Patching;
+namespace BusSchedules.Patching;
 
-internal class CharacterPatches : PatchList
+internal class CharacterPatches : PatchCollection
 {
     public CharacterPatches()
     {
@@ -18,13 +18,13 @@ internal class CharacterPatches : PatchList
                 typeof(NPC),
                 "getRouteEndBehaviorFunction",
                 new[] { typeof(string), typeof(string) },
-                postfix: nameof(NpcGetRoundEndBehaviorPostfix))
+                postfix: nameof(NpcGetRouteEndBehaviorPostfix))
         };
     }
 
-    internal static void NpcGetRoundEndBehaviorPostfix(NPC __instance, string behaviorName, string endMessage, ref PathFindController.endBehavior __result)
+    private static void NpcGetRouteEndBehaviorPostfix(NPC __instance, string behaviorName, string endMessage, ref PathFindController.endBehavior __result)
     {
-        if (__result == null && ModEntry.Instance.VisitorsData.ContainsKey(__instance.Name) && __instance.Schedule != null && behaviorName == "BoardBus")
-            __result = ModEntry.Instance.CharacterReachBusEndBehavior;
+        if (__result == null && BusSchedules.Instance.VisitorsData.ContainsKey(__instance.Name) && __instance.Schedule != null && behaviorName == "BoardBus")
+            __result = BusSchedules.Instance.CharacterReachBusEndBehavior;
     }
 }

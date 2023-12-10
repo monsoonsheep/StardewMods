@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33530.505
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VisitorFramework", "VisitorFramework\VisitorFramework.csproj", "{8B4F0A31-71D5-4268-8C16-5AA1285D4D12}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BusSchedules", "VisitorFramework\BusSchedules.csproj", "{8B4F0A31-71D5-4268-8C16-5AA1285D4D12}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CollapseOnFarmFix", "PassOutOnFarm\CollapseOnFarmFix.csproj", "{6A6A5A6F-DE35-4E16-8929-4FA35117228E}"
 EndProject

@@ -6,11 +6,11 @@ using StardewValley;
 
 #endregion
 
-namespace VisitorFramework;
+namespace BusSchedules;
 #if DEBUG
 internal static class Debug
 {
-    public static void ButtonPress(object sender, ButtonPressedEventArgs e)
+    internal static void ButtonPress(object sender, ButtonPressedEventArgs e)
     {
         if (!Context.IsMainPlayer || !Context.CanPlayerMove)
             return;
@@ -29,7 +29,7 @@ internal static class Debug
         }
     }
 
-    public static void WarpToBus()
+    internal static void WarpToBus()
     {
         Game1.warpFarmer("BusStop", 12, 15, false);
     }
