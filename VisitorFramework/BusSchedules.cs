@@ -44,7 +44,7 @@ internal sealed class BusSchedules : Mod
         }
         catch (Exception e)
         {
-            Log.Debug($"Couldn't patch methods - {e}", LogLevel.Error);
+            Log.Error($"Couldn't patch methods - {e}");
             return;
         }
 
@@ -55,7 +55,10 @@ internal sealed class BusSchedules : Mod
 
         helper.Events.GameLoop.TimeChanged += OnTimeChanged;
 
-        helper.Events.Content.AssetRequested += OnAssetRequested;
+        if (Context.IsMainPlayer)
+        {
+            helper.Events.Content.AssetRequested += OnAssetRequested;
+        }
 
 #if DEBUG
         helper.Events.Input.ButtonPressed += Debug.ButtonPress;
@@ -64,21 +67,33 @@ internal sealed class BusSchedules : Mod
 
     private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
     {
-        Events.BusArrive += (_, _) => SpawnVisitors();
         Events.BusArrive += BusManager.OnDoorOpen;
+
+        if (!Context.IsMainPlayer)
+            return;
+
+        Events.BusArrive += (_, _) => SpawnVisitors();
+        Events.BusArrive += (_, _) => BusManager.PamBackToSchedule();
     }
 
     private void OnSaveLoaded(object sender, SaveLoadedEventArgs e)
     {
+        BusManager.SetUp(ModHelper);
+
         if (!Context.IsMainPlayer)
             return;
 
-        BusManager.SetUp(ModHelper);
-        Game1.options.pauseWhenOutOfFocus = false;
+        if (!Context.IsMultiplayer)
+        {
+            Game1.options.pauseWhenOutOfFocus = false;
+        }
     }
 
     private void OnDayStarted(object sender, DayStartedEventArgs e)
     {
+        if (!Context.IsMainPlayer)
+            return;
+
         BusManager.DayUpdate(ModHelper);
 
         foreach (var pair in VisitorsData)
@@ -123,19 +138,21 @@ internal sealed class BusSchedules : Mod
         if (!Context.IsMainPlayer)
             return;
         
-        BusManager.StopBus(openDoor: false);
+        BusManager.StopBus(animate: false);
     }
 
     private void OnTimeChanged(object sender, TimeChangedEventArgs e)
     {
-        if (e.NewTime == 610 || Utility.CalculateMinutesBetweenTimes(e.NewTime, BusManager.LastArrivalTime) == -20)
+        if (!Context.IsMainPlayer)
+            return;
+
+        if (e.NewTime == 610 || Utility.CalculateMinutesBetweenTimes(e.NewTime, BusManager.NextArrivalTime) == 60)
             BusManager.BusLeave();
-        else if (BusManager.BusArrivalsToday < BusManager.BusArrivalTimes.Length && Utility.CalculateMinutesBetweenTimes(e.NewTime, BusManager.NextArrivalTime) == 10) 
+        else if (BusManager.BusArrivalsToday < BusManager.BusArrivalTimes.Length && Utility.CalculateMinutesBetweenTimes(e.NewTime, BusManager.NextArrivalTime) == 10)
             BusManager.BusReturn();
 
         //Game1.realMilliSecondsPerGameMinute = 300;
         //Game1.realMilliSecondsPerGameTenMinutes = 3000;
-
     }
 
     private void OnAssetRequested(object sender, AssetRequestedEventArgs e)
@@ -159,6 +176,8 @@ internal sealed class BusSchedules : Mod
                             return;
                         }
                     }
+                    
+                    List<string> keysEdited = new List<string>();
 
                     var busTimeRegex = new Regex(@"b(\d+)");
                     foreach (var entry in assetData.Data)
@@ -176,7 +195,6 @@ internal sealed class BusSchedules : Mod
                             VisitorData visitorData;
                             if (!VisitorsData.ContainsKey(npcName))
                             {
-                                Log.Info($"Adding bus visitor {npcName}");
                                 visitorData = new VisitorData();
                                 VisitorsData.Add(npcName, visitorData);
                             }
@@ -215,12 +233,17 @@ internal sealed class BusSchedules : Mod
 
                             // Perform Edit on the asset
                             assetData.Data[entry.Key] = string.Join('/', split);
-
+                            keysEdited.Add(entry.Key);
                             visitorData.ScheduleKeysForBusArrival.Add(entry.Key, (busArrivalTime, busDepartureTime));
 
                             // Cached the dictionary so we don't have to edit it again
                             visitorData.CachedMasterScheduleData = assetData.Data;
                         }
+                    }
+
+                    if (keysEdited.Count > 0)
+                    {
+                        Log.Info($"Edited schedule for {npcName} in keys [{string.Join(',', keysEdited)}]");
                     }
                 },
                 AssetEditPriority.Late
@@ -242,7 +265,7 @@ internal sealed class BusSchedules : Mod
             {
                 npc.Position = new Vector2(BusManager.BusDoorPosition.X * 64, BusManager.BusDoorPosition.Y * 64);
                 npc.checkSchedule(BusManager.LastArrivalTime);
-                Log.Info($"Visitor ${pair.Key} spawned at bus stop.");
+                Log.Info($"Visitor {npc.displayName} arrived");
             }
         }
     }

@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 using StardewValley.Extensions;
 using StardewValley.Locations;
@@ -15,7 +16,7 @@ namespace BusSchedules.Patching;
 
 internal class BusStopPatches : PatchCollection
 {
-    private static BusManager Bm = BusSchedules.Instance.BusManager;
+    private static readonly BusManager Bm = BusSchedules.Instance.BusManager;
 
     internal BusStopPatches()
     {
@@ -47,7 +48,12 @@ internal class BusStopPatches : PatchCollection
                 new [] { typeof(Response) },
                 transpiler: nameof(BusStopAnswerDialogueTranspiler),
                 postfix: nameof(BusStopAnswerDialoguePostfix),
-                prefix: nameof(BusStopAnswerDialoguePrefix))
+                prefix: nameof(BusStopAnswerDialoguePrefix)),
+            new(
+                typeof(BusStop),
+                "draw",
+                new [] { typeof(SpriteBatch) },
+                postfix: nameof(BusStopDrawPostfix))
         };
     }
 
@@ -89,7 +95,6 @@ internal class BusStopPatches : PatchCollection
         {
             if (Math.Abs(Bm.BusPosition.X - 704f) < 0.001)
             {
-                Bm.BusGone = true;
                 Bm.BusMotion = Vector2.Zero;
             }
             else
@@ -151,24 +156,23 @@ internal class BusStopPatches : PatchCollection
     /// <summary>
     /// Called when player enters the bus stop location. We reset state and put bus out of frame if it shouldn't be there
     /// </summary>
-    /// <param name="__instance"></param>
     private static void BusStopResetLocalStatePostfix(BusStop __instance)
     {
         if (Bm.BusLeaving || Bm.BusGone)
         {
             Bm.SetBusOutOfFrame();
         }
+        
     }
 
     /// <summary>
     /// Called when all players leave the bus stop
     /// </summary>
-    /// <param name="__instance"></param>
     private static void BusStopCleanupForVacancyPostfix(GameLocation __instance)
     {
         if (__instance is BusStop busStop)
         {
-            if (!busStop.farmers.Any())
+            if (busStop.farmers.Any())
             {
                 if (Bm.BusLeaving || Bm.BusGone)
                 {
@@ -176,7 +180,7 @@ internal class BusStopPatches : PatchCollection
                 }
                 else if (Bm.BusReturning)
                 {
-                    Bm.StopBus(openDoor: false);
+                    Bm.StopBus(animate: false);
                 }
             }
         }
@@ -209,8 +213,19 @@ internal class BusStopPatches : PatchCollection
             // Teleport to position bus reached the stop
             if (Math.Abs(Bm.BusPosition.X - 704f) <= Math.Abs(Bm.BusMotion.X * 1.5f))
             {
-                Bm.StopBus(openDoor: true);
+                Bm.StopBus(animate: true);
             }
         }
+    }
+
+    /// <summary>
+    /// Prevent the game from stopping you from boarding the bus when Pam isn't there
+    /// </summary>
+    private static void BusStopDrawPostfix(BusStop __instance, SpriteBatch spriteBatch)
+    {
+        if ((Bm.BusLeaving || Bm.BusReturning))
+            if (__instance.characters.Any(x => x.Name == "Pam"))
+            spriteBatch.Draw(Game1.mouseCursors, Game1.GlobalToLocal(Game1.viewport, new Vector2((int)Bm.BusPosition.X, (int)Bm.BusPosition.Y) + new Vector2(0f, 29f) * 4f), new Rectangle(384, 1311, 15, 19), Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, (Bm.BusPosition.Y + 192f + 4f) / 10000f);
+
     }
 }
