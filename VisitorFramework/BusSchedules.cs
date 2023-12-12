@@ -74,7 +74,7 @@ internal sealed class BusSchedules : Mod
             return;
 
         BusManager.SetUp(ModHelper);
-
+        Game1.options.pauseWhenOutOfFocus = false;
     }
 
     private void OnDayStarted(object sender, DayStartedEventArgs e)
@@ -235,7 +235,6 @@ internal sealed class BusSchedules : Mod
             var npc = Game1.getCharacterFromName(pair.Key);
             if (npc?.ScheduleKey == null || !pair.Value.ScheduleKeysForBusArrival.TryGetValue(npc.ScheduleKey, out var arrivalDepartureIndices))
             {
-                Log.Debug($"Visitor {pair.Key} schedule doesn't have a schedule for bus today");
                 continue;
             }
 
@@ -243,6 +242,7 @@ internal sealed class BusSchedules : Mod
             {
                 npc.Position = new Vector2(BusManager.BusDoorPosition.X * 64, BusManager.BusDoorPosition.Y * 64);
                 npc.checkSchedule(BusManager.LastArrivalTime);
+                Log.Info($"Visitor ${pair.Key} spawned at bus stop.");
             }
         }
     }

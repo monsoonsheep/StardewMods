@@ -18,6 +18,8 @@ internal static class Debug
         switch (e.Button)
         {
             case SButton.NumPad0:
+                Log.Info($"Pause is {(Game1.options.pauseWhenOutOfFocus ? "On" : "Off")}");
+                Game1.options.pauseWhenOutOfFocus = !Game1.options.pauseWhenOutOfFocus;
                 break;
             case SButton.NumPad1:
                 WarpToBus();
