@@ -7,16 +7,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using VisitorFramework.Framework.Visitors;
-using VisitorFramework.Models;
+using Microsoft.Xna.Framework;
+using StardewCafe.Framework.Customers;
+using SUtility = StardewValley.Utility;
 
 namespace StardewCafe.Framework
 {
-    internal static class CustomerManager
+    internal static partial class CafeManager
     {
-        internal static List<Visitor> CurrentVisitors = new List<Visitor>();
-        internal static List<NPC> CurrentNpcVisitors = new List<NPC>();
-        internal static Dictionary<string, ScheduleData> NpcVisitorSchedules = new Dictionary<string, ScheduleData>();
         
         /// <summary>
         /// Try to visit a regular NPC
@@ -51,7 +49,7 @@ namespace StardewCafe.Framework
 
             Table table = CafeManager.GetFreeTables().OrderBy(t => t.Seats.Count).First(t => t.Seats.Count >= npcsToVisit.Count);
 
-            List<Visitor> Visitors = new List<Visitor>();
+            List<Customer> members = new List<Customer>();
 
             // Make a Visitor from each NPC
             bool failed = false;
@@ -60,24 +58,23 @@ namespace StardewCafe.Framework
                 var member = npcsToVisit[i];
 
                 CurrentNpcVisitors.Add(member);
-                Visitor Visitor = CreateVisitorFromNpc(member);
-                if (Visitor == null)
+                Customer customer = CreateVisitorFromNpc(member);
+                if (customer == null)
                 {
                     failed = true;
                     break;
                 }
 
-                Visitors.Add(Visitor);
-                CurrentVisitors.Add(Visitor);
+                members.Add(customer);
             }
 
             // If any of the NPCs failed to convert to Visitors, revert them all back
             if (failed)
             {
-                foreach (var visitor in Visitors)
+                foreach (var visitor in members)
                 {
                     RevertNpcVisitorToOriginal(visitor);
-                    CurrentVisitors.Remove(visitor);
+                    CurrentGroups.Remove(visitor);
                 }
 
                 foreach (var member in npcsToVisit)
@@ -90,21 +87,21 @@ namespace StardewCafe.Framework
                 return false;
             }
 
-            VisitorGroup group = new VisitorGroup(Visitors);
+            CustomerGroup group = new CustomerGroup(members);
             CurrentGroups.Add(group);
 
             // Make them all go to the cafe
-            foreach (var Visitor in Visitors)
+            foreach (var c in members)
             {
-                Logger.LogWithHudMessage($"{Visitor.Name} is visiting the cafe");
+                Logger.LogWithHudMessage($"{c.Name} is visiting the cafe");
             }
 
             // If any of them fail to go to the cafe (due to pathfinding problems), revert them all back
-            if (Visitors.Any(c => c.controller == null))
+            if (members.Any(c => c.controller == null))
             {
-                Logger.Log($"NPC Visitor(s) ({string.Join(", ", Visitors.Where(c => c.controller == null))}) couldn't find path, converting back.",
+                Logger.Log($"NPC Visitor(s) ({string.Join(", ", members.Where(c => c.controller == null))}) couldn't find path, converting back.",
                     LogLevel.Warn);
-                Visitors.ForEach(RevertNpcVisitorToOriginal);
+                members.ForEach(RevertNpcVisitorToOriginal);
             }
 
             return true;
@@ -119,7 +116,7 @@ namespace StardewCafe.Framework
         /// <returns></returns>
         internal static bool CanNpcVisitDuringTime(NPC npc, int timeOfDay)
         {
-            ScheduleData visitData = NpcVisitorSchedules[npc.Name];
+            ScheduleData visitData = NpcCustomerSchedule[npc.Name];
 
             // NPC can't visit cafe if:
             if (CurrentNpcVisitors.Contains(npc) // The NPC is already a Visitor right now
@@ -199,77 +196,14 @@ namespace StardewCafe.Framework
         }
 
         /// <summary>
-        /// Ran every 10 minutes. Use probability logic to create custom Visitors
-        /// </summary>
-        /// <returns></returns>
-        internal static bool TrySpawnRoadVisitors()
-        {
-            // proc the chance to spawn Custom Visitors
-            if (Game1.random.NextDouble() < GetChanceToSpawnCustomer())
-            {
-                Game1.delayedActions.Add(new DelayedAction(Game1.random.Next(400, 4500), SpawnRoadVisitors));
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Spawn a group of Custom Visitors from the bus
-        /// </summary>
-        internal static void SpawnRoadVisitors()
-        {
-            VisitorGroup group = CreateVisitorGroup(GetLocationFromName("BusStop"), BusManager.BusDoorPosition);
-
-            if (group == null)
-                return;
-
-            var memberCount = group.Members.Count;
-            List<Point> convenePoints = BusManager.GetBusConvenePoints(memberCount);
-
-            for (var i = 0; i < memberCount; i++)
-            {
-                group.Members[i].SetConvenePoint(BusManager.BusLocation, convenePoints[i]);
-                group.Members[i].State.Set(VisitorState.MovingToConvene);
-            }
-
-            Logger.LogWithHudMessage($"{memberCount} Visitor(s) arriving");
-        }
-
-        
-        /// <summary>
-        /// The Visitor fires an event when they get up from their table, so we can save their <see cref="ScheduleData.LastVisitedDate"/>
-        /// </summary>
-        /// <param name="Visitor">The NPC Visitor to evaluate</param>
-        internal static void OnVisitorDined(Visitor visitor)
-        {
-            if (CurrentNpcVisitors.Any(n => visitor.Name == n.Name))
-            {
-                NpcVisitorSchedules[visitor.Name].LastVisitedDate = Game1.Date;
-            }
-        }
-
-        /// <summary>
-        /// Check the items in <see cref="MenuItems"/> and return a list of those that are Loved, Liked, or Neutral
-        /// </summary>
-        /// <param name="npc">The NPC to evaluate</param>
-        /// <returns></returns>
-        internal static List<Item> GetLikedItemsFromMenu(NPC npc)
-        {
-            var menuItems = CafeManager.GetMenuItems();
-            //return menuItems.Where(item => npc.getGiftTasteForThisItem(item) is 0 or 2 or 8).ToList();
-            return menuItems.Where(item => item != null).ToList();
-        }
-
-        /// <summary>
-        /// Go through <see cref="NpcVisitorSchedules"/> and update their <see cref="ScheduleData.CanVisitToday"/> to
+        /// Go through <see cref="NpcCustomerSchedule"/> and update their <see cref="ScheduleData.CanVisitToday"/> to
         /// store whether or not that NPC can visit the cafe today
         /// </summary>
         internal static void UpdateNpcSchedules()
         {
             // Set which NPCs can visit today based on how many days it's been since their last visit, and their 
             // visit frequency level given in their visit data.
-            foreach (var npcDataPair in NpcVisitorSchedules)
+            foreach (var npcDataPair in NpcCustomerSchedule)
             {
                 int daysSinceLastVisit = Game1.Date.TotalDays - npcDataPair.Value.LastVisitedDate.TotalDays;
                 int daysAllowedBetweenVisits = npcDataPair.Value.Frequency switch
@@ -286,6 +220,5 @@ namespace StardewCafe.Framework
                 npcDataPair.Value.CanVisitToday = daysSinceLastVisit > daysAllowedBetweenVisits;
             }
         }
-
     }
 }

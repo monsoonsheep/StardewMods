@@ -1,6 +1,6 @@
 ﻿using System.Linq;
-using VisitorFramework.Framework.Characters;
 using Microsoft.Xna.Framework;
+using StardewCafe.Framework.Customers;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -28,7 +28,7 @@ namespace StardewCafe
                 case SButton.NumPad3:
                     break;
                 case SButton.NumPad4:
-                    ListVisitors();
+                    ListCustomers();
                     break;
                 case SButton.NumPad5:
                     Building sign = GetSignboardBuilding();
@@ -66,11 +66,11 @@ namespace StardewCafe
         }
 
         
-        internal static void ListVisitors()
+        internal static void ListCustomers()
         {
             Logger.Log("Characters in current");
             foreach (var ch in Game1.currentLocation.characters)
-                if (ch is Visitor)
+                if (ch is Customer)
                     Logger.Log(ch.ToString());
                 else
                     Logger.Log("NPC: " + ch.Name);

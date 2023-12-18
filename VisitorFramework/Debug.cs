@@ -35,5 +35,10 @@ internal static class Debug
     {
         Game1.warpFarmer("BusStop", 12, 15, false);
     }
+
+    internal static void SetUp(object sender, SaveLoadedEventArgs e)
+    {
+        Game1.options.pauseWhenOutOfFocus = false;
+    }
 }
 #endif

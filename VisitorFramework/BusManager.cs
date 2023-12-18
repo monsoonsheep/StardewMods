@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Threading;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
@@ -12,11 +14,27 @@ namespace BusSchedules;
 
 internal class BusManager
 {
-    internal BusStop BusLocation;
-    internal Point BusDoorPosition;
+    private readonly WeakReference<BusStop> busLocation = new WeakReference<BusStop>((BusStop) Game1.getLocationFromName("BusStop"));
 
-    internal byte BusArrivalsToday;
-    internal int[] BusArrivalTimes = { 630, 1200, 1500, 1800, 2400 };
+    internal BusStop BusLocation
+    {
+        get
+        {
+            if (busLocation.TryGetTarget(out BusStop b))
+            {
+                return b;
+            }
+            else
+            {
+                Log.Warn("Bus Location updating");
+                BusStop l = (BusStop) Game1.getLocationFromName("BusStop");
+                UpdateLocation(BusSchedules.ModHelper, l);
+                Log.Error($"New location {(l is null ? "is null" : "is valid")}");
+                return l;
+            }
+        }
+    }
+    internal Point BusDoorPosition = new Point(12, 9);
 
     internal bool BusLeaving;
     internal bool BusGone;
@@ -46,86 +64,72 @@ internal class BusManager
         set => BusDoorField.SetValue(value);
     }
 
-    internal int NextArrivalTime => BusArrivalsToday < BusArrivalTimes.Length ? BusArrivalTimes[BusArrivalsToday] : 2600;
-    internal int LastArrivalTime => BusArrivalsToday == 0 ? -1 : BusArrivalTimes[BusArrivalsToday - 1];
-    internal int TimeUntilNextArrival => Utility.CalculateMinutesBetweenTimes(Game1.timeOfDay, NextArrivalTime);
-    internal int TimeSinceLastArrival => Utility.CalculateMinutesBetweenTimes(LastArrivalTime, Game1.timeOfDay);
-
-    internal void SetUp(IModHelper helper)
+    internal void UpdateLocation(IModHelper helper, BusStop location)
     {
-        BusLocation = (BusStop)Game1.getLocationFromName("BusStop");
+        busLocation.SetTarget(location);
 
-        BusPositionField = helper.Reflection.GetField<Vector2>(BusLocation, "busPosition");
-        BusMotionField = helper.Reflection.GetField<Vector2>(BusLocation, "busMotion");
-        BusDoorField = helper.Reflection.GetField<TemporaryAnimatedSprite>(BusLocation, "busDoor");
+        BusPositionField = helper.Reflection.GetField<Vector2>(location, "busPosition");
+        BusMotionField = helper.Reflection.GetField<Vector2>(location, "busMotion");
+        BusDoorField = helper.Reflection.GetField<TemporaryAnimatedSprite>(location, "busDoor");
 
-        BusDoorPosition = new Point((int)(BusPosition.X / 64) + 1, (int)(BusPosition.Y / 64) + 3);
-
-        var tiles = BusLocation.Map.GetLayer("Buildings").Tiles;
+        var tiles = location.Map.GetLayer("Buildings").Tiles;
         _roadTile = tiles[12, 7];
         _lineTile = tiles[12, 8];
         _shadowTile = tiles[13, 8];
-    }
-
-    internal void DayUpdate(IModHelper helper)
-    {
-        BusArrivalsToday = 0;
-
-        BusStop newLocation = Game1.getLocationFromName("BusStop") as BusStop;
-        if (!BusLocation.Equals(newLocation))
-        {
-            BusLocation = newLocation;
-            Log.Debug("Updating bus stop location!");
-            SetUp(helper);
-        }
     }
 
     /// <summary>
     ///     Call when all visitors have entered the bus and Pam is standing in position. This will make Pam get in and drive
     ///     away
     /// </summary>
-    internal void BusLeave(bool isClient = false)
+    internal void BusLeave()
     {
-        PathFindController.endBehavior closeDoor = delegate(Character c, GameLocation location)
-        {
-            if (c is NPC p)
-            {
-                p.Position = new Vector2(-1000f, -1000f);
-            }
-
-            if (location.farmers.Any())
-            {
-                ResetDoor();
-                var door = BusDoor;
-                door.interval = 70f;
-                door.timer = 0f;
-                door.endFunction = delegate
-                {
-                    BusDriveAway(animate: true);
-                    location.localSound("batFlap");
-                    location.localSound("busDriveOff");
-                };
-                door.paused = false;
-            }
-            else
-                BusDriveAway(animate: false);
-
-            location.localSound("trashcanlid");
-        };
-
-
         NPC pam = Game1.getCharacterFromName("Pam");
+        if (!BusLocation.characters.Contains(pam) || pam.TilePoint is not { X: 11, Y: 10 })
+            CloseDoor();
 
-        if (isClient || !BusLocation.characters.Contains(pam) || pam.TilePoint is not { X: 11, Y: 10 })
-            closeDoor.Invoke(null, null);
         else
-            pam.temporaryController = new PathFindController(pam, BusLocation, new Point(12, 9), 3, closeDoor);
+            pam.temporaryController = new PathFindController(pam, BusLocation, new Point(12, 9), 3, delegate(Character c, GameLocation loc)
+            {
+                if (c is NPC p)
+                {
+                    p.Position = new Vector2(-1000f, -1000f);
+                }
 
-        Log.Debug("Bus is leaving");
+                CloseDoor();
+            });
+    }
+
+    internal void CloseDoor()
+    {
+        if (Context.IsMainPlayer)
+            BusSchedules.ModHelper.Multiplayer.SendMessage("BusDoorClose", "BusSchedules", new [] { BusSchedules.ModManifest.UniqueID });
+
+        if (Game1.player.currentLocation.Equals(BusLocation))
+        {
+            ResetDoor();
+            var door = BusDoor;
+            door.interval = 70f;
+            door.timer = 0f;
+            door.endFunction = delegate
+            {
+                BusDriveAway(animate: true);
+                BusLocation.localSound("batFlap");
+                BusLocation.localSound("busDriveOff");
+            };
+            door.paused = false;
+            BusDoor = door;
+        }
+        else
+        {
+            BusDriveAway(animate: false);
+        }
     }
 
     internal void BusDriveAway(bool animate)
     {
+        Log.Debug("Bus is leaving");
+
         BusLeaving = true;
         BusReturning = false;
 
@@ -165,8 +169,6 @@ internal class BusManager
         BusReturning = false;
         BusLeaving = false;
 
-        BusMotion = Vector2.Zero;
-
         BusPosition = new Vector2(BusLocation.map.RequireLayer("Back").DisplayWidth, BusPosition.Y);
     }
 
@@ -175,16 +177,22 @@ internal class BusManager
     /// </summary>
     internal void BusReturn()
     {
+        BusDriveBack(); // TODO remove
+    }
+
+    internal void BusDriveBack()
+    {
+        if (Context.IsMainPlayer)
+            BusSchedules.ModHelper.Multiplayer.SendMessage("BusDriveBack", "BusSchedules", new [] { BusSchedules.ModManifest.UniqueID });
+
+        Log.Debug("Bus is returning");
+
         BusLeaving = false;
         BusGone = false;
-        BusArrivalsToday++;
 
-        SetBusOutOfFrame();
-        ResetDoor(closed: true);
-
-
-        if (BusLocation.farmers.Any())
+        if (Game1.player.currentLocation.Equals(BusLocation))
         {
+            SetBusOutOfFrame();
             BusLocation.localSound("busDriveOff");
             // The UpdateWhenCurrentLocation postfix will handle the movement
             BusReturning = true;
@@ -192,32 +200,40 @@ internal class BusManager
         }
         else
         {
-            StopBus(animate: false);
+            AfterDriveBack(animate: false);
         }
 
-        Log.Debug("Bus is returning");
-
+        ResetDoor(closed: true);
     }
 
-    internal void StopBus(bool animate = true)
+    internal void AfterDriveBack(bool animate = true)
     {
-        SetBusPark();
+        ResetBus();
+
+        BusReturning = false;
+        BusGone = false;
+        BusLeaving = false;
 
         // Animate bus door to open
         if (animate)
         {
             var door = BusDoor;
+            door.timer = 0f;
             door.pingPong = true;
             door.interval = 70f;
             door.currentParentTileIndex = 5;
             door.endFunction = _ => Events.Invoke_BusArrive();
+            door.paused = false;
             BusDoor = door;
             BusLocation.localSound("trashcanlid");
         }
         else
             Events.Invoke_BusArrive();
+    }
 
-
+    internal void ResetBus()
+    {
+        SetBusPark();
         var tiles = BusLocation.Map.GetLayer("Buildings").Tiles;
         for (int i = 11; i <= 18; i++)
         {
@@ -236,8 +252,8 @@ internal class BusManager
 
     internal void OnDoorOpen(object sender, EventArgs e)
     {
-        Log.Debug("Bus has arrived)");
-        if (BusLocation.farmers.Any())
+        Log.Debug("Bus has arrived");
+        if (Game1.player.currentLocation.Equals(BusLocation))
         {
             // Reset bus door sprite
             ResetDoor();
@@ -288,7 +304,7 @@ internal class BusManager
     /// <summary>
     ///     Handle Pam getting back to her regular schedule
     /// </summary>
-    public void PamBackToSchedule()
+    public void PamBackToSchedule(object sender, EventArgs e)
     {
         var pam = Game1.getCharacterFromName("Pam");
         if (BusLocation.characters.Contains(pam))
@@ -296,12 +312,12 @@ internal class BusManager
             pam.Position = BusDoorPosition.ToVector2() * 64f;
             pam.temporaryController = new PathFindController(pam, BusLocation, new Point(11, 10), 2, delegate(Character c, GameLocation location)
             {
-                if (c is NPC pam)
+                if (c is NPC p)
                 {
-                    Point? previousEndPoint = (Point?) AccessTools.Field(typeof(NPC), "previousEndPoint").GetValue(pam);
+                    Point? previousEndPoint = (Point?) AccessTools.Field(typeof(NPC), "previousEndPoint").GetValue(p);
                     if (previousEndPoint is { X: 11, Y: 10 })
                     {
-                        pam.temporaryController = new PathFindController(pam, location, new Point(11, 10),
+                        p.temporaryController = new PathFindController(p, location, new Point(11, 10),
                             2, null);
                     }
                 }

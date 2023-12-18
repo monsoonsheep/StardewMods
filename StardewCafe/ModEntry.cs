@@ -12,10 +12,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
-using VisitorFramework.Framework.Characters;
+using Microsoft.Xna.Framework;
+using StardewCafe.Framework.Customers;
 using VisitorFramework.Framework.UI;
-using VisitorFramework.Framework;
-using VisitorFramework.Patching;
 
 namespace StardewCafe
 {
@@ -107,8 +106,8 @@ namespace StardewCafe
                 mod: ModManifest,
                 name: I18n.Menu_VisitorFrequency,
                 tooltip: I18n.Menu_VisitorFrequencyTooltip,
-                getValue: () => Config.VisitorSpawnFrequency,
-                setValue: value => Config.VisitorSpawnFrequency = value,
+                getValue: () => Config.CustomerSpawnFrequency,
+                setValue: value => Config.CustomerSpawnFrequency = value,
                 min: 1, max: 5, 
                 formatValue: GetFrequencyText
             );
@@ -116,8 +115,8 @@ namespace StardewCafe
                 mod: ModManifest,
                 name: I18n.Menu_NpcFrequency,
                 tooltip: I18n.Menu_NpcFrequency_Tooltip,
-                getValue: () => Config.NpcVisitorSpawnFrequency,
-                setValue: value => Config.NpcVisitorSpawnFrequency = value,
+                getValue: () => Config.NpcCustomerSpawnFrequency,
+                setValue: value => Config.NpcCustomerSpawnFrequency = value,
                 min: 1, max: 5, 
                 formatValue: GetFrequencyText
             );
@@ -139,21 +138,14 @@ namespace StardewCafe
                 return;
             }
 
-            CafeManager.Tables = new();
-            CafeManager.CafeLocations = new();
-            CafeManager.CurrentVisitors = new();
+            CafeManager.Tables = new List<Table>();
+            CafeManager.CafeLocations = new List<GameLocation>();
             
-
-            AssetManager.LoadVisitorModels(ModHelper, ref CafeManager.VisitorModels);
-            AssetManager.LoadContentPacks(ModHelper, ref CafeManager.VisitorModels);
-            AssetManager.LoadNpcSchedules(ModHelper);
-
             LoadValuesFromModData();
         }
 
         private static void OnDayStarted(object sender, DayStartedEventArgs e)
         {
-            BusManager.UpdateBusStopLocation();
             CafeManager.UpdateCafeLocation();
             Logger.Log($"Cafe locations are {string.Join(", ", CafeManager.CafeLocations.Select(l => l.Name))}");
 
@@ -163,27 +155,15 @@ namespace StardewCafe
             CafeManager.DayUpdate();
             // TODO: look at NPC schedules. 
 
-            ModHelper.Events.Display.RenderedWorld += OnRenderedWorld;
-
-            if (Game1.MasterPlayer.mailReceived.Contains("ccVault"))
-            {
-                BusManager.BusDepartureTimes = new[] { 1110, 1430, 1800 };
-            }
         }
 
         private static void OnDayEnding(object sender, DayEndingEventArgs e)
         {
-            if (Context.IsMainPlayer)
-            {
-                CafeManager.RemoveAllVisitors();
-            }
+            CafeManager.RemoveAllVisitors();
         }
 
         private static void OnSaving(object sender, EventArgs e)
         {
-            if (!Context.IsMainPlayer) 
-                return;
-
             // Menu Items TODO: Make sure they are in the same order as saved (Where() is ordered)
             Game1.player.modData[ModKeys.MODDATA_MENUITEMSLIST] = string.Join(" ", CafeManager.GetMenuItems().Select(i => i.ItemId));
 
@@ -198,9 +178,6 @@ namespace StardewCafe
 
         private static void OnUpdateTicked(object sender, UpdateTickedEventArgs e)
         {
-            if (!Context.IsWorldReady)
-                return;
-
             //if (!Context.IsMainPlayer && ClientShouldUpdateVisitors)
             //{
             //    CurrentVisitors = CafeManager.GetAllVisitorsInGame();
@@ -210,46 +187,12 @@ namespace StardewCafe
 
         private static void OnTimeChanged(object sender, TimeChangedEventArgs e)
         {
-            if (!Context.IsMainPlayer)
-                return;
-
-            // spawn Visitors depending on probability logic
-            if (CafeManager.TrySpawnRoadVisitors())
-                CafeManager.LastTimeCustomersArrived = e.NewTime;
-
-            // Bus departure
-            if (BusManager.BusDeparturesToday < BusManager.BusDepartureTimes.Length && !BusManager.BusGone)
-            {
-                if (e.NewTime == BusManager.BusDepartureTimes[BusManager.BusDeparturesToday])
-                {
-                    NPC pam = Game1.getCharacterFromName("Pam");
-                    if (BusManager.BusLocation.characters.Contains(pam) && pam.TilePoint is { X: 11, Y: 10 })
-                    {
-                        BusManager.BusLeave();
-                    }
-                }
-            }
-
-            // Bus arrival
-            if (BusManager.BusGone)
-            {
-                int minutes = BusManager.MinutesSinceBusLeft += 10;
-                if ((minutes >= 30 && Game1.random.Next(4) == 0) || minutes >= 60)
-                {
-                    BusManager.BusReturn();
-                }
-            }
+            
         }
 
         private static void OnLocationListChanged(object sender, LocationListChangedEventArgs e)
         {
-            foreach (var removed in e.Removed)
-            {
-                if (IsLocationCafe(removed))
-                {
-                    CafeManager.UpdateCafeLocation();
-                }
-            }
+            
         }
 
         private static void OnFurnitureListChanged(object sender, FurnitureListChangedEventArgs e)
@@ -290,7 +233,7 @@ namespace StardewCafe
             if (e.Type.StartsWith("UpdateVisitorInfo") && !Context.IsMainPlayer)
             {
                 var split = e.Type.Split('/');
-                Visitor c = CafeManager.GetVisitorFromName(split[1]);
+                Customer c = CafeManager.GetVisitorFromName(split[1]);
                 if (c == null)
                 {
                     Logger.Log("Couldn't get Visitor to update");

@@ -1,9 +1,9 @@
 {
   "Name": "Bus Schedules",
-  "Author": "monsoonsheep",
+  "Author": "MonsoonSheep",
   "Version": "0.1.0",
   "Description": "Makes the bus bring in NPCs and lets modders make their Custom NPCs arrive through the bus",
-  "UniqueID": "monsoonsheep.BusSchedules",
+  "UniqueID": "MonsoonSheep.BusSchedules",
   "EntryDll": "BusSchedules.dll",
   "MinimumApiVersion": "3.0.0",
   "UpdateKeys": []

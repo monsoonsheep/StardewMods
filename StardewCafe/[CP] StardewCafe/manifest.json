@@ -1,9 +1,9 @@
 {
     "Name": "FarmCafe CP Component",
-    "Author": "monsoonsheep",
+    "Author": "MonsoonSheep",
     "Version": "0.1.0",
-    "Description": "FarmCafe Content Patcher Component.",
-    "UniqueID": "monsoonsheep.FarmCafeCP",
+    "Description": "My Cafe Content Patcher Component.",
+    "UniqueID": "MonsoonSheep.MyCafe",
     "UpdateKeys": [],
     "ContentPackFor": {
         "UniqueID": "Pathoschild.ContentPatcher"

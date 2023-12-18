@@ -1,16 +1,10 @@
 {
-  "Name": "StardewCafe",
-  "Author": "username",
+  "Name": "My Cafe",
+  "Author": "MonsoonSheep",
   "Version": "0.1.0",
-  "Description": "My mod called StardewCafe",
-  "UniqueID": "myself.mymod",
-  "EntryDll": "StardewCafe.dll",
+  "Description": "My mod",
+  "UniqueID": "MonsoonSheep.MyCafe",
+  "EntryDll": "MyCafe.dll",
   "MinimumApiVersion": "3.0.0",
-  "UpdateKeys": [],
-  "Dependencies": [
-   {
-      "UniqueID": "Pathoschild.ContentPatcher",
-      "MinimumVersion": "1.29.4" // optional. If specified, older versions won't meet the requirement.
-   }
-]
+  "UpdateKeys": []
 }

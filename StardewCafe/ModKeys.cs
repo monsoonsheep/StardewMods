@@ -9,17 +9,17 @@ namespace StardewCafe
 {
     internal static class ModKeys
     {
-        internal static readonly string ASSETS_NPCSCHEDULE_PREFIX = $"{ModEntry.ModManifest.UniqueID}/NPCSchedules/";
-        internal static readonly string SIGNBOARD_BUILDING_CLICK_EVENT_KEY = $"{ModEntry.ModManifest.UniqueID}_OpenCafeMenu";
-        internal static readonly string CAFE_SIGNBOARD_BUILDING_ID = $"{ModEntry.ModManifest.UniqueID}_CafeSignboard";
+        internal const string ASSETS_NPCSCHEDULE_PREFIX = "MonsoonSheep.MyCafe/NPCSchedules/";
+        internal const string SIGNBOARD_BUILDING_CLICK_EVENT_KEY = "MonsoonSheep.MyCafe_OpenCafeMenu";
+        internal const string CAFE_SIGNBOARD_BUILDING_ID = "MonsoonSheep.MyCafe_CafeSignboard";
 
-        internal static readonly string MODDATA_MENUITEMSLIST = "VisitorFrameworkMenuItems";
-        internal static readonly string MODDATA_OPENCLOSETIMES = "VisitorFrameworkOpenCloseTimes";
-        internal static readonly string MODDATA_NPCSLASTVISITEDDATES = "VisitorFrameworkNPCsLastVisited";
-        internal static readonly string MODDATA_CHAIRRESERVED = "VisitorFrameworkChairIsReserved";
-        internal static readonly string MODDATA_TABLERESERVED = "VisitorFrameworkTableIsReserved";
-        internal static readonly string MODDATA_CHAIRTABLE = "VisitorFrameworkChairTable";
+        internal const string MODDATA_MENUITEMSLIST = "VisitorFrameworkMenuItems";
+        internal const string MODDATA_OPENCLOSETIMES = "VisitorFrameworkOpenCloseTimes";
+        internal const string MODDATA_NPCSLASTVISITEDDATES = "VisitorFrameworkNPCsLastVisited";
+        internal const string MODDATA_CHAIRRESERVED = "VisitorFrameworkChairIsReserved";
+        internal const string MODDATA_TABLERESERVED = "VisitorFrameworkTableIsReserved";
+        internal const string MODDATA_CHAIRTABLE = "VisitorFrameworkChairTable";
 
-        internal static readonly string MAPSEATS_TILEPROPERTY = "VisitorFrameworkSeats";
+        internal const string MAPSEATS_TILEPROPERTY = "VisitorFrameworkSeats";
     }
 }

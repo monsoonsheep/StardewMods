@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Locations;
 using StardewValley.Pathfinding;
@@ -47,6 +48,6 @@ internal class CharacterPatches : PatchCollection
     private static void NpcGetRouteEndBehaviorPostfix(NPC __instance, string behaviorName, string endMessage, ref PathFindController.endBehavior __result)
     {
         if (__result == null && BusSchedules.Instance.VisitorsData.ContainsKey(__instance.Name) && __instance.Schedule != null && behaviorName == "BoardBus")
-            __result = BusSchedules.Instance.CharacterReachBusEndBehavior;
+            __result = BusSchedules.Instance.VisitorReachBusEndBehavior;
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using VisitorFramework.Models;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -8,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
+using StardewCafe.Framework.Customers;
 using StardewValley.Tools;
 using SUtility = StardewValley.Utility;
 
@@ -30,10 +30,10 @@ namespace StardewCafe.Framework
 
         internal static void OnAssetReady(object sender, AssetReadyEventArgs e)
         {
-            if (e.Name.IsDirectlyUnderPath("monsoonsheep.StardewCafe/NPCSchedules"))
+            if (e.Name.IsDirectlyUnderPath(ModKeys.ASSETS_NPCSCHEDULE_PREFIX))
             {
                 string npcname = e.Name.Name.Split('/').Last();
-                CustomerManager.NpcVisitorSchedules[npcname] = Game1.content.Load<ScheduleData>("monsoonsheep.StardewCafe/NPCSchedules/" + npcname);
+                CustomerManager.NpcCustomerSchedule[npcname] = Game1.content.Load<ScheduleData>(ModKeys.ASSETS_NPCSCHEDULE_PREFIX + npcname);
             }
         }
 
@@ -51,7 +51,7 @@ namespace StardewCafe.Framework
                     ScheduleData scheduleData = Game1.content.Load<ScheduleData>(ModKeys.ASSETS_NPCSCHEDULE_PREFIX + npc.Name);
                     if (scheduleData != null)
                     {
-                        CustomerManager.NpcVisitorSchedules[npc.Name] = scheduleData;
+                        CustomerManager.NpcCustomerSchedule[npc.Name] = scheduleData;
                         doneCount++;
                     }
                 }
@@ -70,9 +70,7 @@ namespace StardewCafe.Framework
         /// <summary>
         /// Load content packs for this mod
         /// </summary>
-        /// <param name="helper"></param>
-        /// <param name="VisitorModels"></param>
-        internal static void LoadContentPacks(IModHelper helper, ref List<VisitorModel> VisitorModels)
+        internal static void LoadContentPacks(IModHelper helper, ref List<CustomerModel> CustomerModels)
         {
             foreach (IContentPack contentPack in helper.ContentPacks.GetOwned())
             {
@@ -80,7 +78,7 @@ namespace StardewCafe.Framework
                 var modelsInPack = new DirectoryInfo(Path.Combine(contentPack.DirectoryPath, "Visitors")).GetDirectories();
                 foreach (var modelFolder in modelsInPack)
                 {
-                    VisitorModel model = contentPack.ReadJsonFile<VisitorModel>(Path.Combine("Visitors", modelFolder.Name, "Visitor.json"));
+                    CustomerModel model = contentPack.ReadJsonFile<CustomerModel>(Path.Combine("Visitors", modelFolder.Name, "Visitor.json"));
                     if (model == null)
                     {
                         Logger.Log("Couldn't read json for content pack");
@@ -100,17 +98,17 @@ namespace StardewCafe.Framework
                         model.Portrait = helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", portraitName + ".png")).Name;
                     }
 
-                    VisitorModels.Add(model);
+                    CustomerModels.Add(model);
                 }
             }
         }
 
-        internal static void LoadVisitorModels(IModHelper helper, ref List<VisitorModel> VisitorModels)
+        internal static void LoadCustomerModels(IModHelper helper, ref List<CustomerModel> CustomerModels)
         {
             var modelFolders = new DirectoryInfo(Path.Combine(helper.DirectoryPath, "assets", "Visitors")).GetDirectories();
             foreach (var modelFolder in modelFolders)
             {
-                VisitorModel model = helper.ModContent.Load<VisitorModel>(Path.Combine("assets", "Visitors", modelFolder.Name, "Visitor.json"));
+                CustomerModel model = helper.ModContent.Load<CustomerModel>(Path.Combine("assets", "Visitors", modelFolder.Name, "Visitor.json"));
                 if (model == null)
                 {
                     Logger.Log("Couldn't read json for content pack");
@@ -123,7 +121,7 @@ namespace StardewCafe.Framework
                 string portraitName = "Tempcat";
                 model.Portrait = helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", portraitName + ".png")).Name;
 
-                VisitorModels.Add(model);
+                CustomerModels.Add(model);
             }
 
             Axe axe = new() { UpgradeLevel = 3 };

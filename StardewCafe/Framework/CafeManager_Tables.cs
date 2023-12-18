@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using StardewCafe.Framework.Objects;
-using VisitorFramework.Framework.Visitors;
 
 namespace StardewCafe.Framework
 {

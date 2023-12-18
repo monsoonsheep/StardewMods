@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using System.Linq;
+using StardewCafe.Framework.Customers;
 using StardewModdingAPI;
 using xTile.Tiles;
 using Point = Microsoft.Xna.Framework.Point;
@@ -27,6 +28,11 @@ namespace StardewCafe.Framework
         internal static int ClosingTime = 2100;
         internal static int LastTimeCustomersArrived;
 
+        internal static List<CustomerGroup> CurrentGroups = new List<CustomerGroup>();
+        internal static List<NPC> CurrentNpcVisitors = new List<NPC>();
+        internal static Dictionary<string, ScheduleData> NpcCustomerSchedule = new Dictionary<string, ScheduleData>();
+
+
         internal static void DayUpdate()
         {
             if (RoutesToCafe == null || RoutesToCafe.Count == 0)
@@ -34,8 +40,6 @@ namespace StardewCafe.Framework
 
             PopulateTables(CafeLocations);
             LastTimeCustomersArrived = Game1.timeOfDay;
-
-            CustomerManager.UpdateNpcSchedules();
         }
 
         /// <summary>
