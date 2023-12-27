@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <ModFolderName>PanWithHats</ModFolderName>
-	  <TargetFramework>net5.0</TargetFramework>
+	  <ModFolderName>StuffGathersDust</ModFolderName>
+	  <TargetFramework>net6.0</TargetFramework>
 		<GamePath>/home/mansoor/.steam/debian-installation/steamapps/common/Stardew Valley</GamePath>
 		<GameModsPath>/home/mansoor/.steam/debian-installation/steamapps/common/Stardew Valley/Mods/My Mods</GameModsPath>
   </PropertyGroup>
