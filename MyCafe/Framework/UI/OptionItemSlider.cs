@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 
 namespace VisitorFramework.Framework.UI
 {
+    /*
     internal class OptionItemSlider : OptionsElement
     {
         private new readonly string label;
@@ -91,4 +92,5 @@ namespace VisitorFramework.Framework.UI
             base.draw(b, slotX, slotY + 12, context);
         }
     }
+    */
 }

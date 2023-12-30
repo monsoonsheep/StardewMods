@@ -12,7 +12,7 @@ namespace MyCafe.Framework.Customers
 
         public string TilesheetPath { get; set; }
 
-        public string PortraitPath { get; set; }
+        public string PortraitName { get; set; }
 
     }
 }

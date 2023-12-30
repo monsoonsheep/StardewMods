@@ -47,10 +47,10 @@ namespace MyCafe.Framework.Managers
                 new Vector2(10, 12) * 64f, 
                 "BusStop", 
                 new AnimatedSprite(data.Model.TilesheetPath, 0, 16, 32),
-                Game1.content.Load<Texture2D>(data.Model.PortraitPath)
+                Game1.content.Load<Texture2D>(data.Model.PortraitName)
                 );
 
-            Game1.getLocationFromName("BusSTop").addCharacter(c);
+            Game1.getLocationFromName("BusStop").addCharacter(c);
             c.HeadTowards(Game1.getFarm(), new Point(75, 18), 3, null);
         }
 
@@ -157,6 +157,5 @@ namespace MyCafe.Framework.Managers
         }
 
         #endregion
-       
     }
 }

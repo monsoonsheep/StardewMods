@@ -9,6 +9,7 @@ using StardewValley.Menus;
 
 namespace MyCafe.Framework.UI
 {
+    /*
     public sealed class CafeMenu : IClickableMenu
     {
         public const int stockTab = 0;
@@ -207,4 +208,5 @@ namespace MyCafe.Framework.UI
                 drawMouse(b, ignore_transparency: true);
         }
     }
+    */
 }

@@ -13,7 +13,7 @@ namespace MyCafe.Framework.Customers
 {
     internal class Customer : NPC
     {
-        internal NPC OriginalNpc;
+        internal NPC OriginalNpc = null;
 
         public Customer(string name, Vector2 position, string location, AnimatedSprite sprite, Texture2D portrait)
         : base(sprite, position, location, 2, name, portrait, eventActor: true)

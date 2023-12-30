@@ -144,12 +144,12 @@ namespace MyCafe.Framework.Managers
 
                     if (contentPack.HasFile(Path.Combine("Customers", modelFolder.Name, "portrait.png")))
                     {
-                        model.PortraitPath = contentPack.ModContent.GetInternalAssetName(Path.Combine("Customers", modelFolder.Name, "portrait.png")).Name;
+                        model.PortraitName = contentPack.ModContent.GetInternalAssetName(Path.Combine("Customers", modelFolder.Name, "portrait.png")).Name;
                     }
                     else
                     {
-                        string portraitName = string.IsNullOrEmpty(model.PortraitPath) ? "cat" : model.PortraitPath;
-                        model.PortraitPath = helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", portraitName + ".png")).Name;
+                        string portraitName = string.IsNullOrEmpty(model.PortraitName) ? "cat" : model.PortraitName;
+                        model.PortraitName = helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", portraitName + ".png")).Name;
                     }
 
 

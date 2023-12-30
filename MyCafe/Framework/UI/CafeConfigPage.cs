@@ -10,6 +10,7 @@ using SUtility = StardewValley.Utility;
 
 namespace MyCafe.Framework.UI
 {
+    /*
     public sealed class CafeConfigPage : IClickableMenu
     {
         private readonly List<ClickableComponent> optionSlots = new();
@@ -148,4 +149,5 @@ namespace MyCafe.Framework.UI
             }
         }
     }
+    */
 }

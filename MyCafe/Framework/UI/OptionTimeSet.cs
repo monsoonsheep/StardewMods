@@ -6,6 +6,7 @@ using StardewValley.Menus;
 
 namespace VisitorFramework.Framework.UI
 {
+    /*
     internal class OptionTimeSet : OptionsElement
     {
         private new readonly string label;
@@ -138,4 +139,5 @@ namespace VisitorFramework.Framework.UI
             //new Rectangle(422, 472, 10, 11)
         }
     }
+    */
 }

@@ -39,7 +39,7 @@ namespace MyCafe.Framework.Managers
             if (Game1.activeClickableMenu == null && Context.IsPlayerFree)
             {
                 Log.Debug("Opened cafe menu menu!");
-                Game1.activeClickableMenu = new CafeMenu();
+                // Game1.activeClickableMenu = new CafeMenu();
             }
 
             return true;

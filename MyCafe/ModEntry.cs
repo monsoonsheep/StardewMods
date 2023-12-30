@@ -56,7 +56,9 @@ namespace MyCafe
             //    Log.Debug($"Couldn't patch methods - {e}", LogLevel.Error);
             //    return;
             //}
-            ModHelper.Events.GameLoop.GameLaunched += OnGameLaunched;
+            helper.Events.GameLoop.GameLaunched += OnGameLaunched;
+            helper.Events.Content.AssetRequested += assetManager.OnAssetRequested;
+            helper.Events.Content.AssetReady += assetManager.OnAssetReady;
         }
 
         private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
@@ -67,7 +69,6 @@ namespace MyCafe
 
             ModHelper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
             ModHelper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;
-
             ModHelper.Events.Multiplayer.ModMessageReceived += Sync.OnModMessageReceived;
 #if DEBUG
             ModHelper.Events.Input.ButtonPressed += Debug.ButtonPress;
@@ -89,8 +90,6 @@ namespace MyCafe
 
             ModHelper.Events.GameLoop.DayStarted += cafeManager.DayUpdate;
             ModHelper.Events.GameLoop.TimeChanged += cafeManager.OnTimeChanged;
-            ModHelper.Events.Content.AssetRequested += assetManager.OnAssetRequested;
-            ModHelper.Events.Content.AssetReady += assetManager.OnAssetReady;
             ModHelper.Events.World.FurnitureListChanged += tableManager.OnFurnitureListChanged;
             ModHelper.Events.Display.RenderedWorld += tableManager.OnRenderedWorld;
             ModHelper.Events.Multiplayer.PeerConnected += Sync.OnPeerConnected;
@@ -98,11 +97,8 @@ namespace MyCafe
 
         private void OnReturnedToTitle(object sender, ReturnedToTitleEventArgs e)
         {
-            ModHelper.Events.Multiplayer.ModMessageReceived -= Sync.OnModMessageReceived;
             ModHelper.Events.GameLoop.DayStarted -= cafeManager.DayUpdate;
             ModHelper.Events.GameLoop.TimeChanged -= cafeManager.OnTimeChanged;
-            ModHelper.Events.Content.AssetRequested -= assetManager.OnAssetRequested;
-            ModHelper.Events.Content.AssetReady -= assetManager.OnAssetReady;
             ModHelper.Events.World.FurnitureListChanged -= tableManager.OnFurnitureListChanged;
             ModHelper.Events.Display.RenderedWorld -= tableManager.OnRenderedWorld;
             ModHelper.Events.Multiplayer.PeerConnected -= Sync.OnPeerConnected;

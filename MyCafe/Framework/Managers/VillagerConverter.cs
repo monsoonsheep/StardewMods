@@ -15,7 +15,7 @@ namespace MyCafe.Framework.Managers
     {
         internal static Customer ConvertVillagerToCustomer(NPC npc)
         {
-            Customer customer = new Customer(npc.Name, npc.Position, npc.defaultMap.Value, npc.Sprite, npc.Portrait);
+            Customer customer = new Customer(npc.Name, npc.Position, npc.DefaultMap, npc.Sprite, npc.Portrait);
             npc.currentLocation.characters.Remove(npc);
             npc.currentLocation.characters.Add(customer);
             return customer;

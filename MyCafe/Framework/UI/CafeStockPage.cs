@@ -9,6 +9,7 @@ using StardewValley.Menus;
 
 namespace MyCafe.Framework.UI
 {
+    /*
     public sealed class CafeStockPage : IClickableMenu
     {
         public class RecentlyAddedItemsCafeStockInventory : CafeStockInventory
@@ -418,4 +419,5 @@ namespace MyCafe.Framework.UI
             }
         }
     }
+    */
 }
