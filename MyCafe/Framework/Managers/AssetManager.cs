@@ -11,6 +11,7 @@ using Microsoft.Xna.Framework.Graphics;
 using MyCafe.Framework.Customers;
 using StardewValley.Tools;
 using SUtility = StardewValley.Utility;
+using StardewValley.GameData.Buildings;
 
 namespace MyCafe.Framework.Managers
 {
@@ -38,6 +39,14 @@ namespace MyCafe.Framework.Managers
                 {
                     e.LoadFrom(() => file, AssetLoadPriority.Low);
                 }
+            }
+            else if (e.Name.IsEquivalentTo("Data/Buildings")) {
+                e.Edit(asset => {
+                    var data = asset.AsDictionary<string, BuildingData>();
+                    data.Data["MonsoonSheep.MyCafe_CafeBuilding"] = ModEntry.ModHelper.ModContent.Load<BuildingData>("assets/Cafe/cafebuilding.json");
+                }, AssetEditPriority.Early);
+            } else if (e.Name.IsEquivalentTo("MonsoonSheep.MyCafe_FarmCafeBuildingTexture")) {
+                e.LoadFromModFile<Texture2D>("assets/Cafe/cafebuilding.png", AssetLoadPriority.Medium);
             }
         }
 

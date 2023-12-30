@@ -372,9 +372,4 @@ FarmCafe/assets/Portraits/Temp*
 
 # Extras
 *.aseprite
-/Dummy/
-/Dummy/*
-/FarmCafe/mynotes.md
-/FarmCafe/SolidFoundations.dll
-/FarmCafe/SpaceCore.dll
-/FarmCafe/SpaceCore.pdb
+*.tsx
