@@ -1,19 +1,21 @@
 {
     "Name": "Cafe Building",
     "Description": "A cafe",
-    "Texture": "MonsoonSheep.MyCafe_FarmCafeBuildingTexture",
+    "Texture": "MonsoonSheep.MyCafe_CafeBuildingTexture",
     "Builder": "Robin",
     "BuildCost": 100,
     "BuildDays": 0,
     "Size": {
-        "Width": 7,
-        "Height": 5
+        "X": 11,
+        "Y": 8 
     },
     "HumanDoor": {
-        "X": 3,
-        "Y": 4
+        "X": 2,
+        "Y": 7
     },
+    "CollisionMap": "XXXXXXXXXXX\nXXXXXXXXXXX\nXXXXXXXXXXX\nXXXXXXXXXXX\nXXXXXXXXXXX\nXXXXXXXXXXX\nXXXXXXXXXXX\nXXXXXXOOOXX",
     "FadeWhenBehind": true,
+    "SortTileOffset": 1,
     "IndoorMap": "MonsoonSheep.MyCafe_CafeMap",
     "IndoorMapType": "StardewValley.Locations.DecoratableLocation",
     "CustomFields": {

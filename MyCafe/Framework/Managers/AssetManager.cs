@@ -12,6 +12,7 @@ using MyCafe.Framework.Customers;
 using StardewValley.Tools;
 using SUtility = StardewValley.Utility;
 using StardewValley.GameData.Buildings;
+using xTile;
 
 namespace MyCafe.Framework.Managers
 {
@@ -29,7 +30,7 @@ namespace MyCafe.Framework.Managers
             Instance = this;
         }
 
-        internal void OnAssetRequested(object sender, AssetRequestedEventArgs e)
+        internal static void OnAssetRequested(object sender, AssetRequestedEventArgs e)
         {
             if (e.Name.IsDirectlyUnderPath(ModKeys.ASSETS_NPCSCHEDULE_PREFIX))
             {
@@ -40,17 +41,21 @@ namespace MyCafe.Framework.Managers
                     e.LoadFrom(() => file, AssetLoadPriority.Low);
                 }
             }
+
+            // Cafe
             else if (e.Name.IsEquivalentTo("Data/Buildings")) {
                 e.Edit(asset => {
                     var data = asset.AsDictionary<string, BuildingData>();
                     data.Data["MonsoonSheep.MyCafe_CafeBuilding"] = ModEntry.ModHelper.ModContent.Load<BuildingData>("assets/Cafe/cafebuilding.json");
                 }, AssetEditPriority.Early);
-            } else if (e.Name.IsEquivalentTo("MonsoonSheep.MyCafe_FarmCafeBuildingTexture")) {
+            } else if (e.Name.IsEquivalentTo("MonsoonSheep.MyCafe_CafeBuildingTexture")) {
                 e.LoadFromModFile<Texture2D>("assets/Cafe/cafebuilding.png", AssetLoadPriority.Medium);
+            } else if (e.Name.IsEquivalentTo("Maps/MonsoonSheep.MyCafe_CafeMap")) {
+                e.LoadFromModFile<Map>("assets/Cafe/cafemap.tmx", AssetLoadPriority.Medium);
             }
         }
 
-        internal void OnAssetReady(object sender, AssetReadyEventArgs e)
+        internal static void OnAssetReady(object sender, AssetReadyEventArgs e)
         {
             if (e.Name.IsDirectlyUnderPath(ModKeys.ASSETS_NPCSCHEDULE_PREFIX))
             {

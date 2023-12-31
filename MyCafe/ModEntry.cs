@@ -57,8 +57,8 @@ namespace MyCafe
             //    return;
             //}
             helper.Events.GameLoop.GameLaunched += OnGameLaunched;
-            helper.Events.Content.AssetRequested += assetManager.OnAssetRequested;
-            helper.Events.Content.AssetReady += assetManager.OnAssetReady;
+            helper.Events.Content.AssetRequested += AssetManager.OnAssetRequested;
+            helper.Events.Content.AssetReady += AssetManager.OnAssetReady;
         }
 
         private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
