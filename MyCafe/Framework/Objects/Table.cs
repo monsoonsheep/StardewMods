@@ -111,7 +111,7 @@ namespace MyCafe.Framework.Objects
                         continue;
                     }
 
-                    GameLocation location = Game1.getLocationFromName(CurrentLocation);
+                    GameLocation location = Utility.GetLocationFromName(CurrentLocation);
                     Furniture chairAt = location.GetFurnitureAt(new Vector2(Position.X + i, Position.Y + j));
                     if (chairAt == null || !Utility.IsChair(chairAt))
                         continue;

@@ -81,10 +81,10 @@ namespace MyCafe
                 return;
             
             cafeManager = new CafeManager();
-            assetManager = new AssetManager();
-            customerManager = new CustomerManager();
-            menuManager = new MenuManager();
-            tableManager = new TableManager();
+            assetManager = AssetManager.Instance;
+            customerManager = CustomerManager.Instance;
+            tableManager = TableManager.Instance;
+            menuManager = MenuManager.Instance;
 
             assetManager.LoadValuesFromModData();
 
@@ -97,6 +97,8 @@ namespace MyCafe
 
         private void OnReturnedToTitle(object sender, ReturnedToTitleEventArgs e)
         {
+            if (CafeManager.Instance == null)
+                return;
             ModHelper.Events.GameLoop.DayStarted -= cafeManager.DayUpdate;
             ModHelper.Events.GameLoop.TimeChanged -= cafeManager.OnTimeChanged;
             ModHelper.Events.World.FurnitureListChanged -= tableManager.OnFurnitureListChanged;

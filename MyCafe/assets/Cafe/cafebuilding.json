@@ -13,11 +13,10 @@
         "X": 2,
         "Y": 7
     },
-    "CollisionMap": "XXXXXXXXXXX\nXXXXXXXXXXX\nXXXXXXXXXXX\nXXXXXXXXXXX\nXXXXXXXXXXX\nXXXXXXXXXXX\nXXXXXXXXXXX\nXXXXXXOOOXX",
+    "CollisionMap": "OOOOOOOOOOO\nOOOOOOOOOOO\nXXXXXXXXXXX\nXXXXXXXXXXX\nXXXXXXXXXXX\nXXXXXXXXXXX\nXXXXXXXXXXX\nXXXXXXOOOXX",
     "FadeWhenBehind": true,
     "SortTileOffset": 1,
     "IndoorMap": "MonsoonSheep.MyCafe_CafeMap",
-    "IndoorMapType": "StardewValley.Locations.DecoratableLocation",
     "CustomFields": {
         "MonsoonSheep.MyCafe_IsCafeBuilding": "true"
     }

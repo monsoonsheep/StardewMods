@@ -27,19 +27,18 @@ namespace MyCafe.Framework.Managers
 
         internal CustomerManager()
         {
+            Instance = this;
             CustomersData = new Dictionary<string, CustomerData>();
             CurrentGroups = new List<CustomerGroup>();
             VillagerCustomerSchedules = new Dictionary<string, ScheduleData>();
 
             PopulateCustomersData();
-
-            Instance = this;
         }
 
         internal void SpawnCustomerOnRoad()
         {
             string name = CustomersData.Keys.FirstOrDefault();
-            if (name == null || !CustomersData.TryGetValue(name, out CustomerData data))
+            if (name == null || !CustomersData.TryGetValue(name, out CustomerData data) || CafeManager.Instance.CafeIndoors == null)
                 return;
 
             Customer c = new Customer(
@@ -50,8 +49,28 @@ namespace MyCafe.Framework.Managers
                 Game1.content.Load<Texture2D>(data.Model.PortraitName)
                 );
 
+            Table table = TableManager.Instance.CurrentTables.Where(t => !t.IsReserved).MinBy(_ => Game1.random.Next());
+            if (table == null) {
+                Log.Debug("No tables available");
+                return;
+            }
+
+            c.ReservedSeat = table.Seats.First();
+
+            GameLocation tableLocation = Utility.GetLocationFromName(table.CurrentLocation);
+            if (tableLocation == null) {
+                Log.Debug("Couldn't find location for table to reserve");
+                return;
+            }
+
+
             Game1.getLocationFromName("BusStop").addCharacter(c);
-            c.HeadTowards(Game1.getFarm(), new Point(75, 18), 3, null);
+            c.HeadTowards(tableLocation, c.ReservedSeat.Position.ToPoint(), 3, null);
+            if (c.controller == null)
+                return;
+
+            c.ReservedSeat.Reserve(c);
+            table.Reserve(new() {c});
         }
 
         internal void PopulateCustomersData()

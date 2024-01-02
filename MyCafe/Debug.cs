@@ -20,10 +20,14 @@ namespace MyCafe
             switch (e.Button)
             {
                 case SButton.NumPad0:
-                    CustomerManager.Instance?.SpawnCustomerOnRoad();
+                    Log.Debug($"We're in {Game1.player.currentLocation.Name} ({Game1.player.currentLocation.NameOrUniqueName}) ");
+                    Log.Debug(System.Type.GetType("CafeLocation, MyCafe")?.FullName);
                     break;
                 case SButton.NumPad1:
                     WarpToBus();
+                    break;
+                case SButton.NumPad2:
+                    CustomerManager.Instance?.SpawnCustomerOnRoad();
                     break;
                 default:
                     return;

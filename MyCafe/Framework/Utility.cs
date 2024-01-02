@@ -120,12 +120,25 @@ namespace MyCafe.Framework
         {
             if (toAdd == null)
                 return original;
-            
+
             original = new Stack<Point>(original);
             while (original.Count > 0)
                 toAdd.Push(original.Pop());
 
             return toAdd;
+        }
+
+        internal static GameLocation GetLocationFromName(string name)
+        {
+            GameLocation loc = Game1.getLocationFromName(name);
+
+            if (loc == null && CafeManager.Instance?.CafeIndoors != null
+            && (name.Equals(CafeManager.Instance.CafeIndoors.Name) || name.Equals(CafeManager.Instance.CafeIndoors.uniqueName.Value)))
+            {
+                return CafeManager.Instance.CafeIndoors;
+            }
+
+            return loc;
         }
     }
 }

@@ -56,22 +56,26 @@ namespace MyCafe.Framework.Customers
                 return FindPathInLocation(me, locationStartPoint, targetTile, startingLocation);
             }
 
-            string[] locationsRoute = CafeManager.Instance.GetLocationRoute(startingLocation, targetLocation);
+            // string[] locationsRoute = CafeManager.Instance.GetLocationRoute(startingLocation, targetLocation);
+            string[] locationsRoute = WarpPathfindingCache.GetLocationRoute(startingLocation.Name, targetLocation.Name, me.Gender);
             if (locationsRoute == null)
                 throw new Exception("Location route not found");
 
             Stack<Point> path = new Stack<Point>();
             for (int i = 0; i < locationsRoute.Length; i++)
             {
-                GameLocation current = Game1.getLocationFromName(locationsRoute[i]);
+                GameLocation current = Utility.GetLocationFromName(locationsRoute[i]);
                 if (i < locationsRoute.Length - 1)
                 {
                     Point target = current.getWarpPointTo(locationsRoute[i + 1]);
                     if (target.Equals(Point.Zero))
                     {
-                        throw new Exception("Error finding route to cafe. Couldn't find warp point");
+                        if (locationsRoute[i + 1] == CafeManager.Instance.CafeIndoors.Name) {
+                            target = current.getWarpPointTo(CafeManager.Instance.CafeIndoors.uniqueName.Value);
+                        }
+                        if (target.Equals(Point.Zero))
+                            throw new Exception("Error finding route to cafe. Couldn't find warp point");
                     }
-
 
                     Stack<Point> nextPath = FindPathInLocation(me, locationStartPoint, target, current);
                     if (nextPath == null)
@@ -105,8 +109,8 @@ namespace MyCafe.Framework.Customers
         {
             Stack<Point> path = null;
 
-            if (!location.isTilePassable(new Location(targetTile.X, targetTile.Y), Game1.viewport)
-                || location.GetFurnitureAt(targetTile.ToVector2()) != null)
+            Furniture furniture = location.GetFurnitureAt((targetTile).ToVector2());
+            if (furniture != null || !location.isTilePassable(new Location(targetTile.X, targetTile.Y), Game1.viewport))
             {
                 var directions = new List<sbyte[]>
                 {
@@ -116,9 +120,8 @@ namespace MyCafe.Framework.Customers
                     new sbyte[] { 1, 0 }, // right
                 };
 
-                Furniture seat = location.GetFurnitureAt((targetTile).ToVector2());
-                if (!seat.Name.ToLower().Contains("stool"))
-                    directions.RemoveAt(seat.GetSittingDirection());
+                if (furniture != null && !furniture.Name.ToLower().Contains("stool"))
+                    directions.RemoveAt(furniture.GetSittingDirection());
 
                 MapSeat mapSeat = location.mapSeats.FirstOrDefault(s => s.OccupiesTile(targetTile.X, targetTile.Y));
                 if (mapSeat != null)
@@ -128,7 +131,7 @@ namespace MyCafe.Framework.Customers
 
                 foreach (var direction in directions)
                 {
-                    Point newTile = (targetTile + new Point(direction[0], direction[1]));
+                    Point newTile = targetTile + new Point(direction[0], direction[1]);
 
                     if (location.GetFurnitureAt(newTile.ToVector2()) != null || !location.isTilePassable(new Location(newTile.X, newTile.Y), Game1.viewport))
                         continue;
