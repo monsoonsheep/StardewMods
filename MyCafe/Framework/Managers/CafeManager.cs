@@ -15,6 +15,9 @@ using StardewModdingAPI.Events;
 using xTile.Layers;
 using xTile.ObjectModel;
 using StardewValley.Objects;
+using HarmonyLib;
+using System.Reflection;
+using StardewValley.Buildings;
 
 namespace MyCafe.Framework.Managers
 {
@@ -22,9 +25,8 @@ namespace MyCafe.Framework.Managers
     {
         internal static CafeManager Instance;
 
-        internal Dictionary<string, List<string[]>> RoutesToCafe;
         internal GameLocation CafeIndoors;
-        
+
         internal int OpeningTime = 1200;
         internal int ClosingTime = 2100;
 
@@ -35,14 +37,17 @@ namespace MyCafe.Framework.Managers
 
         internal CafeManager()
         {
-            customers = CustomerManager.Instance;
-            menu = MenuManager.Instance;
-            tables = TableManager.Instance;
-            assets = AssetManager.Instance;
+            customers = new CustomerManager();
+            menu = new MenuManager();
+            tables = new TableManager();
+            assets = new AssetManager();
 
             UpdateCafeIndoorLocation();
             PopulateRoutesToCafe();
 
+            if (CafeIndoors != null) {
+                tables.PopulateMapTables(CafeIndoors);
+            }
             Instance = this;
         }
 
@@ -58,22 +63,25 @@ namespace MyCafe.Framework.Managers
 
         internal void UpdateCafeIndoorLocation()
         {
-            CafeIndoors = Game1.getLocationFromName("MonsoonSheep.MyCafe_CafeLocation");
+            CafeIndoors = Game1.getLocationFromName("MonsoonSheep.MyCafe_CafeBuilding", isStructure: true);
+            if (CafeIndoors == null)
+            {
+                var cafeBuilding = Game1.getFarm().buildings.FirstOrDefault(x => x.GetData()?.CustomFields.TryGetValue("MonsoonSheep.MyCafe_IsCafeBuilding", out string result) == true && result == "true");
+                if (cafeBuilding != null)
+                {
+					CafeIndoors = cafeBuilding.GetIndoors();
+					// if (CafeIndoors != null) Game1._locationLookup[CafeIndoors.Name] = CafeIndoors;
+                }
+            }
         }
 
         internal void PopulateRoutesToCafe()
         {
             List<GameLocation> cafeLocations = new List<GameLocation>() { Game1.getFarm() };
-
-            var busStop = Game1.getLocationFromName("BusStop");
-
-            RoutesToCafe = new Dictionary<string, List<string[]>>();
             if (CafeIndoors != null)
             {
                 cafeLocations.Add(CafeIndoors);
-                RoutesToCafe[CafeIndoors.NameOrUniqueName] = new List<string[]>();
             }
-            RoutesToCafe["Farm"] = new List<string[]>();
 
             foreach (var location in Game1.locations)
             {
@@ -87,14 +95,12 @@ namespace MyCafe.Framework.Managers
                 }
                 else
                 {
-                    route = WarpPathfindingCache.GetLocationRoute(location.NameOrUniqueName, "BusStop", NPC.female)?.ToList();
-                    reverseRoute = WarpPathfindingCache.GetLocationRoute("BusStop", location.NameOrUniqueName, NPC.female)?.ToList();
+                    route = WarpPathfindingCache.GetLocationRoute(location.Name, "BusStop", NPC.female)?.ToList();
+                    reverseRoute = WarpPathfindingCache.GetLocationRoute("BusStop", location.Name, NPC.female)?.ToList();
                 }
-              
+
                 if (route == null || reverseRoute == null)
                     continue;
-
-                RoutesToCafe[location.NameOrUniqueName] = new List<string[]>();
 
                 route.Add("Farm");
                 reverseRoute.Insert(0, "Farm");
@@ -102,38 +108,25 @@ namespace MyCafe.Framework.Managers
                 if (route.Count <= 1)
                     continue;
 
-                RoutesToCafe[location.NameOrUniqueName].Add(route.ToArray());
-                RoutesToCafe["Farm"].Add(reverseRoute.ToArray());
+                MethodInfo method = AccessTools.Method(typeof(WarpPathfindingCache), "AddRoute", new[] { typeof(List<string>), typeof(int?) });
+                if (method == null)
+                {
+                    Log.Error("Couldn't find method to add route");
+                    return;
+                }
+
+                method.Invoke(null, new[] { route, null });
+                method.Invoke(null, new[] { reverseRoute, null });
 
                 if (CafeIndoors != null)
                 {
-                    route.Add(CafeIndoors.NameOrUniqueName);
-                    reverseRoute.Insert(0, CafeIndoors.NameOrUniqueName);
+                    route.Add(CafeIndoors.Name);
+                    reverseRoute.Insert(0, CafeIndoors.Name);
 
-                    RoutesToCafe[location.NameOrUniqueName].Add(route.ToArray());
-                    RoutesToCafe[CafeIndoors.NameOrUniqueName].Add(reverseRoute.ToArray());
+                    method.Invoke(null, new[] { route, null });
+                    method.Invoke(null, new[] { reverseRoute, null });
                 }
             }
-        }
-
-        internal string[] GetLocationRoute(GameLocation startingLocation, GameLocation targetLocation)
-        {
-            string[] result = WarpPathfindingCache.GetLocationRoute(startingLocation.NameOrUniqueName, targetLocation.NameOrUniqueName, NPC.female);
-            if (result != null)
-                return result;
-
-            if (RoutesToCafe.TryGetValue(startingLocation.NameOrUniqueName, out List<string[]> routes))
-            {
-                foreach (var route in routes)
-                {
-                    if (route[^1].Equals(targetLocation.NameOrUniqueName))
-                    {
-                        return route;
-                    }
-                }
-            }
-
-            return null;
         }
     }
 }

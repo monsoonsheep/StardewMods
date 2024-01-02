@@ -81,10 +81,10 @@ namespace MyCafe
                 return;
             
             cafeManager = new CafeManager();
-            assetManager = new AssetManager();
-            customerManager = new CustomerManager();
-            menuManager = new MenuManager();
-            tableManager = new TableManager();
+            assetManager = AssetManager.Instance;
+            customerManager = CustomerManager.Instance;
+            tableManager = TableManager.Instance;
+            menuManager = MenuManager.Instance;
 
             assetManager.LoadValuesFromModData();
 

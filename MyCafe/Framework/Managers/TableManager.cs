@@ -64,7 +64,7 @@ namespace MyCafe.Framework.Managers
             {
                 GameLocation location = Game1.getLocationFromName(CurrentTables[i].CurrentLocation);
                 if ((CurrentTables[i] is FurnitureTable && !location.furniture.Any(f => f.TileLocation == CurrentTables[i].Position)) ||
-                    locations.Any(l => CurrentTables[i].CurrentLocation == l.NameOrUniqueName) )
+                    locations.Any(l => CurrentTables[i].CurrentLocation == l.NameOrUniqueName))
                 {
                     CurrentTables.RemoveAt(i);
                 }
@@ -87,7 +87,7 @@ namespace MyCafe.Framework.Managers
             FreeAllTables();
         }
 
-        
+
         internal void PopulateMapTables(GameLocation location)
         {
             if (MapTablesInCafeLocation?.Count != 0)
@@ -105,15 +105,15 @@ namespace MyCafe.Framework.Managers
                     if (tile == null)
                         continue;
 
-                    if (!tile.TileIndexProperties.TryGetValue(ModKeys.MAPSEATS_TILEPROPERTY, out PropertyValue val) &&
-                        !tile.Properties.TryGetValue(ModKeys.MAPSEATS_TILEPROPERTY, out val))
-                        continue;
+                    if (tile.TileIndexProperties.TryGetValue(ModKeys.MAPSEATS_TILEPROPERTY, out var val)
+                        || tile.Properties.TryGetValue(ModKeys.MAPSEATS_TILEPROPERTY, out val))
+                    {
+                        Rectangle thisTile = new Rectangle(i, j, 1, 1);
 
-                    Rectangle thisTile = new Rectangle(i, j, 1, 1);
-
-                    seatStringToTableRecs[val] = seatStringToTableRecs.TryGetValue(val, out var existingTileKey)
-                        ? Rectangle.Union(thisTile, existingTileKey)
-                        : thisTile;
+                        seatStringToTableRecs[val] = seatStringToTableRecs.TryGetValue(val, out var existingTileKey)
+                            ? Rectangle.Union(thisTile, existingTileKey)
+                            : thisTile;
+                    }
                 }
             }
 
@@ -124,11 +124,12 @@ namespace MyCafe.Framework.Managers
 
                 for (int i = 0; i < splitValues.Length; i += 2)
                 {
-                    if (!float.TryParse(splitValues[i], out float x) ||
+                    if (i + 1 >= splitValues.Length ||
+                        !float.TryParse(splitValues[i], out float x) ||
                         !float.TryParse(splitValues[i + 1], out float y))
                     {
                         Log.Debug($"Invalid values in Cafe Map's seats at {pair.Value.X}, {pair.Value.Y}", LogLevel.Warn);
-                        continue;
+                        return;
                     }
 
                     Vector2 seatLocation = new(x, y);
@@ -184,7 +185,7 @@ namespace MyCafe.Framework.Managers
             return chair.modData.TryGetValue(ModKeys.MODDATA_CHAIRRESERVED, out var val) && val == "T";
         }
 
-        internal void FreeAllTables() 
+        internal void FreeAllTables()
             => CurrentTables.ForEach(t => t.Free());
 
         internal Table GetTableAt(GameLocation location, Vector2 position)
@@ -202,7 +203,7 @@ namespace MyCafe.Framework.Managers
 
         internal void FarmerClickTable(Table table, Farmer who)
         {
-            
+
         }
 
         internal void OnRenderedWorld(object sender, RenderedWorldEventArgs e)

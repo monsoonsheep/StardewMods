@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" compressionlevel="0" width="25" height="30" tilewidth="16" tileheight="16" infinite="0" nextlayerid="9" nextobjectid="28">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" compressionlevel="0" width="25" height="30" tilewidth="16" tileheight="16" infinite="0" nextlayerid="9" nextobjectid="31">
  <properties>
   <property name="Warp" value="13 23 Farm 80 20"/>
  </properties>
@@ -149,7 +149,23 @@
 </data>
  </layer>
  <objectgroup id="5" name="Back"/>
- <objectgroup id="6" name="Buildings"/>
+ <objectgroup id="6" name="Buildings">
+  <object id="28" name="TileData" x="64" y="320" width="32" height="32">
+   <properties>
+    <property name="MonsoonSheep.MyCafe_Seat" value="3 21 6 21"/>
+   </properties>
+  </object>
+  <object id="29" name="TileData" x="144" y="320" width="32" height="32">
+   <properties>
+    <property name="MonsoonSheep.MyCafe_Seat" value="8 21 11 21"/>
+   </properties>
+  </object>
+  <object id="30" name="TileData" x="272" y="304" width="32" height="32">
+   <properties>
+    <property name="MonsoonSheep.MyCafe_Seat" value="17 18 16 20 18 21 19 19"/>
+   </properties>
+  </object>
+ </objectgroup>
  <objectgroup id="7" name="Front"/>
  <objectgroup id="8" name="Paths"/>
 </map>

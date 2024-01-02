@@ -39,7 +39,7 @@ namespace MyCafe.Framework.Managers
         internal void SpawnCustomerOnRoad()
         {
             string name = CustomersData.Keys.FirstOrDefault();
-            if (name == null || !CustomersData.TryGetValue(name, out CustomerData data))
+            if (name == null || !CustomersData.TryGetValue(name, out CustomerData data) || CafeManager.Instance.CafeIndoors == null)
                 return;
 
             Customer c = new Customer(
@@ -51,7 +51,7 @@ namespace MyCafe.Framework.Managers
                 );
 
             Game1.getLocationFromName("BusStop").addCharacter(c);
-            c.HeadTowards(Game1.getFarm(), new Point(75, 18), 3, null);
+            c.HeadTowards(CafeManager.Instance.CafeIndoors, new Point(5, 19), 3, null);
         }
 
         internal void PopulateCustomersData()
