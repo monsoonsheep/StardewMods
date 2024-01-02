@@ -27,13 +27,12 @@ namespace MyCafe.Framework.Managers
 
         internal CustomerManager()
         {
+            Instance = this;
             CustomersData = new Dictionary<string, CustomerData>();
             CurrentGroups = new List<CustomerGroup>();
             VillagerCustomerSchedules = new Dictionary<string, ScheduleData>();
 
             PopulateCustomersData();
-
-            Instance = this;
         }
 
         internal void SpawnCustomerOnRoad()

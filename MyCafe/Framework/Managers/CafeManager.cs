@@ -37,6 +37,7 @@ namespace MyCafe.Framework.Managers
 
         internal CafeManager()
         {
+            Instance = this;
             customers = new CustomerManager();
             menu = new MenuManager();
             tables = new TableManager();
@@ -45,10 +46,7 @@ namespace MyCafe.Framework.Managers
             UpdateCafeIndoorLocation();
             PopulateRoutesToCafe();
 
-            if (CafeIndoors != null) {
-                tables.PopulateMapTables(CafeIndoors);
-            }
-            Instance = this;
+            tables.PopulateTables(Game1.getFarm(), CafeIndoors);
         }
 
         internal void DayUpdate(object sender, DayStartedEventArgs e)

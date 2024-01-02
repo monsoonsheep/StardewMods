@@ -97,6 +97,8 @@ namespace MyCafe
 
         private void OnReturnedToTitle(object sender, ReturnedToTitleEventArgs e)
         {
+            if (CafeManager.Instance == null)
+                return;
             ModHelper.Events.GameLoop.DayStarted -= cafeManager.DayUpdate;
             ModHelper.Events.GameLoop.TimeChanged -= cafeManager.OnTimeChanged;
             ModHelper.Events.World.FurnitureListChanged -= tableManager.OnFurnitureListChanged;

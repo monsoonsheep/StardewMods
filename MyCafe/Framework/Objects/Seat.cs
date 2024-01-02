@@ -92,7 +92,7 @@ namespace MyCafe.Framework.Objects
             if (!base.Reserve(customer))
                 return false;
 
-            GameLocation location = Game1.getLocationFromName(Table.CurrentLocation);
+            GameLocation location = Utility.GetLocationFromName(Table.CurrentLocation);
             MapSeat mapSeat = location.mapSeats.FirstOrDefault(s => s.tilePosition.Value.Equals(Position));
             mapSeat?.sittingFarmers.Add(Game1.MasterPlayer.UniqueMultiplayerID, 0);
             
@@ -102,7 +102,7 @@ namespace MyCafe.Framework.Objects
         internal override void Free()
         {
             base.Free();
-            GameLocation location = Game1.getLocationFromName(Table.CurrentLocation);
+            GameLocation location = Utility.GetLocationFromName(Table.CurrentLocation);
             MapSeat mapSeat = location.mapSeats.ToList().FirstOrDefault(s => s.tilePosition.Value.Equals(Position));
             mapSeat?.RemoveSittingFarmer(Game1.MasterPlayer);
         

@@ -25,10 +25,9 @@ namespace MyCafe.Framework.Managers
 
         internal MenuManager()
         {
+            Instance = this;
             menuItems = new List<Item>(new Item[27]);
             recentlyAddedMenuItems = new List<Item>(new Item[9]);
-
-            Instance = this;
         }
 
         internal bool OpenCafeMenuTileAction(GameLocation location, string[] args, Farmer player, Point tile)

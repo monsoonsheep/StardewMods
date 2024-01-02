@@ -26,74 +26,79 @@ namespace MyCafe.Framework.Managers
 
         internal TableManager()
         {
+            Instance = this;
             CurrentTables = new List<Table>();
             MapTablesInCafeLocation = new Dictionary<Rectangle, List<Vector2>>();
-
-            Instance = this;
         }
 
-        internal void PopulateTables(List<GameLocation> locations)
+        internal void PopulateTables(GameLocation exterior, GameLocation interior = null)
         {
             int count = 0;
+            var locations = new List<GameLocation>(){exterior};
+            if (interior != null)
+                locations.Add(interior);
+
             // TODO: Test whether some tables are still tracked even after they refer to an outdated CafeLocation
             foreach (var location in locations)
             {
-                foreach (Furniture table in location.furniture)
+                foreach (Furniture furniture in location.furniture)
                 {
-                    if (!Utility.IsTable(table))
+                    if (!Utility.IsTable(furniture))
                         continue;
 
                     // If we already have this table object registered, skip
                     if (CurrentTables.OfType<FurnitureTable>().Any(
-                            t => t.Position == table.TileLocation && t.CurrentLocation == location.NameOrUniqueName))
+                            t => t.Position == furniture.TileLocation && t.CurrentLocation == location.Name))
                     {
                         continue;
                     }
 
-                    FurnitureTable tableToAdd = new FurnitureTable(table, location.NameOrUniqueName);
+                    FurnitureTable tableToAdd = new FurnitureTable(furniture, location.Name);
 
                     if (TryAddTable(tableToAdd))
                         count++;
                 }
             }
 
-            Log.Debug($"{count} new furniture tables found in cafe locations.");
-            count = 0;
+            if (count > 0) {
+                Log.Debug($"{count} new furniture tables found in cafe locations.");
+                count = 0;
+            }
 
+            // Remove duplicate tables
             for (var i = CurrentTables.Count - 1; i >= 0; i--)
             {
-                GameLocation location = Game1.getLocationFromName(CurrentTables[i].CurrentLocation);
+                GameLocation location = Utility.GetLocationFromName(CurrentTables[i].CurrentLocation);
                 if ((CurrentTables[i] is FurnitureTable && !location.furniture.Any(f => f.TileLocation == CurrentTables[i].Position)) ||
-                    locations.Any(l => CurrentTables[i].CurrentLocation == l.NameOrUniqueName))
+                    locations.Any(l => CurrentTables[i].CurrentLocation == l.Name))
                 {
                     CurrentTables.RemoveAt(i);
                 }
             }
 
-            // Populate Map tables
-            GameLocation cafe = locations.FirstOrDefault(Utility.IsLocationCafe);
-            if (cafe != null)
-            {
+            // Populate Map tables for cafe indoors
+            if (interior != null) {
+                PopulateMapTables(interior);
                 foreach (var pair in MapTablesInCafeLocation)
                 {
                     Rectangle newRectangle = new Rectangle(pair.Key.X * 64, pair.Key.Y * 64, pair.Key.Width * 64, pair.Key.Height * 64);
-                    MapTable mapTable = new MapTable(newRectangle, cafe.NameOrUniqueName, pair.Value);
+                    MapTable mapTable = new MapTable(newRectangle, interior.Name, pair.Value);
                     if (TryAddTable(mapTable))
                         count++;
                 }
+                Log.Debug($"{count} new map-based tables found in cafe locations.");
             }
-            Log.Debug($"{count} new map-based tables found in cafe locations.");
 
             FreeAllTables();
         }
 
 
-        internal void PopulateMapTables(GameLocation location)
+        internal void PopulateMapTables(GameLocation indoors)
         {
             if (MapTablesInCafeLocation?.Count != 0)
                 return;
             MapTablesInCafeLocation.Clear();
-            Layer layer = location.Map.GetLayer("Buildings");
+            Layer layer = indoors.Map.GetLayer("Buildings");
 
             Dictionary<string, Rectangle> seatStringToTableRecs = new();
 
@@ -190,12 +195,12 @@ namespace MyCafe.Framework.Managers
 
         internal Table GetTableAt(GameLocation location, Vector2 position)
         {
-            return CurrentTables.Where(t => t.CurrentLocation.Equals(location.NameOrUniqueName)).FirstOrDefault(table => table.BoundingBox.Contains(position));
+            return CurrentTables.Where(t => t.CurrentLocation.Equals(location.Name)).FirstOrDefault(table => table.BoundingBox.Contains(position));
         }
 
         internal FurnitureTable TryAddFurnitureTable(Furniture table, GameLocation location)
         {
-            FurnitureTable newTable = new FurnitureTable(table, location.NameOrUniqueName);
+            FurnitureTable newTable = new FurnitureTable(table, location.Name);
 
             return TryAddTable(newTable)
                 ? newTable : null;
@@ -211,7 +216,7 @@ namespace MyCafe.Framework.Managers
             // get list of reserved tables with center coords
             foreach (var table in CurrentTables)
             {
-                if (table.IsReadyToOrder && Game1.currentLocation.NameOrUniqueName.Equals(table.CurrentLocation))
+                if (table.IsReadyToOrder && Game1.currentLocation.Name.Equals(table.CurrentLocation))
                 {
                     Vector2 offset = new Vector2(0,
                         (float)Math.Round(4f * Math.Sin(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 250.0)));
@@ -242,7 +247,7 @@ namespace MyCafe.Framework.Managers
                             .OfType<FurnitureTable>()
                             .SelectMany(t => t.Seats)
                             .OfType<FurnitureChair>()
-                            .FirstOrDefault(seat => seat.Position == f.TileLocation && seat.Table.CurrentLocation.Equals(e.Location.NameOrUniqueName));
+                            .FirstOrDefault(seat => seat.Position == f.TileLocation && seat.Table.CurrentLocation.Equals(e.Location.Name));
 
                         if (trackedChair?.Table is not FurnitureTable table)
                             continue;

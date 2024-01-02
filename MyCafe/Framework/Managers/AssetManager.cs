@@ -25,9 +25,8 @@ namespace MyCafe.Framework.Managers
 
         internal AssetManager()
         {
-            Sprites = ModEntry.ModHelper.ModContent.Load<Texture2D>("assets/sprites.png");
-
             Instance = this;
+            Sprites = ModEntry.ModHelper.ModContent.Load<Texture2D>("assets/sprites.png");
         }
 
         internal static void OnAssetRequested(object sender, AssetRequestedEventArgs e)
