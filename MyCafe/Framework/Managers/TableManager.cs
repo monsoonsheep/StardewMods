@@ -180,11 +180,6 @@ namespace MyCafe.Framework.Managers
             }
         }
 
-        internal List<Table> GetFreeTables(int minimumSeats = 1)
-        {
-            return CurrentTables.OrderBy(_ => Game1.random.Next()).Where(t => !t.IsReserved && t.Seats.Count >= minimumSeats).ToList();
-        }
-
         internal bool ChairIsReserved(Furniture chair)
         {
             return chair.modData.TryGetValue(ModKeys.MODDATA_CHAIRRESERVED, out var val) && val == "T";

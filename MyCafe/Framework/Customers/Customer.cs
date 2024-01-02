@@ -14,6 +14,9 @@ namespace MyCafe.Framework.Customers
     internal class Customer : NPC
     {
         internal NPC OriginalNpc = null;
+        internal Seat ReservedSeat = null;
+
+
 
         public Customer(string name, Vector2 position, string location, AnimatedSprite sprite, Texture2D portrait)
         : base(sprite, position, location, 2, name, portrait, eventActor: true)
@@ -43,6 +46,10 @@ namespace MyCafe.Framework.Customers
         internal string GetOrderItem()
         {
             return base.modData.TryGetValue("MonsoonSheep.MyCafe_ModDataOrderItem", out var result) ? result : null;
+        }
+
+        internal void SitDown() {
+            
         }
     }
 }
