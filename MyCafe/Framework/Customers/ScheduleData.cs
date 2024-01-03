@@ -1,27 +1,20 @@
 ﻿using System.Collections.Generic;
 using StardewValley;
 
-namespace MyCafe.Framework.Customers
+namespace MyCafe.Framework.Customers;
+
+public class ScheduleData
 {
-    public class ScheduleData
-    {
-        public int Frequency = 2;
-        public List<string> Partners; // will be changed to something more sophisticated soon
-        public Dictionary<string, List<BusyPeriod>> BusyTimes;
+    public int Frequency = 2;
+    public List<string> Partners; // will be changed to something more sophisticated soon
+    public Dictionary<string, List<BusyPeriod>> BusyTimes;
+    internal WorldDate LastVisitedDate = new(1, Season.Spring, 1);
+    internal bool CanVisitToday = false;
+}
 
-        internal WorldDate LastVisitedDate = new(1, Season.Spring, 1);
-        internal bool CanVisitToday = false;
-
-        public ScheduleData()
-        {
-        }
-    }
-
-    public class BusyPeriod
-    {
-        public int From = 600;
-        public int To = 2600;
-        public int Priority = 4;
-    }
-
+public class BusyPeriod
+{
+    public int From = 600;
+    public int To = 2600;
+    public int Priority = 4;
 }

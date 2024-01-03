@@ -60,7 +60,7 @@ internal sealed class CustomerManager
 
         GameLocation busStop = Game1.getLocationFromName("BusStop");
         busStop.addCharacter(c);
-        c.HeadTowards(tableLocation, c.ReservedSeat.Position.ToPoint(), 3, null);
+        c.PathTo(tableLocation, c.ReservedSeat.Position.ToPoint(), 3, null);
         if (c.controller == null || c.controller.pathToEndPoint?.Count == 0) {
             busStop.characters.Remove(c);
             return;
