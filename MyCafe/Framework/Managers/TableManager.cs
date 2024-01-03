@@ -218,7 +218,7 @@ internal sealed class TableManager
 
                 e.SpriteBatch.Draw(
                     Game1.mouseCursors,
-                    Game1.GlobalToLocal(table.GetCenter() + new Vector2(-8, -64)) + offset,
+                    Game1.GlobalToLocal(table.Center + new Vector2(-8, -64)) + offset,
                     new Rectangle(402, 495, 7, 16),
                     Color.Crimson,
                     0f,
