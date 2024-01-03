@@ -20,7 +20,7 @@ namespace MyCafe.Framework
 
         internal static void OnModMessageReceived(object sender, ModMessageReceivedEventArgs e)
         {
-            if (e.FromModID != ModEntry.ModManifest.UniqueID) 
+            if (e.FromModID != Mod.ModManifest.UniqueID) 
                 return;
 
             if (e.Type == "ClickTable" && Context.IsMainPlayer)
@@ -62,10 +62,10 @@ namespace MyCafe.Framework
 
         internal static void SendTableClick(Table table, Farmer who)
         {
-            ModEntry.ModHelper.Multiplayer.SendMessage(
+            Mod.ModHelper.Multiplayer.SendMessage(
                 message: new KeyValuePair<string, string>(who.UniqueMultiplayerID.ToString(), table.Position.ToString()),
                 messageType: "ClickTable",
-                modIDs: new[] { ModEntry.ModManifest.UniqueID });
+                modIDs: new[] { Mod.ModManifest.UniqueID });
         }
     }
 }

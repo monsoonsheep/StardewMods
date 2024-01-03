@@ -42,8 +42,7 @@ namespace MyCafe.Framework.Objects
 
             for (int i = 0; i < customers.Count; i++)
             {
-                customers[i].modData["MonsoonSheep.MyCafe_ModDataSeatPos"] = $"{Seats[i].Position.X} {Seats[i].Position.Y}";
-                Seats[i].Reserve(customers[i]);
+                customers[i].ReservedSeat = Seats[i];
             }
 
             IsReserved = true;

@@ -23,20 +23,20 @@ namespace MyCafe.Framework
             }
 
             // get Generic Mod Config Menu's API (if it's installed)
-            var configMenu = ModEntry.ModHelper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
+            var configMenu = Mod.ModHelper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
             if (configMenu is null)
                 return;
 
             // register mod
             configMenu.Register(
-                mod: ModEntry.ModManifest,
+                mod: Mod.ModManifest,
                 reset: () => LoadedConfig = new ConfigModel(),
-                save: () => ModEntry.ModHelper.WriteConfig(LoadedConfig)
+                save: () => Mod.ModHelper.WriteConfig(LoadedConfig)
             );
 
             // add some config options
             configMenu.AddNumberOption(
-                mod: ModEntry.ModManifest,
+                mod: Mod.ModManifest,
                 name: I18n.Menu_VisitorFrequency,
                 tooltip: I18n.Menu_VisitorFrequencyTooltip,
                 getValue: () => LoadedConfig.CustomerSpawnFrequency,
@@ -46,7 +46,7 @@ namespace MyCafe.Framework
             );
 
             configMenu.AddNumberOption(
-                mod: ModEntry.ModManifest,
+                mod: Mod.ModManifest,
                 name: I18n.Menu_NpcFrequency,
                 tooltip: I18n.Menu_NpcFrequency_Tooltip,
                 getValue: () => LoadedConfig.NpcCustomerSpawnFrequency,

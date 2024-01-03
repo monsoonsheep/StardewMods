@@ -158,7 +158,7 @@ namespace MyCafe.Framework.Customers
                     Log.Debug($"path to chair can't be found.");
                 }
             }
-            else if (location is Farm || location.GetContainingBuilding() != null)
+            else if (location is Farm or StardewValley.Locations.DecoratableLocation || location.GetContainingBuilding() != null)
             {
                 // findPath checks for collisions with location.isCollidingPosition, passing in glider = false, pathfinding = true.
                 // We do this on the farm because a. We put furniture there and b. Buildings on the farm aren't on the "Buildings" layer in the map for some reason,

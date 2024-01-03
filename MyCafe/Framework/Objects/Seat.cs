@@ -23,7 +23,10 @@ namespace MyCafe.Framework.Objects
             if (ReservingCustomer != null)
                 return false;
 
+            customer.ReservedSeat = this;
+            customer.modData["MonsoonSheep.MyCafe_ModDataSeatPos"] = $"{Position.X} {Position.Y}";
             ReservingCustomer = customer;
+
             return true;
         }
 
@@ -106,7 +109,6 @@ namespace MyCafe.Framework.Objects
             GameLocation location = Utility.GetLocationFromName(Table.CurrentLocation);
             MapSeat mapSeat = location.mapSeats.ToList().FirstOrDefault(s => s.tilePosition.Value.Equals(Position));
             mapSeat?.RemoveSittingFarmer(Game1.MasterPlayer);
-        
         }
 
     }
