@@ -62,7 +62,9 @@ internal class VillagerConverter
             if (targetLocation != null)
             {
                 Stack<Point> routeToScheduleItem =
-                    original.PathfindFromLocationToLocation(original.currentLocation, original.TilePoint, targetLocation, originalPathDescription.targetTile);
+                    Pathfinding.PathfindFromLocationToLocation(original.currentLocation, original.TilePoint,
+                                                               targetLocation, originalPathDescription.targetTile,
+                                                               original);
 
                 SchedulePathDescription toInsert = new SchedulePathDescription(
                     routeToScheduleItem,

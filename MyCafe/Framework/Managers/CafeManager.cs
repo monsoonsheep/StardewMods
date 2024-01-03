@@ -18,6 +18,7 @@ using StardewValley.Objects;
 using HarmonyLib;
 using System.Reflection;
 using StardewValley.Buildings;
+using SUtility = StardewValley.Utility;
 
 namespace MyCafe.Framework.Managers;
 
@@ -108,5 +109,39 @@ internal sealed class CafeManager
                 method.Invoke(null, new[] { reverseRoute, null });
             }
         }
+    }
+
+    internal float GetChanceToSpawnCustomer(int openingTime, int closingTime, int lastTimeCustomersArrived, int numberOfFreeTables, int totalNumberOfTables)
+    {
+        int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, closingTime);
+        int minutesTillOpens = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, openingTime);
+        int minutesSinceLastVisitors = SUtility.CalculateMinutesBetweenTimes(lastTimeCustomersArrived, Game1.timeOfDay);
+        float percentageOfTablesFree = (float) numberOfFreeTables / totalNumberOfTables;
+
+        float prob = 0f;
+
+        // more chance if it's been a while since last Visitors
+        prob += minutesSinceLastVisitors switch
+        {
+            <= 20 => 0f,
+            <= 30 => Game1.random.Next(5) == 0 ? 0.05f : -0.1f,
+            <= 60 => Game1.random.Next(2) == 0 ? 0.1f : 0f,
+            _ => 0.25f
+        };
+
+        // more chance if a higher percent of tables are free
+        prob += (percentageOfTablesFree) switch
+        {
+            <= 0.2f => 0.0f,
+            <= 0.5f => 0.1f,
+            <= 0.8f => 0.15f,
+            _ => 0.2f
+        };
+
+        // slight chance to spawn if last hour of open time
+        if (minutesTillCloses <= 60)
+            prob += (Game1.random.Next(20 + (minutesTillCloses / 3)) >= 28) ? 0.2f : -0.5f;
+
+        return prob;
     }
 }

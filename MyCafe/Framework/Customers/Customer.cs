@@ -25,7 +25,7 @@ namespace MyCafe.Framework.Customers
         public Customer(string name, Vector2 position, string location, AnimatedSprite sprite, Texture2D portrait)
         : base(sprite, position, location, 2, name, portrait, eventActor: true)
         {
-
+            portraitOverridden = true;
         }
 
         public override void update(GameTime gameTime, GameLocation location)
