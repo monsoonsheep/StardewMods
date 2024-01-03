@@ -65,6 +65,7 @@ namespace MyCafe.Framework.Objects
     {
         public MapChair(Vector2 position)
             => Position = position;
+
         internal override int SittingDirection
         {
             get

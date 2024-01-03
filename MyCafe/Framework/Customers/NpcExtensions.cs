@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using MyCafe.Framework.Managers;
 using xTile.Dimensions;
+using MyCafe.Framework.Objects;
 
 namespace MyCafe.Framework.Customers
 {
@@ -97,8 +98,12 @@ namespace MyCafe.Framework.Customers
                 }
                 else
                 {
-                    var nextPathToAppend = FindPathInLocation(me, locationStartPoint, targetTile, current);
-                    path = Utility.CombineStacks(path, nextPathToAppend);
+                    var nextPath = FindPathInLocation(me, locationStartPoint, targetTile, current);
+                    if (nextPath == null)
+                    {
+                        return null;
+                    }
+                    path = Utility.CombineStacks(path, nextPath);
                 }
             }
 
@@ -120,15 +125,12 @@ namespace MyCafe.Framework.Customers
                     new sbyte[] { 1, 0 }, // right
                 };
 
-                if (furniture != null && !furniture.Name.ToLower().Contains("stool"))
-                    directions.RemoveAt(furniture.GetSittingDirection());
+                Seat seat = TableManager.Instance.GetSeatAt(location, targetTile);
+                if (seat != null)
+                    directions.RemoveAt(seat.SittingDirection);
 
-                MapSeat mapSeat = location.mapSeats.FirstOrDefault(s => s.OccupiesTile(targetTile.X, targetTile.Y));
-                if (mapSeat != null)
-                    directions.RemoveAt(mapSeat.GetSittingDirection());
-            
+
                 int shortestPathLength = int.MaxValue;
-
                 foreach (var direction in directions)
                 {
                     Point newTile = targetTile + new Point(direction[0], direction[1]);

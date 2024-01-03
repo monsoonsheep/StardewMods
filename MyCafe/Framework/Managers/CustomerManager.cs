@@ -41,13 +41,15 @@ namespace MyCafe.Framework.Managers
             if (name == null || !CustomersData.TryGetValue(name, out CustomerData data) || CafeManager.Instance.CafeIndoors == null)
                 return;
 
+            Texture2D portrait = Game1.content.Load<Texture2D>(data.Model.PortraitName);
             Customer c = new Customer(
                 $"CustomerNPC_{name}", 
                 new Vector2(10, 12) * 64f, 
                 "BusStop", 
                 new AnimatedSprite(data.Model.TilesheetPath, 0, 16, 32),
-                Game1.content.Load<Texture2D>(data.Model.PortraitName)
+                portrait
                 );
+            
 
             Table table = TableManager.Instance.CurrentTables.Where(t => !t.IsReserved).MinBy(_ => Game1.random.Next());
             if (table == null) {
@@ -63,11 +65,22 @@ namespace MyCafe.Framework.Managers
                 return;
             }
 
-
-            Game1.getLocationFromName("BusStop").addCharacter(c);
+            GameLocation busStop = Game1.getLocationFromName("BusStop");
+            busStop.addCharacter(c);
             c.HeadTowards(tableLocation, c.ReservedSeat.Position.ToPoint(), 3, null);
-            if (c.controller == null)
+            if (c.controller == null || c.controller.pathToEndPoint?.Count == 0) {
+                busStop.characters.Remove(c);
                 return;
+            }
+
+            if (!c.controller.pathToEndPoint.Last().Equals(c.ReservedSeat.Position.ToPoint())) {
+                int direction = Utility.DirectionIntFromVectors(c.controller.pathToEndPoint.Last().ToVector2(), c.ReservedSeat.Position);
+                c.controller.endBehaviorFunction = (_, _) => 
+                { 
+                    c.SitDown(direction);
+                    c.faceDirection(c.ReservedSeat.SittingDirection);
+                };
+            }
 
             c.ReservedSeat.Reserve(c);
             table.Reserve(new() {c});

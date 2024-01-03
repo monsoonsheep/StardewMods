@@ -193,6 +193,17 @@ namespace MyCafe.Framework.Managers
             return CurrentTables.Where(t => t.CurrentLocation.Equals(location.Name)).FirstOrDefault(table => table.BoundingBox.Contains(position));
         }
 
+        internal Seat GetSeatAt(GameLocation location, Point position) {
+            foreach (var table in CurrentTables.Where(t => t.CurrentLocation.Equals(location.Name))) {
+                foreach (var seat in table.Seats) {
+                    if (seat.Position.X == position.X && seat.Position.Y == position.Y)
+                        return seat;
+                }
+            }
+
+            return null;
+        }
+
         internal FurnitureTable TryAddFurnitureTable(Furniture table, GameLocation location)
         {
             FurnitureTable newTable = new FurnitureTable(table, location.Name);
