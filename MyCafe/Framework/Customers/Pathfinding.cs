@@ -17,7 +17,7 @@ namespace MyCafe.Framework.Customers;
 
 public static class Pathfinding
 {
-    public static void PathTo(this NPC me, GameLocation targetLocation, Point targetTile, int finalFacingDirection = 0,
+    public static bool PathTo(this NPC me, GameLocation targetLocation, Point targetTile, int finalFacingDirection = 0,
         PathFindController.endBehavior endBehavior = null)
     {
         me.controller = null;
@@ -27,7 +27,7 @@ public static class Pathfinding
         if (path == null || !path.Any())
         {
             Log.Warn("Character couldn't find path.");
-            return;
+            return false;
         }
 
         me.controller = new PathFindController(path, me.currentLocation, me, path.Last())
@@ -41,67 +41,61 @@ public static class Pathfinding
         if (me.controller == null)
         {
             Log.Error("Can't construct controller.");
+            return false;
         }
 
         Log.Debug($"Pathing from {me.TilePoint} to {targetTile}");
+        return true;
     }
 
     public static Stack<Point> PathfindFromLocationToLocation(GameLocation startingLocation, Point startTile, 
         GameLocation targetLocation, Point targetTile, NPC character)
     {
-        Point locationStartPoint = startTile;
+        Point nextStartPosition = startTile;
+        Stack<Point> path = new Stack<Point>();
 
         if (startingLocation.Name.Equals(targetLocation.Name))
         {
-            return FindPath(locationStartPoint, targetTile, startingLocation, character);
+            return FindPath(nextStartPosition, targetTile, startingLocation, character);
         }
 
-        // string[] locationsRoute = CafeManager.Instance.GetLocationRoute(startingLocation, targetLocation);
         string[] locationsRoute = WarpPathfindingCache.GetLocationRoute(startingLocation.Name, targetLocation.Name, character.Gender);
         if (locationsRoute == null)
             throw new Exception("Location route not found");
 
-        Stack<Point> path = new Stack<Point>();
         for (int i = 0; i < locationsRoute.Length; i++)
         {
             GameLocation current = Utility.GetLocationFromName(locationsRoute[i]);
             if (i < locationsRoute.Length - 1)
             {
-                Point target = current.getWarpPointTo(locationsRoute[i + 1]);
-                if (target.Equals(Point.Zero))
-                {
-                    if (locationsRoute[i + 1] == CafeManager.Instance.CafeIndoors.Name) {
-                        target = current.getWarpPointTo(CafeManager.Instance.CafeIndoors.uniqueName.Value);
-                    }
-                    if (target.Equals(Point.Zero))
-                        throw new Exception("Error finding route to cafe. Couldn't find warp point");
-                }
+                Point target = (locationsRoute[i + 1] == CafeManager.Instance.CafeIndoors.Name)
+                ?  current.getWarpPointTo(CafeManager.Instance.CafeIndoors.uniqueName.Value)
+                : current.getWarpPointTo(locationsRoute[i + 1]);
 
-                Stack<Point> nextPath = FindPath(locationStartPoint, target, current, character);
+                if (target.Equals(Point.Zero))
+                    throw new Exception("Error finding route to cafe. Couldn't find warp point");
+
+                Stack<Point> nextPath = FindPath(nextStartPosition, target, current, character);
                 if (nextPath == null)
-                {
                     return null;
-                }
                 path = Utility.CombineStacks(path, nextPath);
 
-                locationStartPoint = current.getWarpPointTarget(target);
-                if (locationStartPoint == Point.Zero)
+                nextStartPosition = current.getWarpPointTarget(target);
+                if (nextStartPosition == Point.Zero)
                 {
-                    var building = current.getBuildingAt(target.ToVector2());
-                    if (building.GetIndoors() != null)
+                    GameLocation indoors = current.getBuildingAt(target.ToVector2()).GetIndoors();
+                    if (indoors != null)
                     {
-                        Warp w = building.GetIndoors().warps.FirstOrDefault();
-                        locationStartPoint = new Point(w.X, w.Y - 1);
+                        Warp w = indoors.warps.FirstOrDefault();
+                        nextStartPosition = new Point(w.X, w.Y - 1);
                     }
                 }
             }
             else
             {
-                var nextPath = FindPath(locationStartPoint, targetTile, current, character);
+                var nextPath = FindPath(nextStartPosition, targetTile, current, character);
                 if (nextPath == null)
-                {
                     return null;
-                }
                 path = Utility.CombineStacks(path, nextPath);
             }
         }

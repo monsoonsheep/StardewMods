@@ -25,10 +25,7 @@ internal sealed class CustomerManager
     internal IEnumerable<Customer> CurrentCustomers 
         => CurrentGroups.SelectMany(g => g.Members);
 
-    internal CustomerManager()
-    {
-        Instance = this;
-    }
+    internal CustomerManager() => Instance = this;
 
     internal void SpawnCustomerOnRoad()
     {
@@ -37,14 +34,8 @@ internal sealed class CustomerManager
             return;
 
         Texture2D portrait = Game1.content.Load<Texture2D>(data.Model.PortraitName);
-        Customer c = new Customer(
-            $"CustomerNPC_{name}",
-            new Vector2(10, 12) * 64f,
-            "BusStop",
-            new AnimatedSprite(data.Model.TilesheetPath, 0, 16, 32),
-            portrait
-            );
-
+        AnimatedSprite sprite = new AnimatedSprite(data.Model.Spritesheet, 0, 16, 32);
+        Customer c = new Customer($"CustomerNPC_{name}", new Vector2(10, 12) * 64f, "BusStop", sprite, portrait);
 
         Table table = TableManager.Instance.CurrentTables.Where(t => !t.IsReserved).MinBy(_ => Game1.random.Next());
         if (table == null)
@@ -74,6 +65,18 @@ internal sealed class CustomerManager
             c.SitDown(direction);
             c.faceDirection(c.ReservedSeat.SittingDirection);
         };
+    }
+
+    internal void RemoveAllCustomers() {
+
+    }
+
+    internal void SpawnGroup() 
+    {
+        List<Customer> customers = new();
+        
+
+        CustomerGroup group = new CustomerGroup(customers);
     }
 
     internal void PopulateCustomersData()

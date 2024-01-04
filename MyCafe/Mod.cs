@@ -52,7 +52,6 @@ internal class Mod : StardewModdingAPI.Mod
 
     private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
     {
-        //GameLocation.RegisterTileAction(ModKeys.SIGNBOARD_BUILDING_CLICK_EVENT_KEY, menuManager.OpenCafeMenuTileAction);
         Config.Initialize();
         AssetManager.LoadContentPacks(ModHelper);
 

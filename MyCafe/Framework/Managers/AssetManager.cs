@@ -150,7 +150,7 @@ internal sealed class AssetManager
                 }
 
                 model.Name = model.Name.Replace(" ", "");
-                model.TilesheetPath = contentPack.ModContent.GetInternalAssetName(Path.Combine("Customers", modelFolder.Name, "sprite.png")).Name;
+                model.Spritesheet = contentPack.ModContent.GetInternalAssetName(Path.Combine("Customers", modelFolder.Name, "sprite.png")).Name;
 
                 if (contentPack.HasFile(Path.Combine("Customers", modelFolder.Name, "portrait.png")))
                 {

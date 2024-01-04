@@ -30,6 +30,7 @@ internal sealed class CafeManager
 
     internal int OpeningTime = 1200;
     internal int ClosingTime = 2100;
+    internal int LastTimeCustomersArrived = 0;
 
     internal CafeManager() => Instance = this;
 
@@ -40,21 +41,51 @@ internal sealed class CafeManager
 
     internal void OnTimeChanged(object sender, TimeChangedEventArgs e)
     {
+        int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, ClosingTime);
+        int minutesTillOpens = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, OpeningTime);
+        int minutesSinceLastVisitors = SUtility.CalculateMinutesBetweenTimes(LastTimeCustomersArrived, Game1.timeOfDay);
+        float percentageOfTablesFree = (float) Mod.tables.CurrentTables.Count(t => !t.IsReserved) / Mod.tables.CurrentTables.Count;
+
+        float prob = 0f;
+
+        // more chance if it's been a while since last Visitors
+        prob += minutesSinceLastVisitors switch
+        {
+            <= 20 => 0f,
+            <= 30 => Game1.random.Next(5) == 0 ? 0.05f : -0.1f,
+            <= 60 => Game1.random.Next(2) == 0 ? 0.1f : 0f,
+            _ => 0.25f
+        };
+
+        // more chance if a higher percent of tables are free
+        prob += percentageOfTablesFree switch
+        {
+            <= 0.2f => 0.0f,
+            <= 0.5f => 0.1f,
+            <= 0.8f => 0.15f,
+            _ => 0.2f
+        };
+
+        // slight chance to spawn if last hour of open time
+        if (minutesTillCloses <= 60)
+            prob += (Game1.random.Next(20 + (minutesTillCloses / 3)) >= 28) ? 0.2f : -0.5f;
 
     }
 
     internal void UpdateCafeIndoorLocation()
     {
-        CafeIndoors = Game1.getLocationFromName("MonsoonSheep.MyCafe_CafeBuilding", isStructure: true);
-        if (CafeIndoors == null)
+        GameLocation indoors = Game1.getLocationFromName("MonsoonSheep.MyCafe_CafeBuilding", isStructure: true);
+        if (indoors == null)
         {
             var cafeBuilding = Game1.getFarm().buildings.FirstOrDefault(x => x.GetData()?.CustomFields.TryGetValue("MonsoonSheep.MyCafe_IsCafeBuilding", out string result) == true && result == "true");
             if (cafeBuilding != null)
             {
-					CafeIndoors = cafeBuilding.GetIndoors();
+					indoors = cafeBuilding.GetIndoors();
 					// if (CafeIndoors != null) Game1._locationLookup[CafeIndoors.Name] = CafeIndoors;
             }
         }
+        if (indoors != null)
+            CafeIndoors = indoors;
     }
 
     internal void PopulateRoutesToCafe()
@@ -109,39 +140,5 @@ internal sealed class CafeManager
                 method.Invoke(null, new[] { reverseRoute, null });
             }
         }
-    }
-
-    internal float GetChanceToSpawnCustomer(int openingTime, int closingTime, int lastTimeCustomersArrived, int numberOfFreeTables, int totalNumberOfTables)
-    {
-        int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, closingTime);
-        int minutesTillOpens = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, openingTime);
-        int minutesSinceLastVisitors = SUtility.CalculateMinutesBetweenTimes(lastTimeCustomersArrived, Game1.timeOfDay);
-        float percentageOfTablesFree = (float) numberOfFreeTables / totalNumberOfTables;
-
-        float prob = 0f;
-
-        // more chance if it's been a while since last Visitors
-        prob += minutesSinceLastVisitors switch
-        {
-            <= 20 => 0f,
-            <= 30 => Game1.random.Next(5) == 0 ? 0.05f : -0.1f,
-            <= 60 => Game1.random.Next(2) == 0 ? 0.1f : 0f,
-            _ => 0.25f
-        };
-
-        // more chance if a higher percent of tables are free
-        prob += (percentageOfTablesFree) switch
-        {
-            <= 0.2f => 0.0f,
-            <= 0.5f => 0.1f,
-            <= 0.8f => 0.15f,
-            _ => 0.2f
-        };
-
-        // slight chance to spawn if last hour of open time
-        if (minutesTillCloses <= 60)
-            prob += (Game1.random.Next(20 + (minutesTillCloses / 3)) >= 28) ? 0.2f : -0.5f;
-
-        return prob;
     }
 }

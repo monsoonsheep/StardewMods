@@ -9,7 +9,7 @@ using StardewValley.Pathfinding;
 using StardewValley;
 using SUtility = StardewValley.Utility;
 
-namespace MyCafe.Framework.Managers;
+namespace MyCafe.Framework.Customers;
 
 internal class VillagerConverter
 {
