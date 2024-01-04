@@ -39,12 +39,33 @@ internal sealed class CafeManager
         UpdateCafeIndoorLocation();
     }
 
+    internal void SpawnCustomers() {
+        var tables = Mod.tables.CurrentTables.Where(t => !t.IsReserved).OrderBy(_ => Game1.random.Next());
+        if (tables.Count() == 0)
+            return;
+
+        List<CustomerData> customersData = Mod.customers.GetCustomers(tables.Max(t => t.Seats.Count));
+
+        Table table = tables.Where(t => t.Seats.Count >= customersData.Count).MinBy(t => t.Seats.Count);
+        if (table == null)
+        {
+            Log.Debug("No tables available");
+            return;
+        }
+
+        CustomerGroup newGroup = CustomerGroup.SpawnGroup(table, customersData);
+        Mod.customers.CurrentGroups.Add(newGroup);
+    }
+
     internal void OnTimeChanged(object sender, TimeChangedEventArgs e)
     {
         int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, ClosingTime);
         int minutesTillOpens = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, OpeningTime);
         int minutesSinceLastVisitors = SUtility.CalculateMinutesBetweenTimes(LastTimeCustomersArrived, Game1.timeOfDay);
         float percentageOfTablesFree = (float) Mod.tables.CurrentTables.Count(t => !t.IsReserved) / Mod.tables.CurrentTables.Count;
+
+        if (minutesTillCloses <= 20) 
+            return;
 
         float prob = 0f;
 
@@ -68,7 +89,7 @@ internal sealed class CafeManager
 
         // slight chance to spawn if last hour of open time
         if (minutesTillCloses <= 60)
-            prob += (Game1.random.Next(20 + (minutesTillCloses / 3)) >= 28) ? 0.2f : -0.5f;
+            prob += (Game1.random.Next(20 + Math.Max(0, (minutesTillCloses / 3))) >= 28) ? 0.2f : -0.5f;
 
     }
 

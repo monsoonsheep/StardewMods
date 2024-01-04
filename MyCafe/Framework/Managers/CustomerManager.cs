@@ -27,56 +27,12 @@ internal sealed class CustomerManager
 
     internal CustomerManager() => Instance = this;
 
-    internal void SpawnCustomerOnRoad()
-    {
-        string name = CustomersData.Keys.FirstOrDefault();
-        if (name == null || !CustomersData.TryGetValue(name, out CustomerData data) || CafeManager.Instance.CafeIndoors == null)
-            return;
-
-        Texture2D portrait = Game1.content.Load<Texture2D>(data.Model.PortraitName);
-        AnimatedSprite sprite = new AnimatedSprite(data.Model.Spritesheet, 0, 16, 32);
-        Customer c = new Customer($"CustomerNPC_{name}", new Vector2(10, 12) * 64f, "BusStop", sprite, portrait);
-
-        Table table = TableManager.Instance.CurrentTables.Where(t => !t.IsReserved).MinBy(_ => Game1.random.Next());
-        if (table == null)
-        {
-            Log.Debug("No tables available");
-            return;
-        }
-
-        table.Reserve(new() { c });
-        c.ReservedSeat.Reserve(c);
-
-        GameLocation tableLocation = Utility.GetLocationFromName(table.CurrentLocation);
-        GameLocation busStop = Game1.getLocationFromName("BusStop");
-
-        c.PathTo(tableLocation, c.ReservedSeat.Position.ToPoint(), 3, null);
-
-        if (c.controller == null 
-        || c.controller.pathToEndPoint?.Count == 0 
-        || c.controller.pathToEndPoint.Last().Equals(c.ReservedSeat.Position.ToPoint()))
-            return;
-
-        busStop.addCharacter(c);
-
-        int direction = Utility.DirectionIntFromVectors(c.controller.pathToEndPoint.Last().ToVector2(), c.ReservedSeat.Position);
-        c.controller.endBehaviorFunction = (_, _) =>
-        {
-            c.SitDown(direction);
-            c.faceDirection(c.ReservedSeat.SittingDirection);
-        };
+    internal List<CustomerData> GetCustomers(int maxMembers) {
+        return new List<CustomerData>() {CustomersData.First().Value};
     }
 
     internal void RemoveAllCustomers() {
 
-    }
-
-    internal void SpawnGroup() 
-    {
-        List<Customer> customers = new();
-        
-
-        CustomerGroup group = new CustomerGroup(customers);
     }
 
     internal void PopulateCustomersData()

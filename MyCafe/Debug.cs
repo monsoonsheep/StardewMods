@@ -27,7 +27,7 @@ namespace MyCafe
                     WarpToBus();
                     break;
                 case SButton.NumPad2:
-                    CustomerManager.Instance?.SpawnCustomerOnRoad();
+                    Mod.cafe.SpawnCustomers();
                     break;
                 default:
                     return;
