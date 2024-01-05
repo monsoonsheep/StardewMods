@@ -375,3 +375,4 @@ FarmCafe/assets/Portraits/Temp*
 # Extras
 *.aseprite
 *.tsx
+/reference
