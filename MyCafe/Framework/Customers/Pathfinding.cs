@@ -1,17 +1,12 @@
-﻿using StardewModdingAPI;
-using StardewValley.Characters;
+﻿using Microsoft.Xna.Framework;
+using MyCafe.Framework.Managers;
+using StardewValley;
 using StardewValley.Objects;
 using StardewValley.Pathfinding;
-using StardewValley;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Xna.Framework;
-using MyCafe.Framework.Managers;
 using xTile.Dimensions;
-using MyCafe.Framework.Objects;
 
 namespace MyCafe.Framework.Customers;
 
@@ -48,7 +43,7 @@ public static class Pathfinding
         return true;
     }
 
-    public static Stack<Point> PathfindFromLocationToLocation(GameLocation startingLocation, Point startTile, 
+    public static Stack<Point> PathfindFromLocationToLocation(GameLocation startingLocation, Point startTile,
         GameLocation targetLocation, Point targetTile, NPC character)
     {
         Point nextStartPosition = startTile;
@@ -69,7 +64,7 @@ public static class Pathfinding
             if (i < locationsRoute.Length - 1)
             {
                 Point target = (locationsRoute[i + 1] == CafeManager.Instance.CafeIndoors.Name)
-                ?  current.getWarpPointTo(CafeManager.Instance.CafeIndoors.uniqueName.Value)
+                ? current.getWarpPointTo(CafeManager.Instance.CafeIndoors.uniqueName.Value)
                 : current.getWarpPointTo(locationsRoute[i + 1]);
 
                 if (target.Equals(Point.Zero))
@@ -122,7 +117,7 @@ public static class Pathfinding
             {
                 Point newTile = targetTile + new Point(direction[0], direction[1]);
 
-                if (location.GetFurnitureAt(newTile.ToVector2()) != null 
+                if (location.GetFurnitureAt(newTile.ToVector2()) != null
                 || !location.isTilePassable(new Location(newTile.X, newTile.Y), Game1.viewport))
                     continue;
 

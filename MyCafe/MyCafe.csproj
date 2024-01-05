@@ -3,8 +3,8 @@
 	<PropertyGroup>
 		<ModFolderName>My Cafe</ModFolderName>
 		<TargetFramework>net6.0</TargetFramework>
-		<GamePath>/home/mansoor/.steam/debian-installation/steamapps/common/Stardew Valley</GamePath>
-		<GameModsPath>/home/mansoor/.steam/debian-installation/steamapps/common/Stardew Valley/Mods/My Mods</GameModsPath>
+		<GamePath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley</GamePath>
+		<GameModsPath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley\Mods\My Mods</GameModsPath>
 		<Configurations>Debug;Release</Configurations>
 	</PropertyGroup>
 
@@ -14,7 +14,6 @@
 
   <ItemGroup>
     <PackageReference Include="Lib.Harmony" Version="2.2.2" />
-    <PackageReference Include="mono.cecil" Version="0.11.5" />
     <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.1.1" />
 	<PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.0.1" />
   </ItemGroup>

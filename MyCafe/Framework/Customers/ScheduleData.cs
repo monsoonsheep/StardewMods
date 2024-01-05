@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using StardewValley;
+﻿using StardewValley;
+using System.Collections.Generic;
 
 namespace MyCafe.Framework.Customers;
 

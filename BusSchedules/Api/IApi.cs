@@ -1,9 +1,4 @@
-﻿#region Usings
-
-#endregion
-
-
-namespace BusSchedules.Api;
+﻿namespace BusSchedules.Api;
 
 public interface IApi
 {

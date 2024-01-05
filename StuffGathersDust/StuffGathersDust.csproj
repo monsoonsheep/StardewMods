@@ -3,8 +3,8 @@
   <PropertyGroup>
 	  <ModFolderName>StuffGathersDust</ModFolderName>
 	  <TargetFramework>net6.0</TargetFramework>
-		<GamePath>/home/mansoor/.steam/debian-installation/steamapps/common/Stardew Valley</GamePath>
-		<GameModsPath>/home/mansoor/.steam/debian-installation/steamapps/common/Stardew Valley/Mods/My Mods</GameModsPath>
+	  <GamePath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley</GamePath>
+	  <GameModsPath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley\Mods\My Mods</GameModsPath>
   </PropertyGroup>
 
   <ItemGroup>

@@ -4,15 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BusSchedules
-{
-    public class Events
-    {
-        public static EventHandler BusArrive;
+namespace BusSchedules;
 
-        internal static void Invoke_BusArrive()
-        {
-            BusArrive.Invoke(null, EventArgs.Empty);
-        }
+public class Events
+{
+    public static EventHandler BusArrive;
+
+    internal static void Invoke_BusArrive()
+    {
+        BusArrive.Invoke(null, EventArgs.Empty);
     }
 }

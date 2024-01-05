@@ -1,7 +1,7 @@
-using System.Linq;
 using Microsoft.Xna.Framework;
 using MyCafe.Framework.Customers;
 using StardewValley;
+using System.Linq;
 
 namespace MyCafe.Framework.Objects;
 
@@ -40,7 +40,7 @@ internal sealed class MapChair : Seat
         GameLocation location = Utility.GetLocationFromName(Table.CurrentLocation);
         MapSeat mapSeat = location.mapSeats.FirstOrDefault(s => s.tilePosition.Value.Equals(Position));
         mapSeat?.sittingFarmers.Add(Game1.MasterPlayer.UniqueMultiplayerID, 0);
-        
+
         return true;
     }
 

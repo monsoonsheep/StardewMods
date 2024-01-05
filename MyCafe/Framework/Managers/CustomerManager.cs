@@ -1,15 +1,8 @@
-﻿using System;
+﻿using MyCafe.Framework.Customers;
+using StardewValley;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using MyCafe.Framework.Customers;
-using MyCafe.Framework.Objects;
-using StardewModdingAPI;
-using StardewValley;
-using StardewValley.Pathfinding;
 using SUtility = StardewValley.Utility;
 
 namespace MyCafe.Framework.Managers;
@@ -22,16 +15,23 @@ internal sealed class CustomerManager
     internal readonly List<CustomerGroup> CurrentGroups = new();
     internal readonly Dictionary<string, ScheduleData> VillagerCustomerSchedules = new();
 
-    internal IEnumerable<Customer> CurrentCustomers 
+    internal IEnumerable<Customer> CurrentCustomers
         => CurrentGroups.SelectMany(g => g.Members);
 
     internal CustomerManager() => Instance = this;
 
-    internal List<CustomerData> GetCustomers(int maxMembers) {
-        return new List<CustomerData>() {CustomersData.First().Value};
+    internal string GetRandomCustomerData(int maxMembers)
+    {
+        return CustomersData.Keys.MinBy(_ => Game1.random.Next());
     }
 
-    internal void RemoveAllCustomers() {
+    internal List<string> GetRandomCustomerDataMultiple(int members)
+    {
+        return CustomersData.Keys.OrderBy(_ => Game1.random.Next()).Take(members).ToList();
+    }
+
+    internal void RemoveAllCustomers()
+    {
 
     }
 
@@ -51,10 +51,10 @@ internal sealed class CustomerManager
         ScheduleData visitData = VillagerCustomerSchedules[npc.Name];
 
         if (CurrentCustomers.Contains(npc) ||
-            npc.isSleeping.Value || 
-            npc.ScheduleKey == null || 
+            npc.isSleeping.Value ||
+            npc.ScheduleKey == null ||
             visitData.CanVisitToday == false ||
-            visitData.LastVisitedDate == Game1.Date) 
+            visitData.LastVisitedDate == Game1.Date)
             return false;
 
 

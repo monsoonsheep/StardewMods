@@ -1,18 +1,14 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework.Graphics;
+using MyCafe.Framework.Customers;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.GameData.Buildings;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using HarmonyLib;
-using Microsoft.Xna.Framework.Graphics;
-using MyCafe.Framework.Customers;
-using StardewValley.Tools;
-using SUtility = StardewValley.Utility;
-using StardewValley.GameData.Buildings;
 using xTile;
+using SUtility = StardewValley.Utility;
 
 namespace MyCafe.Framework.Managers;
 
@@ -39,14 +35,20 @@ internal sealed class AssetManager
         }
 
         // Cafe
-        else if (e.Name.IsEquivalentTo("Data/Buildings")) {
-            e.Edit(asset => {
+        else if (e.Name.IsEquivalentTo("Data/Buildings"))
+        {
+            e.Edit(asset =>
+            {
                 var data = asset.AsDictionary<string, BuildingData>();
                 data.Data["MonsoonSheep.MyCafe_CafeBuilding"] = Mod.ModHelper.ModContent.Load<BuildingData>("assets/Cafe/cafebuilding.json");
             }, AssetEditPriority.Early);
-        } else if (e.Name.IsEquivalentTo("MonsoonSheep.MyCafe_CafeBuildingTexture")) {
+        }
+        else if (e.Name.IsEquivalentTo("MonsoonSheep.MyCafe_CafeBuildingTexture"))
+        {
             e.LoadFromModFile<Texture2D>("assets/Cafe/cafebuilding.png", AssetLoadPriority.Medium);
-        } else if (e.Name.IsEquivalentTo("Maps/MonsoonSheep.MyCafe_CafeMap")) {
+        }
+        else if (e.Name.IsEquivalentTo("Maps/MonsoonSheep.MyCafe_CafeMap"))
+        {
             e.LoadFromModFile<Map>("assets/Cafe/cafemap.tmx", AssetLoadPriority.Medium);
         }
     }
@@ -82,7 +84,7 @@ internal sealed class AssetManager
                     {
                         Log.Debug("Invalid item ID in player's modData.", LogLevel.Warn);
                         break;
-                        
+
                     }
                 }
             }

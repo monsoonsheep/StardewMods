@@ -1,18 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MyCafe.Framework.Objects;
-using StardewModdingAPI.Events;
 using StardewModdingAPI;
-using StardewValley.Objects;
+using StardewModdingAPI.Events;
 using StardewValley;
-using StardewValley.Buildings;
+using StardewValley.Objects;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using xTile.Layers;
-using xTile.ObjectModel;
 using xTile.Tiles;
 
 namespace MyCafe.Framework.Managers;
@@ -29,7 +25,7 @@ internal sealed class TableManager
     internal void PopulateTables(GameLocation exterior, GameLocation interior = null)
     {
         int count = 0;
-        var locations = new List<GameLocation>(){exterior};
+        var locations = new List<GameLocation>() { exterior };
         if (interior != null)
             locations.Add(interior);
 
@@ -55,7 +51,8 @@ internal sealed class TableManager
             }
         }
 
-        if (count > 0) {
+        if (count > 0)
+        {
             Log.Debug($"{count} new furniture tables found in cafe locations.");
             count = 0;
         }
@@ -72,7 +69,8 @@ internal sealed class TableManager
         }
 
         // Populate Map tables for cafe indoors
-        if (interior != null) {
+        if (interior != null)
+        {
             PopulateMapTables(interior);
             foreach (var pair in MapTablesInCafeLocation)
             {
@@ -186,7 +184,8 @@ internal sealed class TableManager
         return CurrentTables.Where(t => t.CurrentLocation.Equals(location.Name)).FirstOrDefault(table => table.BoundingBox.Contains(position));
     }
 
-    internal Seat GetSeatAt(GameLocation location, Point position) {
+    internal Seat GetSeatAt(GameLocation location, Point position)
+    {
         return CurrentTables
         .Where(t => t.CurrentLocation.Equals(location.Name))
         .SelectMany(table => table.Seats)

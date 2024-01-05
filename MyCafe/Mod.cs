@@ -1,9 +1,9 @@
-﻿using StardewModdingAPI;
-using StardewModdingAPI.Events;
-using StardewValley;
+﻿using Microsoft.Xna.Framework.Graphics;
 using MyCafe.Framework;
 using MyCafe.Framework.Managers;
-using Microsoft.Xna.Framework.Graphics;
+using StardewModdingAPI;
+using StardewModdingAPI.Events;
+using StardewValley;
 
 namespace MyCafe;
 
@@ -67,13 +67,13 @@ internal class Mod : StardewModdingAPI.Mod
     {
         if (!Context.IsMainPlayer)
             return;
-        
+
         cafe = new CafeManager();
         assets = new AssetManager();
         customers = new CustomerManager();
         tables = new TableManager();
         menu = new MenuManager();
-
+        
         assets.LoadValuesFromModData();
         cafe.UpdateCafeIndoorLocation();
         cafe.PopulateRoutesToCafe();

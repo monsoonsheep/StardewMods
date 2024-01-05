@@ -1,23 +1,13 @@
-﻿using System;
-using StardewValley;
-using Microsoft.Xna.Framework;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.Xna.Framework.Graphics;
+﻿using HarmonyLib;
 using MyCafe.Framework.Customers;
-using StardewModdingAPI;
-using xTile.Tiles;
-using Point = Microsoft.Xna.Framework.Point;
-using StardewValley.Menus;
-using StardewValley.Pathfinding;
 using MyCafe.Framework.Objects;
 using StardewModdingAPI.Events;
-using xTile.Layers;
-using xTile.ObjectModel;
-using StardewValley.Objects;
-using HarmonyLib;
+using StardewValley;
+using StardewValley.Pathfinding;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
-using StardewValley.Buildings;
 using SUtility = StardewValley.Utility;
 
 namespace MyCafe.Framework.Managers;
@@ -39,21 +29,24 @@ internal sealed class CafeManager
         UpdateCafeIndoorLocation();
     }
 
-    internal void SpawnCustomers() {
-        var tables = Mod.tables.CurrentTables.Where(t => !t.IsReserved).OrderBy(_ => Game1.random.Next());
-        if (tables.Count() == 0)
+    internal void SpawnCustomers()
+    {
+        var tables = Mod.tables.CurrentTables.Where(t => !t.IsReserved).OrderBy(_ => Game1.random.Next()).ToList();
+        if (!tables.Any())
             return;
 
-        List<CustomerData> customersData = Mod.customers.GetCustomers(tables.Max(t => t.Seats.Count));
+        List<string> data= Mod.customers.GetRandomCustomerDataMultiple(tables.Max(t => t.Seats.Count));
+        if (data == null || !data.Any())
+            return;
 
-        Table table = tables.Where(t => t.Seats.Count >= customersData.Count).MinBy(t => t.Seats.Count);
+        Table table = tables.Where(t => t.Seats.Count >= data.Count).MinBy(t => t.Seats.Count);
         if (table == null)
         {
             Log.Debug("No tables available");
             return;
         }
 
-        CustomerGroup newGroup = CustomerGroup.SpawnGroup(table, customersData);
+        CustomerGroup newGroup = CustomerGroup.SpawnGroup(table, data.Select(k => Mod.customers.CustomersData[k]).ToList());
         Mod.customers.CurrentGroups.Add(newGroup);
     }
 
@@ -62,9 +55,9 @@ internal sealed class CafeManager
         int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, ClosingTime);
         int minutesTillOpens = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, OpeningTime);
         int minutesSinceLastVisitors = SUtility.CalculateMinutesBetweenTimes(LastTimeCustomersArrived, Game1.timeOfDay);
-        float percentageOfTablesFree = (float) Mod.tables.CurrentTables.Count(t => !t.IsReserved) / Mod.tables.CurrentTables.Count;
+        float percentageOfTablesFree = (float)Mod.tables.CurrentTables.Count(t => !t.IsReserved) / Mod.tables.CurrentTables.Count;
 
-        if (minutesTillCloses <= 20) 
+        if (minutesTillCloses <= 20)
             return;
 
         float prob = 0f;
@@ -101,8 +94,8 @@ internal sealed class CafeManager
             var cafeBuilding = Game1.getFarm().buildings.FirstOrDefault(x => x.GetData()?.CustomFields.TryGetValue("MonsoonSheep.MyCafe_IsCafeBuilding", out string result) == true && result == "true");
             if (cafeBuilding != null)
             {
-					indoors = cafeBuilding.GetIndoors();
-					// if (CafeIndoors != null) Game1._locationLookup[CafeIndoors.Name] = CafeIndoors;
+                indoors = cafeBuilding.GetIndoors();
+                // if (CafeIndoors != null) Game1._locationLookup[CafeIndoors.Name] = CafeIndoors;
             }
         }
         if (indoors != null)

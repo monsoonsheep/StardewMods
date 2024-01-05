@@ -1,12 +1,8 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using StardewValley;
+using StardewValley.Pathfinding;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Xna.Framework;
-using MyCafe.Framework.Customers;
-using StardewValley.Pathfinding;
-using StardewValley;
 using SUtility = StardewValley.Utility;
 
 namespace MyCafe.Framework.Customers;

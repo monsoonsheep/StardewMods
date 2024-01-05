@@ -6,43 +6,42 @@ using System.Reflection;
 // ReSharper disable UnusedParameter.Local
 // ReSharper disable InconsistentNaming
 
-namespace MyCafe.Patching
+namespace MyCafe.Patching;
+
+internal class Patch
 {
-    internal class Patch
-    {
-        internal MethodInfo _targetMethod;
-        internal Delegate _prefixMethod;
-        internal Delegate _postfixMethod;
-        internal Delegate _transpilerMethod;
+    internal MethodInfo _targetMethod;
+    internal Delegate _prefixMethod;
+    internal Delegate _postfixMethod;
+    internal Delegate _transpilerMethod;
 
-        public Patch(Type targetType,
-            string targetMethodName,
-            Type[] arguments,
-            Delegate prefix = null,
-            Delegate postfix = null,
-            Delegate transpiler = null)
-        {
-            _targetMethod = AccessTools.Method(targetType, targetMethodName, arguments);
-            _prefixMethod = prefix;
-            _postfixMethod = postfix;
-            _transpilerMethod = transpiler;
-        }
+    public Patch(Type targetType,
+        string targetMethodName,
+        Type[] arguments,
+        Delegate prefix = null,
+        Delegate postfix = null,
+        Delegate transpiler = null)
+    {
+        _targetMethod = AccessTools.Method(targetType, targetMethodName, arguments);
+        _prefixMethod = prefix;
+        _postfixMethod = postfix;
+        _transpilerMethod = transpiler;
     }
+}
 
-    internal abstract class PatchCollection
+internal abstract class PatchCollection
+{
+    internal List<Patch> Patches;
+    internal virtual void ApplyAll(Harmony harmony)
     {
-        internal List<Patch> Patches;
-        internal virtual void ApplyAll(Harmony harmony)
+        foreach (Patch patch in Patches)
         {
-            foreach (Patch patch in Patches)
-            {
-                harmony.Patch(
-                    original: patch._targetMethod,
-                    prefix: patch._prefixMethod == null ? null : new HarmonyMethod(GetType(), nameof(patch._prefixMethod)),
-                    postfix: patch._postfixMethod == null ? null : new HarmonyMethod(GetType(), nameof(patch._postfixMethod)),
-                    transpiler: patch._transpilerMethod == null ? null : new HarmonyMethod(GetType(), nameof(patch._transpilerMethod))
-                );
-            }
+            harmony.Patch(
+                original: patch._targetMethod,
+                prefix: patch._prefixMethod == null ? null : new HarmonyMethod(GetType(), nameof(patch._prefixMethod)),
+                postfix: patch._postfixMethod == null ? null : new HarmonyMethod(GetType(), nameof(patch._postfixMethod)),
+                transpiler: patch._transpilerMethod == null ? null : new HarmonyMethod(GetType(), nameof(patch._transpilerMethod))
+            );
         }
     }
 }

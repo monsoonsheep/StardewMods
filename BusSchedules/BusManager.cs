@@ -28,7 +28,7 @@ internal class BusManager
             {
                 Log.Warn("Bus Location updating");
                 BusStop l = (BusStop) Game1.getLocationFromName("BusStop");
-                UpdateLocation(BusSchedules.ModHelper, l);
+                UpdateLocation(Mod.ModHelper, l);
                 Log.Error($"New location {(l is null ? "is null" : "is valid")}");
                 return l;
             }
@@ -103,7 +103,7 @@ internal class BusManager
     internal void CloseDoor()
     {
         if (Context.IsMainPlayer)
-            BusSchedules.ModHelper.Multiplayer.SendMessage("BusDoorClose", "BusSchedules", new [] { BusSchedules.ModManifest.UniqueID });
+            Mod.ModHelper.Multiplayer.SendMessage("BusDoorClose", "BusSchedules", new [] { Mod.ModManifest.UniqueID });
 
         if (Game1.player.currentLocation.Equals(BusLocation))
         {
@@ -183,7 +183,7 @@ internal class BusManager
     internal void BusDriveBack()
     {
         if (Context.IsMainPlayer)
-            BusSchedules.ModHelper.Multiplayer.SendMessage("BusDriveBack", "BusSchedules", new [] { BusSchedules.ModManifest.UniqueID });
+            Mod.ModHelper.Multiplayer.SendMessage("BusDriveBack", "BusSchedules", new [] { Mod.ModManifest.UniqueID });
 
         Log.Debug("Bus is returning");
 

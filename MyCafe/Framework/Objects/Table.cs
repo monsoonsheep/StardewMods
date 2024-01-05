@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using MyCafe.Framework.Customers;
+﻿using MyCafe.Framework.Customers;
+using System.Collections.Generic;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 

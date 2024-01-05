@@ -1,15 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using StardewValley;
+﻿namespace MyCafe.Framework.Customers;
 
-namespace MyCafe.Framework.Customers
+internal class CustomerData
 {
-    internal class CustomerData
-    {
-        internal CustomerModel Model;
-        // internal WorldDate LastVisitedDate;
-    }
+    internal CustomerModel Model;
+    // internal WorldDate LastVisitedDate;
 }

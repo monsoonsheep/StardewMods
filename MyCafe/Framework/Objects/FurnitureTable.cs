@@ -1,8 +1,8 @@
-using System.Collections.Generic;
-using System.Linq;
 using MyCafe.Framework.Customers;
 using StardewValley;
 using StardewValley.Objects;
+using System.Collections.Generic;
+using System.Linq;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 
@@ -55,12 +55,12 @@ internal class FurnitureTable : Table
             for (int j = -1; j <= sizeY; j++)
             {
                 if (
-                        
+
                         (i == -1 || i == sizeX) && (j == -1 || j == sizeY)
                          ||  // corners
-                        
+
                         !(i == -1 || i == sizeX) && !(j == -1 || j == sizeY)
-                           // inside
+                    // inside
                     )
                 {
                     continue;
