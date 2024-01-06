@@ -3,7 +3,7 @@ using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 
-namespace MyCafe.Framework.Objects;
+namespace MyCafe.Framework.ChairsAndTables;
 
 internal class MapTable : Table
 {

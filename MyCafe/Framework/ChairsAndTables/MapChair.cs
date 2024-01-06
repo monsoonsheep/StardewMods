@@ -1,9 +1,9 @@
+using System.Linq;
 using Microsoft.Xna.Framework;
 using MyCafe.Framework.Customers;
 using StardewValley;
-using System.Linq;
 
-namespace MyCafe.Framework.Objects;
+namespace MyCafe.Framework.ChairsAndTables;
 
 internal sealed class MapChair : Seat
 {

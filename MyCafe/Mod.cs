@@ -13,11 +13,15 @@ internal class Mod : StardewModdingAPI.Mod
     internal static IModHelper ModHelper;
     internal new static IManifest ModManifest;
 
-    internal static CafeManager cafe;
-    internal static AssetManager assets;
-    internal static CustomerManager customers;
-    internal static TableManager tables;
-    internal static MenuManager menu;
+    internal static CafeManager Cafe;
+    internal static AssetManager Assets;
+    internal static CustomerManager Customers;
+    internal static TableManager Tables;
+    internal static MenuManager Menu;
+    internal static BusCustomerSpawner BusCustomers;
+    internal static VillagerCustomerSpawner VillagerCustomers;
+
+    internal static Texture2D Sprites;
 
     /// <inheritdoc/>
     public override void Entry(IModHelper helper)
@@ -47,13 +51,12 @@ internal class Mod : StardewModdingAPI.Mod
         helper.Events.Content.AssetRequested += AssetManager.OnAssetRequested;
         helper.Events.Content.AssetReady += AssetManager.OnAssetReady;
 
-        AssetManager.Sprites = helper.ModContent.Load<Texture2D>("assets/sprites.png");
+        Sprites = helper.ModContent.Load<Texture2D>("assets/sprites.png");
     }
 
     private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
     {
         Config.Initialize();
-        AssetManager.LoadContentPacks(ModHelper);
 
         ModHelper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
         ModHelper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;
@@ -68,22 +71,28 @@ internal class Mod : StardewModdingAPI.Mod
         if (!Context.IsMainPlayer)
             return;
 
-        cafe = new CafeManager();
-        assets = new AssetManager();
-        customers = new CustomerManager();
-        tables = new TableManager();
-        menu = new MenuManager();
-        
-        assets.LoadValuesFromModData();
-        cafe.UpdateCafeIndoorLocation();
-        cafe.PopulateRoutesToCafe();
-        tables.PopulateTables(Game1.getFarm(), cafe.CafeIndoors);
-        customers.PopulateCustomersData();
+        Cafe = new CafeManager();
+        Assets = new AssetManager();
+        Customers = new CustomerManager();
+        Tables = new TableManager();
+        Menu = new MenuManager();
+        BusCustomers = new BusCustomerSpawner();
+        VillagerCustomers = new VillagerCustomerSpawner();
 
-        ModHelper.Events.GameLoop.DayStarted += cafe.DayUpdate;
-        ModHelper.Events.GameLoop.TimeChanged += cafe.OnTimeChanged;
-        ModHelper.Events.World.FurnitureListChanged += tables.OnFurnitureListChanged;
-        ModHelper.Events.Display.RenderedWorld += tables.OnRenderedWorld;
+
+        Cafe.UpdateCafeIndoorLocation();
+        Cafe.PopulateRoutesToCafe();
+        Tables.PopulateTables(Game1.getFarm(), Cafe.CafeIndoors);
+
+        Assets.LoadContentPacks(ModHelper);
+        Assets.LoadStoredCustomerData();
+
+        VillagerCustomers.LoadNpcSchedules();
+
+        ModHelper.Events.GameLoop.DayStarted += Cafe.DayUpdate;
+        ModHelper.Events.GameLoop.TimeChanged += Cafe.OnTimeChanged;
+        ModHelper.Events.World.FurnitureListChanged += Tables.OnFurnitureListChanged;
+        ModHelper.Events.Display.RenderedWorld += Tables.OnRenderedWorld;
         ModHelper.Events.Multiplayer.PeerConnected += Sync.OnPeerConnected;
     }
 
@@ -92,10 +101,10 @@ internal class Mod : StardewModdingAPI.Mod
         if (CafeManager.Instance == null)
             return;
 
-        ModHelper.Events.GameLoop.DayStarted -= cafe.DayUpdate;
-        ModHelper.Events.GameLoop.TimeChanged -= cafe.OnTimeChanged;
-        ModHelper.Events.World.FurnitureListChanged -= tables.OnFurnitureListChanged;
-        ModHelper.Events.Display.RenderedWorld -= tables.OnRenderedWorld;
+        ModHelper.Events.GameLoop.DayStarted -= Cafe.DayUpdate;
+        ModHelper.Events.GameLoop.TimeChanged -= Cafe.OnTimeChanged;
+        ModHelper.Events.World.FurnitureListChanged -= Tables.OnFurnitureListChanged;
+        ModHelper.Events.Display.RenderedWorld -= Tables.OnRenderedWorld;
         ModHelper.Events.Multiplayer.PeerConnected -= Sync.OnPeerConnected;
     }
 }

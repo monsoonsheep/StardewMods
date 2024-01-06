@@ -12,19 +12,28 @@ namespace MyCafe.Framework.Customers;
 
 public static class Pathfinding
 {
+    
     public static bool PathTo(this NPC me, GameLocation targetLocation, Point targetTile, int finalFacingDirection = 0,
         PathFindController.endBehavior endBehavior = null)
     {
         me.controller = null;
 
-        Stack<Point> path = PathfindFromLocationToLocation(me.currentLocation, me.TilePoint, targetLocation, targetTile, me);
-
-        if (path == null || !path.Any())
+        Stack<Point> path = null;
+        try
         {
-            Log.Warn("Character couldn't find path.");
+            path = PathfindFromLocationToLocation(me.currentLocation, me.TilePoint, targetLocation, targetTile, me);
+
+            if (path == null || !path.Any())
+            {
+                throw new PathNotFoundException("Character couldn't find path.", me.TilePoint, targetTile, me.currentLocation.Name, targetLocation.Name, me);
+            }
+        }
+        catch (PathNotFoundException e)
+        {
+            Log.Error("Error in PathTo:\n" + e);
             return false;
         }
-
+        
         me.controller = new PathFindController(path, me.currentLocation, me, path.Last())
         {
             NPCSchedule = true,
@@ -32,12 +41,6 @@ public static class Pathfinding
             endBehaviorFunction = endBehavior,
             finalFacingDirection = finalFacingDirection
         };
-
-        if (me.controller == null)
-        {
-            Log.Error("Can't construct controller.");
-            return false;
-        }
 
         Log.Debug($"Pathing from {me.TilePoint} to {targetTile}");
         return true;
@@ -146,4 +149,22 @@ public static class Pathfinding
             return PathFindController.findPathForNPCSchedules(startTile, targetTile, location, 30000);
         }
     }
+}
+
+
+public class PathNotFoundException : Exception
+{
+    private readonly Point _fromTile;
+    private readonly Point _toTile;
+    private readonly string _fromLocation;
+    private readonly string _toLocation;
+    private readonly Character _forCharacter;
+
+    /// <inheritdoc />
+    public PathNotFoundException(string message, Point startPoint, Point targetPoint, string fromLocation, string toLocation, Character forCharacter) : base(message)
+    {
+        (_fromTile, _toTile, _fromLocation, _toLocation, _forCharacter) = (startPoint, targetPoint, fromLocation, toLocation, forCharacter);
+    }
+
+    public override string Message => $"From {_fromTile} in {_fromLocation} to {_toTile} in {_toLocation} for character {_forCharacter.Name}";
 }

@@ -1,25 +1,35 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.Linq;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MyCafe.Framework.Objects;
+using MyCafe.Framework.ChairsAndTables;
 using StardewValley;
+using StardewValley.Pathfinding;
 
 namespace MyCafe.Framework.Customers;
 
 internal class Customer : NPC
 {
-    internal NPC OriginalNpc = null;
     internal Seat ReservedSeat = null;
+    internal string ItemToOrder = null;
 
-    private Vector2 lerpStartPosition;
-    private Vector2 lerpEndPosition;
-    private float lerpPosition = -1f;
-    private float lerpDuration = -1f;
+    private Vector2 _lerpStartPosition;
+    private Vector2 _lerpEndPosition;
+    private float _lerpPosition = -1f;
+    private float _lerpDuration = -1f;
 
+    public static PathFindController.endBehavior SitDownBehavior = delegate(Character c, GameLocation loc)
+    {
+        if (c is Customer p)
+        {
+            int direction = Utility.DirectionIntFromVectors(p.Tile, p.ReservedSeat.Position);
+            p.SitDown(direction);
+            p.faceDirection(p.ReservedSeat.SittingDirection);
+        }
+    };
 
     public Customer(string name, Vector2 position, string location, AnimatedSprite sprite, Texture2D portrait)
         : base(sprite, position, location, 2, name, portrait, eventActor: true)
     {
-        portraitOverridden = true;
     }
 
     public override void update(GameTime gameTime, GameLocation location)
@@ -27,17 +37,17 @@ internal class Customer : NPC
         base.update(gameTime, location);
         speed = 5;
 
-        if (lerpPosition >= 0f)
+        if (_lerpPosition >= 0f)
         {
-            lerpPosition += (float)gameTime.ElapsedGameTime.TotalSeconds;
-            if (lerpPosition >= lerpDuration)
+            _lerpPosition += (float)gameTime.ElapsedGameTime.TotalSeconds;
+            if (_lerpPosition >= _lerpDuration)
             {
-                lerpPosition = lerpDuration;
+                _lerpPosition = _lerpDuration;
             }
-            base.Position = new Vector2(StardewValley.Utility.Lerp(lerpStartPosition.X, lerpEndPosition.X, lerpPosition / lerpDuration), StardewValley.Utility.Lerp(lerpStartPosition.Y, lerpEndPosition.Y, lerpPosition / lerpDuration));
-            if (lerpPosition >= lerpDuration)
+            base.Position = new Vector2(StardewValley.Utility.Lerp(_lerpStartPosition.X, _lerpEndPosition.X, _lerpPosition / _lerpDuration), StardewValley.Utility.Lerp(_lerpStartPosition.Y, _lerpEndPosition.Y, _lerpPosition / _lerpDuration));
+            if (_lerpPosition >= _lerpDuration)
             {
-                lerpPosition = -1f;
+                _lerpPosition = -1f;
             }
         }
     }
@@ -68,9 +78,9 @@ internal class Customer : NPC
 
     public void LerpPosition(Vector2 start_position, Vector2 end_position, float duration)
     {
-        lerpStartPosition = start_position;
-        lerpEndPosition = end_position;
-        lerpPosition = 0f;
-        lerpDuration = duration;
+        _lerpStartPosition = start_position;
+        _lerpEndPosition = end_position;
+        _lerpPosition = 0f;
+        _lerpDuration = duration;
     }
 }

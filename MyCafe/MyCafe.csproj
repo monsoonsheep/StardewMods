@@ -9,13 +9,14 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <AdditionalFiles Include="i18n/default.json" />
+		<AdditionalFiles Include="i18n/default.json" />
 	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Lib.Harmony" Version="2.2.2" />
-    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.1.1" />
-	<PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.0.1" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Mono.Cecil" Version="0.11.5.0" />
+		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
+		<PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.1.1" />
+		<PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.0.1" />
+	</ItemGroup>
 
 </Project>

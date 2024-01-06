@@ -1,9 +1,11 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MyCafe.Framework.Objects;
 using StardewValley;
 using System.Collections.Generic;
 using System.Linq;
+using MyCafe.Framework.ChairsAndTables;
+using StardewValley.Pathfinding;
 
 namespace MyCafe.Framework.Customers;
 
@@ -28,58 +30,24 @@ internal class CustomerGroup
         return false;
     }
 
-    internal static CustomerGroup SpawnGroup(Table table, List<CustomerData> customersData)
+    internal bool MoveToTable()
     {
-        List<Customer> list = customersData.Select(data =>
+        List<Point> tiles = Members.Select(m => m.ReservedSeat.Position.ToPoint()).ToList();
+        return MoveTo(Utility.GetLocationFromName(ReservedTable.CurrentLocation), tiles, Customer.SitDownBehavior);
+    }
+
+    internal bool MoveTo(GameLocation location, List<Point> tilePositions, PathFindController.endBehavior endBehavior)
+    {
+        bool success = true;
+        for (var i = 0; i < Members.Count; i++)
         {
-            Texture2D portrait = Game1.content.Load<Texture2D>(data.Model.PortraitName);
-            AnimatedSprite sprite = new AnimatedSprite(data.Model.Spritesheet, 0, 16, 32);
-            Customer c = new Customer($"CustomerNPC_{data.Model.Name}", new Vector2(10, 12) * 64f, "BusStop", sprite, portrait);
-            return c;
-        }).ToList();
-        CustomerGroup group = new CustomerGroup(list);
-
-        group.ReserveTable(table);
-
-        GameLocation tableLocation = Utility.GetLocationFromName(table.CurrentLocation);
-        GameLocation busStop = Game1.getLocationFromName("BusStop");
-
-        bool failed = false;
-
-        for (int i = 0; i < group.Members.Count; i++)
-        {
-            Customer c = group.Members[i];
-            c.ReservedSeat.Reserve(c);
-
-            c.PathTo(tableLocation, c.ReservedSeat.Position.ToPoint(), 3, null);
-            if (c.controller == null
-                || c.controller.pathToEndPoint?.Count == 0
-                || c.controller.pathToEndPoint.Last().Equals(c.ReservedSeat.Position.ToPoint()))
+            if (!Members[i].PathTo(location, tilePositions[i], 3, endBehavior))
             {
-                failed = true;
+                success = false;
                 break;
             }
-
-            busStop.addCharacter(c);
-
-            int direction = Utility.DirectionIntFromVectors(c.controller.pathToEndPoint.Last().ToVector2(), c.ReservedSeat.Position);
-            c.controller.endBehaviorFunction = (_, _) =>
-            {
-                c.SitDown(direction);
-                c.faceDirection(c.ReservedSeat.SittingDirection);
-            };
         }
 
-        if (failed)
-        {
-            foreach (Customer c in group.Members)
-            {
-                busStop.characters.Remove(c);
-            }
-            table.Free();
-            // Revert changes
-        }
-
-        return group;
+        return success;
     }
 }

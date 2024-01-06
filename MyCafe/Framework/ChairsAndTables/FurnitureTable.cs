@@ -1,13 +1,13 @@
+using System.Collections.Generic;
+using System.Linq;
 using MyCafe.Framework.Customers;
 using StardewValley;
 using StardewValley.Objects;
-using System.Collections.Generic;
-using System.Linq;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 
-namespace MyCafe.Framework.Objects;
+namespace MyCafe.Framework.ChairsAndTables;
 
 internal class FurnitureTable : Table
 {

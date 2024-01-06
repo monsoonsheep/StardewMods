@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using MyCafe.Framework.Customers;
-using MyCafe.Framework.Objects;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Pathfinding;
@@ -8,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using MyCafe.Framework.ChairsAndTables;
 using SUtility = StardewValley.Utility;
 
 namespace MyCafe.Framework.Managers;
@@ -31,23 +31,12 @@ internal sealed class CafeManager
 
     internal void SpawnCustomers()
     {
-        var tables = Mod.tables.CurrentTables.Where(t => !t.IsReserved).OrderBy(_ => Game1.random.Next()).ToList();
-        if (!tables.Any())
-            return;
-
-        List<string> data= Mod.customers.GetRandomCustomerDataMultiple(tables.Max(t => t.Seats.Count));
-        if (data == null || !data.Any())
-            return;
-
-        Table table = tables.Where(t => t.Seats.Count >= data.Count).MinBy(t => t.Seats.Count);
+        Table table = Mod.Tables.CurrentTables.MinBy(t => t.Seats.Count);
         if (table == null)
         {
             Log.Debug("No tables available");
             return;
         }
-
-        CustomerGroup newGroup = CustomerGroup.SpawnGroup(table, data.Select(k => Mod.customers.CustomersData[k]).ToList());
-        Mod.customers.CurrentGroups.Add(newGroup);
     }
 
     internal void OnTimeChanged(object sender, TimeChangedEventArgs e)
@@ -55,7 +44,7 @@ internal sealed class CafeManager
         int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, ClosingTime);
         int minutesTillOpens = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, OpeningTime);
         int minutesSinceLastVisitors = SUtility.CalculateMinutesBetweenTimes(LastTimeCustomersArrived, Game1.timeOfDay);
-        float percentageOfTablesFree = (float)Mod.tables.CurrentTables.Count(t => !t.IsReserved) / Mod.tables.CurrentTables.Count;
+        float percentageOfTablesFree = (float)Mod.Tables.CurrentTables.Count(t => !t.IsReserved) / Mod.Tables.CurrentTables.Count;
 
         if (minutesTillCloses <= 20)
             return;
@@ -83,7 +72,6 @@ internal sealed class CafeManager
         // slight chance to spawn if last hour of open time
         if (minutesTillCloses <= 60)
             prob += (Game1.random.Next(20 + Math.Max(0, (minutesTillCloses / 3))) >= 28) ? 0.2f : -0.5f;
-
     }
 
     internal void UpdateCafeIndoorLocation()
@@ -95,11 +83,11 @@ internal sealed class CafeManager
             if (cafeBuilding != null)
             {
                 indoors = cafeBuilding.GetIndoors();
-                // if (CafeIndoors != null) Game1._locationLookup[CafeIndoors.Name] = CafeIndoors;
             }
         }
         if (indoors != null)
             CafeIndoors = indoors;
+        // if (CafeIndoors != null) Game1._locationLookup[CafeIndoors.Name] = CafeIndoors;
     }
 
     internal void PopulateRoutesToCafe()

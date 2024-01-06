@@ -1,11 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
 using MyCafe.Framework;
 using MyCafe.Framework.Managers;
-using MyCafe.Framework.Objects;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Objects;
 using System.Collections.Generic;
+using MyCafe.Framework.ChairsAndTables;
 using Utility = MyCafe.Framework.Utility;
 
 namespace MyCafe.Patching;

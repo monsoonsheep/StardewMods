@@ -1,11 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
 using MyCafe.Framework.Managers;
-using MyCafe.Framework.Objects;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using MyCafe.Framework.ChairsAndTables;
 
 namespace MyCafe.Framework;
 

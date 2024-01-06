@@ -21,7 +21,7 @@ internal class Debug
                 WarpToBus();
                 break;
             case SButton.NumPad2:
-                Mod.cafe.SpawnCustomers();
+                Mod.Cafe.SpawnCustomers();
                 break;
             default:
                 return;

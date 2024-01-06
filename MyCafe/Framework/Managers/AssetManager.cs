@@ -16,8 +16,7 @@ internal sealed class AssetManager
 {
     internal static AssetManager Instance;
 
-    internal static List<CustomerModel> CustomerModels = new List<CustomerModel>();
-    internal static Texture2D Sprites;
+    internal List<CustomerModel> CustomerModels = new List<CustomerModel>();
 
     internal AssetManager() => Instance = this;
 
@@ -27,7 +26,7 @@ internal sealed class AssetManager
         if (e.Name.IsDirectlyUnderPath(ModKeys.ASSETS_NPCSCHEDULE_PREFIX))
         {
             string npcname = e.Name.Name.Split('/').Last();
-            var file = Mod.ModHelper.Data.ReadJsonFile<ScheduleData>("assets/Schedules/" + npcname + ".json");
+            var file = Mod.ModHelper.Data.ReadJsonFile<VillagerCustomerData>("assets/Schedules/" + npcname + ".json");
             if (file != null)
             {
                 e.LoadFrom(() => file, AssetLoadPriority.Low);
@@ -58,11 +57,11 @@ internal sealed class AssetManager
         if (e.Name.IsDirectlyUnderPath(ModKeys.ASSETS_NPCSCHEDULE_PREFIX))
         {
             string npcname = e.Name.Name.Split('/').Last();
-            CustomerManager.Instance.VillagerCustomerSchedules[npcname] = Game1.content.Load<ScheduleData>(ModKeys.ASSETS_NPCSCHEDULE_PREFIX + npcname);
+            Mod.VillagerCustomers.VillagerData[npcname] = Game1.content.Load<VillagerCustomerData>(ModKeys.ASSETS_NPCSCHEDULE_PREFIX + npcname);
         }
     }
 
-    internal void LoadValuesFromModData()
+    internal void LoadStoredCustomerData()
     {
         if (Game1.player.modData.TryGetValue(ModKeys.MODDATA_MENUITEMSLIST, out string menuItemsString))
         {
@@ -92,8 +91,8 @@ internal sealed class AssetManager
 
         if (Game1.player.modData.TryGetValue(ModKeys.MODDATA_OPENCLOSETIMES, out string openCloseTimes))
         {
-            CafeManager.Instance.OpeningTime = int.Parse(openCloseTimes.Split(' ')[0]);
-            CafeManager.Instance.ClosingTime = int.Parse(openCloseTimes.Split(' ')[1]);
+            Mod.Cafe.OpeningTime = int.Parse(openCloseTimes.Split(' ')[0]);
+            Mod.Cafe.ClosingTime = int.Parse(openCloseTimes.Split(' ')[1]);
         }
 
         if (Game1.player.modData.TryGetValue(ModKeys.MODDATA_NPCSLASTVISITEDDATES, out string npcsLastVisited))
@@ -110,33 +109,7 @@ internal sealed class AssetManager
         }
     }
 
-    internal void LoadNpcSchedules(IModHelper helper)
-    {
-        int count = 0, doneCount = 0;
-        SUtility.ForEachVillager(npc =>
-        {
-            try
-            {
-                ScheduleData scheduleData = Game1.content.Load<ScheduleData>(ModKeys.ASSETS_NPCSCHEDULE_PREFIX + npc.Name);
-                if (scheduleData != null)
-                {
-                    CustomerManager.Instance.VillagerCustomerSchedules[npc.Name] = scheduleData;
-                    doneCount++;
-                }
-            }
-            catch
-            {
-                // ignored
-            }
-
-            count++;
-            return true;
-        });
-
-        Log.Debug($"{doneCount} NPCs have Schedule Data. The other {count} won't visit the cafe.");
-    }
-
-    internal static void LoadContentPacks(IModHelper helper)
+    internal void LoadContentPacks(IModHelper helper)
     {
         foreach (IContentPack contentPack in helper.ContentPacks.GetOwned())
         {
@@ -164,8 +137,10 @@ internal sealed class AssetManager
                     model.PortraitName = helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", portraitName + ".png")).Name;
                 }
 
-
-                CustomerModels.Add(model);
+                Mod.BusCustomers.CustomersData[model.Name] = new BusCustomerData()
+                {
+                    Model = model
+                };
             }
         }
     }

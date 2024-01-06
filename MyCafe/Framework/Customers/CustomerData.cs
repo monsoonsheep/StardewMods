@@ -1,7 +1,13 @@
-﻿namespace MyCafe.Framework.Customers;
+﻿using StardewValley;
+using System.Collections.Generic;
 
-internal class CustomerData
+namespace MyCafe.Framework.Customers;
+
+public abstract class CustomerData
 {
-    internal CustomerModel Model;
-    // internal WorldDate LastVisitedDate;
+    public int Frequency = 2;
+    public List<string> Partners; // will be changed to something more sophisticated soon
+
+    internal WorldDate LastVisitedDate = new(1, Season.Spring, 1);
+    internal bool CanVisitToday = false;
 }

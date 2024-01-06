@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 using MyCafe.Framework.Customers;
 using StardewValley.Objects;
 
-namespace MyCafe.Framework.Objects;
+namespace MyCafe.Framework.ChairsAndTables;
 
 internal sealed class FurnitureChair : Seat
 {
