@@ -15,7 +15,12 @@ internal sealed class CustomerManager
 {
     internal static CustomerManager Instance;
 
+    internal BusCustomerSpawner BusCustomers;
+    internal VillagerCustomerSpawner VillagerCustomers;
     internal readonly List<CustomerGroup> CurrentGroups = new();
+
+
+
 
     internal IEnumerable<Customer> CurrentCustomers
         => CurrentGroups.SelectMany(g => g.Members);
@@ -23,6 +28,20 @@ internal sealed class CustomerManager
     internal CustomerManager()
     {
         Instance = this;
+        BusCustomers = new BusCustomerSpawner();
+        VillagerCustomers = new VillagerCustomerSpawner();
+    }
+
+    internal void SpawnBusCustomers()
+    {
+        Table table = Mod.Tables.CurrentTables.Where(t => !t.IsReadyToOrder).MinBy(t => t.Seats.Count);
+        if (table == null)
+        {
+            Log.Debug("No tables available");
+            return;
+        }
+        BusCustomers.Spawn(table, out CustomerGroup group);
+        CurrentGroups.Add((group));
     }
 
     internal void RemoveAllCustomers()

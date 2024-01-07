@@ -41,13 +41,13 @@ internal class BusCustomerSpawner : ICustomerSpawner
         }).ToList();
 
         group = new CustomerGroup(list);
+        group.ReserveTable(table);
         GameLocation busStop = Game1.getLocationFromName("BusStop");
         foreach (Customer c in group.Members)
         {
             c.ReservedSeat.Reserve(c);
             busStop.addCharacter(c);
         }
-        group.ReserveTable(table);
 
         if (group.MoveToTable() is false)
         {

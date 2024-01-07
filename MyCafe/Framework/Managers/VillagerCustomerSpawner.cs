@@ -23,8 +23,7 @@ internal class VillagerCustomerSpawner : ICustomerSpawner
         {
             try
             {
-                VillagerCustomerData scheduleData = Game1.content.Load<VillagerCustomerData>(ModKeys.ASSETS_NPCSCHEDULE_PREFIX + npc.Name);
-                if (scheduleData != null)
+                if (Game1.content.Load<VillagerCustomerData>(ModKeys.ASSETS_NPCSCHEDULE_PREFIX + npc.Name) is { } scheduleData)
                 {
                     VillagerData[npc.Name] = scheduleData;
                     doneCount++;

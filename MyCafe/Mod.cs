@@ -18,9 +18,7 @@ internal class Mod : StardewModdingAPI.Mod
     internal static CustomerManager Customers;
     internal static TableManager Tables;
     internal static MenuManager Menu;
-    internal static BusCustomerSpawner BusCustomers;
-    internal static VillagerCustomerSpawner VillagerCustomers;
-
+    
     internal static Texture2D Sprites;
 
     /// <inheritdoc/>
@@ -76,9 +74,7 @@ internal class Mod : StardewModdingAPI.Mod
         Customers = new CustomerManager();
         Tables = new TableManager();
         Menu = new MenuManager();
-        BusCustomers = new BusCustomerSpawner();
-        VillagerCustomers = new VillagerCustomerSpawner();
-
+        
 
         Cafe.UpdateCafeIndoorLocation();
         Cafe.PopulateRoutesToCafe();
@@ -87,7 +83,7 @@ internal class Mod : StardewModdingAPI.Mod
         Assets.LoadContentPacks(ModHelper);
         Assets.LoadStoredCustomerData();
 
-        VillagerCustomers.LoadNpcSchedules();
+        Customers.VillagerCustomers.LoadNpcSchedules();
 
         ModHelper.Events.GameLoop.DayStarted += Cafe.DayUpdate;
         ModHelper.Events.GameLoop.TimeChanged += Cafe.OnTimeChanged;

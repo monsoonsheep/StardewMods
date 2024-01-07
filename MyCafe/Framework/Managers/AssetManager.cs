@@ -57,7 +57,7 @@ internal sealed class AssetManager
         if (e.Name.IsDirectlyUnderPath(ModKeys.ASSETS_NPCSCHEDULE_PREFIX))
         {
             string npcname = e.Name.Name.Split('/').Last();
-            Mod.VillagerCustomers.VillagerData[npcname] = Game1.content.Load<VillagerCustomerData>(ModKeys.ASSETS_NPCSCHEDULE_PREFIX + npcname);
+            Mod.Customers.VillagerCustomers.VillagerData[npcname] = Game1.content.Load<VillagerCustomerData>(ModKeys.ASSETS_NPCSCHEDULE_PREFIX + npcname);
         }
     }
 
@@ -137,7 +137,7 @@ internal sealed class AssetManager
                     model.PortraitName = helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", portraitName + ".png")).Name;
                 }
 
-                Mod.BusCustomers.CustomersData[model.Name] = new BusCustomerData()
+                Mod.Customers.BusCustomers.CustomersData[model.Name] = new BusCustomerData()
                 {
                     Model = model
                 };
