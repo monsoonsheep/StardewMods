@@ -13,7 +13,7 @@ namespace BusSchedules.Patching;
 
 internal class CharacterPatches : PatchCollection
 {
-    private static readonly BusManager Bm = Mod.Instance.BusManager;
+    private static readonly BusManager Bm = Mod.BusManager;
 
     public CharacterPatches()
     {
@@ -23,12 +23,12 @@ internal class CharacterPatches : PatchCollection
                 typeof(NPC),
                 "checkSchedule",
                 new [] { typeof(int) },
-                postfix: nameof(NpcCheckSchedulePostfix)),
+                postfix: NpcCheckSchedulePostfix),
             new(
                 typeof(NPC),
                 "getRouteEndBehaviorFunction",
                 new[] { typeof(string), typeof(string) },
-                postfix: nameof(NpcGetRouteEndBehaviorPostfix))
+                postfix: NpcGetRouteEndBehaviorPostfix)
         };
     }
 
@@ -47,7 +47,7 @@ internal class CharacterPatches : PatchCollection
 
     private static void NpcGetRouteEndBehaviorPostfix(NPC __instance, string behaviorName, string endMessage, ref PathFindController.endBehavior __result)
     {
-        if (__result == null && Mod.Instance.VisitorsData.ContainsKey(__instance.Name) && __instance.Schedule != null && behaviorName == "BoardBus")
-            __result = Mod.Instance.VisitorReachBusEndBehavior;
+        if (__result == null && Mod.VisitorsData.ContainsKey(__instance.Name) && __instance.Schedule != null && behaviorName == "BoardBus")
+            __result = Mod.VisitorReachBusEndBehavior;
     }
 }

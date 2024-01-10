@@ -17,7 +17,7 @@ namespace BusSchedules.Patching;
 
 internal class BusStopPatches : PatchCollection
 {
-    private static readonly BusManager Bm = Mod.Instance.BusManager;
+    private static readonly BusManager Bm = Mod.BusManager;
 
     internal BusStopPatches()
     {
@@ -27,47 +27,47 @@ internal class BusStopPatches : PatchCollection
                 typeof(NPC),
                 "TryLoadSchedule",
                 new [] { typeof(string) },
-                prefix: nameof(NpcTryLoadSchedulePrefix),
-                postfix: nameof(NpcTryLoadSchedulePostfix)),
+                prefix: NpcTryLoadSchedulePrefix,
+                postfix: NpcTryLoadSchedulePostfix),
             new(
                 typeof(BusStop),
                 "doorOpenAfterReturn",
                 null,
-                postfix: nameof(BusStopDoorOpenAfterReturnPostfix)),
+                postfix: BusStopDoorOpenAfterReturnPostfix),
             new(
                 typeof(BusStop),
                 "UpdateWhenCurrentLocation",
                 new[] { typeof(GameTime) },
-                postfix: nameof(BusStopUpdateWhenCurrentLocationPostfix)),
+                postfix: BusStopUpdateWhenCurrentLocationPostfix),
             new(
                 typeof(GameLocation),
                 "cleanupForVacancy",
                 null,
-                postfix: nameof(BusStopCleanupForVacancyPostfix)),
+                postfix: BusStopCleanupForVacancyPostfix),
             new(
                 typeof(BusStop),
                 "resetLocalState",
                 null,
-                postfix: nameof(BusStopResetLocalStatePostfix)),
+                postfix: BusStopResetLocalStatePostfix),
             new(
                 typeof(BusStop),
                 "answerDialogue",
                 new [] { typeof(Response) },
-                transpiler: nameof(BusStopAnswerDialogueTranspiler),
-                postfix: nameof(BusStopAnswerDialoguePostfix),
-                prefix: nameof(BusStopAnswerDialoguePrefix)),
+                transpiler: BusStopAnswerDialogueTranspiler,
+                postfix: BusStopAnswerDialoguePostfix,
+                prefix: BusStopAnswerDialoguePrefix),
             new(
                 typeof(BusStop),
                 "draw",
                 new [] { typeof(SpriteBatch) },
-                postfix: nameof(BusStopDrawPostfix))
+                postfix: BusStopDrawPostfix)
         };
     }
 
 
     private static bool NpcTryLoadSchedulePrefix(NPC __instance, string key, ref bool __result, out KeyValuePair<string, Vector2> __state)
     {
-        if (Mod.Instance.VisitorsData.ContainsKey(__instance.Name))
+        if (Mod.VisitorsData.ContainsKey(__instance.Name))
         {
             __state = new KeyValuePair<string, Vector2>(__instance.DefaultMap, __instance.DefaultPosition);
             __instance.DefaultMap = "BusStop";
@@ -107,7 +107,7 @@ internal class BusStopPatches : PatchCollection
     private static bool BusStopAnswerDialoguePrefix(BusStop __instance, Response answer, ref bool __result)
     {
         // If bus is currently moving in the location or it's about to arrive in 20 minutes or it's only been 20 minutes since it left
-        if (Bm.BusLeaving || Bm.BusReturning || (Bm.BusGone && (Mod.Instance.TimeUntilNextArrival <= 20 || Mod.Instance.TimeSinceLastArrival <= 20)))
+        if (Bm.BusLeaving || Bm.BusReturning || (Bm.BusGone && (Mod.TimeUntilNextArrival <= 20 || Mod.TimeSinceLastArrival <= 20)))
         {
             Log.LogWithHudMessage("You must wait 10 minutes");
             __result = false;
@@ -131,7 +131,7 @@ internal class BusStopPatches : PatchCollection
             }
             else
             {
-                if (Mod.Instance.TimeUntilNextArrival <= 20 || Mod.Instance.TimeSinceLastArrival <= 20) 
+                if (Mod.TimeUntilNextArrival <= 20 || Mod.TimeSinceLastArrival <= 20) 
                     return;
 
                 PathFindController controller = Game1.player.controller;

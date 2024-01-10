@@ -10,28 +10,33 @@ using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.GameData.Characters;
 using StardewValley.Locations;
-using static BusSchedules.Mod;
+using BusSchedules.Interfaces;
 
 namespace BusSchedules;
 
 /// <summary>The mod entry point.</summary>
 internal sealed class Mod : StardewModdingAPI.Mod
 {
-    internal static Mod Instance;
-    internal BusManager BusManager;
+    internal static BusManager BusManager;
     internal static IModHelper ModHelper;
     internal new static IManifest ModManifest;
 
-    internal readonly Dictionary<string, VisitorData> VisitorsData = new();
+    internal static bool BusEnabled = false;
+    internal static readonly Dictionary<string, VisitorData> VisitorsData = new();
+    internal static readonly PriorityQueue<NPC, int> VisitorsForNextArrival = new();
 
-    internal byte BusArrivalsToday;
-    internal int[] BusArrivalTimes = { 630, 1200, 1500, 1800, 2400 };
-    internal List<int> BusLeaveTimes = new List<int>();
+    internal static byte BusArrivalsToday;
+    internal static int[] BusArrivalTimes = { 630, 1200, 1500, 1800, 2400 };
+    internal static List<int> BusLeaveTimes = new List<int>();
 
-    internal int NextArrivalTime => BusArrivalsToday < BusArrivalTimes.Length ? BusArrivalTimes[BusArrivalsToday] : 9999;
-    internal int LastArrivalTime => BusArrivalsToday == 0 ? 0 : BusArrivalTimes[BusArrivalsToday - 1];
-    internal int TimeUntilNextArrival => Utility.CalculateMinutesBetweenTimes(Game1.timeOfDay, NextArrivalTime);
-    internal int TimeSinceLastArrival => Utility.CalculateMinutesBetweenTimes(LastArrivalTime, Game1.timeOfDay);
+    internal static int NextArrivalTime 
+        => BusArrivalsToday < BusArrivalTimes.Length ? BusArrivalTimes[BusArrivalsToday] : 9999;
+    internal static int LastArrivalTime 
+        => BusArrivalsToday == 0 ? 0 : BusArrivalTimes[BusArrivalsToday - 1];
+    internal static int TimeUntilNextArrival 
+        => Utility.CalculateMinutesBetweenTimes(Game1.timeOfDay, NextArrivalTime);
+    internal static int TimeSinceLastArrival 
+        => Utility.CalculateMinutesBetweenTimes(LastArrivalTime, Game1.timeOfDay);
 
 
     internal class VisitorData
@@ -42,7 +47,6 @@ internal sealed class Mod : StardewModdingAPI.Mod
     /// <inheritdoc />
     public override void Entry(IModHelper helper)
     {
-        Instance = this;
         ModHelper = helper;
         Log.Monitor = Monitor;
         ModManifest = base.ModManifest;
@@ -53,12 +57,8 @@ internal sealed class Mod : StardewModdingAPI.Mod
         try
         {
             var harmony = new Harmony(ModManifest.UniqueID);
-            var patchListsList = new List<PatchCollection>
-            {
-                new BusStopPatches(), 
-                new CharacterPatches()
-            };
-            patchListsList.ForEach(l => l.ApplyAll(harmony));
+            new BusStopPatches().ApplyAll(harmony);
+            new CharacterPatches().ApplyAll(harmony);
         }
         catch (Exception e)
         {
@@ -66,31 +66,33 @@ internal sealed class Mod : StardewModdingAPI.Mod
             return;
         }
 
-        helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
-        helper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;
+        helper.Events.GameLoop.GameLaunched += OnGameLaunched;
         helper.Events.Content.AssetRequested += OnAssetRequested;
-        ModHelper.Events.Multiplayer.ModMessageReceived += OnModMessageReceived;
-
 #if DEBUG
-        helper.Events.GameLoop.SaveLoaded += Debug.SetUp;
         helper.Events.Input.ButtonPressed += Debug.ButtonPress;
 #endif
+    }
+
+    private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
+    {
+        ModHelper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
+        ModHelper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;
+        ModHelper.Events.Multiplayer.ModMessageReceived += OnModMessageReceived;
     }
 
     private void OnReturnedToTitle(object sender, ReturnedToTitleEventArgs e)
     {
         // Clients and Host
-        ModHelper.Events.Player.Warped -= OnWarped;
-        ModHelper.Events.World.LocationListChanged -= OnLocationListChanged;
         Events.BusArrive -= BusManager.OnDoorOpen;
 
         // Host only
+        ModHelper.Events.GameLoop.DayStarted -= OnDayStarted;
         ModHelper.Events.GameLoop.Saving -= OnSaving;
         ModHelper.Events.GameLoop.TimeChanged -= OnTimeChanged;
-        Events.BusArrive -= OnBusArrive;
+        Events.BusArrive -= SpawnVisitors;
         Events.BusArrive -= BusManager.PamBackToSchedule;
-        ModHelper.Events.GameLoop.DayStarted -= OnDayStarted;
 
+        BusEnabled = false;
         BusLeaveTimes.Clear();
         BusArrivalsToday = 0;
         BusManager.BusGone = false;
@@ -102,40 +104,47 @@ internal sealed class Mod : StardewModdingAPI.Mod
     {
         BusManager.UpdateLocation(ModHelper, (BusStop) Game1.getLocationFromName("BusStop"));
 
-        if (Game1.MasterPlayer.mailReceived.Contains("ccVault"))
+        if (BusEnabled == false && Game1.MasterPlayer.mailReceived.Contains("ccVault"))
         {
-            // Hooks for host and clients
-            ModHelper.Events.Player.Warped += OnWarped;
-            ModHelper.Events.World.LocationListChanged += OnLocationListChanged;
-            Events.BusArrive += BusManager.OnDoorOpen;
-
-            if (Context.IsMainPlayer)
-            {
-                // Hooks for host only
-                ModHelper.Events.GameLoop.DayStarted += OnDayStarted;
-                ModHelper.Events.GameLoop.Saving += OnSaving;
-                ModHelper.Events.GameLoop.TimeChanged += OnTimeChanged;
-                Events.BusArrive += OnBusArrive;
-                Events.BusArrive += BusManager.PamBackToSchedule;
-            }
+            BusEnabled = true;
+            HookEvents();
         }
+
+        if (Context.IsMainPlayer && VisitorsData.Count == 0)
+        {
+            // Force load NPC schedules so they can be edited by AssetRequested
+            Utility.ForEachCharacter(delegate(NPC n)
+            {
+                _ = n.getMasterScheduleRawData();
+                return true;
+            });
+        }
+    }
+
+    private void HookEvents()
+    {
+        // Hooks for host and clients
+        Events.BusArrive += BusManager.OnDoorOpen;
 
         if (Context.IsMainPlayer)
         {
-            if (VisitorsData.Count == 0)
-            {
-                // Force load NPC schedules so they can be edited by AssetRequested
-                Utility.ForEachCharacter(delegate(NPC n)
-                {
-                    _ = n.getMasterScheduleRawData();
-                    return true;
-                });
-            }
+            // Hooks for host only
+            ModHelper.Events.GameLoop.DayStarted += OnDayStarted;
+            ModHelper.Events.GameLoop.Saving += OnSaving;
+            ModHelper.Events.GameLoop.TimeChanged += OnTimeChanged;
+            Events.BusArrive += SpawnVisitors;
+            Events.BusArrive += BusManager.PamBackToSchedule;
         }
     }
 
     private void OnDayStarted(object sender, DayStartedEventArgs e)
     {
+        if (BusEnabled == false && Game1.MasterPlayer.mailReceived.Contains("ccVault"))
+        {
+            BusEnabled = true;
+            HookEvents();
+        }
+
         BusArrivalsToday = 0;
 
         foreach (var pair in VisitorsData)
@@ -182,7 +191,6 @@ internal sealed class Mod : StardewModdingAPI.Mod
         {
             if (i == 0)
                 BusLeaveTimes.Add(Utility.ModifyTime(BusArrivalTimes[1], -70));
-                //BusManager.BusLeaveTimes.Add(Utility.ModifyTime(BusManager.BusArrivalTimes[i], 50));
             else
                 BusLeaveTimes.Add(BusArrivalTimes[i] + 20);
         }
@@ -200,6 +208,21 @@ internal sealed class Mod : StardewModdingAPI.Mod
         {
             BusArrivalsToday++;
             BusManager.BusReturn();
+            
+            foreach (var pair in VisitorsData)
+            {
+                var npc = Game1.getCharacterFromName(pair.Key);
+                if (npc?.ScheduleKey == null || !pair.Value.ScheduleKeysForBusArrival.TryGetValue(npc.ScheduleKey, out var arrivalDepartureIndices))
+                {
+                    continue;
+                }
+
+                if (arrivalDepartureIndices.Item1 == NextArrivalTime)
+                {
+                    VisitorsForNextArrival.Enqueue(npc, 0);
+                }
+            }
+
         }
         // Bus leaves based on leaving times
         else if (BusLeaveTimes.Contains(e.NewTime))
@@ -312,51 +335,34 @@ internal sealed class Mod : StardewModdingAPI.Mod
         }
     }
 
-    private void OnLocationListChanged(object sender, LocationListChangedEventArgs e)
-    {
-        foreach (var loc in e.Removed)
-        {
-            if (loc is BusStop busStop)
-            {
-                Log.Debug("bus stop removed");
-            }
-        }
-    }
-
-    private void OnWarped(object sender, WarpedEventArgs e)
-    {
-        if (e.IsLocalPlayer && !Context.IsMainPlayer && e.NewLocation is BusStop busStop)
-        {
-            Log.Debug("warped to bus");
-        }
-    } 
-
-    private void OnBusArrive(object sender, EventArgs e)
+    private static void SpawnVisitors(object sender, EventArgs e)
     {
         int count = 0;
-
-        foreach (var pair in VisitorsData)
+        while (VisitorsForNextArrival.TryDequeue(out NPC visitor, out int priority))
         {
-            var npc = Game1.getCharacterFromName(pair.Key);
-            if (npc?.ScheduleKey == null || !pair.Value.ScheduleKeysForBusArrival.TryGetValue(npc.ScheduleKey, out var arrivalDepartureIndices))
+            Game1.delayedActions.Add(new DelayedAction(count * 800 + Game1.random.Next(0, 100), delegate
             {
-                continue;
-            }
+                visitor.Position = new Vector2(12 * 64, 9 * 64);
 
-            if (arrivalDepartureIndices.Item1 == LastArrivalTime)
-            {
-                Game1.delayedActions.Add(new DelayedAction(count * 800 + Game1.random.Next(0, 100), delegate
+                if (visitor.temporaryController is {endBehaviorFunction: not null})
                 {
-                    count++;
-                    npc.Position = new Vector2(12 * 64, 9 * 64);
-                    npc.checkSchedule(LastArrivalTime);
-                    Log.Info($"Visitor {npc.displayName} arrived at {Game1.timeOfDay}");
-                }));
-            }
+                    AccessTools.Field(typeof(Character), "returningToEndPoint")?.SetValue(visitor, false);
+                    visitor.temporaryController.endBehaviorFunction.Invoke(visitor, BusManager.BusLocation);
+                    visitor.temporaryController = null;
+                }
+                else
+                {
+                    visitor.checkSchedule(LastArrivalTime);
+                }
+
+                Log.Info($"Visitor {visitor.displayName} arrived at {Game1.timeOfDay}");
+            }));
+            count++;
         }
+
     }
 
-    public void VisitorReachBusEndBehavior(Character c, GameLocation location)
+    public static void VisitorReachBusEndBehavior(Character c, GameLocation location)
     {
         if (c is NPC npc)
         {
@@ -365,5 +371,21 @@ internal sealed class Mod : StardewModdingAPI.Mod
             npc.controller = null;
             npc.followSchedule = false;
         }
+    }
+
+    public override object GetApi()
+    {
+        return new Api();
+    }
+}
+
+
+public class Events
+{
+    public static EventHandler BusArrive;
+
+    internal static void Invoke_BusArrive()
+    {
+        BusArrive.Invoke(null, EventArgs.Empty);
     }
 }

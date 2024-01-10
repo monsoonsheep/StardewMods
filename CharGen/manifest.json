@@ -1,0 +1,10 @@
+{
+  "Name": "CharGen",
+  "Author": "MonsoonSheep",
+  "Version": "0.1.0",
+  "Description": "My mod called CharGen",
+  "UniqueID": "MonsoonSheep.CharGen",
+  "EntryDll": "CharGen.dll",
+  "MinimumApiVersion": "3.0.0",
+  "UpdateKeys": []
+}

@@ -1,24 +1,33 @@
-﻿using Microsoft.Xna.Framework.Graphics;
-using MyCafe.Framework;
-using MyCafe.Framework.Managers;
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using HarmonyLib;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using MyCafe.Interfaces;
+using MyCafe.Managers;
+using MyCafe.Patching;
+using Netcode;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 
 namespace MyCafe;
 
-internal class Mod : StardewModdingAPI.Mod
+public class Mod : StardewModdingAPI.Mod
 {
     internal new static IMonitor Monitor;
     internal static IModHelper ModHelper;
     internal new static IManifest ModManifest;
 
-    internal static CafeManager Cafe;
+    internal static NetRef<Cafe> NetCafe = new NetRef<Cafe>(new Cafe());
+    internal static Cafe Cafe 
+        => NetCafe.Value;
+
     internal static AssetManager Assets;
     internal static CustomerManager Customers;
-    internal static TableManager Tables;
     internal static MenuManager Menu;
-    
+
     internal static Texture2D Sprites;
 
     /// <inheritdoc/>
@@ -29,22 +38,22 @@ internal class Mod : StardewModdingAPI.Mod
         ModManifest = base.ModManifest;
         Log.Monitor = Monitor;
         I18n.Init(helper.Translation);
-        Config.LoadedConfig = helper.ReadConfig<ConfigModel>();
+        ModConfig.LoadedConfig = helper.ReadConfig<ConfigModel>();
 
         // Harmony patches
-        //try
-        //{
-        //    var harmony = new Harmony(ModManifest.UniqueID);
-        //    new List<PatchCollection>
-        //    {
-        //        new CharacterPatches(), new GameLocationPatches(), new FurniturePatches()
-        //    }.ForEach(l => l.ApplyAll(harmony));
-        //}
-        //catch (Exception e)
-        //{
-        //    Log.Debug($"Couldn't patch methods - {e}", LogLevel.Error);
-        //    return;
-        //}
+        try
+        {
+            var harmony = new Harmony(ModManifest.UniqueID);
+            new List<PatchCollection>
+            {
+                new CharacterPatches(), new GameLocationPatches()
+            }.ForEach(l => l.ApplyAll(harmony));
+        }
+        catch (Exception e)
+        {
+            Log.Debug($"Couldn't patch methods - {e}", LogLevel.Error);
+            return;
+        }
         helper.Events.GameLoop.GameLaunched += OnGameLaunched;
         helper.Events.Content.AssetRequested += AssetManager.OnAssetRequested;
         helper.Events.Content.AssetReady += AssetManager.OnAssetReady;
@@ -52,55 +61,59 @@ internal class Mod : StardewModdingAPI.Mod
         Sprites = helper.ModContent.Load<Texture2D>("assets/sprites.png");
     }
 
+   
     private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
     {
-        Config.Initialize();
+        ISpaceCoreApi spacecore = ModHelper.ModRegistry.GetApi<ISpaceCoreApi>("spacechase0.SpaceCore");
+        if (spacecore == null)
+        {
+            Log.Error("SpaceCore not found.");
+            return;
+        }
+
+        spacecore.RegisterSerializerType(typeof(Cafe));
+        spacecore.RegisterCustomProperty(typeof(Farm), "Cafe", typeof(NetRef<Cafe>), 
+            AccessTools.Method(typeof(CafeSyncExtensions), nameof(CafeSyncExtensions.get_Cafe)), 
+            AccessTools.Method(typeof(CafeSyncExtensions), nameof(CafeSyncExtensions.set_Cafe)));
+
+        ModConfig.Initialize();
 
         ModHelper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
         ModHelper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;
         ModHelper.Events.Multiplayer.ModMessageReceived += Sync.OnModMessageReceived;
-#if DEBUG
+
         ModHelper.Events.Input.ButtonPressed += Debug.ButtonPress;
-#endif
+
+        GameLocation.RegisterTileAction(ModKeys.SIGNBOARD_BUILDING_CLICK_EVENT_KEY, delegate (GameLocation _, string[] _, Farmer _, Point _)
+        {
+            Game1.activeClickableMenu = null; // TODO do the thing
+            return true;
+        });
     }
 
     private void OnSaveLoaded(object sender, SaveLoadedEventArgs e)
     {
+        ModHelper.Events.GameLoop.DayStarted += Cafe.DayUpdate;
+        ModHelper.Events.GameLoop.TimeChanged += Cafe.OnTimeChanged;
+        ModHelper.Events.Display.RenderedWorld += Cafe.OnRenderedWorld;
+
+        Cafe.Initialize(ModHelper);
+
         if (!Context.IsMainPlayer)
             return;
 
-        Cafe = new CafeManager();
-        Assets = new AssetManager();
-        Customers = new CustomerManager();
-        Tables = new TableManager();
-        Menu = new MenuManager();
-        
-
-        Cafe.UpdateCafeIndoorLocation();
-        Cafe.PopulateRoutesToCafe();
-        Tables.PopulateTables(Game1.getFarm(), Cafe.CafeIndoors);
-
-        Assets.LoadContentPacks(ModHelper);
-        Assets.LoadStoredCustomerData();
-
-        Customers.VillagerCustomers.LoadNpcSchedules();
-
-        ModHelper.Events.GameLoop.DayStarted += Cafe.DayUpdate;
-        ModHelper.Events.GameLoop.TimeChanged += Cafe.OnTimeChanged;
-        ModHelper.Events.World.FurnitureListChanged += Tables.OnFurnitureListChanged;
-        ModHelper.Events.Display.RenderedWorld += Tables.OnRenderedWorld;
         ModHelper.Events.Multiplayer.PeerConnected += Sync.OnPeerConnected;
     }
 
     private void OnReturnedToTitle(object sender, ReturnedToTitleEventArgs e)
     {
-        if (CafeManager.Instance == null)
-            return;
-
         ModHelper.Events.GameLoop.DayStarted -= Cafe.DayUpdate;
         ModHelper.Events.GameLoop.TimeChanged -= Cafe.OnTimeChanged;
-        ModHelper.Events.World.FurnitureListChanged -= Tables.OnFurnitureListChanged;
-        ModHelper.Events.Display.RenderedWorld -= Tables.OnRenderedWorld;
+        ModHelper.Events.World.FurnitureListChanged -= Cafe.OnFurnitureListChanged;
+        ModHelper.Events.Display.RenderedWorld -= Cafe.OnRenderedWorld;
         ModHelper.Events.Multiplayer.PeerConnected -= Sync.OnPeerConnected;
+
+        //if (CafeManager.Instance == null)
+        //    return;
     }
 }

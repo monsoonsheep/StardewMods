@@ -1,12 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
-using MyCafe.Framework;
-using MyCafe.Framework.Managers;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Objects;
 using System.Collections.Generic;
-using MyCafe.Framework.ChairsAndTables;
-using Utility = MyCafe.Framework.Utility;
+using Utility = MyCafe.Utility;
+using MyCafe.ChairsAndTables;
+using MyCafe.Managers;
 
 namespace MyCafe.Patching;
 
@@ -54,8 +53,7 @@ internal class FurniturePatches : PatchCollection
         if (Utility.IsTable(__instance))
         {
             Furniture table = location.GetFurnitureAt(new Vector2(x, y));
-            FurnitureTable trackedTable = Utility.IsTableTracked(table, location);
-            if (trackedTable is { IsReserved: true })
+            if (Utility.IsTableTracked(table, location, out FurnitureTable trackedTable) && trackedTable is { IsReserved.Value: true })
             {
                 __result = 2;
             }
@@ -63,7 +61,7 @@ internal class FurniturePatches : PatchCollection
     }
     private static bool AddSittingFarmerPrefix(Furniture __instance, Farmer who, ref Vector2? __result)
     {
-        if (TableManager.Instance != null && Utility.IsChair(__instance) && TableManager.Instance.ChairIsReserved(__instance))
+        if (Utility.IsChair(__instance) && Mod.Cafe.ChairIsReserved(__instance))
         {
             __result = null;
             return false;
@@ -77,8 +75,7 @@ internal class FurniturePatches : PatchCollection
     {
         if (Utility.IsTable(__instance))
         {
-            FurnitureTable trackedTable = Utility.IsTableTracked(__instance, who.currentLocation);
-            if (trackedTable is { IsReserved: true })
+            if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable is { IsReserved.Value: true })
             {
                 __result = false;
                 return false;
@@ -99,8 +96,7 @@ internal class FurniturePatches : PatchCollection
             {
                 __result = false;
             }
-            FurnitureTable trackedTable = Utility.IsTableTracked(__instance, who.currentLocation);
-            if (trackedTable is { IsReserved: true })
+            if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable is { IsReserved.Value: true })
             {
                 Log.Debug("Can't remove");
                 __result = false;
@@ -112,10 +108,9 @@ internal class FurniturePatches : PatchCollection
 
     private static bool ClickedPrefix(Furniture __instance, Farmer who, ref bool __result)
     {
-        if (TableManager.Instance != null && Utility.IsTable(__instance))
+        if (Utility.IsTable(__instance))
         {
-            FurnitureTable trackedTable = Utility.IsTableTracked(__instance, who.currentLocation);
-            if (trackedTable is { IsReserved: true })
+            if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable is { IsReserved.Value: true })
             {
                 if (!Context.IsMainPlayer)
                 {
@@ -123,7 +118,7 @@ internal class FurniturePatches : PatchCollection
                 }
                 else
                 {
-                    TableManager.Instance.FarmerClickTable(trackedTable, who);
+                    //TableManager.Instance.FarmerClickTable(trackedTable, who);
                 }
                 __result = true;
                 return false;

@@ -8,7 +8,7 @@ internal class Debug
 {
     public static void ButtonPress(object sender, ButtonPressedEventArgs e)
     {
-        if (!Context.IsMainPlayer || !Context.CanPlayerMove)
+        if (!Context.CanPlayerMove)
             return;
 
         switch (e.Button)
@@ -22,6 +22,15 @@ internal class Debug
                 break;
             case SButton.NumPad2:
                 Mod.Customers.SpawnBusCustomers();
+                break;
+            case SButton.NumPad4:
+                Mod.Cafe.ClosingTime.Set(2400);
+                break; 
+            case SButton.NumPad5:
+                Mod.Cafe.ClosingTime.Set(2500);
+                break;
+            case SButton.NumPad6:
+                Log.LogWithHudMessage($"Cafe time: {Mod.Cafe.ClosingTime.Value}");
                 break;
             default:
                 return;

@@ -7,7 +7,6 @@ using System.Reflection;
 // ReSharper disable InconsistentNaming
 
 namespace MyCafe.Patching;
-
 internal class Patch
 {
     internal MethodInfo _targetMethod;
@@ -38,9 +37,9 @@ internal abstract class PatchCollection
         {
             harmony.Patch(
                 original: patch._targetMethod,
-                prefix: patch._prefixMethod == null ? null : new HarmonyMethod(GetType(), nameof(patch._prefixMethod)),
-                postfix: patch._postfixMethod == null ? null : new HarmonyMethod(GetType(), nameof(patch._postfixMethod)),
-                transpiler: patch._transpilerMethod == null ? null : new HarmonyMethod(GetType(), nameof(patch._transpilerMethod))
+                prefix: patch._prefixMethod == null ? null : new HarmonyMethod(GetType(), patch._prefixMethod.Method.Name),
+                postfix: patch._postfixMethod == null ? null : new HarmonyMethod(GetType(), patch._postfixMethod.Method.Name),
+                transpiler: patch._transpilerMethod == null ? null : new HarmonyMethod(GetType(), patch._transpilerMethod.Method.Name)
             );
         }
     }

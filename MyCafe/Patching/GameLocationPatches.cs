@@ -1,12 +1,11 @@
-﻿using MyCafe.Framework;
-using MyCafe.Framework.Managers;
-using StardewModdingAPI;
+﻿using StardewModdingAPI;
 using StardewValley;
 using System.Collections.Generic;
 using System.Linq;
-using MyCafe.Framework.ChairsAndTables;
 using xTile.Dimensions;
 using Rectangle = xTile.Dimensions.Rectangle;
+using MyCafe.ChairsAndTables;
+using MyCafe.Managers;
 
 namespace MyCafe.Patching;
 
@@ -21,29 +20,39 @@ internal class GameLocationPatches : PatchCollection
                 "checkAction",
                 new [] { typeof(Location), typeof(Rectangle), typeof(Farmer) },
                 postfix: CheckActionPostfix),
+            new (
+                typeof(Farm),
+                "initNetFields",
+                null,
+                postfix: FarmInitNetFieldsPostfix),
         };
+    }
+
+    private static void FarmInitNetFieldsPostfix(Farm __instance)
+    {
+        __instance.NetFields.AddField(__instance.get_Cafe());
     }
 
     private static void CheckActionPostfix(GameLocation __instance, Location tileLocation, Rectangle viewport, Farmer who, ref bool __result)
     {
-        if (!Context.IsMainPlayer || !CafeManager.Instance.CafeIndoors.Equals(__instance))
+        if (!Context.IsMainPlayer || __instance.Equals(Mod.Cafe.Indoor))
             return;
 
-        foreach (MapTable table in TableManager.Instance.CurrentTables.OfType<MapTable>())
+        foreach (LocationTable table in Mod.Cafe.Tables.OfType<LocationTable>())
         {
-            if (table.BoundingBox.Contains(tileLocation.X * 64, tileLocation.Y * 64))
+            if (table.BoundingBox.Value.Contains(tileLocation.X * 64, tileLocation.Y * 64))
             {
-                if (!Context.IsMainPlayer)
-                {
-                    Sync.SendTableClick(table, who);
-                }
-                else
-                {
-                    TableManager.Instance.FarmerClickTable(table, who);
-                }
+                //if (!Context.IsMainPlayer)
+                //{
+                //    Sync.SendTableClick(table, who);
+                //}
+                //else
+                //{
+                //    TableManager.Instance.FarmerClickTable(table, who);
+                //}
 
-                __result = true;
-                return;
+                //__result = true;
+                //return;
             }
         }
     }

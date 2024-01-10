@@ -14,17 +14,17 @@ namespace BusSchedules.Patching;
 
 internal class Patch
 {
-    internal string _postfixMethod;
-    internal string _prefixMethod;
+    internal Delegate _postfixMethod;
+    internal Delegate _prefixMethod;
+    internal Delegate _transpilerMethod;
     internal MethodInfo _targetMethod;
-    internal string _transpilerMethod;
 
     public Patch(Type targetType,
         string targetMethodName,
         Type[] arguments,
-        string prefix = null,
-        string postfix = null,
-        string transpiler = null)
+        Delegate prefix = null,
+        Delegate postfix = null,
+        Delegate transpiler = null)
     {
         _targetMethod = AccessTools.Method(targetType, targetMethodName, arguments);
         _prefixMethod = prefix;
@@ -42,9 +42,9 @@ internal abstract class PatchCollection
         foreach (var patch in Patches)
             harmony.Patch(
                 patch._targetMethod,
-                patch._prefixMethod == null ? null : new HarmonyMethod(GetType(), patch._prefixMethod),
-                patch._postfixMethod == null ? null : new HarmonyMethod(GetType(), patch._postfixMethod),
-                patch._transpilerMethod == null ? null : new HarmonyMethod(GetType(), patch._transpilerMethod)
+                patch._prefixMethod == null ? null : new HarmonyMethod(GetType(), patch._prefixMethod.Method.Name),
+                patch._postfixMethod == null ? null : new HarmonyMethod(GetType(), patch._postfixMethod.Method.Name),
+                patch._transpilerMethod == null ? null : new HarmonyMethod(GetType(), patch._transpilerMethod.Method.Name)
             );
     }
 }

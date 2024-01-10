@@ -1,6 +1,6 @@
 ﻿using HarmonyLib;
 using Microsoft.Xna.Framework;
-using MyCafe.Framework.Customers;
+using MyCafe.Customers;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Pathfinding;
