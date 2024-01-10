@@ -24,13 +24,13 @@ internal sealed class CustomerManager
     internal IEnumerable<Customer> CurrentCustomers
         => CurrentGroups.SelectMany(g => g.Members);
 
-    internal CustomerManager(IModHelper helper)
+    internal CustomerManager()
     {
         Instance = this;
 
         Mod.Assets.LoadStoredCustomerData();
-        BusCustomers = new(helper);
-        VillagerCustomers = new(helper);
+        BusCustomers = new(Mod.ModHelper);
+        VillagerCustomers = new(Mod.ModHelper);
     }
 
     internal void DayUpdate()

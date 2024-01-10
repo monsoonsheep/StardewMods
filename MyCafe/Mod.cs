@@ -25,7 +25,6 @@ public class Mod : StardewModdingAPI.Mod
         => NetCafe.Value;
 
     internal static AssetManager Assets;
-    internal static CustomerManager Customers;
     internal static MenuManager Menu;
 
     internal static Texture2D Sprites;

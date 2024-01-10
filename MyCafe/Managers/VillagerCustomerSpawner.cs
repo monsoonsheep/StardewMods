@@ -47,7 +47,7 @@ internal class VillagerCustomerSpawner : ICustomerSpawner
         VillagerCustomerData data = VillagerData[npc.Name];
 
         if (data == null ||
-            Mod.Customers.CurrentCustomers.Contains(npc) ||
+            Mod.Cafe.Customers.CurrentCustomers.Contains(npc) ||
             npc.isSleeping.Value is true ||
             npc.ScheduleKey == null ||
             data.CanVisitToday == false ||

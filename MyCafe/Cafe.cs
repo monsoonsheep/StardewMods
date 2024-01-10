@@ -9,6 +9,7 @@ using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MyCafe.ChairsAndTables;
+using MyCafe.Managers;
 using Netcode;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -34,6 +35,8 @@ public class Cafe : INetObject<NetFields>
     public NetBool NetCafeEnabled = new NetBool(false);
     public NetString NetCafeIndoor = new NetString(null);
     public NetString NetCafeOutdoor = new NetString(null);
+
+    internal CustomerManager Customers = new CustomerManager();
 
     internal bool Enabled
     {
