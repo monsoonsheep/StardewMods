@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 using MyCafe.Customers;
+using MyCafe.Customers.Data;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -10,7 +11,7 @@ using System.Linq;
 using xTile;
 using SUtility = StardewValley.Utility;
 
-namespace MyCafe.Managers;
+namespace MyCafe;
 
 internal sealed class AssetManager
 {

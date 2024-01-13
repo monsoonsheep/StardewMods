@@ -9,18 +9,25 @@ using MyCafe.ChairsAndTables;
 
 namespace MyCafe.Customers;
 
-internal class CustomerGroup
+public class CustomerGroup
 {
-    internal List<Customer> Members;
+    internal List<Customer> Members = new List<Customer>();
     internal Table ReservedTable;
 
     internal CustomerGroup(List<Customer> members)
     {
-        Members = members;
+        foreach (var m in members)
+            Members.Add(m);
     }
 
     internal CustomerGroup()
     {
+    }
+
+    internal void Add(Customer customer)
+    {
+        customer.Group = this;
+        Members.Add(customer);
     }
 
     internal bool ReserveTable(Table table)
@@ -37,8 +44,7 @@ internal class CustomerGroup
     internal bool MoveToTable()
     {
         List<Point> tiles = Members.Select(m => m.ReservedSeat.Value.Position).ToList();
-        foreach (Customer c in Members)
-            c.State = Customer.CustomerState.GoingToTable;
+        ReservedTable.State.Set(TableState.WaitingForCustomers);
         return MoveTo(Utility.GetLocationFromName(ReservedTable.CurrentLocation), tiles, Customer.SitDownBehavior);
     }
 

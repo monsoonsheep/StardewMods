@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MyCafe.ChairsAndTables;
 using Netcode;
+using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Pathfinding;
 using Object = StardewValley.Object;
@@ -12,15 +13,11 @@ namespace MyCafe.Customers;
 
 internal class Customer : NPC
 {
-    internal enum CustomerState
-    {
-        GoingToTable, WaitingToOrder, WaitingForFood, Eating, Leaving, Unknown
-    }
-
-    internal CustomerState State = CustomerState.GoingToTable;
     internal readonly NetRef<Seat> ReservedSeat = new NetRef<Seat>();
-    internal Object ItemToOrder = null;
+    internal NetRef<Item> ItemToOrder = new NetRef<Item>();
 
+    internal bool IsSittingDown;
+    internal CustomerGroup Group;
     private Vector2 _lerpStartPosition;
     private Vector2 _lerpEndPosition;
     private float _lerpPosition = -1f;
@@ -33,9 +30,14 @@ internal class Customer : NPC
             int direction = Utility.DirectionIntFromVectors(p.Tile, p.ReservedSeat.Value.Position.ToVector2());
             p.SitDown(direction);
             p.faceDirection(p.ReservedSeat.Value.SittingDirection);
+
+            p.IsSittingDown = true;
+            if (p.Group.Members.Any(other => !other.IsSittingDown))
+                return;
+
             Game1.delayedActions.Add(new DelayedAction(500, delegate ()
             {
-                p.ReservedSeat.Value.Table.IsReadyToOrder.Set(true);
+                p.ReservedSeat.Value.Table.State.Set(TableState.CustomersThinkingOfOrder);
             }));
         }
     };
@@ -48,27 +50,17 @@ internal class Customer : NPC
     protected override void initNetFields()
     {
         base.initNetFields();
-        NetFields.AddField(ReservedSeat);
+        NetFields.AddField(ReservedSeat).AddField(ItemToOrder);
     }
 
     public override void update(GameTime gameTime, GameLocation location)
     {
         base.update(gameTime, location);
-        speed = 4;
 
-        switch (State)
-        {
-            case CustomerState.GoingToTable:
-                break;
-            case CustomerState.WaitingToOrder:
-                break;
-            case CustomerState.WaitingForFood:
-                break;
-            case CustomerState.Eating:
-                break;
-            case CustomerState.Leaving:
-                break;
-        }
+        if (!Context.IsMainPlayer)
+            return;
+
+        speed = 4;
 
         if (_lerpPosition >= 0f)
         {
@@ -83,24 +75,6 @@ internal class Customer : NPC
                 _lerpPosition = -1f;
             }
         }
-    }
-
-    internal Vector2 GetSeatPosition()
-    {
-        if (modData.TryGetValue("MonsoonSheep.MyCafe_ModDataSeatPos", out var result))
-        {
-            var split = result.Split(' ');
-            Vector2 v = new Vector2(int.Parse(split[0]), int.Parse(split[1]));
-            return v;
-        }
-
-
-        return Vector2.Zero;
-    }
-
-    internal string GetOrderItem()
-    {
-        return modData.TryGetValue(ModKeys.MODDATA_ORDERITEM, out var result) ? result : null;
     }
 
     internal void SitDown(int direction)

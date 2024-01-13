@@ -5,7 +5,6 @@ using StardewValley.Objects;
 using System.Collections.Generic;
 using Utility = MyCafe.Utility;
 using MyCafe.ChairsAndTables;
-using MyCafe.Managers;
 
 namespace MyCafe.Patching;
 
@@ -53,7 +52,7 @@ internal class FurniturePatches : PatchCollection
         if (Utility.IsTable(__instance))
         {
             Furniture table = location.GetFurnitureAt(new Vector2(x, y));
-            if (Utility.IsTableTracked(table, location, out FurnitureTable trackedTable) && trackedTable is { IsReserved.Value: true })
+            if (Utility.IsTableTracked(table, location, out FurnitureTable trackedTable) && trackedTable is { IsReserved: true })
             {
                 __result = 2;
             }
@@ -75,7 +74,7 @@ internal class FurniturePatches : PatchCollection
     {
         if (Utility.IsTable(__instance))
         {
-            if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable is { IsReserved.Value: true })
+            if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable is { IsReserved: true })
             {
                 __result = false;
                 return false;
@@ -96,7 +95,7 @@ internal class FurniturePatches : PatchCollection
             {
                 __result = false;
             }
-            if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable is { IsReserved.Value: true })
+            if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable is { IsReserved: true })
             {
                 Log.Debug("Can't remove");
                 __result = false;
@@ -110,7 +109,7 @@ internal class FurniturePatches : PatchCollection
     {
         if (Utility.IsTable(__instance))
         {
-            if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable is { IsReserved.Value: true })
+            if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable is { IsReserved: true })
             {
                 if (!Context.IsMainPlayer)
                 {

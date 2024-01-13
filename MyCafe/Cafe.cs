@@ -9,7 +9,6 @@ using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MyCafe.ChairsAndTables;
-using MyCafe.Managers;
 using Netcode;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -28,38 +27,43 @@ public class Cafe : INetObject<NetFields>
 {
     public NetFields NetFields { get; } = new NetFields("Cafe");
 
-    public NetInt OpeningTime = new NetInt(630);
-    public NetInt ClosingTime = new NetInt(2200);
-    public NetCollection<Table> Tables = new NetCollection<Table>();
+    internal NetInt OpeningTime = new NetInt(630);
+    internal NetInt ClosingTime = new NetInt(2200);
+    private readonly NetCollection<Table> _tables = new NetCollection<Table>();
+    private readonly NetBool _cafeEnabled = new NetBool(false);
+    private readonly NetLocationRef _cafeIndoor = new NetLocationRef();
+    private readonly NetLocationRef _cafeOutdoor = new NetLocationRef(null);
 
-    public NetBool NetCafeEnabled = new NetBool(false);
-    public NetString NetCafeIndoor = new NetString(null);
-    public NetString NetCafeOutdoor = new NetString(null);
+    internal readonly IList<Item> MenuItems = new List<Item>(new Item[27]);
+    internal readonly IList<Item> RecentlyAddedMenuItems = new List<Item>(new Item[9]);
 
-    internal CustomerManager Customers = new CustomerManager();
+    internal CustomerManager Customers;
+    internal AssetManager Assets;
 
     internal bool Enabled
     {
-        get => NetCafeEnabled.Value;
-        set => NetCafeEnabled.Set(value);
+        get => _cafeEnabled.Value;
+        set => _cafeEnabled.Set(value);
     }
 
     internal GameLocation Indoor
     {
-        get => NetCafeIndoor.Value != null ? Game1.getLocationFromName(NetCafeIndoor.Value) : null;
-        set => NetCafeIndoor.Set(value.Name);
+        get => _cafeIndoor.Value;
+        set => _cafeIndoor.Set(value);
     }
 
     internal GameLocation Outdoor
     {
-        get => NetCafeOutdoor.Value != null ? Game1.getLocationFromName(NetCafeOutdoor.Value) : null;
-        set => NetCafeOutdoor.Set(value.Name);
+        get => _cafeOutdoor.Value;
+        set => _cafeOutdoor.Set(value);
     }
+
+    internal IList<Table> Tables 
+        => _tables as IList<Table>;
 
     internal int LastTimeCustomersArrived = 0;
 
     internal readonly Dictionary<Rectangle, List<Vector2>> MapTablesInCafeLocation = new();
-
 
     public Cafe()
     {
@@ -69,32 +73,30 @@ public class Cafe : INetObject<NetFields>
     private void InitNetFields()
     {
         NetFields.SetOwner(this)
-            .AddField(OpeningTime).AddField(ClosingTime).AddField(Tables).AddField(NetCafeEnabled).AddField(NetCafeIndoor).AddField(NetCafeOutdoor);
+            .AddField(OpeningTime).AddField(ClosingTime).AddField(_tables).AddField(_cafeEnabled).AddField(_cafeIndoor.NetFields).AddField(_cafeOutdoor.NetFields);
     }
 
     internal void Initialize(IModHelper helper)
     {
-        
+        Assets = new AssetManager();
+        Assets.LoadStoredCustomerData();
+        Customers = new CustomerManager();
+        Customers.Initialize(helper);
     }
 
     internal void DayUpdate(object sender, DayStartedEventArgs e)
     {
-        if (Enabled)
-            return;
-
-        if (UpdateCafeLocations() is false)
+        if (Context.IsMainPlayer)
         {
-            Enabled = false;
-        }
-        else
-        {
-            Enabled = true;
-            if (Context.IsMainPlayer)
+            if (UpdateCafeLocations() is true)
             {
+                Enabled = true;
                 Mod.ModHelper.Events.World.FurnitureListChanged += OnFurnitureListChanged;
                 PopulateTables();
                 PopulateRoutesToCafe();
-            }
+            } 
+            else if (Enabled)
+                Enabled = false;
         }
     }
 
@@ -225,14 +227,6 @@ public class Cafe : INetObject<NetFields>
         return true;
     }
 
-    internal FurnitureTable TryAddFurnitureTable(Furniture table, GameLocation location)
-    {
-        FurnitureTable newTable = new FurnitureTable(table, location.Name);
-
-        return TryAddTable(newTable)
-            ? newTable : null;
-    }
-
     internal void RemoveTable(FurnitureTable table)
     {
         if (!Tables.Contains(table))
@@ -264,7 +258,10 @@ public class Cafe : INetObject<NetFields>
 
     internal void FarmerClickTable(Table table, Farmer who)
     {
-
+        if (table.State.Value == TableState.CustomersDecidedOnOrder)
+        {
+            table.State.Set(TableState.CustomersWaitingForFood);
+        }
     }
 
     internal void OnRenderedWorld(object sender, RenderedWorldEventArgs e)
@@ -272,40 +269,45 @@ public class Cafe : INetObject<NetFields>
         // get list of reserved tables with center coords
         foreach (var table in Tables)
         {
-
-            if (table.IsReadyToOrder.Value && Game1.currentLocation.Name.Equals(table.CurrentLocation))
+            if (Game1.currentLocation.Name.Equals(table.CurrentLocation))
             {
                 Vector2 offset = new Vector2(0,
                     (float)Math.Round(4f * Math.Sin(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 250.0)));
 
-                foreach (Seat seat in table.Seats)
+                if (table.State.Value == TableState.CustomersDecidedOnOrder)
                 {
-                    if (seat.ReservingCustomer is { ItemToOrder: not null } customer)
+                    e.SpriteBatch.Draw(
+                        Game1.mouseCursors,
+                        Game1.GlobalToLocal(table.Center + new Vector2(-8, -64)) + offset,
+                        new Rectangle(402, 495, 7, 16),
+                        Color.Crimson,
+                        0f,
+                        new Vector2(1f, 4f),
+                        4f,
+                        SpriteEffects.None,
+                        1f);
+                }
+                else if (table.State.Value == TableState.CustomersWaitingForFood)
+                {
+                    foreach (Seat seat in table.Seats)
                     {
-                        Vector2 localPosition = customer.getLocalPosition(Game1.viewport);
-                        localPosition.Y -= 32 + customer.Sprite.SpriteHeight * 3;
+                        if (seat.ReservingCustomer is { ItemToOrder.Value: not null } customer)
+                        {
+                            Vector2 pos = customer.getLocalPosition(Game1.viewport);
+                            pos.Y -= 32 + customer.Sprite.SpriteHeight * 3;
 
-                        e.SpriteBatch.Draw(
-                            Game1.emoteSpriteSheet,
-                            localPosition + offset,
-                            new Rectangle(32, 0, 16, 16),
-                            Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 1f);
+                            e.SpriteBatch.Draw(
+                                Game1.emoteSpriteSheet,
+                                pos + offset,
+                                new Rectangle(32, 0, 16, 16),
+                                Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 1f);
 
-                        customer.ItemToOrder.drawInMenu(e.SpriteBatch, localPosition + offset, 0.35f, 1f, 1f);
+                            customer.ItemToOrder.Value.drawInMenu(e.SpriteBatch, pos + offset, 0.35f, 1f, 1f);
+                        }
                     }
                 }
-
-                e.SpriteBatch.Draw(
-                    Game1.mouseCursors,
-                    Game1.GlobalToLocal(table.Center + new Vector2(-8, -64)) + offset,
-                    new Rectangle(402, 495, 7, 16),
-                    Color.Crimson,
-                    0f,
-                    new Vector2(1f, 4f),
-                    4f,
-                    SpriteEffects.None,
-                    1f);
             }
+            
         }
     }
 
@@ -330,7 +332,7 @@ public class Cafe : INetObject<NetFields>
 
                     if (trackedChair?.Table is FurnitureTable table)
                     {
-                        if (table.IsReserved.Value)
+                        if (table.IsReserved)
                             Log.Warn("Removed a chair but the table was reserved");
 
                         table.RemoveChair(f);
@@ -435,7 +437,7 @@ public class Cafe : INetObject<NetFields>
         int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, ClosingTime.Value);
         int minutesTillOpens = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, OpeningTime.Value);
         int minutesSinceLastVisitors = SUtility.CalculateMinutesBetweenTimes(LastTimeCustomersArrived, Game1.timeOfDay);
-        float percentageOfTablesFree = (float)Mod.Cafe.Tables.Count(t => !t.IsReserved.Value) / Mod.Cafe.Tables.Count();
+        float percentageOfTablesFree = (float)Mod.Cafe.Tables.Count(t => !t.IsReserved) / Mod.Cafe.Tables.Count();
 
         if (minutesTillCloses <= 20)
             return;
@@ -510,6 +512,60 @@ public class Cafe : INetObject<NetFields>
                 method.Invoke(null, new[] { reverseRoute, null });
             }
         }
+    }
+
+    
+    internal bool OpenCafeMenuTileAction(GameLocation location, string[] args, Farmer player, Point tile)
+    {
+        if (!Context.IsMainPlayer)
+            return false;
+
+        if (Game1.activeClickableMenu == null && Context.IsPlayerFree)
+        {
+            Log.Debug("Opened cafe menu menu!");
+            // Game1.activeClickableMenu = new CafeMenu();
+        }
+
+        return true;
+    }
+
+    public bool AddToMenu(Item itemToAdd)
+    {
+        if (MenuItems.Any(x => x.ItemId == itemToAdd.ItemId))
+            return false;
+
+        for (int i = 0; i < MenuItems.Count; i++)
+        {
+            if (MenuItems[i] == null)
+            {
+                MenuItems[i] = itemToAdd.getOne();
+                MenuItems[i].Stack = 1;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public Item RemoveFromMenu(int slotNumber)
+    {
+        Item tmp = MenuItems[slotNumber];
+        if (tmp == null)
+            return null;
+
+        MenuItems[slotNumber] = null;
+        int firstEmpty = slotNumber;
+        for (int i = slotNumber + 1; i < MenuItems.Count; i++)
+        {
+            if (MenuItems[i] != null)
+            {
+                MenuItems[firstEmpty] = MenuItems[i];
+                MenuItems[i] = null;
+                firstEmpty += 1;
+            }
+        }
+
+        return tmp;
     }
 }
 

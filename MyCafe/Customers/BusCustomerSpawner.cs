@@ -8,14 +8,14 @@ using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MyCafe.ChairsAndTables;
-using MyCafe.Customers;
+using MyCafe.Customers.Data;
 using MyCafe.Interfaces;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Locations;
 using StardewValley.Pathfinding;
 
-namespace MyCafe.Managers;
+namespace MyCafe.Customers;
 
 internal class BusCustomerSpawner : ICustomerSpawner
 {
@@ -23,9 +23,9 @@ internal class BusCustomerSpawner : ICustomerSpawner
     internal IBusSchedulesApi BusSchedulesApi;
     internal List<CustomerGroup> ActiveGroups = new();
 
-    internal BusCustomerSpawner(IModHelper helper)
+    public void Initialize(IModHelper helper)
     {
-        Mod.Assets.LoadContentPackBusCustomers(helper, out CustomersData);
+        Mod.Cafe.Assets.LoadContentPackBusCustomers(helper, out CustomersData);
         BusSchedulesApi = Mod.ModHelper.ModRegistry.GetApi<IBusSchedulesApi>("MonsoonSheep.BusSchedules");
     }
 
@@ -67,11 +67,12 @@ internal class BusCustomerSpawner : ICustomerSpawner
             }
         }
 
-        group.Members = customers;
+        foreach (var c in customers)
+            group.Add(c);
         group.ReserveTable(table);
         foreach (Customer c in customers)
         {
-            c.ItemToOrder = ItemRegistry.Create<StardewValley.Object>("(O)128");
+            c.ItemToOrder.Set(ItemRegistry.Create<StardewValley.Object>("(O)128"));
         }
 
         GameLocation busStop = Game1.getLocationFromName("BusStop");

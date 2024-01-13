@@ -21,7 +21,7 @@ internal class Debug
                 WarpToBus();
                 break;
             case SButton.NumPad2:
-                Mod.Cafe.Customers.SpawnBusCustomers();
+                Mod.Cafe.Customers.SpawnCustomers();
                 break;
             case SButton.NumPad4:
                 Mod.Cafe.ClosingTime.Set(2400);
@@ -31,6 +31,9 @@ internal class Debug
                 break;
             case SButton.NumPad6:
                 Log.LogWithHudMessage($"Cafe time: {Mod.Cafe.ClosingTime.Value}");
+                break;
+            case SButton.NumPad7:
+                Mod.Cafe.Customers.GetLiveChatIntegration(Mod.ModHelper);
                 break;
             default:
                 return;

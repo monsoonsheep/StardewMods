@@ -9,7 +9,7 @@ using xTile.Dimensions;
 
 namespace MyCafe.Customers;
 
-public static class Pathfinding
+public static class PathfindingExtensions
 {
 
     public static bool PathTo(this NPC me, GameLocation targetLocation, Point targetTile, int finalFacingDirection = 0,

@@ -5,7 +5,6 @@ using System.Linq;
 using xTile.Dimensions;
 using Rectangle = xTile.Dimensions.Rectangle;
 using MyCafe.ChairsAndTables;
-using MyCafe.Managers;
 
 namespace MyCafe.Patching;
 
@@ -35,24 +34,24 @@ internal class GameLocationPatches : PatchCollection
 
     private static void CheckActionPostfix(GameLocation __instance, Location tileLocation, Rectangle viewport, Farmer who, ref bool __result)
     {
-        if (!Context.IsMainPlayer || __instance.Equals(Mod.Cafe.Indoor))
+        if (!Context.IsMainPlayer || (!__instance.Equals(Mod.Cafe.Indoor) && !__instance.Equals(Mod.Cafe.Outdoor)))
             return;
 
         foreach (LocationTable table in Mod.Cafe.Tables.OfType<LocationTable>())
         {
             if (table.BoundingBox.Value.Contains(tileLocation.X * 64, tileLocation.Y * 64))
             {
-                //if (!Context.IsMainPlayer)
-                //{
-                //    Sync.SendTableClick(table, who);
-                //}
-                //else
-                //{
-                //    TableManager.Instance.FarmerClickTable(table, who);
-                //}
+                if (!Context.IsMainPlayer)
+                {
+                    Sync.SendTableClick(table, who);
+                }
+                else
+                {
+                    Mod.Cafe.FarmerClickTable(table, who);
+                }
 
-                //__result = true;
-                //return;
+                __result = true;
+                return;
             }
         }
     }

@@ -1,11 +1,16 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MyCafe.Interfaces;
-using MyCafe.Managers;
 using MyCafe.Patching;
 using Netcode;
 using StardewModdingAPI;
@@ -23,9 +28,6 @@ public class Mod : StardewModdingAPI.Mod
     internal static NetRef<Cafe> NetCafe = new NetRef<Cafe>(new Cafe());
     internal static Cafe Cafe 
         => NetCafe.Value;
-
-    internal static AssetManager Assets;
-    internal static MenuManager Menu;
 
     internal static Texture2D Sprites;
 
@@ -60,7 +62,6 @@ public class Mod : StardewModdingAPI.Mod
         Sprites = helper.ModContent.Load<Texture2D>("assets/sprites.png");
     }
 
-   
     private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
     {
         ISpaceCoreApi spacecore = ModHelper.ModRegistry.GetApi<ISpaceCoreApi>("spacechase0.SpaceCore");
@@ -75,7 +76,7 @@ public class Mod : StardewModdingAPI.Mod
             AccessTools.Method(typeof(CafeSyncExtensions), nameof(CafeSyncExtensions.get_Cafe)), 
             AccessTools.Method(typeof(CafeSyncExtensions), nameof(CafeSyncExtensions.set_Cafe)));
 
-        ModConfig.Initialize();
+        ModConfig.InitializeGmcm();
 
         ModHelper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
         ModHelper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;

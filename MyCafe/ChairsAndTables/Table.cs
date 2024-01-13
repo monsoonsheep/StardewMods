@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Xml.Serialization;
 using MyCafe.Customers;
 using Netcode;
+using StardewValley;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 
@@ -13,17 +15,16 @@ namespace MyCafe.ChairsAndTables;
 [XmlInclude(typeof(LocationTable))]
 public abstract class Table : INetObject<NetFields>
 {
+    
     public NetFields NetFields { get; }
+
+    public NetEnum<TableState> State = new NetEnum<TableState>(TableState.Free);
 
     public readonly NetString NetCurrentLocation = new NetString();
 
     public readonly NetVector2 NetPosition = new NetVector2();
 
     public virtual NetRectangle BoundingBox { get; set; } = new NetRectangle();
-
-    public NetBool IsReadyToOrder = new NetBool(false);
-
-    public NetBool IsReserved = new NetBool(false);
 
     internal readonly NetCollection<Seat> Seats = new NetCollection<Seat>();
 
@@ -41,6 +42,8 @@ public abstract class Table : INetObject<NetFields>
 
     internal virtual Vector2 Center => BoundingBox.Center.ToVector2();
 
+    internal bool IsReserved => State.Value != TableState.Free;
+
     public Table()
     {
         NetFields = new NetFields(NetFields.GetNameForInstance(this));
@@ -55,20 +58,42 @@ public abstract class Table : INetObject<NetFields>
     protected virtual void InitNetFields()
     {
         NetFields.SetOwner(this)
-            .AddField(IsReserved).AddField(IsReadyToOrder).AddField(Seats).AddField(NetCurrentLocation).AddField(NetPosition).AddField(BoundingBox);
+            .AddField(State).AddField(Seats).AddField(NetCurrentLocation).AddField(NetPosition).AddField(BoundingBox);
+        State.fieldChangeVisibleEvent += delegate(NetEnum<TableState> field, TableState oldValue, TableState newValue)
+        {
+            if (oldValue == newValue)
+                return;
+
+            switch (newValue)
+            {
+                case TableState.CustomersThinkingOfOrder:
+                    Game1.delayedActions.Add(new DelayedAction(2000, delegate()
+                    {
+                        this.State.Set(TableState.CustomersDecidedOnOrder);
+                    }));
+                    break;
+                case TableState.CustomersDecidedOnOrder:
+                    foreach (Customer c in Seats.Select(s => s.ReservingCustomer))
+                    {
+                        
+                    }
+                    break;
+                case TableState.CustomersWaitingForFood:
+                    break;
+            }
+        };
     }
 
     internal virtual void Free()
     {
-        IsReadyToOrder.Set(false);
-        IsReserved.Set(false);
+        State.Set(TableState.Free);
         foreach (var s in Seats)
             s.Free();
     }
 
     internal virtual bool Reserve(List<Customer> customers)
     {
-        if (IsReserved.Value || Seats.Count < customers.Count)
+        if (IsReserved || Seats.Count < customers.Count)
             return false;
 
         for (int i = 0; i < customers.Count; i++)
@@ -77,7 +102,17 @@ public abstract class Table : INetObject<NetFields>
             Seats[i].Reserve(customers[i]);
         }
 
-        IsReserved.Set(true);
+        State.Set(TableState.WaitingForCustomers);
         return true;
     }
+}
+
+public enum TableState
+{
+    Free,
+    WaitingForCustomers,
+    CustomersThinkingOfOrder,
+    CustomersDecidedOnOrder,
+    CustomersWaitingForFood,
+    CustomersEating
 }

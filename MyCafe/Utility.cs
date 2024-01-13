@@ -9,7 +9,6 @@ using xTile.ObjectModel;
 using xTile.Tiles;
 using SObject = StardewValley.Object;
 using MyCafe.ChairsAndTables;
-using MyCafe.Managers;
 using MyCafe.Customers;
 
 namespace MyCafe;

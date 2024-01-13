@@ -5,19 +5,19 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using MyCafe.ChairsAndTables;
-using MyCafe.Customers;
+using MyCafe.Customers.Data;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Pathfinding;
 using SUtility = StardewValley.Utility;
 
-namespace MyCafe.Managers;
+namespace MyCafe.Customers;
 
 internal class VillagerCustomerSpawner : ICustomerSpawner
 {
     internal readonly Dictionary<string, VillagerCustomerData> VillagerData = new();
 
-    internal VillagerCustomerSpawner(IModHelper helper)
+    public void Initialize(IModHelper helper)
     {
         int count = 0, doneCount = 0;
         SUtility.ForEachVillager(npc =>
@@ -132,7 +132,7 @@ internal class VillagerCustomerSpawner : ICustomerSpawner
             if (targetLocation != null)
             {
                 Stack<Point> routeToScheduleItem =
-                    Pathfinding.PathfindFromLocationToLocation(original.currentLocation, original.TilePoint,
+                    PathfindingExtensions.PathfindFromLocationToLocation(original.currentLocation, original.TilePoint,
                                                                targetLocation, originalPathDescription.targetTile,
                                                                original);
 

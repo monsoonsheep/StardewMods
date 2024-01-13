@@ -8,6 +8,11 @@ townInterior.png
 townInterior_2.png
 walls_and_floors.png
 
+# Extras
+*.aseprite
+*.tsx
+/reference
+
 # User-specific files
 *.rsuser
 *.suo
@@ -367,12 +372,3 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
-
-# Assets from other mods
-FarmCafe/assets/Customers/Temp*
-FarmCafe/assets/Portraits/Temp*
-
-# Extras
-*.aseprite
-*.tsx
-/reference

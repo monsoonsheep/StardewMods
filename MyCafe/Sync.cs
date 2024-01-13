@@ -5,7 +5,6 @@ using StardewValley;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using MyCafe.ChairsAndTables;
-using MyCafe.Managers;
 
 namespace MyCafe;
 
@@ -38,22 +37,21 @@ internal static class Sync
             }
             catch
             {
-                Log.Debug("Invalid message from host", LogLevel.Warn);
+                Log.Debug("Invalid message from client", LogLevel.Error);
             }
         }
         else if (e.Type == "VisitorDoEmote" && !Context.IsMainPlayer)
         {
             try
             {
-                var info = e.ReadAs<KeyValuePair<string, int>>();
-                NPC npc = Game1.getCharacterFromName(info.Key);
-                int emote = info.Value;
+                var (key, emote) = e.ReadAs<KeyValuePair<string, int>>();
+                NPC npc = Game1.getCharacterFromName(key);
 
                 npc?.doEmote(emote);
             }
             catch
             {
-                Log.Debug("Invalid message from host", LogLevel.Warn);
+                Log.Debug("Invalid message from host", LogLevel.Error);
             }
         }
     }

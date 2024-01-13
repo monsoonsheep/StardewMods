@@ -89,7 +89,7 @@ public class FurnitureTable : Table
 
     internal FurnitureSeat AddChair(Furniture chairToAdd)
     {
-        if (IsReserved.Value)
+        if (IsReserved)
             return null;
 
         if (Seats.Any(c => c.Position == chairToAdd.TileLocation.ToPoint()))
@@ -103,7 +103,7 @@ public class FurnitureTable : Table
 
     internal bool RemoveChair(Furniture chairToRemove)
     {
-        if (IsReserved.Value)
+        if (IsReserved)
             return false;
 
         if (!Seats.Any(c => c.Position == chairToRemove.TileLocation.ToPoint()))

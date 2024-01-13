@@ -4,6 +4,7 @@ using Netcode;
 using StardewValley.Locations;
 using StardewValley.Network;
 using System.Xml.Serialization;
+using StardewValley;
 
 namespace MyCafe.ChairsAndTables;
 
@@ -16,7 +17,7 @@ public abstract class Seat: INetObject<NetFields>
 
     private readonly NetPoint _position = new NetPoint();
 
-    private readonly NetNPCRef _reservingCustomer = new NetNPCRef();
+    private readonly NetRef<Customer> _reservingCustomer = new NetRef<Customer>();
 
     private Table _table;
 
@@ -28,9 +29,11 @@ public abstract class Seat: INetObject<NetFields>
 
     internal Customer ReservingCustomer
     {
-        get => _reservingCustomer.Get(Utility.GetLocationFromName(Table?.CurrentLocation)) as Customer;
-        set => _reservingCustomer.Set(Utility.GetLocationFromName(Table?.CurrentLocation), value);
+        get => _reservingCustomer.Value;
+        set => _reservingCustomer.Set(value);
     }
+
+    internal GameLocation Location => Utility.GetLocationFromName(Table?.CurrentLocation);
 
     internal Point Position
     {
@@ -56,7 +59,8 @@ public abstract class Seat: INetObject<NetFields>
 
     protected virtual void InitNetFields()
     {
-        NetFields.SetOwner(this).AddField(_position);
+        NetFields.SetOwner(this)
+            .AddField(_position).AddField(_reservingCustomer);
     }
 
     internal virtual bool Reserve(Customer customer)
@@ -65,6 +69,7 @@ public abstract class Seat: INetObject<NetFields>
             return false;
         
         customer.ReservedSeat.Set(this);
+        ReservingCustomer = customer;
         return true;
     }
 

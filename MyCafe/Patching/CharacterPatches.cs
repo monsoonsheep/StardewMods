@@ -44,7 +44,7 @@ internal class CharacterPatches : PatchCollection
     {
         if (!probe && __instance is Customer c) // TODO: make work for regular NPCs
         {
-            if (who.ActiveObject?.ItemId != c.GetOrderItem())
+            if (who.ActiveObject?.ItemId != c.ItemToOrder.Value?.ItemId)
                 return true;
 
             //c.OrderReceive();

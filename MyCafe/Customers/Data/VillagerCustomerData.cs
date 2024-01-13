@@ -1,7 +1,7 @@
 ﻿using StardewValley;
 using System.Collections.Generic;
 
-namespace MyCafe.Customers;
+namespace MyCafe.Customers.Data;
 
 public class VillagerCustomerData : CustomerData
 {

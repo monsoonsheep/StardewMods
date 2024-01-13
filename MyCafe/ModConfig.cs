@@ -6,7 +6,7 @@ internal static class ModConfig
 {
     internal static ConfigModel LoadedConfig;
 
-    internal static void Initialize()
+    internal static void InitializeGmcm()
     {
         static string GetFrequencyText(int n)
         {
@@ -59,6 +59,9 @@ internal static class ModConfig
 internal class ConfigModel
 {
     public int CustomerSpawnFrequency { get; set; } = 2;
-
     public int NpcCustomerSpawnFrequency { get; set; } = 2;
+    public string YoutubeClientId { get; set; } = "Your Client Id here";
+    public string YoutubeClientSecret { get; set; } = "Your Client Secret here";
+    public string TwitchClientId { get; set; } = "Your Twitch OAuth Password here";
+    public string TwitchClientSecret { get; set; } = "Your Twitch OAuth Password here";
 }
