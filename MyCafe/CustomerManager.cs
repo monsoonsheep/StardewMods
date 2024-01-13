@@ -32,9 +32,12 @@ internal sealed partial class CustomerManager
 
         BusCustomers.Initialize(helper);
         VillagerCustomers.Initialize(helper);
-    }
 
-    internal partial void GetLiveChatIntegration(IModHelper helper);
+        #if YOUTUBE || TWITCH
+        ChatCustomers = new ChatCustomerSpawner();
+        ChatCustomers.Initialize(helper);
+        #endif
+    }
 
     internal void DayUpdate()
     {

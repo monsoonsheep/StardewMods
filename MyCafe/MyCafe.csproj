@@ -32,7 +32,6 @@
 	</ItemGroup>
 	<ItemGroup Condition="'$(EnableChatIntegration)' != 'disabled'">
 		<Compile Include="LiveChatIntegration\ChatCustomerSpawner.cs" />
-		<Compile Include="LiveChatIntegration\CustomerManager_ChatIntegration.cs" />
 		<Compile Include="LiveChatIntegration\IStreamManager.cs" />
 	</ItemGroup>
 	<Choose>
