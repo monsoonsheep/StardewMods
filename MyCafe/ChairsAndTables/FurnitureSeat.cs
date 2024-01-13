@@ -7,7 +7,7 @@ namespace MyCafe.ChairsAndTables;
 [XmlType("Mods_MonsoonSheep_MyCafe_FurnitureSeat")]
 public sealed class FurnitureSeat : Seat
 {
-    internal readonly NetRef<Furniture> ActualChair = new NetRef<Furniture>();
+    internal readonly NetRef<Furniture> ActualChair = [];
 
     public FurnitureSeat() : base()
     {

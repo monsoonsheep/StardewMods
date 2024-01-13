@@ -19,13 +19,13 @@ public abstract class Table : INetObject<NetFields>
 
     public NetEnum<TableState> State = new NetEnum<TableState>(TableState.Free);
 
-    public readonly NetString NetCurrentLocation = new NetString();
+    public readonly NetString NetCurrentLocation = [];
 
-    public readonly NetVector2 NetPosition = new NetVector2();
+    public readonly NetVector2 NetPosition = [];
 
-    public virtual NetRectangle BoundingBox { get; set; } = new NetRectangle();
+    public virtual NetRectangle BoundingBox { get; set; } = [];
 
-    internal readonly NetCollection<Seat> Seats = new NetCollection<Seat>();
+    internal readonly NetCollection<Seat> Seats = [];
 
     public virtual Vector2 Position
     {

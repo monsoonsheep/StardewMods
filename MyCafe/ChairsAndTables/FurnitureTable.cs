@@ -13,7 +13,7 @@ namespace MyCafe.ChairsAndTables;
 [XmlType("Mods_MonsoonSheep_MyCafe_FurnitureTable")]
 public class FurnitureTable : Table
 {
-    internal readonly NetRef<Furniture> ActualTable = new NetRef<Furniture>();
+    internal readonly NetRef<Furniture> ActualTable = [];
 
     public FurnitureTable() : base()
     {

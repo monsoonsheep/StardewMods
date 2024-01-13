@@ -99,7 +99,7 @@ internal static class Utility
 
     internal static string GetTileProperties(Tile tile)
     {
-        return tile == null ? "there's no tile" : tile.Properties.ToList().Concat(tile.TileIndexProperties.ToList() ?? new List<KeyValuePair<string, PropertyValue>>()).Aggregate("", (currentTile, property) => currentTile + $"{property.Key}: {property.Value}, ");
+        return tile == null ? "there's no tile" : tile.Properties.ToList().Concat(tile.TileIndexProperties.ToList() ?? []).Aggregate("", (currentTile, property) => currentTile + $"{property.Key}: {property.Value}, ");
     }
 
     internal static GameLocation GetLocationFromName(string name)

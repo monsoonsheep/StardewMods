@@ -13,7 +13,7 @@ namespace MyCafe;
 
 internal sealed class AssetManager
 {
-    internal List<CustomerModel> CustomerModels = new List<CustomerModel>();
+    internal List<CustomerModel> CustomerModels = [];
 
     internal AssetManager()
     {

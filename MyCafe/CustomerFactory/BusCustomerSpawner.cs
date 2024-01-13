@@ -18,7 +18,7 @@ internal class BusCustomerSpawner : ICustomerSpawner
 {
     internal Dictionary<string, BusCustomerData> CustomersData;
     internal IBusSchedulesApi BusSchedulesApi;
-    internal List<CustomerGroup> ActiveGroups = new();
+    internal List<CustomerGroup> ActiveGroups = [];
 
     public void Initialize(IModHelper helper)
     {
@@ -49,7 +49,7 @@ internal class BusCustomerSpawner : ICustomerSpawner
         if (datas == null || !datas.Any())
             return false;
 
-        List<Customer> customers = new List<Customer>();
+        List<Customer> customers = [];
         foreach (var data in datas)
         {
             try

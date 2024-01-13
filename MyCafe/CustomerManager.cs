@@ -7,13 +7,13 @@ using System.Linq;
 
 namespace MyCafe;
 
-internal sealed partial class CustomerManager
+internal sealed class CustomerManager
 {
     internal ICustomerSpawner BusCustomers;
     internal ICustomerSpawner VillagerCustomers;
     internal ICustomerSpawner ChatCustomers;
 
-    internal readonly List<CustomerGroup> CurrentGroups = new();
+    internal readonly List<CustomerGroup> CurrentGroups = [];
 
     internal CustomerManager(IModHelper helper)
     {

@@ -14,24 +14,20 @@ namespace BusSchedules;
 
 internal class BusManager
 {
-    private readonly WeakReference<BusStop> busLocation = new WeakReference<BusStop>((BusStop) Game1.getLocationFromName("BusStop"));
+    private readonly WeakReference<BusStop> _busLocation = new WeakReference<BusStop>((BusStop) Game1.getLocationFromName("BusStop"));
 
     internal BusStop BusLocation
     {
         get
         {
-            if (busLocation.TryGetTarget(out BusStop b))
-            {
+            if (_busLocation.TryGetTarget(out BusStop b))
                 return b;
-            }
-            else
-            {
-                Log.Warn("Bus Location updating");
-                BusStop l = (BusStop) Game1.getLocationFromName("BusStop");
-                UpdateLocation(Mod.ModHelper, l);
-                Log.Error($"New location {(l is null ? "is null" : "is valid")}");
-                return l;
-            }
+
+            Log.Warn("Bus Location updating");
+            BusStop l = (BusStop) Game1.getLocationFromName("BusStop");
+            UpdateLocation(Mod.ModHelper, l);
+            Log.Debug($"New location {(l == null ? "is null" : "updated")}");
+            return l;
         }
     }
     internal Point BusDoorPosition = new Point(12, 9);
@@ -66,7 +62,7 @@ internal class BusManager
 
     internal void UpdateLocation(IModHelper helper, BusStop location)
     {
-        busLocation.SetTarget(location);
+        _busLocation.SetTarget(location);
 
         BusPositionField = helper.Reflection.GetField<Vector2>(location, "busPosition");
         BusMotionField = helper.Reflection.GetField<Vector2>(location, "busMotion");
@@ -172,14 +168,6 @@ internal class BusManager
         BusPosition = new Vector2(BusLocation.map.RequireLayer("Back").DisplayWidth, BusPosition.Y);
     }
 
-    /// <summary>
-    ///     Start the bus driving back animation
-    /// </summary>
-    internal void BusReturn()
-    {
-        BusDriveBack(); // TODO remove
-    }
-
     internal void BusDriveBack()
     {
         if (Context.IsMainPlayer)
@@ -194,7 +182,7 @@ internal class BusManager
         {
             SetBusOutOfFrame();
             BusLocation.localSound("busDriveOff");
-            // The UpdateWhenCurrentLocation postfix will handle the movement
+            // The UpdateWhenCurrentLocation postfix will handle the movement and call AfterDriveBack
             BusReturning = true;
             BusMotion = new Vector2(-6f, 0f);
         }
@@ -222,13 +210,13 @@ internal class BusManager
             door.pingPong = true;
             door.interval = 70f;
             door.currentParentTileIndex = 5;
-            door.endFunction = _ => Events.Invoke_BusArrive();
+            door.endFunction = _ => BusEvents.Invoke_BusArrive();
             door.paused = false;
             BusDoor = door;
             BusLocation.localSound("trashcanlid");
         }
         else
-            Events.Invoke_BusArrive();
+            BusEvents.Invoke_BusArrive();
     }
 
     internal void ResetBus()

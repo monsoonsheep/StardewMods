@@ -109,7 +109,7 @@ internal class BusStopPatches : PatchCollection
         // If bus is currently moving in the location or it's about to arrive in 20 minutes or it's only been 20 minutes since it left
         if (Bm.BusLeaving || Bm.BusReturning || (Bm.BusGone && (Mod.TimeUntilNextArrival <= 20 || Mod.TimeSinceLastArrival <= 20)))
         {
-            Log.LogWithHudMessage("You must wait 10 minutes");
+            Game1.chatBox.addMessage("The bus will be ready in 10 minutes.", Color.White);
             __result = false;
             return false;
         }

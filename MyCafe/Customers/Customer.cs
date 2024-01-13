@@ -12,8 +12,8 @@ namespace MyCafe.Customers;
 internal class Customer(string name, Vector2 position, string location, AnimatedSprite sprite, Texture2D portrait)
     : NPC(sprite, position, location, 2, name, portrait, eventActor: true)
 {
-    internal readonly NetRef<Seat> ReservedSeat = new NetRef<Seat>();
-    internal NetRef<Item> ItemToOrder = new NetRef<Item>();
+    internal readonly NetRef<Seat> ReservedSeat = [];
+    internal NetRef<Item> ItemToOrder = [];
     internal NetBool DrawName = new NetBool(false);
 
     internal bool IsSittingDown;

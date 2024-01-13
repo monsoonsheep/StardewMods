@@ -83,7 +83,7 @@ internal class VillagerCustomerSpawner : ICustomerSpawner
         npc.currentLocation.characters.Add(customer);
 
         VillagerData[npc.Name].RealNpc = npc;
-        CustomerGroup group = new CustomerGroup(new() { customer });
+        CustomerGroup group = new CustomerGroup([customer]);
         groupSpawned = group;
         return true;
     }

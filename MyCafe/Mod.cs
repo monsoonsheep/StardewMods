@@ -12,6 +12,7 @@ using StardewValley.Objects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using SUtility = StardewValley.Utility;
 
 namespace MyCafe;
@@ -61,8 +62,7 @@ public class Mod : StardewModdingAPI.Mod
         helper.Events.GameLoop.TimeChanged += OnTimeChanged;
         helper.Events.Display.RenderedWorld += OnRenderedWorld;
         helper.Events.World.FurnitureListChanged += OnFurnitureListChanged;
-        helper.Events.Multiplayer.PeerConnected += Sync.OnPeerConnected;
-        helper.Events.Multiplayer.ModMessageReceived += Sync.OnModMessageReceived;
+        helper.Events.Multiplayer.ModMessageReceived += OnModMessageReceived;
         helper.Events.Input.ButtonPressed += Debug.ButtonPress;
 
         Sprites = helper.ModContent.Load<Texture2D>("assets/sprites.png");
@@ -120,7 +120,7 @@ public class Mod : StardewModdingAPI.Mod
         int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, Cafe.ClosingTime.Value);
         int minutesTillOpens = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, Cafe.OpeningTime.Value);
         int minutesSinceLastVisitors = SUtility.CalculateMinutesBetweenTimes(Cafe.LastTimeCustomersArrived, Game1.timeOfDay);
-        float percentageOfTablesFree = (float)Mod.Cafe.Tables.Count(t => !t.IsReserved) / Cafe.Tables.Count();
+        float percentageOfTablesFree = (float)Mod.Cafe.Tables.Count(t => !t.IsReserved) / Cafe.Tables.Count;
 
         if (minutesTillCloses <= 20)
             return;
@@ -270,4 +270,52 @@ public class Mod : StardewModdingAPI.Mod
         }
     }
 
+    internal static void OnModMessageReceived(object sender, ModMessageReceivedEventArgs e)
+    {
+        if (e.FromModID != Mod.ModManifest.UniqueID)
+            return;
+
+        if (e.Type == "ClickTable" && Context.IsMainPlayer)
+        {
+            try
+            {
+                var data = e.ReadAs<KeyValuePair<string, string>>();
+
+                Farmer who = Game1.getFarmer(long.Parse(data.Key));
+                var matches = Regex.Matches(data.Value, @"\d+");
+                if (who != null && matches.Count == 2)
+                {
+                    Table table = Mod.Cafe.GetTableAt(who.currentLocation, new Vector2(float.Parse(matches[0].Value), float.Parse(matches[1].Value)));
+                    if (table != null)
+                        Cafe.FarmerClickTable(table, who);
+                }
+            }
+            catch
+            {
+                Log.Debug("Invalid message from client", LogLevel.Error);
+            }
+        }
+        else if (e.Type == "VisitorDoEmote" && !Context.IsMainPlayer)
+        {
+            try
+            {
+                var (key, emote) = e.ReadAs<KeyValuePair<string, int>>();
+                NPC npc = Game1.getCharacterFromName(key);
+
+                npc?.doEmote(emote);
+            }
+            catch
+            {
+                Log.Debug("Invalid message from host", LogLevel.Error);
+            }
+        }
+    }
+
+    internal static void SendTableClick(Table table, Farmer who)
+    {
+        Mod.ModHelper.Multiplayer.SendMessage(
+            message: new KeyValuePair<string, string>(who.UniqueMultiplayerID.ToString(), table.Position.ToString()),
+            messageType: "ClickTable",
+            modIDs: [Mod.ModManifest.UniqueID]);
+    }
 }

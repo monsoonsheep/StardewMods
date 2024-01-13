@@ -9,7 +9,7 @@ namespace MyCafe.Customers;
 
 public class CustomerGroup
 {
-    internal List<Customer> Members = new List<Customer>();
+    internal List<Customer> Members = [];
     internal Table ReservedTable;
 
     internal CustomerGroup(List<Customer> members)

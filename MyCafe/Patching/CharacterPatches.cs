@@ -15,29 +15,33 @@ internal class CharacterPatches : PatchCollection
 {
     public CharacterPatches()
     {
-        Patches = new List<Patch>
-        {
-            new (
+        Patches =
+        [
+            new(
                 typeof(PathFindController),
                 "moveCharacter",
-                new [] { typeof(GameTime) },
+                [typeof(GameTime)],
                 transpiler: MoveCharacterTranspiler),
-            new (
+
+            new(
                 typeof(Character),
                 "doEmote",
-                new[] { typeof(int) , typeof(bool), typeof(bool) },
+                [typeof(int), typeof(bool), typeof(bool)],
                 postfix: DoEmotePostfix),
-            new (
+
+            new(
                 typeof(NPC),
                 "tryToReceiveActiveObject",
-                new[] { typeof(Farmer), typeof(bool) },
+                [typeof(Farmer), typeof(bool)],
                 prefix: TryToReceiveActiveObjectPrefix),
-            new (
+
+            new(
                 typeof(Game1),
                 "warpCharacter",
-                new[] { typeof(NPC), typeof(GameLocation), typeof(Vector2) },
-                postfix: WarpCharacterPostfix),
-        };
+                [typeof(NPC), typeof(GameLocation), typeof(Vector2)],
+                postfix: WarpCharacterPostfix)
+
+        ];
     }
 
     private static bool TryToReceiveActiveObjectPrefix(NPC __instance, Farmer who, bool probe)

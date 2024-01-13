@@ -12,19 +12,21 @@ internal class GameLocationPatches : PatchCollection
 {
     public GameLocationPatches()
     {
-        Patches = new List<Patch>
-        {
-            new (
+        Patches =
+        [
+            new(
                 typeof(GameLocation),
                 "checkAction",
-                new [] { typeof(Location), typeof(Rectangle), typeof(Farmer) },
+                [typeof(Location), typeof(Rectangle), typeof(Farmer)],
                 postfix: CheckActionPostfix),
-            new (
+
+            new(
                 typeof(Farm),
                 "initNetFields",
                 null,
-                postfix: FarmInitNetFieldsPostfix),
-        };
+                postfix: FarmInitNetFieldsPostfix)
+
+        ];
     }
 
     private static void FarmInitNetFieldsPostfix(Farm __instance)
@@ -43,7 +45,7 @@ internal class GameLocationPatches : PatchCollection
             {
                 if (!Context.IsMainPlayer)
                 {
-                    Sync.SendTableClick(table, who);
+                    Mod.SendTableClick(table, who);
                 }
                 else
                 {

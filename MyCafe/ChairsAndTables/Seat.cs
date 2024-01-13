@@ -13,9 +13,9 @@ public abstract class Seat : INetObject<NetFields>
 {
     public NetFields NetFields { get; }
 
-    private readonly NetPoint _position = new NetPoint();
+    private readonly NetPoint _position = [];
 
-    private readonly NetRef<Customer> _reservingCustomer = new NetRef<Customer>();
+    private readonly NetRef<Customer> _reservingCustomer = [];
 
     private Table _table;
 

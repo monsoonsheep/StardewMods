@@ -7,25 +7,18 @@ using System.Reflection;
 // ReSharper disable InconsistentNaming
 
 namespace MyCafe.Patching;
-internal class Patch
+internal class Patch(
+    Type targetType,
+    string targetMethodName,
+    Type[] arguments,
+    Delegate prefix = null,
+    Delegate postfix = null,
+    Delegate transpiler = null)
 {
-    internal MethodInfo _targetMethod;
-    internal Delegate _prefixMethod;
-    internal Delegate _postfixMethod;
-    internal Delegate _transpilerMethod;
-
-    public Patch(Type targetType,
-        string targetMethodName,
-        Type[] arguments,
-        Delegate prefix = null,
-        Delegate postfix = null,
-        Delegate transpiler = null)
-    {
-        _targetMethod = AccessTools.Method(targetType, targetMethodName, arguments);
-        _prefixMethod = prefix;
-        _postfixMethod = postfix;
-        _transpilerMethod = transpiler;
-    }
+    internal MethodInfo _targetMethod = AccessTools.Method(targetType, targetMethodName, arguments);
+    internal Delegate _prefixMethod = prefix;
+    internal Delegate _postfixMethod = postfix;
+    internal Delegate _transpilerMethod = transpiler;
 }
 
 internal abstract class PatchCollection

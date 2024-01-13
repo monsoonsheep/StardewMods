@@ -24,7 +24,7 @@ public class Cafe : INetObject<NetFields>
 
     internal NetInt OpeningTime = new NetInt(630);
     internal NetInt ClosingTime = new NetInt(2200);
-    private readonly NetCollection<Table> _tables = new NetCollection<Table>();
+    private readonly NetCollection<Table> _tables = [];
     private readonly NetBool _cafeEnabled = new NetBool(false);
     private readonly NetLocationRef _cafeIndoor = new NetLocationRef();
     private readonly NetLocationRef _cafeOutdoor = new NetLocationRef(null);
@@ -292,7 +292,7 @@ public class Cafe : INetObject<NetFields>
 
     internal void PopulateRoutesToCafe()
     {
-        MethodInfo method = AccessTools.Method(typeof(WarpPathfindingCache), "AddRoute", new[] { typeof(List<string>), typeof(Gender?) });
+        MethodInfo method = AccessTools.Method(typeof(WarpPathfindingCache), "AddRoute", [typeof(List<string>), typeof(Gender?)]);
         if (method == null)
         {
             Log.Error("Couldn't find method to add route");
@@ -323,16 +323,16 @@ public class Cafe : INetObject<NetFields>
             var reverseRoute = new List<string>(route);
             reverseRoute.Reverse();
 
-            method.Invoke(null, new[] { route, (object)null });
-            method.Invoke(null, new[] { reverseRoute, (object)null });
+            method.Invoke(null, [route, (object)null]);
+            method.Invoke(null, [reverseRoute, (object)null]);
 
             if (Indoor != null)
             {
                 route.Add(Indoor.Name);
                 reverseRoute.Insert(0, Indoor.Name);
 
-                method.Invoke(null, new[] { route, null });
-                method.Invoke(null, new[] { reverseRoute, null });
+                method.Invoke(null, [route, (object)null]);
+                method.Invoke(null, [reverseRoute, (object)null]);
             }
         }
     }

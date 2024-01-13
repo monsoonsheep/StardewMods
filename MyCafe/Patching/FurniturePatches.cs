@@ -11,39 +11,44 @@ internal class FurniturePatches : PatchCollection
 {
     public FurniturePatches()
     {
-        Patches = new List<Patch>
-        {
+        Patches =
+        [
             new(
                 typeof(Furniture),
                 "clicked",
-                new[] { typeof(Farmer) },
+                [typeof(Farmer)],
                 prefix: ClickedPrefix
             ),
+
             new(
                 typeof(Furniture),
                 "GetAdditionalFurniturePlacementStatus",
-                new[] { typeof(GameLocation), typeof(int), typeof(int), typeof(Farmer) },
+                [typeof(GameLocation), typeof(int), typeof(int), typeof(Farmer)],
                 postfix: GetAdditionalFurniturePlacementStatusPostfix
             ),
+
             new(
                 typeof(Furniture),
                 "performObjectDropInAction",
-                new[] { typeof(Item), typeof(bool), typeof(Farmer) },
+                [typeof(Item), typeof(bool), typeof(Farmer)],
                 prefix: PerformObjectDropInActionPrefix
             ),
+
             new(
                 typeof(Furniture),
                 "canBeRemoved",
-                new[] { typeof(Farmer) },
+                [typeof(Farmer)],
                 postfix: CanBeRemovedPostfix
             ),
+
             new(
                 typeof(Furniture),
                 "AddSittingFarmer",
-                new[] { typeof(Farmer) },
+                [typeof(Farmer)],
                 prefix: AddSittingFarmerPrefix
-            ),
-        };
+            )
+
+        ];
     }
 
     private static void GetAdditionalFurniturePlacementStatusPostfix(Furniture __instance, GameLocation location, int x, int y, Farmer who, ref int __result)
@@ -51,8 +56,9 @@ internal class FurniturePatches : PatchCollection
         if (Utility.IsTable(__instance))
         {
             Furniture table = location.GetFurnitureAt(new Vector2(x, y));
-            if (Utility.IsTableTracked(table, location, out FurnitureTable trackedTable) && trackedTable is { IsReserved: true })
+            if (Utility.IsTableTracked(table, location, out FurnitureTable trackedTable) && trackedTable.IsReserved)
             {
+                // What does this mean?
                 __result = 2;
             }
         }
@@ -73,7 +79,7 @@ internal class FurniturePatches : PatchCollection
     {
         if (Utility.IsTable(__instance))
         {
-            if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable is { IsReserved: true })
+            if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable.IsReserved)
             {
                 __result = false;
                 return false;
@@ -90,13 +96,9 @@ internal class FurniturePatches : PatchCollection
 
         if (Utility.IsTable(__instance))
         {
-            if (!Context.IsMainPlayer && __instance.modData.TryGetValue(ModKeys.MODDATA_TABLERESERVED, out var val) && val == "T")
+            if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable.IsReserved)
             {
-                __result = false;
-            }
-            if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable is { IsReserved: true })
-            {
-                Log.Debug("Can't remove");
+                Game1.addHUDMessage(new HUDMessage("Can't remove this furniture", 1000, fadeIn: false));
                 __result = false;
             }
         }
@@ -108,11 +110,11 @@ internal class FurniturePatches : PatchCollection
     {
         if (Utility.IsTable(__instance))
         {
-            if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable is { IsReserved: true })
+            if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable.IsReserved)
             {
                 if (!Context.IsMainPlayer)
                 {
-                    Sync.SendTableClick(trackedTable, who);
+                    Mod.SendTableClick(trackedTable, who);
                 }
                 else
                 {
