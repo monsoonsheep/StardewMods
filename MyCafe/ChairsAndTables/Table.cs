@@ -1,10 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Xml.Serialization;
-using MyCafe.Customers;
+﻿using MyCafe.Customers;
 using Netcode;
 using StardewValley;
-using Rectangle = Microsoft.Xna.Framework.Rectangle;
+using System.Collections.Generic;
+using System.Linq;
+using System.Xml.Serialization;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 
@@ -15,7 +14,7 @@ namespace MyCafe.ChairsAndTables;
 [XmlInclude(typeof(LocationTable))]
 public abstract class Table : INetObject<NetFields>
 {
-    
+
     public NetFields NetFields { get; }
 
     public NetEnum<TableState> State = new NetEnum<TableState>(TableState.Free);
@@ -59,7 +58,7 @@ public abstract class Table : INetObject<NetFields>
     {
         NetFields.SetOwner(this)
             .AddField(State).AddField(Seats).AddField(NetCurrentLocation).AddField(NetPosition).AddField(BoundingBox);
-        State.fieldChangeVisibleEvent += delegate(NetEnum<TableState> field, TableState oldValue, TableState newValue)
+        State.fieldChangeVisibleEvent += delegate (NetEnum<TableState> field, TableState oldValue, TableState newValue)
         {
             if (oldValue == newValue)
                 return;
@@ -67,7 +66,7 @@ public abstract class Table : INetObject<NetFields>
             switch (newValue)
             {
                 case TableState.CustomersThinkingOfOrder:
-                    Game1.delayedActions.Add(new DelayedAction(2000, delegate()
+                    Game1.delayedActions.Add(new DelayedAction(2000, delegate ()
                     {
                         this.State.Set(TableState.CustomersDecidedOnOrder);
                     }));
@@ -75,7 +74,7 @@ public abstract class Table : INetObject<NetFields>
                 case TableState.CustomersDecidedOnOrder:
                     foreach (Customer c in Seats.Select(s => s.ReservingCustomer))
                     {
-                        
+
                     }
                     break;
                 case TableState.CustomersWaitingForFood:

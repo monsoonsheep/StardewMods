@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MyCafe.ChairsAndTables;
+﻿using MyCafe.ChairsAndTables;
+using MyCafe.Customers;
 using StardewModdingAPI;
 
-namespace MyCafe.Customers;
+namespace MyCafe.CustomerProduction;
 
 public interface ICustomerSpawner
 {

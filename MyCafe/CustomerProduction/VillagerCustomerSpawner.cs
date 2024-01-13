@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using MyCafe.ChairsAndTables;
 using MyCafe.Customers;
 using MyCafe.Customers.Data;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Pathfinding;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using SUtility = StardewValley.Utility;
 
 namespace MyCafe.CustomerProduction;

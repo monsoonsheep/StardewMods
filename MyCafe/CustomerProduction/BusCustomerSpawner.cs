@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using HarmonyLib;
+﻿using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MyCafe.ChairsAndTables;
@@ -13,8 +7,10 @@ using MyCafe.Customers.Data;
 using MyCafe.Interfaces;
 using StardewModdingAPI;
 using StardewValley;
-using StardewValley.Locations;
 using StardewValley.Pathfinding;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace MyCafe.CustomerProduction;
 

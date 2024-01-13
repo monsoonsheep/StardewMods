@@ -1,6 +1,4 @@
-﻿using System.IO;
-using MyCafe.CustomerProduction;
-using StardewModdingAPI;
+﻿using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 
@@ -27,7 +25,7 @@ internal class Debug
                 break;
             case SButton.NumPad4:
                 Mod.Cafe.ClosingTime.Set(2400);
-                break; 
+                break;
             case SButton.NumPad5:
                 Mod.Cafe.ClosingTime.Set(2500);
                 break;
@@ -35,10 +33,10 @@ internal class Debug
                 Log.LogWithHudMessage($"Cafe time: {Mod.Cafe.ClosingTime.Value}");
                 break;
             case SButton.NumPad7:
-               
+
                 break;
             case SButton.NumPad8:
-                
+
                 break;
             case SButton.NumPad9:
                 break;

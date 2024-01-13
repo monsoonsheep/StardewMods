@@ -1,11 +1,10 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Xml.Serialization;
 using MyCafe.Customers;
 using Netcode;
 using StardewValley;
 using StardewValley.Objects;
-using Rectangle = Microsoft.Xna.Framework.Rectangle;
+using System.Collections.Generic;
+using System.Linq;
+using System.Xml.Serialization;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 

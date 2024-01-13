@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using xTile;
-using SUtility = StardewValley.Utility;
 
 namespace MyCafe;
 

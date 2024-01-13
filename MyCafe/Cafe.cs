@@ -1,22 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Serialization;
-using HarmonyLib;
+﻿using HarmonyLib;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using MyCafe.ChairsAndTables;
 using Netcode;
 using StardewModdingAPI;
-using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Network;
 using StardewValley.Objects;
 using StardewValley.Pathfinding;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Xml.Serialization;
 using xTile.Layers;
 using xTile.Tiles;
 using SUtility = StardewValley.Utility;
@@ -58,7 +53,7 @@ public class Cafe : INetObject<NetFields>
         set => _cafeOutdoor.Set(value);
     }
 
-    internal IList<Table> Tables 
+    internal IList<Table> Tables
         => _tables as IList<Table>;
 
     internal int LastTimeCustomersArrived = 0;
@@ -294,7 +289,7 @@ public class Cafe : INetObject<NetFields>
         return foundSignboard || foundIndoor;
     }
 
-    
+
     internal void PopulateRoutesToCafe()
     {
         MethodInfo method = AccessTools.Method(typeof(WarpPathfindingCache), "AddRoute", new[] { typeof(List<string>), typeof(Gender?) });
@@ -342,7 +337,7 @@ public class Cafe : INetObject<NetFields>
         }
     }
 
-    
+
     internal bool OpenCafeMenuTileAction(GameLocation location, string[] args, Farmer player, Point tile)
     {
         if (!Context.IsMainPlayer)

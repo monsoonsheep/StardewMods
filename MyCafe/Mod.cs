@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
-using HarmonyLib;
+﻿using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MyCafe.ChairsAndTables;
@@ -17,8 +8,10 @@ using Netcode;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
-using StardewValley.Buildings;
 using StardewValley.Objects;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using SUtility = StardewValley.Utility;
 
 namespace MyCafe;
@@ -30,7 +23,7 @@ public class Mod : StardewModdingAPI.Mod
     internal new static IManifest ModManifest;
 
     internal static NetRef<Cafe> NetCafe = new NetRef<Cafe>(new Cafe());
-    internal static Cafe Cafe 
+    internal static Cafe Cafe
         => NetCafe.Value;
 
     internal static Texture2D Sprites;
@@ -62,7 +55,7 @@ public class Mod : StardewModdingAPI.Mod
         helper.Events.GameLoop.GameLaunched += OnGameLaunched;
         helper.Events.Content.AssetRequested += AssetManager.OnAssetRequested;
         helper.Events.Content.AssetReady += AssetManager.OnAssetReady;
-        
+
         helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
         helper.Events.GameLoop.DayStarted += DayUpdate;
         helper.Events.GameLoop.TimeChanged += OnTimeChanged;
@@ -86,8 +79,8 @@ public class Mod : StardewModdingAPI.Mod
         }
 
         spacecore.RegisterSerializerType(typeof(Cafe));
-        spacecore.RegisterCustomProperty(typeof(Farm), "Cafe", typeof(NetRef<Cafe>), 
-            AccessTools.Method(typeof(CafeSyncExtensions), nameof(CafeSyncExtensions.get_Cafe)), 
+        spacecore.RegisterCustomProperty(typeof(Farm), "Cafe", typeof(NetRef<Cafe>),
+            AccessTools.Method(typeof(CafeSyncExtensions), nameof(CafeSyncExtensions.get_Cafe)),
             AccessTools.Method(typeof(CafeSyncExtensions), nameof(CafeSyncExtensions.set_Cafe)));
 
         ModConfig.InitializeGmcm();
@@ -104,7 +97,7 @@ public class Mod : StardewModdingAPI.Mod
         Cafe.Initialize(ModHelper);
     }
 
-    
+
     internal void DayUpdate(object sender, DayStartedEventArgs e)
     {
         if (Context.IsMainPlayer)
@@ -114,11 +107,11 @@ public class Mod : StardewModdingAPI.Mod
                 Cafe.Enabled = true;
                 Cafe.PopulateTables();
                 Cafe.PopulateRoutesToCafe();
-            } 
+            }
             else if (Cafe.Enabled)
                 Cafe.Enabled = false;
         }
-        if (Cafe.Enabled) 
+        if (Cafe.Enabled)
             Cafe.DayUpdate();
     }
 
@@ -157,7 +150,7 @@ public class Mod : StardewModdingAPI.Mod
             prob += Game1.random.Next(20 + Math.Max(0, minutesTillCloses / 3)) >= 28 ? 0.2f : -0.5f;
     }
 
-    
+
     internal void OnRenderedWorld(object sender, RenderedWorldEventArgs e)
     {
         // get list of reserved tables with center coords
@@ -201,11 +194,11 @@ public class Mod : StardewModdingAPI.Mod
                     }
                 }
             }
-            
+
         }
     }
 
-     internal void OnFurnitureListChanged(object sender, FurnitureListChangedEventArgs e)
+    internal void OnFurnitureListChanged(object sender, FurnitureListChangedEventArgs e)
     {
         if (e.Location.Equals(Cafe.Indoor) || e.Location.Equals(Cafe.Outdoor))
         {
@@ -271,7 +264,7 @@ public class Mod : StardewModdingAPI.Mod
                         FurnitureTable table = new FurnitureTable(f, e.Location.Name);
                         Cafe.TryAddTable(table);
                     }
-                    
+
                 }
             }
         }

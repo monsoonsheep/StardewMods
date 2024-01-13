@@ -1,15 +1,13 @@
 ﻿using Microsoft.Xna.Framework;
+using MyCafe.ChairsAndTables;
+using MyCafe.Customers;
 using StardewValley;
-using StardewValley.Buildings;
 using StardewValley.Objects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using xTile.ObjectModel;
 using xTile.Tiles;
-using SObject = StardewValley.Object;
-using MyCafe.ChairsAndTables;
-using MyCafe.Customers;
 
 namespace MyCafe;
 

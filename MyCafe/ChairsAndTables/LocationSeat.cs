@@ -1,8 +1,8 @@
-using System.Linq;
-using System.Xml.Serialization;
 using Microsoft.Xna.Framework;
 using MyCafe.Customers;
 using StardewValley;
+using System.Linq;
+using System.Xml.Serialization;
 
 namespace MyCafe.ChairsAndTables;
 

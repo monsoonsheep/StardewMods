@@ -1,17 +1,9 @@
-﻿using Microsoft.Xna.Framework.Graphics;
-using StardewValley;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
-using Microsoft.Xna.Framework;
-using StardewModdingAPI;
-using SUtility = StardewValley.Utility;
-using StardewValley.Buildings;
-using MyCafe.ChairsAndTables;
+﻿using MyCafe.ChairsAndTables;
 using MyCafe.CustomerProduction;
 using MyCafe.Customers;
+using StardewModdingAPI;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace MyCafe;
 
@@ -31,10 +23,10 @@ internal sealed partial class CustomerManager
         BusCustomers.Initialize(helper);
         VillagerCustomers.Initialize(helper);
 
-        #if YOUTUBE || TWITCH
+#if YOUTUBE || TWITCH
         ChatCustomers = new ChatCustomerSpawner();
         ChatCustomers.Initialize(helper);
-        #endif
+#endif
     }
 
     internal IEnumerable<Customer> CurrentCustomers

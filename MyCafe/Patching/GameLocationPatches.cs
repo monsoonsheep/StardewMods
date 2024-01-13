@@ -1,10 +1,10 @@
-﻿using StardewModdingAPI;
+﻿using MyCafe.ChairsAndTables;
+using StardewModdingAPI;
 using StardewValley;
 using System.Collections.Generic;
 using System.Linq;
 using xTile.Dimensions;
 using Rectangle = xTile.Dimensions.Rectangle;
-using MyCafe.ChairsAndTables;
 
 namespace MyCafe.Patching;
 

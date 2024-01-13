@@ -1,17 +1,15 @@
 ﻿using Microsoft.Xna.Framework;
 using MyCafe.Customers;
 using Netcode;
-using StardewValley.Locations;
-using StardewValley.Network;
-using System.Xml.Serialization;
 using StardewValley;
+using System.Xml.Serialization;
 
 namespace MyCafe.ChairsAndTables;
 
 [XmlType("Mods_MonsoonSheep_MyCafe_Seat")]
 [XmlInclude(typeof(FurnitureSeat))]
 [XmlInclude(typeof(LocationSeat))]
-public abstract class Seat: INetObject<NetFields>
+public abstract class Seat : INetObject<NetFields>
 {
     public NetFields NetFields { get; }
 
@@ -43,7 +41,7 @@ public abstract class Seat: INetObject<NetFields>
 
     internal virtual int SittingDirection { get; set; }
 
-    internal bool IsReserved 
+    internal bool IsReserved
         => ReservingCustomer != null;
 
     public Seat()
@@ -67,7 +65,7 @@ public abstract class Seat: INetObject<NetFields>
     {
         if (ReservingCustomer != null)
             return false;
-        
+
         customer.ReservedSeat.Set(this);
         ReservingCustomer = customer;
         return true;

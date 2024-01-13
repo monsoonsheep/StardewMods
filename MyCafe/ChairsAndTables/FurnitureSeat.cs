@@ -1,5 +1,3 @@
-using Microsoft.Xna.Framework;
-using MyCafe.Customers;
 using Netcode;
 using StardewValley.Objects;
 using System.Xml.Serialization;

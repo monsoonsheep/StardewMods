@@ -1,13 +1,11 @@
-﻿using System;
-using System.Linq;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MyCafe.ChairsAndTables;
 using Netcode;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Pathfinding;
-using Object = StardewValley.Object;
+using System.Linq;
 
 namespace MyCafe.Customers;
 
@@ -81,14 +79,14 @@ internal class Customer(string name, Vector2 position, string location, Animated
         {
             Vector2 pos = getLocalPosition(Game1.viewport) - new Vector2(40, 64);
             b.DrawString(
-                Game1.dialogueFont, 
+                Game1.dialogueFont,
                 this.displayName,
-                pos, 
-                Color.White * 0.75f, 
-                0f, 
+                pos,
+                Color.White * 0.75f,
+                0f,
                 Vector2.Zero,
-                new Vector2(0.3f, 0.3f), 
-                SpriteEffects.None, 
+                new Vector2(0.3f, 0.3f),
+                SpriteEffects.None,
                 base.StandingPixel.Y / 10000f + 0.001f
                 );
 
