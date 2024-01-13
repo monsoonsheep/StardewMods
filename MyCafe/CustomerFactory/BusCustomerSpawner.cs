@@ -12,7 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MyCafe.CustomerProduction;
+namespace MyCafe.CustomerFactory;
 
 internal class BusCustomerSpawner : ICustomerSpawner
 {

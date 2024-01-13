@@ -2,7 +2,7 @@
 using MyCafe.Customers;
 using StardewModdingAPI;
 
-namespace MyCafe.CustomerProduction;
+namespace MyCafe.CustomerFactory;
 
 public interface ICustomerSpawner
 {

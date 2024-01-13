@@ -8,7 +8,7 @@ using MyCafe.Customers;
 using StardewModdingAPI;
 using StardewValley;
 
-namespace MyCafe.CustomerProduction;
+namespace MyCafe.CustomerFactory;
 internal class ChatCustomerSpawner : ICustomerSpawner
 {
     private IStreamManager _streamManager;

@@ -1,5 +1,5 @@
 ﻿using MyCafe.ChairsAndTables;
-using MyCafe.CustomerProduction;
+using MyCafe.CustomerFactory;
 using MyCafe.Customers;
 using StardewModdingAPI;
 using System.Collections.Generic;
@@ -36,7 +36,7 @@ internal sealed partial class CustomerManager
     {
         VillagerCustomers.DayUpdate();
         BusCustomers.DayUpdate();
-        ChatCustomers.DayUpdate();
+        ChatCustomers?.DayUpdate();
     }
 
     internal void SpawnCustomers()

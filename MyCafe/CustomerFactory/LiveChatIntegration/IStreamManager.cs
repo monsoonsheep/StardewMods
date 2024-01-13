@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 
-namespace MyCafe.CustomerProduction;
+namespace MyCafe.CustomerFactory;
 internal interface IStreamManager
 {
     public event EventHandler<ChatMessageReceivedEventArgs> OnChatMessageReceived;

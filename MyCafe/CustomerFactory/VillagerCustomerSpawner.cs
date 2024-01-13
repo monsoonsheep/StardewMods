@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using SUtility = StardewValley.Utility;
 
-namespace MyCafe.CustomerProduction;
+namespace MyCafe.CustomerFactory;
 
 internal class VillagerCustomerSpawner : ICustomerSpawner
 {
