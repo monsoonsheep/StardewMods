@@ -66,7 +66,7 @@ public abstract class Seat : INetObject<NetFields>
         if (ReservingCustomer != null)
             return false;
 
-        customer.ReservedSeat.Set(this);
+        customer.ReservedSeat = this;
         ReservingCustomer = customer;
         return true;
     }

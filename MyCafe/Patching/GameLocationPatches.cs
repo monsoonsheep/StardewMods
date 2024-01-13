@@ -36,22 +36,14 @@ internal class GameLocationPatches : PatchCollection
 
     private static void CheckActionPostfix(GameLocation __instance, Location tileLocation, Rectangle viewport, Farmer who, ref bool __result)
     {
-        if (!Context.IsMainPlayer || (!__instance.Equals(Mod.Cafe.Indoor) && !__instance.Equals(Mod.Cafe.Outdoor)))
+        if (__result == true || (!__instance.Equals(Mod.Cafe.Indoor) && !__instance.Equals(Mod.Cafe.Outdoor)))
             return;
 
-        foreach (LocationTable table in Mod.Cafe.Tables.OfType<LocationTable>())
+        foreach (Table table in Mod.Cafe.Tables)
         {
-            if (table.BoundingBox.Value.Contains(tileLocation.X * 64, tileLocation.Y * 64))
+            if (table.BoundingBox.Value.Contains(tileLocation.X * 64, tileLocation.Y * 64) 
+                && Mod.Cafe.ClickTable(table, who))
             {
-                if (!Context.IsMainPlayer)
-                {
-                    Mod.SendTableClick(table, who);
-                }
-                else
-                {
-                    Mod.Cafe.FarmerClickTable(table, who);
-                }
-
                 __result = true;
                 return;
             }

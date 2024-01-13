@@ -12,11 +12,11 @@ using SUtility = StardewValley.Utility;
 
 namespace MyCafe.CustomerFactory;
 
-internal class VillagerCustomerSpawner : ICustomerSpawner
+internal class VillagerCustomerSpawner : CustomerSpawner
 {
     internal readonly Dictionary<string, VillagerCustomerData> VillagerData = new();
 
-    public void Initialize(IModHelper helper)
+    internal override void Initialize(IModHelper helper)
     {
         int count = 0, doneCount = 0;
         SUtility.ForEachVillager(npc =>
@@ -74,7 +74,7 @@ internal class VillagerCustomerSpawner : ICustomerSpawner
         return true;
     }
 
-    public bool Spawn(Table table, out CustomerGroup groupSpawned)
+    internal override bool Spawn(Table table, out CustomerGroup groupSpawned)
     {
         NPC npc = Game1.getCharacterFromName("Shane");
 
@@ -84,11 +84,12 @@ internal class VillagerCustomerSpawner : ICustomerSpawner
 
         VillagerData[npc.Name].RealNpc = npc;
         CustomerGroup group = new CustomerGroup([customer]);
+        ActiveGroups.Add(group);
         groupSpawned = group;
         return true;
     }
 
-    public void LetGo(CustomerGroup group)
+    internal override void LetGo(CustomerGroup group)
     {
         Customer v = group.Members.First();
         NPC original = VillagerData[v.Name].RealNpc;
@@ -154,9 +155,10 @@ internal class VillagerCustomerSpawner : ICustomerSpawner
 
         v.currentLocation.characters.Remove(v);
         v.currentLocation.addCharacter(original);
+        ActiveGroups.Remove(group);
     }
 
-    public void DayUpdate()
+    internal override void DayUpdate()
     {
         // Set which NPCs can visit today based on how many days it's been since their last visit, and their 
         // visit frequency level given in their visit data.

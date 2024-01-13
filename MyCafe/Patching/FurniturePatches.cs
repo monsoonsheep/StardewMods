@@ -108,18 +108,13 @@ internal class FurniturePatches : PatchCollection
 
     private static bool ClickedPrefix(Furniture __instance, Farmer who, ref bool __result)
     {
-        if (Utility.IsTable(__instance))
+        if (!Utility.IsTable(__instance)) 
+            return true;
+
+        if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable.IsReserved)
         {
-            if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable.IsReserved)
+            if (Mod.Cafe.ClickTable(trackedTable, who))
             {
-                if (!Context.IsMainPlayer)
-                {
-                    Mod.SendTableClick(trackedTable, who);
-                }
-                else
-                {
-                    //TableManager.Instance.FarmerClickTable(trackedTable, who);
-                }
                 __result = true;
                 return false;
             }

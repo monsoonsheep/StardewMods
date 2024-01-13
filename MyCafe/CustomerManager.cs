@@ -9,9 +9,9 @@ namespace MyCafe;
 
 internal sealed class CustomerManager
 {
-    internal ICustomerSpawner BusCustomers;
-    internal ICustomerSpawner VillagerCustomers;
-    internal ICustomerSpawner ChatCustomers;
+    internal CustomerSpawner BusCustomers;
+    internal CustomerSpawner VillagerCustomers;
+    internal CustomerSpawner ChatCustomers;
 
     internal readonly List<CustomerGroup> CurrentGroups = [];
 

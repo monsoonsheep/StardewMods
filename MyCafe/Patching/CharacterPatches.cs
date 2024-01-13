@@ -7,6 +7,7 @@ using StardewValley.Pathfinding;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using MyCafe.ChairsAndTables;
 using Object = StardewValley.Object;
 
 namespace MyCafe.Patching;
@@ -48,12 +49,10 @@ internal class CharacterPatches : PatchCollection
     {
         if (!probe && __instance is Customer c) // TODO: make work for regular NPCs
         {
-            if (who.ActiveObject?.ItemId != c.ItemToOrder.Value?.ItemId)
-                return true;
+            Table table = c.Group.ReservedTable;
 
-            //c.OrderReceive();
-            who.reduceActiveItemByOne();
-            return false;
+            if (Mod.Cafe.ClickTable(table, who))
+                return false;
         }
 
         return true;

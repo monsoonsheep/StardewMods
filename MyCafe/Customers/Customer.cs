@@ -9,10 +9,15 @@ using System.Linq;
 
 namespace MyCafe.Customers;
 
-internal class Customer(string name, Vector2 position, string location, AnimatedSprite sprite, Texture2D portrait)
-    : NPC(sprite, position, location, 2, name, portrait, eventActor: true)
+internal class Customer : NPC
 {
-    internal readonly NetRef<Seat> ReservedSeat = [];
+    private Seat _reservedSeat;
+
+    internal Seat ReservedSeat
+    {
+        get => _reservedSeat ??= Group?.ReservedTable.Seats.FirstOrDefault(s => s.ReservingCustomer.Equals(this));
+        set => _reservedSeat = value;
+    }
     internal NetRef<Item> ItemToOrder = [];
     internal NetBool DrawName = new NetBool(false);
 
@@ -27,9 +32,9 @@ internal class Customer(string name, Vector2 position, string location, Animated
     {
         if (c is Customer p)
         {
-            int direction = Utility.DirectionIntFromVectors(p.Tile, p.ReservedSeat.Value.Position.ToVector2());
+            int direction = Utility.DirectionIntFromVectors(p.Tile, p.ReservedSeat.Position.ToVector2());
             p.SitDown(direction);
-            p.faceDirection(p.ReservedSeat.Value.SittingDirection);
+            p.faceDirection(p.ReservedSeat.SittingDirection);
 
             p.IsSittingDown = true;
             if (p.Group.Members.Any(other => !other.IsSittingDown))
@@ -37,15 +42,24 @@ internal class Customer(string name, Vector2 position, string location, Animated
 
             Game1.delayedActions.Add(new DelayedAction(500, delegate ()
             {
-                p.ReservedSeat.Value.Table.State.Set(TableState.CustomersThinkingOfOrder);
+                p.ReservedSeat.Table.State.Set(TableState.CustomersThinkingOfOrder);
             }));
         }
     };
 
+    public Customer()
+    {
+
+    }
+
+    public Customer(string name, Vector2 position, string location, AnimatedSprite sprite, Texture2D portrait) : base(sprite, position, location, 2, name, portrait, eventActor: true)
+    {
+    }
+
     protected override void initNetFields()
     {
         base.initNetFields();
-        NetFields.AddField(ReservedSeat).AddField(ItemToOrder).AddField(DrawName);
+        NetFields.AddField(ItemToOrder).AddField(DrawName);
     }
 
     public override void update(GameTime gameTime, GameLocation location)

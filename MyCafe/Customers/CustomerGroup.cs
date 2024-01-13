@@ -41,7 +41,7 @@ public class CustomerGroup
 
     internal bool MoveToTable()
     {
-        List<Point> tiles = Members.Select(m => m.ReservedSeat.Value.Position).ToList();
+        List<Point> tiles = Members.Select(m => m.ReservedSeat.Position).ToList();
         ReservedTable.State.Set(TableState.WaitingForCustomers);
         return MoveTo(Utility.GetLocationFromName(ReservedTable.CurrentLocation), tiles, Customer.SitDownBehavior);
     }

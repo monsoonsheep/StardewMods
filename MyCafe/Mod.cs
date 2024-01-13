@@ -161,36 +161,42 @@ public class Mod : StardewModdingAPI.Mod
                 Vector2 offset = new Vector2(0,
                     (float)Math.Round(4f * Math.Sin(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 250.0)));
 
-                if (table.State.Value == TableState.CustomersDecidedOnOrder)
+                switch (table.State.Value)
                 {
-                    e.SpriteBatch.Draw(
-                        Game1.mouseCursors,
-                        Game1.GlobalToLocal(table.Center + new Vector2(-8, -64)) + offset,
-                        new Rectangle(402, 495, 7, 16),
-                        Color.Crimson,
-                        0f,
-                        new Vector2(1f, 4f),
-                        4f,
-                        SpriteEffects.None,
-                        1f);
-                }
-                else if (table.State.Value == TableState.CustomersWaitingForFood)
-                {
-                    foreach (Seat seat in table.Seats)
+                    case TableState.CustomersDecidedOnOrder:
+                        // Exclamation mark
+                        e.SpriteBatch.Draw(
+                            Game1.mouseCursors,
+                            Game1.GlobalToLocal(table.Center + new Vector2(-8, -64)) + offset,
+                            new Rectangle(402, 495, 7, 16),
+                            Color.Crimson,
+                            0f,
+                            new Vector2(1f, 4f),
+                            4f,
+                            SpriteEffects.None,
+                            1f);
+                        break;
+                    case TableState.CustomersWaitingForFood:
                     {
-                        if (seat.ReservingCustomer is { ItemToOrder.Value: not null } customer)
+                        // Item to order on top of every customer
+                        foreach (Seat seat in table.Seats)
                         {
-                            Vector2 pos = customer.getLocalPosition(Game1.viewport);
-                            pos.Y -= 32 + customer.Sprite.SpriteHeight * 3;
+                            if (seat.ReservingCustomer is { ItemToOrder.Value: not null } customer)
+                            {
+                                Vector2 pos = customer.getLocalPosition(Game1.viewport);
+                                pos.Y -= 32 + customer.Sprite.SpriteHeight * 3;
 
-                            e.SpriteBatch.Draw(
-                                Game1.emoteSpriteSheet,
-                                pos + offset,
-                                new Rectangle(32, 0, 16, 16),
-                                Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 1f);
+                                e.SpriteBatch.Draw(
+                                    Game1.emoteSpriteSheet,
+                                    pos + offset,
+                                    new Rectangle(32, 0, 16, 16),
+                                    Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 1f);
 
-                            customer.ItemToOrder.Value.drawInMenu(e.SpriteBatch, pos + offset, 0.35f, 1f, 1f);
+                                customer.ItemToOrder.Value.drawInMenu(e.SpriteBatch, pos + offset, 0.35f, 1f, 1f);
+                            }
                         }
+
+                        break;
                     }
                 }
             }
@@ -272,30 +278,10 @@ public class Mod : StardewModdingAPI.Mod
 
     internal static void OnModMessageReceived(object sender, ModMessageReceivedEventArgs e)
     {
-        if (e.FromModID != Mod.ModManifest.UniqueID)
+        if (e.FromModID != ModManifest.UniqueID)
             return;
 
-        if (e.Type == "ClickTable" && Context.IsMainPlayer)
-        {
-            try
-            {
-                var data = e.ReadAs<KeyValuePair<string, string>>();
-
-                Farmer who = Game1.getFarmer(long.Parse(data.Key));
-                var matches = Regex.Matches(data.Value, @"\d+");
-                if (who != null && matches.Count == 2)
-                {
-                    Table table = Mod.Cafe.GetTableAt(who.currentLocation, new Vector2(float.Parse(matches[0].Value), float.Parse(matches[1].Value)));
-                    if (table != null)
-                        Cafe.FarmerClickTable(table, who);
-                }
-            }
-            catch
-            {
-                Log.Debug("Invalid message from client", LogLevel.Error);
-            }
-        }
-        else if (e.Type == "VisitorDoEmote" && !Context.IsMainPlayer)
+        if (e.Type == "VisitorDoEmote" && !Context.IsMainPlayer)
         {
             try
             {
@@ -311,11 +297,17 @@ public class Mod : StardewModdingAPI.Mod
         }
     }
 
-    internal static void SendTableClick(Table table, Farmer who)
+    internal bool OpenCafeMenuTileAction(GameLocation location, string[] args, Farmer player, Point tile)
     {
-        Mod.ModHelper.Multiplayer.SendMessage(
-            message: new KeyValuePair<string, string>(who.UniqueMultiplayerID.ToString(), table.Position.ToString()),
-            messageType: "ClickTable",
-            modIDs: [Mod.ModManifest.UniqueID]);
+        if (!Context.IsMainPlayer)
+            return false;
+
+        if (Game1.activeClickableMenu == null && Context.IsPlayerFree)
+        {
+            Log.Debug("Opened cafe menu menu!");
+            // Game1.activeClickableMenu = new CafeMenu();
+        }
+
+        return true;
     }
 }

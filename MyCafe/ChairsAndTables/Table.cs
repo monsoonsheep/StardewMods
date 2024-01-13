@@ -97,7 +97,7 @@ public abstract class Table : INetObject<NetFields>
 
         for (int i = 0; i < customers.Count; i++)
         {
-            customers[i].ReservedSeat.Set(Seats[i]);
+            customers[i].ReservedSeat = Seats[i];
             Seats[i].Reserve(customers[i]);
         }
 

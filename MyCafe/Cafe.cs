@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using System;
+using HarmonyLib;
 using Microsoft.Xna.Framework;
 using MyCafe.ChairsAndTables;
 using Netcode;
@@ -12,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
+using MyCafe.Customers;
 using xTile.Layers;
 using xTile.Tiles;
 using SUtility = StardewValley.Utility;
@@ -217,7 +219,7 @@ public class Cafe : INetObject<NetFields>
 
     internal bool ChairIsReserved(Furniture chair)
     {
-        return Tables.Any(t => t.Seats.OfType<FurnitureSeat>().Any(s => s.ActualChair.Value.Equals(chair)));
+        return Tables.Any(t => t.Seats.OfType<FurnitureSeat>().Any(s => s.IsReserved && s.ActualChair.Value.Equals(chair)));
     }
 
     internal void FreeAllTables()
@@ -228,21 +230,35 @@ public class Cafe : INetObject<NetFields>
         }
     }
 
-    internal Table GetTableAt(GameLocation location, Vector2 position)
+    internal bool ClickTable(Table table, Farmer who)
     {
-        return Tables.Where(t => t.CurrentLocation.Equals(location.Name)).FirstOrDefault(table => table.BoundingBox.Value.Contains(position));
-    }
-
-    internal void FarmerClickTable(Table table, Farmer who)
-    {
-        if (table.State.Value == TableState.CustomersDecidedOnOrder)
+        switch (table.State.Value)
         {
-            table.State.Set(TableState.CustomersWaitingForFood);
+            case TableState.CustomersDecidedOnOrder:
+                table.State.Set(TableState.CustomersWaitingForFood);
+                return true;
+            case TableState.CustomersWaitingForFood:
+            {
+                var itemsNeeded = table.Seats.Where(s => s.ReservingCustomer != null).Select(c => c.ReservingCustomer.ItemToOrder.Value).ToList();
+                if (itemsNeeded.Any(item => !who.Items.Contains(item)))
+                    return false;
+
+                foreach (var item in itemsNeeded)
+                {
+                    who.removeFirstOfThisItemFromInventory(item.ItemId);
+                }
+                table.State.Set(TableState.CustomersEating);
+
+                return true;
+            }
+            default:
+                return false;
         }
     }
 
     internal Table GetTableOfSeat(Seat seat)
     {
+        Log.Debug("Should remove this method");
         return Tables.FirstOrDefault(t => t.Seats.Contains(seat));
     }
 
@@ -337,21 +353,7 @@ public class Cafe : INetObject<NetFields>
         }
     }
 
-
-    internal bool OpenCafeMenuTileAction(GameLocation location, string[] args, Farmer player, Point tile)
-    {
-        if (!Context.IsMainPlayer)
-            return false;
-
-        if (Game1.activeClickableMenu == null && Context.IsPlayerFree)
-        {
-            Log.Debug("Opened cafe menu menu!");
-            // Game1.activeClickableMenu = new CafeMenu();
-        }
-
-        return true;
-    }
-
+    // TODO: Convert Menu to a custom subclass of Inventory where only unique items can be added
     public bool AddToMenu(Item itemToAdd)
     {
         if (MenuItems.Any(x => x.ItemId == itemToAdd.ItemId))
@@ -399,8 +401,5 @@ public static class CafeSyncExtensions
         return Mod.NetCafe;
     }
 
-    public static void set_Cafe(this Farm farm, NetRef<Cafe> value)
-    {
-        //Mod.Cafe = value;
-    }
+    public static void set_Cafe(this Farm farm, NetRef<Cafe> value) { }
 }

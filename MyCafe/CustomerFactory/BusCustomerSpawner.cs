@@ -14,16 +14,15 @@ using System.Linq;
 
 namespace MyCafe.CustomerFactory;
 
-internal class BusCustomerSpawner : ICustomerSpawner
+internal class BusCustomerSpawner : CustomerSpawner
 {
     internal Dictionary<string, BusCustomerData> CustomersData;
-    internal IBusSchedulesApi BusSchedulesApi;
-    internal List<CustomerGroup> ActiveGroups = [];
+    private IBusSchedulesApi _busSchedulesApi;
 
-    public void Initialize(IModHelper helper)
+    internal override void Initialize(IModHelper helper)
     {
         Mod.Cafe.Assets.LoadContentPackBusCustomers(helper, out CustomersData);
-        BusSchedulesApi = Mod.ModHelper.ModRegistry.GetApi<IBusSchedulesApi>("MonsoonSheep.BusSchedules");
+        _busSchedulesApi = Mod.ModHelper.ModRegistry.GetApi<IBusSchedulesApi>("MonsoonSheep.BusSchedules");
     }
 
     internal List<BusCustomerData> GetRandomCustomerDataMultiple(int members)
@@ -42,7 +41,7 @@ internal class BusCustomerSpawner : ICustomerSpawner
         return c;
     }
 
-    public bool Spawn(Table table, out CustomerGroup group)
+    internal override bool Spawn(Table table, out CustomerGroup group)
     {
         group = new CustomerGroup();
         List<BusCustomerData> datas = GetRandomCustomerDataMultiple(table.Seats.Count);
@@ -74,7 +73,7 @@ internal class BusCustomerSpawner : ICustomerSpawner
 
         GameLocation busStop = Game1.getLocationFromName("BusStop");
 
-        if (BusSchedulesApi != null && BusSchedulesApi.GetMinutesTillNextBus() <= 30)
+        if (_busSchedulesApi != null && _busSchedulesApi.GetMinutesTillNextBus() <= 30)
         {
             foreach (Customer c in customers)
             {
@@ -84,7 +83,7 @@ internal class BusCustomerSpawner : ICustomerSpawner
                 Stack<Point> points = new Stack<Point>();
                 points.Push(new Point(12, 9));
                 GameLocation targetLocation = Utility.GetLocationFromName(table.CurrentLocation);
-                Point targetPoint = c.ReservedSeat.Value.Position;
+                Point targetPoint = c.ReservedSeat.Position;
                 CustomerGroup g = group;
 
                 c.temporaryController = new PathFindController(points, c, busStop)
@@ -102,7 +101,7 @@ internal class BusCustomerSpawner : ICustomerSpawner
                     }
                 };
 
-                BusSchedulesApi.AddVisitorsForNextArrival(c, 0);
+                _busSchedulesApi.AddVisitorsForNextArrival(c, 0);
             }
         }
         else
@@ -123,12 +122,12 @@ internal class BusCustomerSpawner : ICustomerSpawner
         return true;
     }
 
-    public void LetGo(CustomerGroup group)
+    internal override void LetGo(CustomerGroup group)
     {
 
     }
 
-    public void DayUpdate()
+    internal override void DayUpdate()
     {
 
     }
