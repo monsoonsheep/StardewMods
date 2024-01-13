@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -11,7 +8,7 @@ using MyCafe.Customers;
 using StardewModdingAPI;
 using StardewValley;
 
-namespace MyCafe;
+namespace MyCafe.CustomerProduction;
 internal class ChatCustomerSpawner : ICustomerSpawner
 {
     private IStreamManager _streamManager;
@@ -56,8 +53,11 @@ internal class ChatCustomerSpawner : ICustomerSpawner
 
         Customer c = new Customer($"ChatCustomerNPC_{name}", new Vector2(10, 12), "BusStop", sprite, portrait)
         {
-            portraitOverridden = true
+            portraitOverridden = true,
+            displayName = name
         };
+        c.DrawName.Set(true);
+
         group.Add(c);
         group.ReserveTable(table);
         c.ItemToOrder.Set(ItemRegistry.Create<StardewValley.Object>("(O)128"));

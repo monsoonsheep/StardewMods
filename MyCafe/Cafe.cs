@@ -67,11 +67,6 @@ public class Cafe : INetObject<NetFields>
 
     public Cafe()
     {
-        InitNetFields();
-    }
-
-    private void InitNetFields()
-    {
         NetFields.SetOwner(this)
             .AddField(OpeningTime).AddField(ClosingTime).AddField(_tables).AddField(_cafeEnabled).AddField(_cafeIndoor.NetFields).AddField(_cafeOutdoor.NetFields);
     }
@@ -79,25 +74,12 @@ public class Cafe : INetObject<NetFields>
     internal void Initialize(IModHelper helper)
     {
         Assets = new AssetManager();
-        Assets.LoadStoredCustomerData();
-        Customers = new CustomerManager();
-        Customers.Initialize(helper);
+        Customers = new CustomerManager(helper);
     }
 
-    internal void DayUpdate(object sender, DayStartedEventArgs e)
+    internal void DayUpdate()
     {
-        if (Context.IsMainPlayer)
-        {
-            if (UpdateCafeLocations() is true)
-            {
-                Enabled = true;
-                Mod.ModHelper.Events.World.FurnitureListChanged += OnFurnitureListChanged;
-                PopulateTables();
-                PopulateRoutesToCafe();
-            } 
-            else if (Enabled)
-                Enabled = false;
-        }
+        Customers.DayUpdate();
     }
 
     internal void PopulateTables()
@@ -264,128 +246,9 @@ public class Cafe : INetObject<NetFields>
         }
     }
 
-    internal void OnRenderedWorld(object sender, RenderedWorldEventArgs e)
-    {
-        // get list of reserved tables with center coords
-        foreach (var table in Tables)
-        {
-            if (Game1.currentLocation.Name.Equals(table.CurrentLocation))
-            {
-                Vector2 offset = new Vector2(0,
-                    (float)Math.Round(4f * Math.Sin(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 250.0)));
-
-                if (table.State.Value == TableState.CustomersDecidedOnOrder)
-                {
-                    e.SpriteBatch.Draw(
-                        Game1.mouseCursors,
-                        Game1.GlobalToLocal(table.Center + new Vector2(-8, -64)) + offset,
-                        new Rectangle(402, 495, 7, 16),
-                        Color.Crimson,
-                        0f,
-                        new Vector2(1f, 4f),
-                        4f,
-                        SpriteEffects.None,
-                        1f);
-                }
-                else if (table.State.Value == TableState.CustomersWaitingForFood)
-                {
-                    foreach (Seat seat in table.Seats)
-                    {
-                        if (seat.ReservingCustomer is { ItemToOrder.Value: not null } customer)
-                        {
-                            Vector2 pos = customer.getLocalPosition(Game1.viewport);
-                            pos.Y -= 32 + customer.Sprite.SpriteHeight * 3;
-
-                            e.SpriteBatch.Draw(
-                                Game1.emoteSpriteSheet,
-                                pos + offset,
-                                new Rectangle(32, 0, 16, 16),
-                                Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 1f);
-
-                            customer.ItemToOrder.Value.drawInMenu(e.SpriteBatch, pos + offset, 0.35f, 1f, 1f);
-                        }
-                    }
-                }
-            }
-            
-        }
-    }
-
     internal Table GetTableOfSeat(Seat seat)
     {
         return Tables.FirstOrDefault(t => t.Seats.Contains(seat));
-    }
-
-    internal void OnFurnitureListChanged(object sender, FurnitureListChangedEventArgs e)
-    {
-        if (e.Location.Equals(Indoor) || e.Location.Equals(Outdoor))
-        {
-            foreach (var f in e.Removed)
-            {
-                if (Utility.IsChair(f))
-                {
-                    FurnitureSeat trackedChair = Tables
-                        .OfType<FurnitureTable>()
-                        .SelectMany(t => t.Seats)
-                        .OfType<FurnitureSeat>()
-                        .FirstOrDefault(seat => seat.ActualChair.Value.Equals(f));
-
-                    if (trackedChair?.Table is FurnitureTable table)
-                    {
-                        if (table.IsReserved)
-                            Log.Warn("Removed a chair but the table was reserved");
-
-                        table.RemoveChair(f);
-                    }
-                }
-                else if (Utility.IsTable(f))
-                {
-                    if (Utility.IsTableTracked(f, e.Location, out FurnitureTable trackedTable))
-                    {
-                        RemoveTable(trackedTable);
-                    }
-                }
-            }
-            foreach (var f in e.Added)
-            {
-                if (Utility.IsChair(f))
-                {
-                    // Get position of table in front of the chair
-                    Vector2 tablePos = f.TileLocation + Utility.DirectionIntToDirectionVector(f.currentRotation.Value) * new Vector2(1, -1);
-
-                    // Get table Furniture object
-                    Furniture facingFurniture = e.Location.GetFurnitureAt(tablePos);
-
-                    if (facingFurniture == null ||
-                        !Utility.IsTable(facingFurniture) ||
-                        facingFurniture
-                            .GetBoundingBox()
-                            .Intersects(f.boundingBox.Value)) // if chair was placed on top of the table
-                    {
-                        continue;
-                    }
-
-                    FurnitureTable table;
-
-                    if (Utility.IsTableTracked(facingFurniture, e.Location, out FurnitureTable existing))
-                        table = existing;
-                    else
-                        table = new FurnitureTable(facingFurniture, e.Location.Name);
-
-                    if (TryAddTable(table))
-                        table.AddChair(f);
-                }
-                else if (Utility.IsTable(f))
-                {
-                    if (!Utility.IsTableTracked(f, e.Location, out _))
-                    {
-                        FurnitureTable table = new FurnitureTable(f, e.Location.Name);
-                        TryAddTable(table);
-                    }
-                    
-                }
-            }
-        }
     }
 
     internal bool UpdateCafeLocations()
@@ -420,7 +283,6 @@ public class Cafe : INetObject<NetFields>
                         foundSignboard = true;
                         Outdoor = loc;
                         Game1._locationLookup.TryAdd(loc.Name, loc);
-                        Enabled = true;
                         return false;
                     }
                 }
@@ -432,41 +294,7 @@ public class Cafe : INetObject<NetFields>
         return foundSignboard || foundIndoor;
     }
 
-    internal void OnTimeChanged(object sender, TimeChangedEventArgs e)
-    {
-        int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, ClosingTime.Value);
-        int minutesTillOpens = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, OpeningTime.Value);
-        int minutesSinceLastVisitors = SUtility.CalculateMinutesBetweenTimes(LastTimeCustomersArrived, Game1.timeOfDay);
-        float percentageOfTablesFree = (float)Mod.Cafe.Tables.Count(t => !t.IsReserved) / Mod.Cafe.Tables.Count();
-
-        if (minutesTillCloses <= 20)
-            return;
-
-        float prob = 0f;
-
-        // more chance if it's been a while since last Visitors
-        prob += minutesSinceLastVisitors switch
-        {
-            <= 20 => 0f,
-            <= 30 => Game1.random.Next(5) == 0 ? 0.05f : -0.1f,
-            <= 60 => Game1.random.Next(2) == 0 ? 0.1f : 0f,
-            _ => 0.25f
-        };
-
-        // more chance if a higher percent of tables are free
-        prob += percentageOfTablesFree switch
-        {
-            <= 0.2f => 0.0f,
-            <= 0.5f => 0.1f,
-            <= 0.8f => 0.15f,
-            _ => 0.2f
-        };
-
-        // slight chance to spawn if last hour of open time
-        if (minutesTillCloses <= 60)
-            prob += Game1.random.Next(20 + Math.Max(0, minutesTillCloses / 3)) >= 28 ? 0.2f : -0.5f;
-    }
-
+    
     internal void PopulateRoutesToCafe()
     {
         MethodInfo method = AccessTools.Method(typeof(WarpPathfindingCache), "AddRoute", new[] { typeof(List<string>), typeof(Gender?) });
@@ -484,7 +312,7 @@ public class Cafe : INetObject<NetFields>
             {
                 if (location.Name.Equals("BusStop"))
                 {
-                    route = new List<string>() { "BusStop" };
+                    route = ["BusStop"];
                 }
                 else
                 {

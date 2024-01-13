@@ -8,7 +8,7 @@ using YouTube.Base;
 using YouTube.Base.Clients;
 using LogLevel = StreamingClient.Base.Util.LogLevel;
 
-namespace MyCafe;
+namespace MyCafe.CustomerProduction;;
 public class YoutubeManager : IStreamManager
 {
     private string _clientId;

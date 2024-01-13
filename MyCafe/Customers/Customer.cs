@@ -11,10 +11,12 @@ using Object = StardewValley.Object;
 
 namespace MyCafe.Customers;
 
-internal class Customer : NPC
+internal class Customer(string name, Vector2 position, string location, AnimatedSprite sprite, Texture2D portrait)
+    : NPC(sprite, position, location, 2, name, portrait, eventActor: true)
 {
     internal readonly NetRef<Seat> ReservedSeat = new NetRef<Seat>();
     internal NetRef<Item> ItemToOrder = new NetRef<Item>();
+    internal NetBool DrawName = new NetBool(false);
 
     internal bool IsSittingDown;
     internal CustomerGroup Group;
@@ -42,15 +44,10 @@ internal class Customer : NPC
         }
     };
 
-    public Customer(string name, Vector2 position, string location, AnimatedSprite sprite, Texture2D portrait)
-        : base(sprite, position, location, 2, name, portrait, eventActor: true)
-    {
-    }
-
     protected override void initNetFields()
     {
         base.initNetFields();
-        NetFields.AddField(ReservedSeat).AddField(ItemToOrder);
+        NetFields.AddField(ReservedSeat).AddField(ItemToOrder).AddField(DrawName);
     }
 
     public override void update(GameTime gameTime, GameLocation location)
@@ -74,6 +71,20 @@ internal class Customer : NPC
             {
                 _lerpPosition = -1f;
             }
+        }
+    }
+
+    public override void draw(SpriteBatch b, float alpha = 1)
+    {
+        base.draw(b, alpha);
+        if (DrawName)
+        {
+            Vector2 pos = getLocalPosition(Game1.viewport);
+            b.DrawString(Game1.dialogueFont, 
+                this.displayName,
+                getLocalPosition(Game1.viewport), 
+                Color.White * 0.75f, 0f, Vector2.Zero, Vector2.One, SpriteEffects.None, base.StandingPixel.Y / 10000f + 0.001f);
+
         }
     }
 

@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
-using MyCafe.Customers;
 using MyCafe.Customers.Data;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -15,13 +14,11 @@ namespace MyCafe;
 
 internal sealed class AssetManager
 {
-    internal static AssetManager Instance;
-
     internal List<CustomerModel> CustomerModels = new List<CustomerModel>();
 
     internal AssetManager()
     {
-        Instance = this;
+        LoadStoredCustomerData();
     }
 
     internal static void OnAssetRequested(object sender, AssetRequestedEventArgs e)

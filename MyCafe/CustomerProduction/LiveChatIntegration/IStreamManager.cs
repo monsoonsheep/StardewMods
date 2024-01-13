@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace MyCafe;
+namespace MyCafe.CustomerProduction;
 internal interface IStreamManager
 {
     public event EventHandler<ChatMessageReceivedEventArgs> OnChatMessageReceived;

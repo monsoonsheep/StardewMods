@@ -5,13 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using MyCafe.ChairsAndTables;
+using MyCafe.Customers;
 using MyCafe.Customers.Data;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Pathfinding;
 using SUtility = StardewValley.Utility;
 
-namespace MyCafe.Customers;
+namespace MyCafe.CustomerProduction;
 
 internal class VillagerCustomerSpawner : ICustomerSpawner
 {

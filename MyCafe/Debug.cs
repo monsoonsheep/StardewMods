@@ -1,4 +1,6 @@
-﻿using StardewModdingAPI;
+﻿using System.IO;
+using MyCafe.CustomerProduction;
+using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 
@@ -33,7 +35,19 @@ internal class Debug
                 Log.LogWithHudMessage($"Cafe time: {Mod.Cafe.ClosingTime.Value}");
                 break;
             case SButton.NumPad7:
-                Mod.Cafe.Customers.GetLiveChatIntegration(Mod.ModHelper);
+                Mod.Cafe.Customers.ChatCustomers = new ChatCustomerSpawner();
+                Mod.Cafe.Customers.ChatCustomers.Initialize(Mod.ModHelper);
+                break;
+            case SButton.NumPad8:
+                var a = File.ReadAllText(Mod.ModHelper.DirectoryPath + "\\names.txt").Split('\n');
+                string name = a[Game1.random.Next(a.Length)].TrimEnd('\r');
+                (Mod.Cafe.Customers.ChatCustomers as ChatCustomerSpawner)?.OnChatMessageReceived(Mod.Cafe.Customers.ChatCustomers, new ChatMessageReceivedEventArgs()
+                {
+                    Username = name,
+                    Message = "!join"
+                });
+                break;
+            case SButton.NumPad9:
                 break;
             default:
                 return;

@@ -16,16 +16,13 @@ namespace MyCafe;
 
 internal sealed partial class CustomerManager
 {
-    internal ICustomerSpawner BusCustomers = null!;
-    internal ICustomerSpawner VillagerCustomers = null!;
+    internal ICustomerSpawner BusCustomers;
+    internal ICustomerSpawner VillagerCustomers;
     internal ICustomerSpawner ChatCustomers;
 
     internal readonly List<CustomerGroup> CurrentGroups = new();
 
-    internal IEnumerable<Customer> CurrentCustomers
-        => CurrentGroups.SelectMany(g => g.Members);
-
-    internal void Initialize(IModHelper helper)
+    internal CustomerManager(IModHelper helper)
     {
         BusCustomers = new BusCustomerSpawner();
         VillagerCustomers = new VillagerCustomerSpawner();
@@ -38,6 +35,9 @@ internal sealed partial class CustomerManager
         ChatCustomers.Initialize(helper);
         #endif
     }
+
+    internal IEnumerable<Customer> CurrentCustomers
+        => CurrentGroups.SelectMany(g => g.Members);
 
     internal void DayUpdate()
     {
@@ -61,11 +61,15 @@ internal sealed partial class CustomerManager
             if (ChatCustomers.Spawn(table, out group) is true)
             {
                 CurrentGroups.Add(group);
+                return;
             }
         }
 
         if (BusCustomers.Spawn(table, out group) is true)
+        {
             CurrentGroups.Add(group);
+            return;
+        }
     }
 
     internal void RemoveAllCustomers()

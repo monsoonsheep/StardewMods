@@ -1,24 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.IO;
-using System.Net.Sockets;
-using System.Threading;
-using System.Net.Http;
-using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
-using System.Web;
-using System.Diagnostics;
-using System.Data.Common;
-using System.Threading.Channels;
-using Twitch.Base.Clients;
 using Twitch.Base;
+using Twitch.Base.Clients;
 using Twitch.Base.Models.Clients.Chat;
 using Twitch.Base.Models.NewAPI.Users;
 
-namespace MyCafe;
+namespace MyCafe.CustomerProduction;
 internal class TwitchManager : IStreamManager
 {
     private string _clientId;
@@ -48,7 +36,7 @@ internal class TwitchManager : IStreamManager
         {
             Log.Info($"Twitch - Connecting to irc.chat.twitch.tv:6667");
             _connectionState = ConnectionStatus.Connecting;
-                
+
             List<OAuthClientScopeEnum> scopes =
             [
                 OAuthClientScopeEnum.chat__read,
@@ -57,7 +45,7 @@ internal class TwitchManager : IStreamManager
 
             ];
             Log.Debug("Creating Youtube connection");
-            
+
             _connection = await TwitchConnection.ConnectViaLocalhostOAuthBrowser(_clientId, _clientSecret, scopes, forceApprovalPrompt: false);
 
             if (_connection != null)
@@ -101,7 +89,6 @@ internal class TwitchManager : IStreamManager
 
     public Task StartListening()
     {
-
         return Task.CompletedTask;
     }
 }

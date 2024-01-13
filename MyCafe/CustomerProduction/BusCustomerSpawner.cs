@@ -8,6 +8,7 @@ using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MyCafe.ChairsAndTables;
+using MyCafe.Customers;
 using MyCafe.Customers.Data;
 using MyCafe.Interfaces;
 using StardewModdingAPI;
@@ -15,7 +16,7 @@ using StardewValley;
 using StardewValley.Locations;
 using StardewValley.Pathfinding;
 
-namespace MyCafe.Customers;
+namespace MyCafe.CustomerProduction;
 
 internal class BusCustomerSpawner : ICustomerSpawner
 {

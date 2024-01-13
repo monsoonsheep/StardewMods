@@ -1,4 +1,4 @@
-﻿namespace MyCafe.Customers;
+﻿namespace MyCafe.Customers.Data;
 
 internal class CustomerModel
 {
