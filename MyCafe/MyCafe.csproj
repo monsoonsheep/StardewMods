@@ -1,20 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<ModFolderName>My Cafe</ModFolderName>
-		<TargetFramework>net6.0</TargetFramework>
-		<GamePath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley</GamePath>
-		<GameModsPath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley\Mods\My Mods</GameModsPath>
-		<Configurations>Debug;Release</Configurations>
-	</PropertyGroup>
-	
-	<PropertyGroup>
-		<!-- metadata -->
+		<!-- Metadata -->
 		<Authors>MonsoonSheep</Authors>
 		<RootNamespace>MyCafe</RootNamespace> 
 		<Version>0.1.2</Version>
 
-		<!-- build settings -->
+		<!-- Build Settings -->
+		<Configurations>Debug;Release</Configurations>
 		<TargetFramework>net6.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<EnableHarmony>true</EnableHarmony>
@@ -23,7 +16,12 @@
 			  ^townInterior(_2)?\.png$,
 			  ^walls_and_floors\.png$
 		</IgnoreModFilePatterns>
-		<EnableChatIntegration>twitch</EnableChatIntegration>
+		<EnableChatIntegration>disabled</EnableChatIntegration>
+
+		<!-- SMAPI Paths -->
+		<ModFolderName>My Cafe</ModFolderName>
+		<GamePath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley</GamePath>
+		<GameModsPath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley\Mods\My Mods</GameModsPath>
 	</PropertyGroup>
 	
 	<!-- Enable/disable Live Chat Integration with StreamingClientLibrary -->
@@ -37,7 +35,7 @@
 				<BundleExtraAssemblies>ThirdParty</BundleExtraAssemblies>
 			</PropertyGroup>
 			<ItemGroup>
-				<Compile Include="LiveChatIntegration\YoutubeManager.cs" />
+				<Compile Include="CustomerProduction\LiveChatIntegration\YoutubeManager.cs" />
 				<PackageReference Include="StreamingClientLibrary.YouTube" Version="1.0.0.21" />
 			</ItemGroup>
 		</When>  
@@ -47,6 +45,7 @@
 				<BundleExtraAssemblies>ThirdParty</BundleExtraAssemblies>
 			</PropertyGroup>
 			<ItemGroup>
+				<Compile Include="CustomerProduction\LiveChatIntegration\TwitchManager.cs" />
 				<PackageReference Include="StreamingClientLibrary.Twitch" Version="1.0.0.77" />
 			</ItemGroup>
 		</When> 
@@ -56,16 +55,15 @@
 			</ItemGroup>
 		</Otherwise>  
 	</Choose>  
+	<ItemGroup Condition="'$(EnableChatIntegration)' != 'disabled'">
+	  <Compile Include="CustomerProduction\LiveChatIntegration\ChatCustomerSpawner.cs" />
+	  <Compile Include="CustomerProduction\LiveChatIntegration\IStreamManager.cs" />
+	</ItemGroup>
 
+	
 	<ItemGroup>
 		<AdditionalFiles Include="i18n/default.json" />
 	</ItemGroup>  
-
-	<ItemGroup>
-	  <Compile Include="CustomerProduction\LiveChatIntegration\ChatCustomerSpawner.cs" />
-	  <Compile Include="CustomerProduction\LiveChatIntegration\IStreamManager.cs" />
-	  <Compile Include="CustomerProduction\LiveChatIntegration\TwitchManager.cs" />
-	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Mono.Cecil" Version="0.11.5.0" />

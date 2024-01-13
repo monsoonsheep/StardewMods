@@ -10,6 +10,7 @@ using StardewModdingAPI;
 using SUtility = StardewValley.Utility;
 using StardewValley.Buildings;
 using MyCafe.ChairsAndTables;
+using MyCafe.CustomerProduction;
 using MyCafe.Customers;
 
 namespace MyCafe;
@@ -43,6 +44,7 @@ internal sealed partial class CustomerManager
     {
         VillagerCustomers.DayUpdate();
         BusCustomers.DayUpdate();
+        ChatCustomers.DayUpdate();
     }
 
     internal void SpawnCustomers()

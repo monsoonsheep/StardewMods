@@ -35,23 +35,33 @@ internal class Debug
                 Log.LogWithHudMessage($"Cafe time: {Mod.Cafe.ClosingTime.Value}");
                 break;
             case SButton.NumPad7:
-                Mod.Cafe.Customers.ChatCustomers = new ChatCustomerSpawner();
-                Mod.Cafe.Customers.ChatCustomers.Initialize(Mod.ModHelper);
+               
                 break;
             case SButton.NumPad8:
-                var a = File.ReadAllText(Mod.ModHelper.DirectoryPath + "\\names.txt").Split('\n');
-                string name = a[Game1.random.Next(a.Length)].TrimEnd('\r');
-                (Mod.Cafe.Customers.ChatCustomers as ChatCustomerSpawner)?.OnChatMessageReceived(Mod.Cafe.Customers.ChatCustomers, new ChatMessageReceivedEventArgs()
-                {
-                    Username = name,
-                    Message = "!join"
-                });
+                
                 break;
             case SButton.NumPad9:
                 break;
             default:
                 return;
         }
+    }
+
+    public static void RefreshChat()
+    {
+        //Mod.Cafe.Customers.ChatCustomers = new ChatCustomerSpawner();
+        //Mod.Cafe.Customers.ChatCustomers.Initialize(Mod.ModHelper);
+    }
+
+    public static void Test_UserJoinChat()
+    {
+        //var a = File.ReadAllText(Mod.ModHelper.DirectoryPath + "\\names.txt").Split('\n');
+        //string name = a[Game1.random.Next(a.Length)].TrimEnd('\r').TrimStart();
+        //(Mod.Cafe.Customers.ChatCustomers as ChatCustomerSpawner)?.OnChatMessageReceived(Mod.Cafe.Customers.ChatCustomers, new ChatMessageReceivedEventArgs()
+        //{
+        //    Username = name,
+        //    Message = "!join"
+        //});
     }
 
     public static void WarpToBus()

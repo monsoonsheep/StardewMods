@@ -8,7 +8,7 @@ using YouTube.Base;
 using YouTube.Base.Clients;
 using LogLevel = StreamingClient.Base.Util.LogLevel;
 
-namespace MyCafe.CustomerProduction;;
+namespace MyCafe.CustomerProduction;
 public class YoutubeManager : IStreamManager
 {
     private string _clientId;
@@ -75,16 +75,6 @@ public class YoutubeManager : IStreamManager
         }
 
         return false;
-    }
-
-    public async Task StartListening()
-    {
-        if (await _connection.LiveBroadcasts.GetMyActiveBroadcast() != null)
-        {
-            await _chatClient.SendMessage("Hello chat!");
-        }
-
-        while (true) { }
     }
 
     private void Client_OnMessagesReceived(object sender, IEnumerable<LiveChatMessage> messages)

@@ -77,13 +77,20 @@ internal class Customer(string name, Vector2 position, string location, Animated
     public override void draw(SpriteBatch b, float alpha = 1)
     {
         base.draw(b, alpha);
-        if (DrawName)
+        if (DrawName.Value)
         {
-            Vector2 pos = getLocalPosition(Game1.viewport);
-            b.DrawString(Game1.dialogueFont, 
+            Vector2 pos = getLocalPosition(Game1.viewport) - new Vector2(40, 64);
+            b.DrawString(
+                Game1.dialogueFont, 
                 this.displayName,
-                getLocalPosition(Game1.viewport), 
-                Color.White * 0.75f, 0f, Vector2.Zero, Vector2.One, SpriteEffects.None, base.StandingPixel.Y / 10000f + 0.001f);
+                pos, 
+                Color.White * 0.75f, 
+                0f, 
+                Vector2.Zero,
+                new Vector2(0.3f, 0.3f), 
+                SpriteEffects.None, 
+                base.StandingPixel.Y / 10000f + 0.001f
+                );
 
         }
     }

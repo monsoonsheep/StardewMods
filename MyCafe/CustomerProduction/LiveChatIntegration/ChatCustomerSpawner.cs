@@ -31,7 +31,7 @@ internal class ChatCustomerSpawner : ICustomerSpawner
         if (_streamManager != null && await _streamManager.Connect())
         {
             _streamManager.OnChatMessageReceived += OnChatMessageReceived;
-            await _streamManager.StartListening();
+            Game1.chatBox.addMessage("Live chat connected!", Color.White);
         }
     }
 
@@ -68,6 +68,7 @@ internal class ChatCustomerSpawner : ICustomerSpawner
         {
             group.Delete();
             group.ReservedTable.Free();
+            return false;
         }
 
         return true;
@@ -80,6 +81,6 @@ internal class ChatCustomerSpawner : ICustomerSpawner
 
     public void DayUpdate()
     {
-
+        return;
     }
 }

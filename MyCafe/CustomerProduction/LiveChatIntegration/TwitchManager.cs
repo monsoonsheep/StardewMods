@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Threading.Tasks;
+using Microsoft.Xna.Framework;
+using StardewValley;
 using Twitch.Base;
 using Twitch.Base.Clients;
 using Twitch.Base.Models.Clients.Chat;
 using Twitch.Base.Models.NewAPI.Users;
+using Color = Microsoft.Xna.Framework.Color;
 
 namespace MyCafe.CustomerProduction;
 internal class TwitchManager : IStreamManager
@@ -26,6 +30,8 @@ internal class TwitchManager : IStreamManager
     private ConnectionStatus _connectionState = ConnectionStatus.Disconnected;
 
     public event EventHandler<ChatMessageReceivedEventArgs> OnChatMessageReceived;
+    private ColorConverter colorConverter;
+
 
     public async Task<bool> Connect()
     {
@@ -80,15 +86,13 @@ internal class TwitchManager : IStreamManager
 
     private void Chat_OnMessageReceived(object sender, ChatMessagePacketModel e)
     {
+        var color = (System.Drawing.Color) (colorConverter.ConvertFromInvariantString(e.Color) ?? System.Drawing.Color.White);
+        Color resultColor = new Color(color.R, color.G, color.B);
         OnChatMessageReceived?.Invoke(this, new ChatMessageReceivedEventArgs()
         {
             Username = e.UserDisplayName,
             Message = e.Message,
+            Color = resultColor
         });
-    }
-
-    public Task StartListening()
-    {
-        return Task.CompletedTask;
     }
 }
