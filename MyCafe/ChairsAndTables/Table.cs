@@ -1,4 +1,5 @@
-﻿using MyCafe.Customers;
+﻿using System;
+using MyCafe.Customers;
 using Netcode;
 using StardewValley;
 using System.Collections.Generic;
@@ -12,9 +13,8 @@ namespace MyCafe.ChairsAndTables;
 [XmlType("Mods_MonsoonSheep_MyCafe_Table")]
 [XmlInclude(typeof(FurnitureTable))]
 [XmlInclude(typeof(LocationTable))]
-public abstract class Table : INetObject<NetFields>
+public class Table : INetObject<NetFields>
 {
-
     public NetFields NetFields { get; }
 
     public NetEnum<TableState> State = new NetEnum<TableState>(TableState.Free);
@@ -58,29 +58,6 @@ public abstract class Table : INetObject<NetFields>
     {
         NetFields.SetOwner(this)
             .AddField(State).AddField(Seats).AddField(NetCurrentLocation).AddField(NetPosition).AddField(BoundingBox);
-        State.fieldChangeVisibleEvent += delegate (NetEnum<TableState> field, TableState oldValue, TableState newValue)
-        {
-            if (oldValue == newValue)
-                return;
-
-            switch (newValue)
-            {
-                case TableState.CustomersThinkingOfOrder:
-                    Game1.delayedActions.Add(new DelayedAction(2000, delegate ()
-                    {
-                        this.State.Set(TableState.CustomersDecidedOnOrder);
-                    }));
-                    break;
-                case TableState.CustomersDecidedOnOrder:
-                    foreach (Customer c in Seats.Select(s => s.ReservingCustomer))
-                    {
-
-                    }
-                    break;
-                case TableState.CustomersWaitingForFood:
-                    break;
-            }
-        };
     }
 
     internal virtual void Free()
@@ -113,5 +90,12 @@ public enum TableState
     CustomersThinkingOfOrder,
     CustomersDecidedOnOrder,
     CustomersWaitingForFood,
-    CustomersEating
+    CustomersEating,
+    CustomersFinishedEating
+}
+
+internal class TableStateChangedEventArgs : EventArgs
+{
+    internal TableState OldValue;
+    internal TableState NewValue;
 }

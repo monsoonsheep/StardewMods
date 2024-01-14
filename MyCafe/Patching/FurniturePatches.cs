@@ -2,8 +2,10 @@
 using MyCafe.ChairsAndTables;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Buildings;
 using StardewValley.Objects;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace MyCafe.Patching;
 
@@ -65,7 +67,7 @@ internal class FurniturePatches : PatchCollection
     }
     private static bool AddSittingFarmerPrefix(Furniture __instance, Farmer who, ref Vector2? __result)
     {
-        if (Utility.IsChair(__instance) && Mod.Cafe.ChairIsReserved(__instance))
+        if (Utility.IsChair(__instance) && Mod.Cafe.Tables.Any(t => t.Seats.OfType<FurnitureSeat>().Any(s => s.IsReserved && s.ActualChair.Value.Equals(__instance))))
         {
             __result = null;
             return false;
@@ -111,14 +113,14 @@ internal class FurniturePatches : PatchCollection
         if (!Utility.IsTable(__instance)) 
             return true;
 
-        if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable.IsReserved)
-        {
-            if (Mod.Cafe.ClickTable(trackedTable, who))
-            {
-                __result = true;
-                return false;
-            }
-        }
+        //if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable.IsReserved)
+        //{
+        //    if (Mod.Cafe.ClickTable(trackedTable, who))
+        //    {
+        //        __result = true;
+        //        return false;
+        //    }
+        //}
 
         return true;
     }

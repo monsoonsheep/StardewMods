@@ -25,7 +25,7 @@ internal class BusCustomerSpawner : CustomerSpawner
         _busSchedulesApi = Mod.ModHelper.ModRegistry.GetApi<IBusSchedulesApi>("MonsoonSheep.BusSchedules");
     }
 
-    internal List<BusCustomerData> GetRandomCustomerDataMultiple(int members)
+    internal List<BusCustomerData> GetRandomCustomerData(int members)
     {
         return CustomersData.Values.OrderBy(_ => Game1.random.Next()).Take(members).ToList();
     }
@@ -34,17 +34,14 @@ internal class BusCustomerSpawner : CustomerSpawner
     {
         Texture2D portrait = Game1.content.Load<Texture2D>(data.Model.PortraitName);
         AnimatedSprite sprite = new AnimatedSprite(data.Model.Spritesheet, 0, 16, 32);
-        Customer c = new Customer($"CustomerNPC_{data.Model.Name}", new Vector2(10, 12) * 64f, "BusStop", sprite, portrait)
-        {
-            portraitOverridden = true
-        };
+        Customer c = new Customer($"CustomerNPC_{data.Model.Name}", new Vector2(10, 12) * 64f, "BusStop", sprite, portrait);
         return c;
     }
 
     internal override bool Spawn(Table table, out CustomerGroup group)
     {
         group = new CustomerGroup();
-        List<BusCustomerData> datas = GetRandomCustomerDataMultiple(table.Seats.Count);
+        List<BusCustomerData> datas = GetRandomCustomerData(1);
         if (datas == null || !datas.Any())
             return false;
 
@@ -65,7 +62,12 @@ internal class BusCustomerSpawner : CustomerSpawner
 
         foreach (var c in customers)
             group.Add(c);
-        group.ReserveTable(table);
+        if (!group.ReserveTable(table))
+        {
+            Log.Error("Table couldn't be reserved. Bug!");
+            return false;
+        }
+
         foreach (Customer c in customers)
         {
             c.ItemToOrder.Set(ItemRegistry.Create<StardewValley.Object>("(O)128"));
@@ -73,7 +75,7 @@ internal class BusCustomerSpawner : CustomerSpawner
 
         GameLocation busStop = Game1.getLocationFromName("BusStop");
 
-        if (_busSchedulesApi != null && _busSchedulesApi.GetMinutesTillNextBus() <= 30)
+        if (false && _busSchedulesApi != null && _busSchedulesApi.GetMinutesTillNextBus() is <= 30 and > 10)
         {
             foreach (Customer c in customers)
             {
@@ -95,7 +97,8 @@ internal class BusCustomerSpawner : CustomerSpawner
                         {
                             if (!n.PathTo(targetLocation, targetPoint, 3, Customer.SitDownBehavior))
                             {
-                                g.Delete();
+                                Log.Error($"Customer {n.Name} couldn't path to cafe");
+                                LetGo(g);
                             }
                         }
                     }
@@ -113,8 +116,9 @@ internal class BusCustomerSpawner : CustomerSpawner
             }
             if (group.MoveToTable() is false)
             {
-                group.Delete();
-                group.ReservedTable.Free();
+                Log.Error("Customers couldn't path to cafe");
+                LetGo(group);
+                return false;
             }
         }
 
@@ -124,7 +128,9 @@ internal class BusCustomerSpawner : CustomerSpawner
 
     internal override void LetGo(CustomerGroup group)
     {
-
+        base.LetGo(group);
+        foreach (Customer c in group.Members)
+            c.currentLocation.characters.Remove(c);
     }
 
     internal override void DayUpdate()

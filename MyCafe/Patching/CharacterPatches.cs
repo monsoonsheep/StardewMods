@@ -25,16 +25,16 @@ internal class CharacterPatches : PatchCollection
                 transpiler: MoveCharacterTranspiler),
 
             new(
+                typeof(NPC),
+                "ChooseAppearance",
+                [typeof(LocalizedContentManager)],
+                prefix: ChooseAppearancePrefix),
+
+            new(
                 typeof(Character),
                 "doEmote",
                 [typeof(int), typeof(bool), typeof(bool)],
                 postfix: DoEmotePostfix),
-
-            new(
-                typeof(NPC),
-                "tryToReceiveActiveObject",
-                [typeof(Farmer), typeof(bool)],
-                prefix: TryToReceiveActiveObjectPrefix),
 
             new(
                 typeof(Game1),
@@ -45,14 +45,11 @@ internal class CharacterPatches : PatchCollection
         ];
     }
 
-    private static bool TryToReceiveActiveObjectPrefix(NPC __instance, Farmer who, bool probe)
+    private static bool ChooseAppearancePrefix(NPC __instance, LocalizedContentManager content)
     {
-        if (!probe && __instance is Customer c) // TODO: make work for regular NPCs
+        if (__instance is Customer c && c.Name.StartsWith("CustomerNPC"))
         {
-            Table table = c.Group.ReservedTable;
-
-            if (Mod.Cafe.ClickTable(table, who))
-                return false;
+            return false;
         }
 
         return true;

@@ -169,38 +169,15 @@ public class Mod : StardewModdingAPI.Mod
                             Game1.mouseCursors,
                             Game1.GlobalToLocal(table.Center + new Vector2(-8, -64)) + offset,
                             new Rectangle(402, 495, 7, 16),
-                            Color.Crimson,
+                            Color.White,
                             0f,
                             new Vector2(1f, 4f),
                             4f,
                             SpriteEffects.None,
                             1f);
                         break;
-                    case TableState.CustomersWaitingForFood:
-                    {
-                        // Item to order on top of every customer
-                        foreach (Seat seat in table.Seats)
-                        {
-                            if (seat.ReservingCustomer is { ItemToOrder.Value: not null } customer)
-                            {
-                                Vector2 pos = customer.getLocalPosition(Game1.viewport);
-                                pos.Y -= 32 + customer.Sprite.SpriteHeight * 3;
-
-                                e.SpriteBatch.Draw(
-                                    Game1.emoteSpriteSheet,
-                                    pos + offset,
-                                    new Rectangle(32, 0, 16, 16),
-                                    Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 1f);
-
-                                customer.ItemToOrder.Value.drawInMenu(e.SpriteBatch, pos + offset, 0.35f, 1f, 1f);
-                            }
-                        }
-
-                        break;
-                    }
                 }
             }
-
         }
     }
 

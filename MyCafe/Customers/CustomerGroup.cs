@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 using MyCafe.ChairsAndTables;
 using StardewValley;
 using StardewValley.Pathfinding;
@@ -57,13 +58,5 @@ public class CustomerGroup
         }
 
         return true;
-    }
-
-    internal void Delete()
-    {
-        foreach (Customer customer in Members)
-        {
-            customer.currentLocation.characters.Remove(customer);
-        }
     }
 }

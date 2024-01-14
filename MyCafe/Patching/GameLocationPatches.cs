@@ -31,7 +31,7 @@ internal class GameLocationPatches : PatchCollection
 
     private static void FarmInitNetFieldsPostfix(Farm __instance)
     {
-        __instance.NetFields.AddField(__instance.get_Cafe());
+        __instance.NetFields.AddField(__instance.get_Cafe(), "Cafe");
     }
 
     private static void CheckActionPostfix(GameLocation __instance, Location tileLocation, Rectangle viewport, Farmer who, ref bool __result)

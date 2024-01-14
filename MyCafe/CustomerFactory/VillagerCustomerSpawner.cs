@@ -91,6 +91,7 @@ internal class VillagerCustomerSpawner : CustomerSpawner
 
     internal override void LetGo(CustomerGroup group)
     {
+        base.LetGo(group);
         Customer v = group.Members.First();
         NPC original = VillagerData[v.Name].RealNpc;
 
@@ -155,7 +156,6 @@ internal class VillagerCustomerSpawner : CustomerSpawner
 
         v.currentLocation.characters.Remove(v);
         v.currentLocation.addCharacter(original);
-        ActiveGroups.Remove(group);
     }
 
     internal override void DayUpdate()

@@ -9,8 +9,19 @@ internal abstract class CustomerSpawner
 {
     internal List<CustomerGroup> ActiveGroups;
 
+    internal CustomerSpawner()
+    {
+        ActiveGroups = [];
+    }
     internal abstract bool Spawn(Table table, out CustomerGroup groupSpawned);
-    internal abstract void LetGo(CustomerGroup group);
+
+    internal virtual void LetGo(CustomerGroup group)
+    {
+        Log.Debug("Removing group");
+        ActiveGroups.Remove(group);
+        group.ReservedTable.Free();
+    }
+
     internal abstract void DayUpdate();
     internal abstract void Initialize(IModHelper helper);
 

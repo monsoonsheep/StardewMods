@@ -48,6 +48,7 @@ public abstract class Seat : INetObject<NetFields>
     {
         NetFields = new NetFields(NetFields.GetNameForInstance(this));
         InitNetFields();
+        _ = Table;
     }
 
     public Seat(Table table) : this()

@@ -13,7 +13,14 @@ internal sealed class CustomerManager
     internal CustomerSpawner VillagerCustomers;
     internal CustomerSpawner ChatCustomers;
 
-    internal readonly List<CustomerGroup> CurrentGroups = [];
+    internal IEnumerable<CustomerGroup> CurrentGroups
+    {
+        get
+        {
+            var l = BusCustomers.ActiveGroups.Concat(VillagerCustomers.ActiveGroups);
+            return (ChatCustomers == null) ? l : l.Concat(ChatCustomers.ActiveGroups);
+        }
+    }
 
     internal CustomerManager(IModHelper helper)
     {
@@ -48,20 +55,16 @@ internal sealed class CustomerManager
             return;
         }
 
-        CustomerGroup group;
-
         if (ChatCustomers != null)
         {
-            if (ChatCustomers.Spawn(table, out group) is true)
+            if (ChatCustomers.Spawn(table, out _) is true)
             {
-                CurrentGroups.Add(group);
                 return;
             }
         }
 
-        if (BusCustomers.Spawn(table, out group) is true)
+        if (BusCustomers.Spawn(table, out _) is true)
         {
-            CurrentGroups.Add(group);
             return;
         }
     }
@@ -69,5 +72,24 @@ internal sealed class CustomerManager
     internal void RemoveAllCustomers()
     {
 
+    }
+
+    internal CustomerGroup GetGroupFromTable(Table table)
+    {
+        return CurrentGroups.FirstOrDefault(g => g.ReservedTable == table);
+    }
+
+    internal void ReleaseGroup(CustomerGroup group)
+    {
+        if (BusCustomers.ActiveGroups.Contains(group))
+            BusCustomers.LetGo(group);
+        else if (VillagerCustomers.ActiveGroups.Contains(group))
+            VillagerCustomers.LetGo(group);
+        else if (ChatCustomers?.ActiveGroups.Contains(group) ?? false)
+            ChatCustomers.LetGo(group);
+        else
+        {
+            Log.Error("Group not found");
+        }
     }
 }

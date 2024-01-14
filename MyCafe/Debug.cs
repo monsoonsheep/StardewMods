@@ -1,4 +1,6 @@
-﻿using StardewModdingAPI;
+﻿using Microsoft.Xna.Framework;
+using MyCafe.ChairsAndTables;
+using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 
@@ -21,10 +23,25 @@ internal class Debug
                 WarpToBus();
                 break;
             case SButton.NumPad2:
-                Mod.Cafe.Customers.SpawnCustomers();
+                if (Context.IsMainPlayer)
+                    Mod.Cafe.Customers.SpawnCustomers();
+                break;
+            case SButton.NumPad3:
+                Mod.Cafe.Customers.RemoveAllCustomers();
                 break;
             case SButton.NumPad4:
-                Mod.Cafe.ClosingTime.Set(2400);
+                foreach (var table in Mod.Cafe.Tables)
+                {
+                    foreach (Seat seat in table.Seats)
+                    {
+                        if (seat.ReservingCustomer is { ItemToOrder.Value: not null } customer)
+                        {
+                            Vector2 pos = customer.getLocalPosition(Game1.viewport);
+                            pos.Y -= 32 + customer.Sprite.SpriteHeight * 3;
+                            Log.Debug($"pos {pos.ToString()}, Position: {customer.Position.ToString()}, viewport: {Game1.viewport.ToString()}");
+                        }
+                    }
+                }
                 break;
             case SButton.NumPad5:
                 Mod.Cafe.ClosingTime.Set(2500);

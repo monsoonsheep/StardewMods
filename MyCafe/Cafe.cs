@@ -134,8 +134,6 @@ public class Cafe : INetObject<NetFields>
             }
             Log.Debug($"{count} new map-based tables found in cafe locations.");
         }
-
-        FreeAllTables();
     }
 
     internal void PopulateMapTables(GameLocation indoors)
@@ -202,6 +200,11 @@ public class Cafe : INetObject<NetFields>
             return false;
 
         table.Free();
+        table.State.fieldChangeVisibleEvent += (_, oldValue, newValue) => OnTableStateChange(table, new TableStateChangedEventArgs()
+        {
+            OldValue = oldValue,
+            NewValue = newValue
+        });
         Tables.Add(table);
         return true;
     }
@@ -222,14 +225,6 @@ public class Cafe : INetObject<NetFields>
         return Tables.Any(t => t.Seats.OfType<FurnitureSeat>().Any(s => s.IsReserved && s.ActualChair.Value.Equals(chair)));
     }
 
-    internal void FreeAllTables()
-    {
-        foreach (var table in Tables)
-        {
-            table.Free();
-        }
-    }
-
     internal bool ClickTable(Table table, Farmer who)
     {
         switch (table.State.Value)
@@ -239,20 +234,72 @@ public class Cafe : INetObject<NetFields>
                 return true;
             case TableState.CustomersWaitingForFood:
             {
-                var itemsNeeded = table.Seats.Where(s => s.ReservingCustomer != null).Select(c => c.ReservingCustomer.ItemToOrder.Value).ToList();
-                if (itemsNeeded.Any(item => !who.Items.Contains(item)))
-                    return false;
+                var itemsNeeded = table.Seats.Where(s => s.ReservingCustomer != null).Select(c => c.ReservingCustomer.ItemToOrder.Value.ItemId).ToList();
+                foreach (var item in itemsNeeded)
+                {
+                    if (!who.Items.ContainsId(item, minimum: itemsNeeded.Count(x => x == item)))
+                    {
+                        return false;
+                    }
+                }
 
                 foreach (var item in itemsNeeded)
                 {
-                    who.removeFirstOfThisItemFromInventory(item.ItemId);
+                    who.removeFirstOfThisItemFromInventory(item);
                 }
-                table.State.Set(TableState.CustomersEating);
 
+                table.State.Set(TableState.CustomersEating);
                 return true;
             }
             default:
                 return false;
+        }
+    }
+
+    internal void OnTableStateChange(object sender, TableStateChangedEventArgs e)
+    {
+        var oldValue = e.OldValue;
+        var newValue = e.NewValue;
+        var table = (Table) sender;
+
+        if (oldValue == newValue)
+            return;
+
+        switch (newValue)
+        {
+            case TableState.CustomersThinkingOfOrder:
+                Log.Debug("Table started");
+                Game1.delayedActions.Add(new DelayedAction(2000, delegate ()
+                {
+                    table.State.Set(TableState.CustomersDecidedOnOrder);
+                }));
+                break;
+            case TableState.CustomersDecidedOnOrder:
+                Log.Debug("Table decided");
+                break;
+            case TableState.CustomersWaitingForFood:
+                foreach (Customer c in table.Seats.Where(s => s.ReservingCustomer != null).Select(s => s.ReservingCustomer))
+                {
+                    c.DrawItemOrder.Set(true);
+                }
+                Log.Debug("Table waiting for order");
+                break;
+            case TableState.CustomersEating:
+                foreach (Customer c in table.Seats.Where(s => s.ReservingCustomer != null).Select(s => s.ReservingCustomer))
+                {
+                    c.DrawItemOrder.Set(false);
+                }
+                Log.Debug("Table eating");
+                Game1.delayedActions.Add(new DelayedAction(2000, delegate ()
+                {
+                    table.State.Set(TableState.CustomersFinishedEating);
+                })); 
+                break;
+            case TableState.CustomersFinishedEating:
+                Log.Debug("Table finished meal");
+                CustomerGroup group = Customers.GetGroupFromTable(table);
+                Customers.ReleaseGroup(group);
+                break;
         }
     }
 
