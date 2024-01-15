@@ -32,20 +32,16 @@ internal class Customer : NPC
 
     public static PathFindController.endBehavior SitDownBehavior = delegate (Character c, GameLocation loc)
     {
-        if (c is Customer p)
+        if (c is Customer customer)
         {
-            int direction = Utility.DirectionIntFromVectors(p.Tile, p.ReservedSeat.Position.ToVector2());
-            p.SitDown(direction);
-            p.faceDirection(p.ReservedSeat.SittingDirection);
+            int direction = Utility.DirectionIntFromVectors(customer.Tile, customer.ReservedSeat.Position.ToVector2());
+            customer.SitDown(direction);
+            customer.faceDirection(customer.ReservedSeat.SittingDirection);
 
-            p.IsSittingDown = true;
-            if (p.Group.Members.Any(other => !other.IsSittingDown))
+            customer.IsSittingDown = true;
+            if (customer.Group.Members.Any(other => !other.IsSittingDown))
                 return;
-
-            Game1.delayedActions.Add(new DelayedAction(500, delegate ()
-            {
-                p.ReservedSeat.Table.State.Set(TableState.CustomersThinkingOfOrder);
-            }));
+            customer.ReservedSeat.Table.State.Set(TableState.CustomersThinkingOfOrder);
         }
     };
 
@@ -54,7 +50,7 @@ internal class Customer : NPC
 
     }
 
-    public Customer(string name, Vector2 position, string location, AnimatedSprite sprite, Texture2D portrait) : base(sprite, position, location, 2, name, portrait, eventActor: false)
+    public Customer(string name, Vector2 position, string location, AnimatedSprite sprite, Texture2D portrait) : base(sprite, position, location, 2, name, portrait, eventActor: true)
     {
     }
 
@@ -71,7 +67,7 @@ internal class Customer : NPC
         if (!Context.IsMainPlayer)
             return;
 
-        if (!currentLocation.farmers.Any() && currentLocation.Name.Equals("BusStop") && controller != null)
+        if (controller != null && !currentLocation.farmers.Any() && currentLocation.Name.Equals("BusStop"))
         {
             while (currentLocation.Name.Equals("BusStop"))
             {
@@ -100,8 +96,7 @@ internal class Customer : NPC
 
     public override void draw(SpriteBatch b, float alpha = 1)
     {
-        int standingY = base.StandingPixel.Y;
-        float mainLayerDepth = Math.Max(0f, standingY / 10000f);
+        float mainLayerDepth = Math.Max(0f, base.StandingPixel.Y / 10000f);
 
         b.Draw(
             Sprite.Texture, 
@@ -161,7 +156,7 @@ internal class Customer : NPC
             Table table = Group.ReservedTable;
             
             if (Mod.Cafe.ClickTable(table, who))
-                return false;
+                return true;
         }
         
         return base.tryToReceiveActiveObject(who, probe);
@@ -173,7 +168,7 @@ internal class Customer : NPC
         LerpPosition(Position, sitPosition, 0.2f);
     }
 
-    public void LerpPosition(Vector2 startPosition, Vector2 endPosition, float duration)
+    private void LerpPosition(Vector2 startPosition, Vector2 endPosition, float duration)
     {
         _lerpStartPosition = startPosition;
         _lerpEndPosition = endPosition;

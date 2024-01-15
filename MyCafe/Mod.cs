@@ -58,7 +58,7 @@ public class Mod : StardewModdingAPI.Mod
         helper.Events.Content.AssetReady += AssetManager.OnAssetReady;
 
         helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
-        helper.Events.GameLoop.DayStarted += DayUpdate;
+        helper.Events.GameLoop.DayStarted += OnDayStarted;
         helper.Events.GameLoop.TimeChanged += OnTimeChanged;
         helper.Events.Display.RenderedWorld += OnRenderedWorld;
         helper.Events.World.FurnitureListChanged += OnFurnitureListChanged;
@@ -98,7 +98,7 @@ public class Mod : StardewModdingAPI.Mod
     }
 
 
-    internal void DayUpdate(object sender, DayStartedEventArgs e)
+    internal void OnDayStarted(object sender, DayStartedEventArgs e)
     {
         if (Context.IsMainPlayer)
         {
