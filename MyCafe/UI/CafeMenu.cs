@@ -32,7 +32,7 @@ public sealed class CafeMenu : IClickableMenu
         _tabs.Clear();
         _pages.Clear();
 
-        _tabs.Add(new ClickableComponent(new Rectangle(xPositionOnScreen + 64, yPositionOnScreen + tabYPositionRelativeToMenuY + 64, 64, 64),
+        target_editButton = new Rectangle(target_menuBoard.X + 36, target_menuBoard.Y + 63, source_editButton.Width, source_editButton.Height);
             "food", "Food")
         {
             myID = 12340,
