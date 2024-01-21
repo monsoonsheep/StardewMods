@@ -7,7 +7,7 @@ using StardewValley.Pathfinding;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
-using MyCafe.ChairsAndTables;
+using MyCafe.Locations;
 using Object = StardewValley.Object;
 
 namespace MyCafe.Patching;

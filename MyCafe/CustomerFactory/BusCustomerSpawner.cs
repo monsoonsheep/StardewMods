@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MyCafe.ChairsAndTables;
+using MyCafe.Locations;
 using MyCafe.Customers;
 using MyCafe.Customers.Data;
 using MyCafe.Interfaces;

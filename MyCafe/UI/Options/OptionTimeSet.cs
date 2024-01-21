@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 using StardewValley.Menus;
 
-namespace MyCafe.UI;
+namespace MyCafe.UI.Options;
 
 
 internal class OptionTimeSet : OptionsElement
@@ -32,11 +32,11 @@ internal class OptionTimeSet : OptionsElement
     {
         this.minValue = minValue;
         this.maxValue = maxValue;
-        this.setValue = setFunction;
+        setValue = setFunction;
 
-        this.minutes = initialValue % 100;
-        this.am = (initialValue < 1200 || initialValue >= 2400);
-        this.hours = initialValue / 100;
+        minutes = initialValue % 100;
+        am = initialValue < 1200 || initialValue >= 2400;
+        hours = initialValue / 100;
 
         hourUpRec = new Rectangle(bounds.X + 5, bounds.Y, 40, 22);
         hourDownRec = new Rectangle(bounds.X + 5, bounds.Y + 52, 40, 22);
@@ -47,13 +47,13 @@ internal class OptionTimeSet : OptionsElement
 
     private void setTime()
     {
-        am = (hours < 12 || hours >= 24);
+        am = hours < 12 || hours >= 24;
         setValue(hours * 100 + minutes);
     }
 
     private int formatHours()
     {
-        int h = (am) ? (hours % 12) : (hours - 12);
+        int h = am ? hours % 12 : hours - 12;
         if (h == 0)
             h = 12;
         return h;
@@ -117,28 +117,28 @@ internal class OptionTimeSet : OptionsElement
 
     private void hourUp()
     {
-        hours = Math.Min(Math.Min(25, maxValue/100), hours + 1);
+        hours = Math.Min(Math.Min(25, maxValue / 100), hours + 1);
     }
 
     private void hourDown()
     {
-        hours = Math.Max(Math.Max(6, minValue/100), hours - 1);
+        hours = Math.Max(Math.Max(6, minValue / 100), hours - 1);
     }
-    public override void draw(SpriteBatch b, int slotX, int slotY, IClickableMenu? context = null)
+    public override void draw(SpriteBatch b, int slotX, int slotY, IClickableMenu context = null)
     {
-        base.draw(b, slotX + 200, slotY , context);
+        base.draw(b, slotX + 200, slotY, context);
         b.DrawString(
-            Game1.dialogueFont, 
-            formatHours().ToString().PadLeft(2, '0') + " : " + this.minutes.ToString().PadLeft(2, '0') + ((am) ? " am" : " pm"), 
-            new Vector2(slotX + this.bounds.X, slotY + this.bounds.Y + 14), 
+            Game1.dialogueFont,
+            formatHours().ToString().PadLeft(2, '0') + " : " + minutes.ToString().PadLeft(2, '0') + (am ? " am" : " pm"),
+            new Vector2(slotX + bounds.X, slotY + bounds.Y + 14),
             Color.Black);
 
 
-        b.Draw(Game1.mouseCursors, new Rectangle(this.bounds.X + slotX + 5, this.bounds.Y + slotY, 40, 22), new Rectangle(422, 459, 10, 11), Color.White, 0f, Vector2.Zero, SpriteEffects.None, 0.9f);
+        b.Draw(Game1.mouseCursors, new Rectangle(bounds.X + slotX + 5, bounds.Y + slotY, 40, 22), new Rectangle(422, 459, 10, 11), Color.White, 0f, Vector2.Zero, SpriteEffects.None, 0.9f);
 
-        b.Draw(Game1.mouseCursors, new Rectangle(this.bounds.X + slotX + 5, this.bounds.Y + slotY + 52, 40, 22), new Rectangle(422, 472, 10, 11), Color.White, 0f, Vector2.Zero, SpriteEffects.None, 0.9f);
-        b.Draw(Game1.mouseCursors, new Rectangle(this.bounds.X + slotX + 72, this.bounds.Y + slotY, 40, 22), new Rectangle(422, 459, 10, 11), Color.White, 0f, Vector2.Zero, SpriteEffects.None, 0.9f);
-        b.Draw(Game1.mouseCursors, new Rectangle(this.bounds.X + slotX + 72, this.bounds.Y + slotY + 52, 40, 22), new Rectangle(422, 472, 10, 11), Color.White, 0f, Vector2.Zero, SpriteEffects.None, 0.9f);
+        b.Draw(Game1.mouseCursors, new Rectangle(bounds.X + slotX + 5, bounds.Y + slotY + 52, 40, 22), new Rectangle(422, 472, 10, 11), Color.White, 0f, Vector2.Zero, SpriteEffects.None, 0.9f);
+        b.Draw(Game1.mouseCursors, new Rectangle(bounds.X + slotX + 72, bounds.Y + slotY, 40, 22), new Rectangle(422, 459, 10, 11), Color.White, 0f, Vector2.Zero, SpriteEffects.None, 0.9f);
+        b.Draw(Game1.mouseCursors, new Rectangle(bounds.X + slotX + 72, bounds.Y + slotY + 52, 40, 22), new Rectangle(422, 472, 10, 11), Color.White, 0f, Vector2.Zero, SpriteEffects.None, 0.9f);
 
         //new Rectangle(422, 472, 10, 11)
     }

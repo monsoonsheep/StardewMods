@@ -1,4 +1,4 @@
-﻿using MyCafe.ChairsAndTables;
+﻿using MyCafe.Locations;
 using StardewModdingAPI;
 using StardewValley;
 using System.Collections.Generic;

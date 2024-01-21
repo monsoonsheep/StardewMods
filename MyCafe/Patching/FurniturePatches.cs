@@ -1,5 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
-using MyCafe.ChairsAndTables;
+using MyCafe.Locations;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Buildings;

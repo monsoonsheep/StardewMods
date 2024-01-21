@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MyCafe.ChairsAndTables;
+using MyCafe.Locations;
 using Netcode;
 using StardewModdingAPI;
 using StardewValley;

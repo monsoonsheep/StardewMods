@@ -1,5 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
-using MyCafe.ChairsAndTables;
+using MyCafe.Locations;
 using MyCafe.Customers;
 using StardewValley;
 using StardewValley.Objects;

@@ -2,21 +2,20 @@
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 
-namespace MyCafe.UI;
+namespace MyCafe.UI.MenuBoard;
 
 internal class MenuCategoryEntry : MenuEntry
 {
+    private static readonly Rectangle source_sideLine = new Rectangle(128, 32, 5, 16);
+
     internal readonly string Name;
     private readonly Color _color = new Color(new Vector3(13 / 255f, 21 / 255f, 40 / 255f));
     private readonly int _xPositionForCentering;
     private readonly int _lengthOfText;
-    private readonly Rectangle source_sideLine = new Rectangle(128, 32, 5, 16);
-    private readonly int width;
 
-    internal MenuCategoryEntry(string name, int width)
+    internal MenuCategoryEntry(string name)
     {
         Name = name;
-        this.width = width;
         _lengthOfText = (int)Game1.smallFont.MeasureString(name).X;
         _xPositionForCentering = (int)((384 - 27 * 2 - _lengthOfText) / 2f);
     }
@@ -48,7 +47,7 @@ internal class MenuCategoryEntry : MenuEntry
             1f);
         b.Draw(
             Mod.Sprites,
-            new Vector2(slotX + width - 16, slotY + 8),
+            new Vector2(slotX + Bounds.Width - 16, slotY + 8),
             stretch,
             Color.White,
             0f,
@@ -80,5 +79,7 @@ internal class MenuCategoryEntry : MenuEntry
             new Vector2(_xPositionForCentering - 32, 1),
             SpriteEffects.None,
             1f);
+
+
     }
 }

@@ -12,7 +12,7 @@ using xTile.Layers;
 using xTile.Tiles;
 
 // ReSharper disable once CheckNamespace
-namespace StardewValley.Locations;
+namespace MyCafe.Locations;
 [XmlType("Mods_MonsoonSheep_MyCafe_CafeLocation")]
 public class CafeLocation : GameLocation
 {
@@ -38,7 +38,7 @@ public class CafeLocation : GameLocation
             return;
 
         _mapTablesInCafeLocation.Clear();
-        Layer layer = base.Map.GetLayer("Buildings");
+        Layer layer = Map.GetLayer("Buildings");
 
         Dictionary<string, Rectangle> seatStringToTableRecs = new();
 

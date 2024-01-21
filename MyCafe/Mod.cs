@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MyCafe.ChairsAndTables;
+using MyCafe.Locations;
 using MyCafe.Customers.Data;
 using MyCafe.Interfaces;
 using MyCafe.Patching;
@@ -15,7 +15,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MyCafe.Customers;
-using StardewValley.Locations;
 using xTile;
 using SUtility = StardewValley.Utility;
 using System.IO;

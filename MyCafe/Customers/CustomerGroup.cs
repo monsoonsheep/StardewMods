@@ -1,6 +1,6 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
-using MyCafe.ChairsAndTables;
+using MyCafe.Locations;
 using StardewValley;
 using StardewValley.Pathfinding;
 using System.Collections.Generic;

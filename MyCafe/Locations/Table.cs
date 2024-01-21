@@ -8,7 +8,7 @@ using System.Xml.Serialization;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 
-namespace MyCafe.ChairsAndTables;
+namespace MyCafe.Locations;
 
 [XmlType("Mods_MonsoonSheep_MyCafe_Table")]
 [XmlInclude(typeof(FurnitureTable))]

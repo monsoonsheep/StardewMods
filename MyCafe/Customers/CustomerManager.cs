@@ -1,11 +1,10 @@
-﻿using MyCafe.ChairsAndTables;
+﻿using MyCafe.Locations;
 using MyCafe.CustomerFactory;
-using MyCafe.Customers;
 using StardewModdingAPI;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MyCafe;
+namespace MyCafe.Customers;
 
 internal sealed class CustomerManager
 {
@@ -18,7 +17,7 @@ internal sealed class CustomerManager
         get
         {
             var l = BusCustomers.ActiveGroups.Concat(VillagerCustomers.ActiveGroups);
-            return (ChatCustomers == null) ? l : l.Concat(ChatCustomers.ActiveGroups);
+            return ChatCustomers == null ? l : l.Concat(ChatCustomers.ActiveGroups);
         }
     }
 

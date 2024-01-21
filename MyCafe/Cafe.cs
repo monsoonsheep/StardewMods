@@ -1,7 +1,7 @@
 ﻿using System;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
-using MyCafe.ChairsAndTables;
+using MyCafe.Locations;
 using Netcode;
 using StardewModdingAPI;
 using StardewValley;
@@ -18,7 +18,6 @@ using System.Xml.Schema;
 using System.Xml.Serialization;
 using MyCafe.Customers;
 using StardewValley.Inventories;
-using StardewValley.Locations;
 using xTile.Layers;
 using xTile.Tiles;
 using SUtility = StardewValley.Utility;

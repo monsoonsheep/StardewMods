@@ -2,7 +2,7 @@ using Netcode;
 using StardewValley.Objects;
 using System.Xml.Serialization;
 
-namespace MyCafe.ChairsAndTables;
+namespace MyCafe.Locations;
 
 [XmlType("Mods_MonsoonSheep_MyCafe_FurnitureSeat")]
 public sealed class FurnitureSeat : Seat

@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using MyCafe.ChairsAndTables;
+using MyCafe.Locations;
 using MyCafe.Customers;
 using StardewModdingAPI;
 
