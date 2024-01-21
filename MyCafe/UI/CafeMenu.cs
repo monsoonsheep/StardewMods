@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MyCafe.UI.MenuBoard;
+using MyCafe.UI.Options;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Menus;
