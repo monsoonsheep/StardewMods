@@ -46,7 +46,6 @@ internal class VillagerCustomerSpawner : CustomerSpawner
         VillagerCustomerData data = VillagerData[npc.Name];
 
         if (data == null ||
-            Mod.Cafe.Customers.CurrentCustomers.Contains(npc) ||
             npc.isSleeping.Value is true ||
             npc.ScheduleKey == null ||
             data.CanVisitToday == false ||
@@ -89,9 +88,11 @@ internal class VillagerCustomerSpawner : CustomerSpawner
         return true;
     }
 
-    internal override void LetGo(CustomerGroup group)
+    internal override bool LetGo(CustomerGroup group, bool force = false)
     {
-        base.LetGo(group);
+        if (!base.LetGo(group))
+            return false;
+
         Customer v = group.Members.First();
         NPC original = VillagerData[v.Name].RealNpc;
 
@@ -156,6 +157,7 @@ internal class VillagerCustomerSpawner : CustomerSpawner
 
         v.currentLocation.characters.Remove(v);
         v.currentLocation.addCharacter(original);
+        return true;
     }
 
     internal override void DayUpdate()

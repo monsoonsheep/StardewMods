@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace MyCafe.Customers;
 
-internal class Customer : NPC
+public class Customer : NPC
 {
     private Seat _reservedSeat;
 
@@ -67,9 +67,9 @@ internal class Customer : NPC
         if (!Context.IsMainPlayer)
             return;
 
-        if (controller != null && !currentLocation.farmers.Any() && currentLocation.Name.Equals("BusStop"))
+        if (controller != null && !freezeMotion && !currentLocation.farmers.Any() && currentLocation.Name.Equals("BusStop"))
         {
-            while (currentLocation.Name.Equals("BusStop"))
+            while (currentLocation.Name.Equals("BusStop") && controller.pathToEndPoint?.Count > 2)
             {
                 controller.pathToEndPoint.Pop();
                 GameLocation loc = currentLocation;
@@ -155,7 +155,7 @@ internal class Customer : NPC
         {
             Table table = Group.ReservedTable;
             
-            if (Mod.Cafe.ClickTable(table, who))
+            if (Mod.Cafe.InteractWithTable(table, who))
                 return true;
         }
         

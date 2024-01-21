@@ -1,6 +1,12 @@
-﻿namespace MyCafe.UI;
+﻿using System;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using StardewValley;
+using StardewValley.Menus;
 
-/*
+namespace MyCafe.UI;
+
+
 internal class OptionItemSlider : OptionsElement
 {
     private new readonly string label;
@@ -86,4 +92,3 @@ internal class OptionItemSlider : OptionsElement
         base.draw(b, slotX, slotY + 12, context);
     }
 }
-*/

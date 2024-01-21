@@ -1,6 +1,12 @@
-﻿namespace MyCafe.UI;
+﻿using System;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using StardewValley;
+using StardewValley.Menus;
 
-/*
+namespace MyCafe.UI;
+
+
 internal class OptionTimeSet : OptionsElement
 {
     private new readonly string label;
@@ -121,7 +127,11 @@ internal class OptionTimeSet : OptionsElement
     public override void draw(SpriteBatch b, int slotX, int slotY, IClickableMenu? context = null)
     {
         base.draw(b, slotX + 200, slotY , context);
-        b.DrawString(Game1.dialogueFont, formatHours().ToString().PadLeft(2, '0') + " : " + this.minutes.ToString().PadLeft(2, '0') + ((am) ? " am" : " pm"), new Vector2(slotX + this.bounds.X, slotY + this.bounds.Y + 14), Color.Black);
+        b.DrawString(
+            Game1.dialogueFont, 
+            formatHours().ToString().PadLeft(2, '0') + " : " + this.minutes.ToString().PadLeft(2, '0') + ((am) ? " am" : " pm"), 
+            new Vector2(slotX + this.bounds.X, slotY + this.bounds.Y + 14), 
+            Color.Black);
 
 
         b.Draw(Game1.mouseCursors, new Rectangle(this.bounds.X + slotX + 5, this.bounds.Y + slotY, 40, 22), new Rectangle(422, 459, 10, 11), Color.White, 0f, Vector2.Zero, SpriteEffects.None, 0.9f);
@@ -133,4 +143,3 @@ internal class OptionTimeSet : OptionsElement
         //new Rectangle(422, 472, 10, 11)
     }
 }
-*/

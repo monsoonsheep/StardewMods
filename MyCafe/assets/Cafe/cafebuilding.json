@@ -17,7 +17,5 @@
     "FadeWhenBehind": true,
     "SortTileOffset": 1,
     "IndoorMap": "MonsoonSheep.MyCafe_CafeMap",
-    "CustomFields": {
-        "MonsoonSheep.MyCafe_IsCafeBuilding": "true"
-    }
+    "IndoorMapType": "StardewValley.Locations.CafeLocation, MyCafe"
 }

@@ -13,21 +13,28 @@ internal abstract class CustomerSpawner
     {
         ActiveGroups = [];
     }
+
     internal abstract bool Spawn(Table table, out CustomerGroup groupSpawned);
 
-    internal virtual void LetGo(CustomerGroup group)
+    internal virtual bool LetGo(CustomerGroup group, bool force = false)
     {
+        if (group == null || !ActiveGroups.Contains(group))
+            return false;
         Log.Debug("Removing group");
         ActiveGroups.Remove(group);
         group.ReservedTable.Free();
+        return true;
     }
 
     internal abstract void DayUpdate();
+
     internal abstract void Initialize(IModHelper helper);
 
     internal virtual void RemoveAll()
     {
-        foreach (var group in ActiveGroups)
-            LetGo(group);
+        for (int i = ActiveGroups.Count - 1; i >= 0; i--)
+        {
+            LetGo(ActiveGroups[i]);
+        }
     }
 }

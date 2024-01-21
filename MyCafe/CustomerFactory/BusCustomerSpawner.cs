@@ -16,21 +16,19 @@ namespace MyCafe.CustomerFactory;
 
 internal class BusCustomerSpawner : CustomerSpawner
 {
-    internal Dictionary<string, BusCustomerData> CustomersData;
     private IBusSchedulesApi _busSchedulesApi;
 
     internal override void Initialize(IModHelper helper)
     {
-        Mod.Cafe.Assets.LoadContentPackBusCustomers(helper, out CustomersData);
         _busSchedulesApi = Mod.ModHelper.ModRegistry.GetApi<IBusSchedulesApi>("MonsoonSheep.BusSchedules");
     }
 
     internal List<BusCustomerData> GetRandomCustomerData(int members)
     {
-        return CustomersData.Values.OrderBy(_ => Game1.random.Next()).Take(members).ToList();
+        return Mod.CustomersData.Values.OrderBy(_ => Game1.random.Next()).Take(members).ToList();
     }
 
-    internal Customer GetCustomerFromData(BusCustomerData data)
+    internal static Customer GetCustomerFromData(BusCustomerData data)
     {
         Texture2D portrait = Game1.content.Load<Texture2D>(data.Model.PortraitName);
         AnimatedSprite sprite = new AnimatedSprite(data.Model.Spritesheet, 0, 16, 32);
@@ -46,6 +44,7 @@ internal class BusCustomerSpawner : CustomerSpawner
             return false;
 
         List<Customer> customers = [];
+
         foreach (var data in datas)
         {
             try
@@ -75,66 +74,73 @@ internal class BusCustomerSpawner : CustomerSpawner
 
         GameLocation busStop = Game1.getLocationFromName("BusStop");
 
-        if (false && _busSchedulesApi != null && _busSchedulesApi.GetMinutesTillNextBus() is <= 30 and > 10)
+        bool busAvailable = _busSchedulesApi?.GetMinutesTillNextBus() is <= 30 and > 10;
+
+        foreach (Customer c in customers)
         {
-            foreach (Customer c in customers)
-            {
-                busStop.addCharacter(c);
-                c.Position = new Vector2(-1000, -1000);
-                AccessTools.Field(typeof(Character), "returningToEndPoint")?.SetValue(c, true);
-                Stack<Point> points = new Stack<Point>();
-                points.Push(new Point(12, 9));
-                GameLocation targetLocation = Utility.GetLocationFromName(table.CurrentLocation);
-                Point targetPoint = c.ReservedSeat.Position;
-                CustomerGroup g = group;
-
-                c.temporaryController = new PathFindController(points, c, busStop)
-                {
-                    NPCSchedule = false,
-                    endBehaviorFunction = delegate (Character x, GameLocation loc)
-                    {
-                        if (x is NPC n)
-                        {
-                            if (!n.PathTo(targetLocation, targetPoint, 3, Customer.SitDownBehavior))
-                            {
-                                Log.Error($"Customer {n.Name} couldn't path to cafe");
-                                LetGo(g);
-                            }
-                        }
-                    }
-                };
-
-                _busSchedulesApi.AddVisitorsForNextArrival(c, 0);
-            }
+            busStop.addCharacter(c);
+            c.Position = (busAvailable ? new Vector2(12, 9) : new Vector2(33, 9)) * 64;
         }
-        else
+
+        if (group.MoveToTable() is false)
         {
-            foreach (Customer c in customers)
+            Log.Error("Customers couldn't path to cafe");
+            LetGo(group, force: true);
+            return false;
+        }
+
+        if (busAvailable)
+        {
+            if (!AddToBus(group))
             {
-                busStop.addCharacter(c);
-                c.Position = new Vector2(33, 9) * 64;
-            }
-            if (group.MoveToTable() is false)
-            {
-                Log.Error("Customers couldn't path to cafe");
-                LetGo(group);
+                LetGo(group, force: true);
                 return false;
             }
         }
-
+        
+        
         ActiveGroups.Add(group);
         return true;
     }
 
-    internal override void LetGo(CustomerGroup group)
+    internal override bool LetGo(CustomerGroup group, bool force = false)
     {
-        base.LetGo(group);
-        foreach (Customer c in group.Members)
-            c.currentLocation.characters.Remove(c);
+        if (!base.LetGo(group))
+            return false;
+
+        if (force)
+        {
+            group.Delete();
+        }
+        else
+        {
+            group.MoveTo(
+            Game1.getLocationFromName("BusStop"), 
+            new Point(33, 9), 
+            (c, loc) => loc.characters.Remove(c as NPC));
+        }
+        return true;
     }
 
     internal override void DayUpdate()
     {
 
+    }
+
+    internal bool AddToBus(CustomerGroup group)
+    {
+        Log.Debug("Adding to bus");
+        foreach (Customer c in group.Members)
+        {
+            c.Position = new Vector2(-1000, -1000);
+            AccessTools.Field(typeof(NPC), "returningToEndPoint")?.SetValue(c, true);
+            AccessTools.Field(typeof(Character), "freezeMotion")?.SetValue(c, true);
+            if (!_busSchedulesApi.AddVisitorsForNextArrival(c, 0))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

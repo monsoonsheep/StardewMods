@@ -59,4 +59,18 @@ public class CustomerGroup
 
         return true;
     }
+
+    internal bool MoveTo(GameLocation location, Point tile, PathFindController.endBehavior endBehavior)
+    {
+        List<Point> tiles = Members.Select(_ => tile).ToList();
+        return MoveTo(location, tiles, endBehavior);
+    }
+
+    internal void Delete()
+    {
+        foreach (var c in Members)
+        {
+            c.currentLocation.characters.Remove(c);
+        }
+    }
 }

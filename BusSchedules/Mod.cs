@@ -342,11 +342,10 @@ internal sealed class Mod : StardewModdingAPI.Mod
             {
                 visitor.Position = new Vector2(12 * 64, 9 * 64);
 
-                if (visitor.temporaryController is {endBehaviorFunction: not null})
+                if ((bool?) AccessTools.Field(typeof(NPC), "returningToEndPoint").GetValue(visitor) == true)
                 {
-                    AccessTools.Field(typeof(Character), "returningToEndPoint")?.SetValue(visitor, false);
-                    visitor.temporaryController.endBehaviorFunction.Invoke(visitor, BusManager.BusLocation);
-                    visitor.temporaryController = null;
+                    AccessTools.Field(typeof(NPC), "returningToEndPoint")?.SetValue(visitor, false);
+                    AccessTools.Field(typeof(Character), "freezeMotion")?.SetValue(visitor, false);
                 }
                 else
                 {

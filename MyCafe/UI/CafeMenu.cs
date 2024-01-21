@@ -1,20 +1,21 @@
-﻿// ReSharper disable InconsistentNaming
+﻿using System.Collections.Generic;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using StardewModdingAPI;
+using StardewValley;
+using StardewValley.Menus;
 
 namespace MyCafe.UI;
 
-/*
+
 public sealed class CafeMenu : IClickableMenu
 {
-    public const int stockTab = 0;
-    public const int settingsTab = 1;
-    public int currentTab;
+    private int _currentTab;
 
-    public string hoverText = "";
-    public string descriptionText = "";
+    private string _hoverText = "";
 
-    public List<ClickableComponent> tabs = new List<ClickableComponent>();
-    public List<IClickableMenu> pages = new List<IClickableMenu>();
-
+    private readonly List<ClickableComponent> _tabs = new List<ClickableComponent>();
+    private readonly List<IClickableMenu> _pages = new List<IClickableMenu>();
 
     public CafeMenu()
         : base(
@@ -23,37 +24,16 @@ public sealed class CafeMenu : IClickableMenu
             800 + borderWidth * 2,
             600 + borderWidth * 2, showUpperRightCloseButton: true)
     {
-        initializePages();
+        InitializePages();
     }
 
-    public void AddTabsToClickableComponents(IClickableMenu menu)
+    private void InitializePages()
     {
-        menu.allClickableComponents.AddRange(tabs);
-    }
+        _tabs.Clear();
+        _pages.Clear();
 
-    public override void receiveLeftClick(int x, int y, bool playSound = true)
-    {
-        base.receiveLeftClick(x, y, playSound);
-
-        for (int i = 0; i < tabs.Count; i++)
-        {
-            if (tabs[i].containsPoint(x, y) && currentTab != i && pages[currentTab].readyToClose())
-            {
-                changeTab(i);
-                return;
-            }
-        }
-
-        pages[currentTab].receiveLeftClick(x, y);
-    }
-
-    private void initializePages()
-    {
-        tabs.Clear();
-        pages.Clear();
-
-        tabs.Add(new ClickableComponent(new Rectangle(xPositionOnScreen + 64, yPositionOnScreen + tabYPositionRelativeToMenuY + 64, 64, 64),
-            "stock", "Menu")
+        _tabs.Add(new ClickableComponent(new Rectangle(xPositionOnScreen + 64, yPositionOnScreen + tabYPositionRelativeToMenuY + 64, 64, 64),
+            "food", "Food")
         {
             myID = 12340,
             downNeighborID = 0,
@@ -61,10 +41,10 @@ public sealed class CafeMenu : IClickableMenu
             tryDefaultIfNoDownNeighborExists = true,
             fullyImmutable = true
         });
-        pages.Add(new CafeStockPage(xPositionOnScreen + 16, yPositionOnScreen, width, height));
+        _pages.Add(new FoodPage(xPositionOnScreen + Game1.tileSize / 4, yPositionOnScreen + Game1.tileSize * 5 / 4 + Game1.pixelZoom, width, height));
 
-        tabs.Add(new ClickableComponent(new Rectangle(xPositionOnScreen + 128, yPositionOnScreen + tabYPositionRelativeToMenuY + 64, 64, 64),
-            "config", "Settings")
+        _tabs.Add(new ClickableComponent(new Rectangle(xPositionOnScreen + 128, yPositionOnScreen + tabYPositionRelativeToMenuY + 64, 64, 64),
+            "settings", "Settings")
         {
             myID = 12341,
             downNeighborID = 0,
@@ -72,133 +52,129 @@ public sealed class CafeMenu : IClickableMenu
             tryDefaultIfNoDownNeighborExists = true,
             fullyImmutable = true
         });
-        pages.Add(new CafeConfigPage(xPositionOnScreen + 16, yPositionOnScreen, width, height));
+        _pages.Add(new ConfigPage(xPositionOnScreen + 16, yPositionOnScreen, width, height));
 
-        pages[currentTab].populateClickableComponentList();
-        AddTabsToClickableComponents(pages[currentTab]);
+        _pages[_currentTab].populateClickableComponentList();
+        AddTabButtonsToCurrentMenu();
+    }
+
+    internal void ChangeTab(int whichTab, bool playSound = true)
+    {
+        _currentTab = whichTab;
+        width = 800 + IClickableMenu.borderWidth * 2;
+        base.initializeUpperRightCloseButton();
+
+        if (playSound)
+            Game1.playSound("smallSelect");
+
+        _pages[_currentTab].populateClickableComponentList();
+        AddTabButtonsToCurrentMenu();
+
+        foreach (var t in _tabs)
+            t.downNeighborID = -99999;
+
+        if (Game1.options.SnappyMenus)
+            snapToDefaultClickableComponent();
+    }
+
+    private void AddTabButtonsToCurrentMenu()
+    {
+        _pages[_currentTab].allClickableComponents.AddRange(_tabs);
+    }
+
+    public override void receiveLeftClick(int x, int y, bool playSound = true)
+    {
+        base.receiveLeftClick(x, y, playSound);
+
+        for (int i = 0; i < _tabs.Count; i++)
+        {
+            if (_tabs[i].containsPoint(x, y) && _currentTab != i && _pages[_currentTab].readyToClose())
+            {
+                ChangeTab(i);
+                return;
+            }
+        }
+
+        _pages[_currentTab].receiveLeftClick(x, y);
     }
 
     public override void gameWindowSizeChanged(Rectangle oldBounds, Rectangle newBounds)
     {
         base.gameWindowSizeChanged(oldBounds, newBounds);
-        initializePages();
+        InitializePages();
     }
 
     public override void performHoverAction(int x, int y)
     {
         base.performHoverAction(x, y);
-        hoverText = "";
-        pages[currentTab].performHoverAction(x, y);
-        foreach (ClickableComponent c in tabs)
+        _hoverText = "";
+        _pages[_currentTab].performHoverAction(x, y);
+        foreach (ClickableComponent c in _tabs)
         {
             if (c.containsPoint(x, y))
             {
-                hoverText = c.label;
+                _hoverText = c.label;
                 break;
             }
         }
     }
 
-    public int getTabNumberFromName(string name)
-    {
-        int whichTab = -1;
-        switch (name)
-        {
-            case "stock":
-                whichTab = 0;
-                break;
-            case "config":
-                whichTab = 1;
-                break;
-        }
-
-        return whichTab;
-    }
-
     public override void update(GameTime time)
     {
         base.update(time);
-        pages[currentTab].update(time);
+        _pages[_currentTab].update(time);
     }
 
     public override void releaseLeftClick(int x, int y)
     {
         base.releaseLeftClick(x, y);
-        pages[currentTab].releaseLeftClick(x, y);
+        _pages[_currentTab].releaseLeftClick(x, y);
     }
 
     public override void leftClickHeld(int x, int y)
     {
         base.leftClickHeld(x, y);
-        pages[currentTab].leftClickHeld(x, y);
+        _pages[_currentTab].leftClickHeld(x, y);
     }
 
     public override bool readyToClose()
     {
-        return pages[currentTab].readyToClose();
+        return _pages[_currentTab].readyToClose();
     }
 
-    public void changeTab(int whichTab, bool playSound = true)
+    public override void receiveScrollWheelAction(int direction)
     {
-        currentTab = whichTab;
-        width = 800 + IClickableMenu.borderWidth * 2;
-        initializeUpperRightCloseButton();
-
-        if (playSound)
-        {
-            Game1.playSound("smallSelect");
-        }
-
-        pages[currentTab].populateClickableComponentList();
-        AddTabsToClickableComponents(pages[currentTab]);
-        setTabNeighborsForCurrentPage();
-        if (Game1.options.SnappyMenus)
-        {
-            snapToDefaultClickableComponent();
-        }
-    }
-
-    public void setTabNeighborsForCurrentPage()
-    {
-        foreach (var t in tabs)
-        {
-            t.downNeighborID = -99999;
-        }
+        _pages[_currentTab].receiveScrollWheelAction(direction);
     }
 
     public override void draw(SpriteBatch b)
     {
-        Game1.drawDialogueBox(xPositionOnScreen, yPositionOnScreen, pages[currentTab].width, pages[currentTab].height, speaker: false, drawOnlyBox: true);
-        b.End();
+        // Big menu box
+        Game1.drawDialogueBox(xPositionOnScreen, yPositionOnScreen, _pages[_currentTab].width, _pages[_currentTab].height, speaker: false, drawOnlyBox: true);
 
-        b.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp, null, null);
-        foreach (ClickableComponent c in tabs)
+        //b.End();
+        //b.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp);
+
+        // Draw tabs
+        for (var i = 0; i < _tabs.Count; i++)
         {
-            int sheetIndex = c.name switch
-            {
-                "stock" => 0,
-                "config" => 0,
-                _ => 0
-            };
-            b.Draw(AssetManager.Instance.Sprites, new Vector2(c.bounds.X, c.bounds.Y + ((currentTab == getTabNumberFromName(c.name)) ? 8 : 0)),
-                new Rectangle(sheetIndex * 16, 0, 16, 16), Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 0.0001f);
+            b.Draw(Mod.Sprites, new Vector2(_tabs[i].bounds.X, _tabs[i].bounds.Y + (_currentTab == i ? 8 : 0)),
+                new Rectangle(i * 16, 0, 16, 16), Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 0.0001f);
         }
 
-        b.End();
-        b.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, null);
+        //b.End();
+        //b.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp);
 
-        pages[currentTab].draw(b);
+        // Draw current menu page
+        _pages[_currentTab].draw(b);
 
-        if (!hoverText.Equals(""))
-        {
-            drawHoverText(b, hoverText, Game1.smallFont);
-        }
+        if (!string.IsNullOrEmpty(_hoverText))
+            drawHoverText(b, _hoverText, Game1.smallFont);
 
-        if (pages[currentTab].shouldDrawCloseButton())
+        if (shouldDrawCloseButton())
             base.draw(b);
 
         if (!Game1.options.SnappyMenus && !Game1.options.hardwareCursor)
             drawMouse(b, ignore_transparency: true);
     }
 }
-*/

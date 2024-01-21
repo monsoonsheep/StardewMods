@@ -36,9 +36,6 @@ internal sealed class CustomerManager
 #endif
     }
 
-    internal IEnumerable<Customer> CurrentCustomers
-        => CurrentGroups.SelectMany(g => g.Members);
-
     internal void DayUpdate()
     {
         VillagerCustomers.DayUpdate();
@@ -71,7 +68,9 @@ internal sealed class CustomerManager
 
     internal void RemoveAllCustomers()
     {
-
+        BusCustomers.RemoveAll();
+        VillagerCustomers.RemoveAll();
+        ChatCustomers?.RemoveAll();
     }
 
     internal CustomerGroup GetGroupFromTable(Table table)
@@ -79,17 +78,17 @@ internal sealed class CustomerManager
         return CurrentGroups.FirstOrDefault(g => g.ReservedTable == table);
     }
 
-    internal void ReleaseGroup(CustomerGroup group)
+    internal void LetGo(CustomerGroup group, bool force = false)
     {
         if (BusCustomers.ActiveGroups.Contains(group))
-            BusCustomers.LetGo(group);
+            BusCustomers.LetGo(group, force);
         else if (VillagerCustomers.ActiveGroups.Contains(group))
-            VillagerCustomers.LetGo(group);
+            VillagerCustomers.LetGo(group, force);
         else if (ChatCustomers?.ActiveGroups.Contains(group) ?? false)
-            ChatCustomers.LetGo(group);
+            ChatCustomers.LetGo(group, force);
         else
         {
-            Log.Error("Group not found");
+            Log.Error("Group not found, couldn't be deleted. This is a bug.");
         }
     }
 }

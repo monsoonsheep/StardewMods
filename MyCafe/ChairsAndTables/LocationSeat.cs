@@ -14,13 +14,10 @@ public sealed class LocationSeat : Seat
 
     }
 
-    public LocationSeat(Table table) : base(table)
+    public LocationSeat(Point position, Table table) : base(table)
     {
-
+        Position = position;
     }
-
-    public LocationSeat(Point position)
-        => Position = position;
 
     internal override int SittingDirection
     {

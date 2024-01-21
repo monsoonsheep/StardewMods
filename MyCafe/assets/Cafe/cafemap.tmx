@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" compressionlevel="0" width="25" height="30" tilewidth="16" tileheight="16" infinite="0" nextlayerid="9" nextobjectid="31">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" compressionlevel="0" width="25" height="30" tilewidth="16" tileheight="16" infinite="0" nextlayerid="9" nextobjectid="35">
  <properties>
   <property name="Warp" value="13 23 Farm 80 20"/>
  </properties>
@@ -152,17 +152,37 @@
  <objectgroup id="6" name="Buildings">
   <object id="28" name="TileData" x="64" y="320" width="32" height="32">
    <properties>
-    <property name="MonsoonSheep.MyCafe_Seat" value="3 21 6 21"/>
+    <property name="MonsoonSheep.MyCafe_Table" value="3 21 6 21"/>
    </properties>
   </object>
   <object id="29" name="TileData" x="144" y="320" width="32" height="32">
    <properties>
-    <property name="MonsoonSheep.MyCafe_Seat" value="8 21 11 21"/>
+    <property name="MonsoonSheep.MyCafe_Table" value="8 21 11 21"/>
    </properties>
   </object>
   <object id="30" name="TileData" x="272" y="304" width="32" height="32">
    <properties>
     <property name="MonsoonSheep.MyCafe_Seat" value="17 18 16 20 18 21 19 19"/>
+   </properties>
+  </object>
+  <object id="31" name="TileData" x="96" y="256" width="16" height="16">
+   <properties>
+    <property name="MonsoonSheep.MyCafe_Table" value="6 18"/>
+   </properties>
+  </object>
+  <object id="32" name="TileData" x="128" y="256" width="16" height="16">
+   <properties>
+    <property name="MonsoonSheep.MyCafe_Table" value="8 18"/>
+   </properties>
+  </object>
+  <object id="33" name="TileData" x="192" y="256" width="16" height="16">
+   <properties>
+    <property name="MonsoonSheep.MyCafe_Table" value="12 18"/>
+   </properties>
+  </object>
+  <object id="34" name="TileData" x="224" y="256" width="16" height="16">
+   <properties>
+    <property name="MonsoonSheep.MyCafe_Table" value="14 18"/>
    </properties>
   </object>
  </objectgroup>
