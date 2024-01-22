@@ -32,27 +32,6 @@ internal static class ModConfig
             reset: () => LoadedConfig = new ConfigModel(),
             save: () => Mod.ModHelper.WriteConfig(LoadedConfig)
         );
-
-        // add some config options
-        configMenu.AddNumberOption(
-            mod: Mod.ModManifest,
-            name: I18n.Menu_VisitorFrequency,
-            tooltip: I18n.Menu_VisitorFrequencyTooltip,
-            getValue: () => LoadedConfig.CustomerSpawnFrequency,
-            setValue: value => LoadedConfig.CustomerSpawnFrequency = value,
-            min: 1, max: 5,
-            formatValue: GetFrequencyText
-        );
-
-        configMenu.AddNumberOption(
-            mod: Mod.ModManifest,
-            name: I18n.Menu_NpcFrequency,
-            tooltip: I18n.Menu_NpcFrequency_Tooltip,
-            getValue: () => LoadedConfig.NpcCustomerSpawnFrequency,
-            setValue: value => LoadedConfig.NpcCustomerSpawnFrequency = value,
-            min: 1, max: 5,
-            formatValue: GetFrequencyText
-        );
     }
 }
 

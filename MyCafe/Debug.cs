@@ -1,4 +1,7 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.IO;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using MyCafe.CustomerFactory;
 using MyCafe.Locations;
 using MyCafe.UI;
 using StardewModdingAPI;
@@ -75,6 +78,7 @@ internal class Debug
             case SButton.NumPad9:
                 break;
             case SButton.U:
+                Mod.Sprites = Mod.ModHelper.ModContent.Load<Texture2D>("assets/sprites.png");
                 Game1.activeClickableMenu = new CafeMenu();
                 break;
             default:
@@ -82,23 +86,26 @@ internal class Debug
         }
     }
 
+    
+#if YOUTUBE || TWITCH
     public static void RefreshChat()
     {
-        //Mod.Cafe.Customers.ChatCustomers = new ChatCustomerSpawner();
-        //Mod.Cafe.Customers.ChatCustomers.Initialize(Mod.ModHelper);
+        Mod.Cafe.Customers.ChatCustomers = new ChatCustomerSpawner();
+        Mod.Cafe.Customers.ChatCustomers.Initialize(Mod.ModHelper);
     }
 
     public static void Test_UserJoinChat()
     {
-        //var a = File.ReadAllText(Mod.ModHelper.DirectoryPath + "\\names.txt").Split('\n');
-        //string name = a[Game1.random.Next(a.Length)].TrimEnd('\r').TrimStart();
-        //(Mod.Cafe.Customers.ChatCustomers as ChatCustomerSpawner)?.OnChatMessageReceived(Mod.Cafe.Customers.ChatCustomers, new ChatMessageReceivedEventArgs()
-        //{
-        //    Username = name,
-        //    Message = "!join"
-        //});
+        var a = File.ReadAllText(Mod.ModHelper.DirectoryPath + "\\names.txt").Split('\n');
+        string name = a[Game1.random.Next(a.Length)].TrimEnd('\r').TrimStart();
+        (Mod.Cafe.Customers.ChatCustomers as ChatCustomerSpawner)?.OnChatMessageReceived(Mod.Cafe.Customers.ChatCustomers, new ChatMessageReceivedEventArgs()
+        {
+            Username = name,
+            Message = "!join"
+        });
     }
-
+#endif
+   
     public static void WarpToBus()
     {
         Game1.warpFarmer("BusStop", 12, 15, false);

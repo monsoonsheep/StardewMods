@@ -3,24 +3,19 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MyCafe.ChairsAndTables;
 using MyCafe.Customers;
+using MyCafe.Locations;
 using StardewModdingAPI;
 using StardewValley;
 
 namespace MyCafe.CustomerFactory;
-internal class ChatCustomerSpawner : ICustomerSpawner
+internal class ChatCustomerSpawner : CustomerSpawner
 {
     private IStreamManager _streamManager;
 
     private readonly List<string> _users = new List<string>();
 
-    public void Initialize(IModHelper helper)
-    {
-        Task.Run(Connect);
-    }
-
-    internal async Task Connect()
+    internal override async void Initialize(IModHelper helper)
     {
 #if YOUTUBE
         _streamManager = new YoutubeManager();
@@ -28,8 +23,10 @@ internal class ChatCustomerSpawner : ICustomerSpawner
         _streamManager = new TwitchManager();
 #endif
 
+        State = SpawnerState.Initializing;
         if (_streamManager != null && await _streamManager.Connect())
         {
+            State = SpawnerState.Enabled;
             _streamManager.OnChatMessageReceived += OnChatMessageReceived;
             Game1.chatBox.addMessage("Live chat connected!", Color.White);
         }
@@ -41,7 +38,7 @@ internal class ChatCustomerSpawner : ICustomerSpawner
         _users.Add(e.Username);
     }
 
-    public bool Spawn(Table table, out CustomerGroup group)
+    internal override bool Spawn(Table table, out CustomerGroup group)
     {
         group = new CustomerGroup();
         if (_users.Count == 0)
@@ -60,26 +57,43 @@ internal class ChatCustomerSpawner : ICustomerSpawner
 
         group.Add(c);
         group.ReserveTable(table);
-        c.ItemToOrder.Set(ItemRegistry.Create<StardewValley.Object>("(O)128"));
+        c.ItemToOrder.Set(ItemRegistry.Create<Object>("(O)128"));
         GameLocation busStop = Game1.getLocationFromName("BusStop");
         busStop.addCharacter(c);
         c.Position = new Vector2(33, 9) * 64;
+
         if (group.MoveToTable() is false)
         {
-            group.Delete();
-            group.ReservedTable.Free();
+            Log.Error("Customers couldn't path to cafe");
+            LetGo(group, force: true);
             return false;
         }
 
+        Log.Info($"Chat member {name} spawned");
+        ActiveGroups.Add(group);
         return true;
     }
 
-    public void LetGo(CustomerGroup group)
-    {
+    internal override bool LetGo(CustomerGroup group, bool force = false)
+    { 
+        if (!base.LetGo(group))
+            return false;
 
+        if (force)
+        {
+            group.Delete();
+        }
+        else
+        {
+            group.MoveTo(
+                Game1.getLocationFromName("BusStop"), 
+                new Point(33, 9), 
+                (c, loc) => loc.characters.Remove(c as NPC));
+        }
+        return true;
     }
 
-    public void DayUpdate()
+    internal override void DayUpdate()
     {
         return;
     }

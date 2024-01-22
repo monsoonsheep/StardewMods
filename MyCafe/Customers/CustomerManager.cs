@@ -31,7 +31,6 @@ internal sealed class CustomerManager
 
 #if YOUTUBE || TWITCH
         ChatCustomers = new ChatCustomerSpawner();
-        ChatCustomers.Initialize(helper);
 #endif
     }
 
@@ -51,7 +50,7 @@ internal sealed class CustomerManager
             return;
         }
 
-        if (ChatCustomers != null)
+        if (ChatCustomers is { State: SpawnerState.Enabled })
         {
             if (ChatCustomers.Spawn(table, out _) is true)
             {

@@ -16,8 +16,10 @@ using System.Runtime.CompilerServices;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using MyCafe.CustomerFactory;
 using MyCafe.Customers;
 using StardewValley.Inventories;
+using StardewValley.Locations;
 using xTile.Layers;
 using xTile.Tiles;
 using SUtility = StardewValley.Utility;
@@ -42,6 +44,7 @@ public class Cafe : INetObject<NetFields>
     internal CustomerManager Customers;
 
     internal Dictionary<string, List<Item>> MenuItems = new Dictionary<string, List<Item>>();
+    internal readonly List<Item> Recipes = new();
 
     internal bool Enabled
     {
@@ -83,6 +86,18 @@ public class Cafe : INetObject<NetFields>
         };
         MenuItems["Test"] = [ItemRegistry.Create("(O)128"), ItemRegistry.Create("(O)211")];
         MenuItems["Test Category"] = [ItemRegistry.Create("(O)195"), ItemRegistry.Create("(O)196"), ItemRegistry.Create("(O)197")];
+
+        var data = DataLoader.CookingRecipes(Game1.content);
+        foreach (var key in SUtility.GetAllPlayerUnlockedCookingRecipes())
+        {
+            if (data.TryGetValue(key, out var value))
+            {
+                Item item = ItemRegistry.Create($"(O){ArgUtility.Get(value.Split('/'), 2)}");
+                Recipes.Add(item);
+            }
+        }
+
+        Customers.BusCustomers.State = SpawnerState.Enabled;
     }
 
     internal void DayUpdate()

@@ -10,7 +10,7 @@ using Twitch.Base.Models.Clients.Chat;
 using Twitch.Base.Models.NewAPI.Users;
 using Color = Microsoft.Xna.Framework.Color;
 
-namespace MyCafe.CustomerProduction;
+namespace MyCafe.CustomerFactory;
 internal class TwitchManager : IStreamManager
 {
     private string _clientId;
@@ -30,8 +30,7 @@ internal class TwitchManager : IStreamManager
     private ConnectionStatus _connectionState = ConnectionStatus.Disconnected;
 
     public event EventHandler<ChatMessageReceivedEventArgs> OnChatMessageReceived;
-    private ColorConverter colorConverter;
-
+    private ColorConverter colorConverter = new ColorConverter();
 
     public async Task<bool> Connect()
     {
@@ -40,7 +39,7 @@ internal class TwitchManager : IStreamManager
 
         try
         {
-            Log.Info($"Twitch - Connecting to irc.chat.twitch.tv:6667");
+            Log.Info($"Twitch - Connecting...");
             _connectionState = ConnectionStatus.Connecting;
 
             List<OAuthClientScopeEnum> scopes =
@@ -48,15 +47,13 @@ internal class TwitchManager : IStreamManager
                 OAuthClientScopeEnum.chat__read,
                 OAuthClientScopeEnum.chat__edit,
                 OAuthClientScopeEnum.whispers__read,
-
             ];
-            Log.Debug("Creating Youtube connection");
 
             _connection = await TwitchConnection.ConnectViaLocalhostOAuthBrowser(_clientId, _clientSecret, scopes, forceApprovalPrompt: false);
 
             if (_connection != null)
             {
-                Log.Info($"Connection successful");
+                Log.Info($"Twitch - Connection successful");
                 user = await _connection.NewAPI.Users.GetCurrentUser();
                 if (user != null)
                 {

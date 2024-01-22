@@ -13,10 +13,11 @@
 		<EnableHarmony>true</EnableHarmony>
 		<IgnoreModFilePatterns>
 			  \.aseprite$,
+			  \.ase$,
 			  ^townInterior(_2)?\.png$,
 			  ^walls_and_floors\.png$
 		</IgnoreModFilePatterns>
-		<EnableChatIntegration>disabled</EnableChatIntegration>
+		<EnableChatIntegration>twitch</EnableChatIntegration>
 
 		<!-- SMAPI Paths -->
 		<ModFolderName>My Cafe</ModFolderName>
@@ -35,7 +36,7 @@
 				<BundleExtraAssemblies>ThirdParty</BundleExtraAssemblies>
 			</PropertyGroup>
 			<ItemGroup>
-				<Compile Include="CustomerProduction\LiveChatIntegration\YoutubeManager.cs" />
+				<Compile Include="CustomerFactory\LiveChatIntegration\YoutubeManager.cs" />
 				<PackageReference Include="StreamingClientLibrary.YouTube" Version="1.0.0.21" />
 			</ItemGroup>
 		</When>  
@@ -45,7 +46,7 @@
 				<BundleExtraAssemblies>ThirdParty</BundleExtraAssemblies>
 			</PropertyGroup>
 			<ItemGroup>
-				<Compile Include="CustomerProduction\LiveChatIntegration\TwitchManager.cs" />
+				<Compile Include="CustomerFactory\LiveChatIntegration\TwitchManager.cs" />
 				<PackageReference Include="StreamingClientLibrary.Twitch" Version="1.0.0.77" />
 			</ItemGroup>
 		</When> 
@@ -55,15 +56,17 @@
 			</ItemGroup>
 		</Otherwise>  
 	</Choose>  
+	
 	<ItemGroup Condition="'$(EnableChatIntegration)' != 'disabled'">
-	  <Compile Include="CustomerProduction\LiveChatIntegration\ChatCustomerSpawner.cs" />
-	  <Compile Include="CustomerProduction\LiveChatIntegration\IStreamManager.cs" />
+	  <Compile Include="CustomerFactory\LiveChatIntegration\ChatCustomerSpawner.cs" />
+	  <Compile Include="CustomerFactory\LiveChatIntegration\IStreamManager.cs" />
+	  <Compile Include="CustomerFactory\LiveChatIntegration\ChatIntegrationPage.cs" />
 	</ItemGroup>
 
 	
 	<ItemGroup>
 		<AdditionalFiles Include="i18n/default.json" />
-	</ItemGroup>  
+	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Mono.Cecil" Version="0.11.5.0" />

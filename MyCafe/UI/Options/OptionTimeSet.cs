@@ -20,15 +20,16 @@ internal class OptionTimeSet : OptionsElement
     private int minutes;
     private bool am;
 
-    private float valuePosition;
-
-    private Rectangle hourUpRec;
-    private Rectangle hourDownRec;
+    private Vector2 textPos;
     private Rectangle minuteUpRec;
     private Rectangle minuteDownRec;
 
-    public OptionTimeSet(string label, int initialValue, int minValue, int maxValue, Action<int> setFunction) : base(label, 32, 32, 96 * Game1.pixelZoom,
-        160 * Game1.pixelZoom)
+    private Rectangle source_TimeArrow = new Rectangle(16, 19, 22, 13);
+
+    public OptionTimeSet(string label, int initialValue, int minValue, int maxValue, Rectangle rec, Action<int> setFunction) : base(label, 
+        rec.X + Game1.tileSize / 2,
+        rec.Y + Game1.tileSize / 2, 
+        rec.Width, rec.Height)
     {
         this.minValue = minValue;
         this.maxValue = maxValue;
@@ -38,20 +39,19 @@ internal class OptionTimeSet : OptionsElement
         am = initialValue < 1200 || initialValue >= 2400;
         hours = initialValue / 100;
 
-        hourUpRec = new Rectangle(bounds.X + 5, bounds.Y, 40, 22);
-        hourDownRec = new Rectangle(bounds.X + 5, bounds.Y + 52, 40, 22);
-        minuteUpRec = new Rectangle(bounds.X + 72, bounds.Y, 40, 22);
-        minuteDownRec = new Rectangle(bounds.X + 72, bounds.Y + 52, 40, 22);
+        minuteUpRec = new Rectangle(bounds.X, bounds.Y + 12, 32, 20);
+        minuteDownRec = new Rectangle(bounds.X, bounds.Y + 12 + 30, 32, 20);
 
+        labelOffset = new Vector2(0, -40f);
     }
 
-    private void setTime()
+    private void SetTime()
     {
         am = hours < 12 || hours >= 24;
         setValue(hours * 100 + minutes);
     }
 
-    private int formatHours()
+    private int FormatHours()
     {
         int h = am ? hours % 12 : hours - 12;
         if (h == 0)
@@ -61,25 +61,15 @@ internal class OptionTimeSet : OptionsElement
     public override void receiveLeftClick(int x, int y)
     {
         base.receiveLeftClick(x, y);
-        if (hourUpRec.Contains(x, y))
-        {
-            hourUp();
-            setTime();
-        }
-        else if (hourDownRec.Contains(x, y))
-        {
-            hourDown();
-            setTime();
-        }
-        else if (minuteUpRec.Contains(x, y))
+        if (minuteUpRec.Contains(x, y))
         {
             minuteUp();
-            setTime();
+            SetTime();
         }
         else if (minuteDownRec.Contains(x, y))
         {
             minuteDown();
-            setTime();
+            SetTime();
         }
     }
 
@@ -126,20 +116,22 @@ internal class OptionTimeSet : OptionsElement
     }
     public override void draw(SpriteBatch b, int slotX, int slotY, IClickableMenu context = null)
     {
-        base.draw(b, slotX + 200, slotY, context);
+        StardewValley.Utility.drawTextWithShadow(
+            b, 
+            base.label, 
+            Game1.dialogueFont,
+            new Vector2((slotX + bounds.X + labelOffset.X), (slotY + bounds.Y + labelOffset.Y)), Game1.textColor);
+
         b.DrawString(
             Game1.dialogueFont,
-            formatHours().ToString().PadLeft(2, '0') + " : " + minutes.ToString().PadLeft(2, '0') + (am ? " am" : " pm"),
-            new Vector2(slotX + bounds.X, slotY + bounds.Y + 14),
+            FormatHours().ToString().PadLeft(2, '0') + " : " + minutes.ToString().PadLeft(2, '0') + (am ? " am" : " pm"),
+            new Vector2(slotX + bounds.X + 32, slotY + bounds.Y + 14),
             Color.Black);
 
-
-        b.Draw(Game1.mouseCursors, new Rectangle(bounds.X + slotX + 5, bounds.Y + slotY, 40, 22), new Rectangle(422, 459, 10, 11), Color.White, 0f, Vector2.Zero, SpriteEffects.None, 0.9f);
-
-        b.Draw(Game1.mouseCursors, new Rectangle(bounds.X + slotX + 5, bounds.Y + slotY + 52, 40, 22), new Rectangle(422, 472, 10, 11), Color.White, 0f, Vector2.Zero, SpriteEffects.None, 0.9f);
-        b.Draw(Game1.mouseCursors, new Rectangle(bounds.X + slotX + 72, bounds.Y + slotY, 40, 22), new Rectangle(422, 459, 10, 11), Color.White, 0f, Vector2.Zero, SpriteEffects.None, 0.9f);
-        b.Draw(Game1.mouseCursors, new Rectangle(bounds.X + slotX + 72, bounds.Y + slotY + 52, 40, 22), new Rectangle(422, 472, 10, 11), Color.White, 0f, Vector2.Zero, SpriteEffects.None, 0.9f);
+        b.Draw(Mod.Sprites, new Rectangle(minuteUpRec.X + slotX, minuteUpRec.Y + slotY, minuteUpRec.Width, minuteUpRec.Height), source_TimeArrow, Color.White, 0f, Vector2.Zero, SpriteEffects.FlipVertically, 0.9f);
+        b.Draw(Mod.Sprites, new Rectangle(minuteDownRec.X + slotX, minuteDownRec.Y + slotY, minuteUpRec.Width, minuteUpRec.Height), source_TimeArrow, Color.White, 0f, Vector2.Zero, SpriteEffects.None, 0.9f);
 
         //new Rectangle(422, 472, 10, 11)
     }
+
 }

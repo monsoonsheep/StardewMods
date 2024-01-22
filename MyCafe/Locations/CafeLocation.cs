@@ -10,9 +10,9 @@ using StardewValley;
 using StardewValley.Objects;
 using xTile.Layers;
 using xTile.Tiles;
-
 // ReSharper disable once CheckNamespace
-namespace MyCafe.Locations;
+
+namespace StardewValley.Locations;
 [XmlType("Mods_MonsoonSheep_MyCafe_CafeLocation")]
 public class CafeLocation : GameLocation
 {

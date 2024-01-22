@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 
-namespace MyCafe.UI.MenuBoard;
+namespace MyCafe.UI.BoardItems;
 
 internal class MenuCategoryEntry : MenuEntry
 {
@@ -17,11 +17,12 @@ internal class MenuCategoryEntry : MenuEntry
     {
         Name = name;
         _lengthOfText = (int)Game1.smallFont.MeasureString(name).X;
-        _xPositionForCentering = (int)((384 - 27 * 2 - _lengthOfText) / 2f);
+        _xPositionForCentering = (int)((Bounds.Width - _lengthOfText) / 2f);
     }
 
     internal override void Draw(SpriteBatch b, int slotX, int slotY, bool editMode)
     {
+        // Category name text
         b.DrawString(
             Game1.smallFont,
             Name,

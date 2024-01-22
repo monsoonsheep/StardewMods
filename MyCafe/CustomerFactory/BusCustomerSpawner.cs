@@ -98,7 +98,6 @@ internal class BusCustomerSpawner : CustomerSpawner
             }
         }
         
-        
         ActiveGroups.Add(group);
         return true;
     }

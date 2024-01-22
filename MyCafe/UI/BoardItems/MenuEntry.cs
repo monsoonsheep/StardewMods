@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley.Menus;
 
-namespace MyCafe.UI.MenuBoard;
+namespace MyCafe.UI.BoardItems;
 
 internal abstract class MenuEntry
 {

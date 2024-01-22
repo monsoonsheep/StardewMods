@@ -20,6 +20,7 @@ using SUtility = StardewValley.Utility;
 using System.IO;
 using MyCafe.UI;
 using System.Runtime.CompilerServices;
+using StardewValley.Locations;
 
 namespace MyCafe;
 

@@ -8,6 +8,7 @@ namespace MyCafe.CustomerFactory;
 internal abstract class CustomerSpawner
 {
     internal List<CustomerGroup> ActiveGroups;
+    internal SpawnerState State = SpawnerState.Disabled;
 
     internal CustomerSpawner()
     {
@@ -37,4 +38,9 @@ internal abstract class CustomerSpawner
             LetGo(ActiveGroups[i]);
         }
     }
+}
+
+internal enum SpawnerState
+{
+    Disabled, Initializing, Enabled
 }
