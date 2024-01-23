@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using MyCafe.CustomerFactory;
 using MyCafe.UI.BoardItems;
 using MyCafe.UI.Options;
@@ -15,7 +16,8 @@ namespace MyCafe.UI;
 
 public sealed class CafeMenu : IClickableMenu
 {
-    private string _hoverText = "";
+    internal string HoverTitle = "";
+    internal string HoverText = "";
 
     private Item _heldItem;
     private Item _hoveredItem;
@@ -162,14 +164,14 @@ public sealed class CafeMenu : IClickableMenu
     public override void performHoverAction(int x, int y)
     {
         _hoveredItem = null;
-        _hoverText = "";
+        HoverText = "";
         base.performHoverAction(x, y);
 
         foreach (var tab in _tabs)
         {
             if (tab.containsPoint(x, y))
             {
-                _hoverText = tab.hoverText;
+                HoverText = tab.hoverText;
                 return;
             }
         }
@@ -201,6 +203,12 @@ public sealed class CafeMenu : IClickableMenu
         }
     }
 
+    public override void receiveGamePadButton(Buttons b)
+    {
+        base.receiveGamePadButton(b);
+
+    }
+
     public override void draw(SpriteBatch b)
     {
         Game1.DrawBox(sideBoxBounds.X, sideBoxBounds.Y, sideBoxBounds.Width, sideBoxBounds.Height);
@@ -226,10 +234,11 @@ public sealed class CafeMenu : IClickableMenu
 
         //_heldItem?.drawInMenu(b, new Vector2(Game1.getOldMouseX() + 8, Game1.getOldMouseY() + 8), 1f);
         
-        if (!string.IsNullOrEmpty(_hoverText))
+        if (!string.IsNullOrEmpty(HoverTitle))
         {
             //drawToolTip(b, _hoverText, "", null, heldItem: true, -1, 0, null, -1, null, moneyAmountToShowAtBottom: _hoverAmount);
-            drawHoverText(b, _hoverText, Game1.smallFont);
+            //drawToolTip(b, HoverText, HoverTitle, null);
+            drawHoverText(b, HoverTitle, Game1.smallFont);
         }
 
         if (shouldDrawCloseButton())

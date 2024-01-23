@@ -16,6 +16,7 @@ internal class ItemsPage : MenuPageBase
     private readonly TextBox _searchBarTextBox;
     private readonly List<Item> _searchResultItems = new();
     private readonly List<ClickableComponent> _gridItems = new();
+    private int _itemCountInGrid;
 
     public ItemsPage(CafeMenu parent) : base("Edit Menu", parent)
     {
@@ -43,27 +44,33 @@ internal class ItemsPage : MenuPageBase
         int width = (Bounds.Width - Game1.tileSize);
         int height = (Bounds.Height - Game1.tileSize * 4);
 
-        int gridX = (Bounds.X + Game1.tileSize / 2);
-        int gridY = Bounds.Y + Game1.tileSize * 3;
-
         int gridCountX = width / Game1.tileSize;
         int gridWidth = gridCountX * Game1.tileSize;
-        gridX = gridX + (width - gridWidth) / 2;
+        int gridX = Bounds.X + (width - gridWidth) / 2;
 
         int gridCountY = height / Game1.tileSize;
         int gridHeight = gridCountY * Game1.tileSize;
-        gridY = gridY + (height - gridHeight) / 2;
+        int gridY = Bounds.Y + Game1.tileSize * 2 + (height - gridHeight) / 2;
 
-        for (int i = 0; i < gridCountX; i++)
+        for (int i = 0; i < gridCountY; i++)
         {
-            for (int j = 0; j < gridCountY; j++)
+            for (int j = 0; j < gridCountX; j++)
             {
                 _gridItems.Add(new ClickableComponent(
-                    new Rectangle(gridX + i * Game1.tileSize,
-                        gridY + j * Game1.tileSize,
+                    new Rectangle(gridX + j * Game1.tileSize,
+                        gridY + i * Game1.tileSize,
                         Game1.tileSize, Game1.tileSize),
                     $"grid{i},{j}"
                     ));
+            }
+        }
+
+        _itemCountInGrid = 0;
+        foreach (var item in Game1.player.Items)
+        {
+            if (item?.Category == StardewValley.Object.CookingCategory)
+            {
+                _gridItems[_itemCountInGrid++].item = item;
             }
         }
     }
@@ -98,10 +105,32 @@ internal class ItemsPage : MenuPageBase
 
     internal override void HoverAction(int x, int y)
     {
+        _parentMenu.HoverText = "";
+        _parentMenu.HoverTitle = "";
+
+        for (int i = 0; i < _itemCountInGrid; i++)
+        {
+            var component = _gridItems[i];
+
+            component.scale = Math.Max(1f, component.scale - 0.025f);
+
+            if (_gridItems[i].containsPoint(x, y))
+            {
+                component.scale = Math.Min(component.scale + 0.05f, 1.1f);
+
+                _parentMenu.HoverTitle = _gridItems[i].item.DisplayName;
+                _parentMenu.HoverText = _gridItems[i].item.getDescription();
+            }
+        }
     }
 
     internal override void Draw(SpriteBatch b)
     {
         _searchBarTextBox.Draw(b, drawShadow: false);
+
+        for (int i = 0; i < _itemCountInGrid; i++)
+        {
+            _gridItems[i].item.drawInMenu(b, new Vector2(_gridItems[i].bounds.X, _gridItems[i].bounds.Y), 0.8f, 1f, 1f, StackDrawType.Hide, Color.White, false);
+        }
     }
 }

@@ -10,7 +10,7 @@ using StardewValley.Menus;
 namespace MyCafe.UI;
 public abstract class MenuPageBase
 {
-    private readonly CafeMenu _parentMenu;
+    protected readonly CafeMenu _parentMenu;
     internal Rectangle Bounds;
     internal string Name;
 
