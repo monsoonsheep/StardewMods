@@ -3,10 +3,13 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MyCafe.CustomerFactory;
 using MyCafe.Customers;
+using MyCafe.LiveChatIntegration;
 using MyCafe.Locations;
 using StardewModdingAPI;
 using StardewValley;
+// ReSharper disable once CheckNamespace
 
 namespace MyCafe.CustomerFactory;
 internal class ChatCustomerSpawner : CustomerSpawner
@@ -75,7 +78,7 @@ internal class ChatCustomerSpawner : CustomerSpawner
     }
 
     internal override bool LetGo(CustomerGroup group, bool force = false)
-    { 
+    {
         if (!base.LetGo(group))
             return false;
 
@@ -86,8 +89,8 @@ internal class ChatCustomerSpawner : CustomerSpawner
         else
         {
             group.MoveTo(
-                Game1.getLocationFromName("BusStop"), 
-                new Point(33, 9), 
+                Game1.getLocationFromName("BusStop"),
+                new Point(33, 9),
                 (c, loc) => loc.characters.Remove(c as NPC));
         }
         return true;

@@ -9,8 +9,9 @@ using Twitch.Base.Clients;
 using Twitch.Base.Models.Clients.Chat;
 using Twitch.Base.Models.NewAPI.Users;
 using Color = Microsoft.Xna.Framework.Color;
+// ReSharper disable once CheckNamespace
 
-namespace MyCafe.CustomerFactory;
+namespace MyCafe.LiveChatIntegration;
 internal class TwitchManager : IStreamManager
 {
     private string _clientId;
@@ -83,7 +84,7 @@ internal class TwitchManager : IStreamManager
 
     private void Chat_OnMessageReceived(object sender, ChatMessagePacketModel e)
     {
-        var color = (System.Drawing.Color) (colorConverter.ConvertFromInvariantString(e.Color) ?? System.Drawing.Color.White);
+        var color = (System.Drawing.Color)(colorConverter.ConvertFromInvariantString(e.Color) ?? System.Drawing.Color.White);
         Color resultColor = new Color(color.R, color.G, color.B);
         OnChatMessageReceived?.Invoke(this, new ChatMessageReceivedEventArgs()
         {

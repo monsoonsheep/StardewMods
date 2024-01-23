@@ -27,7 +27,7 @@
 	
 	<!-- Enable/disable Live Chat Integration with StreamingClientLibrary -->
 	<ItemGroup>
-		<Compile Remove="CustomerFactory\LiveChatIntegration\*" />
+		<Compile Remove="LiveChatIntegration\*" />
 	</ItemGroup>
 	<Choose>
 		<When Condition="'$(EnableChatIntegration)' == 'youtube'">  
@@ -36,7 +36,7 @@
 				<BundleExtraAssemblies>ThirdParty</BundleExtraAssemblies>
 			</PropertyGroup>
 			<ItemGroup>
-				<Compile Include="CustomerFactory\LiveChatIntegration\YoutubeManager.cs" />
+				<Compile Include="LiveChatIntegration\YoutubeManager.cs" />
 				<PackageReference Include="StreamingClientLibrary.YouTube" Version="1.0.0.21" />
 			</ItemGroup>
 		</When>  
@@ -46,24 +46,23 @@
 				<BundleExtraAssemblies>ThirdParty</BundleExtraAssemblies>
 			</PropertyGroup>
 			<ItemGroup>
-				<Compile Include="CustomerFactory\LiveChatIntegration\TwitchManager.cs" />
+				<Compile Include="LiveChatIntegration\TwitchManager.cs" />
 				<PackageReference Include="StreamingClientLibrary.Twitch" Version="1.0.0.77" />
 			</ItemGroup>
 		</When> 
 		<Otherwise>  
 			<ItemGroup>
-				<Compile Remove="CustomerFactory\LiveChatIntegration\*" />
+				<Compile Remove="LiveChatIntegration\*" />
 			</ItemGroup>
 		</Otherwise>  
-	</Choose>  
-	
-	<ItemGroup Condition="'$(EnableChatIntegration)' != 'disabled'">
-	  <Compile Include="CustomerFactory\LiveChatIntegration\ChatCustomerSpawner.cs" />
-	  <Compile Include="CustomerFactory\LiveChatIntegration\IStreamManager.cs" />
-	  <Compile Include="CustomerFactory\LiveChatIntegration\ChatIntegrationPage.cs" />
+	</Choose>
+
+	<ItemGroup Condition="$(EnableChatIntegration) != 'disabled'">
+		<Compile Include="LiveChatIntegration\IStreamManager.cs"/>
+		<Compile Include="LiveChatIntegration\ChatIntegrationPage.cs"/>
+		<Compile Include="LiveChatIntegration\ChatCustomerSpawner.cs"/>
 	</ItemGroup>
 
-	
 	<ItemGroup>
 		<AdditionalFiles Include="i18n/default.json" />
 	</ItemGroup>

@@ -15,7 +15,7 @@ internal class ItemsPage : MenuPageBase
     private Rectangle _searchBarTextBoxBounds;
     private readonly TextBox _searchBarTextBox;
     private readonly List<Item> _searchResultItems = new();
-
+    private readonly List<ClickableComponent> _gridItems = new();
 
     public ItemsPage(CafeMenu parent) : base("Edit Menu", parent)
     {
@@ -38,6 +38,34 @@ internal class ItemsPage : MenuPageBase
             Height = _searchBarTextBoxBounds.Height
         };
         _searchBarTextBox.OnEnterPressed += (_) => CloseTextBox();
+
+        
+        int width = (Bounds.Width - Game1.tileSize);
+        int height = (Bounds.Height - Game1.tileSize * 4);
+
+        int gridX = (Bounds.X + Game1.tileSize / 2);
+        int gridY = Bounds.Y + Game1.tileSize * 3;
+
+        int gridCountX = width / Game1.tileSize;
+        int gridWidth = gridCountX * Game1.tileSize;
+        gridX = gridX + (width - gridWidth) / 2;
+
+        int gridCountY = height / Game1.tileSize;
+        int gridHeight = gridCountY * Game1.tileSize;
+        gridY = gridY + (height - gridHeight) / 2;
+
+        for (int i = 0; i < gridCountX; i++)
+        {
+            for (int j = 0; j < gridCountY; j++)
+            {
+                _gridItems.Add(new ClickableComponent(
+                    new Rectangle(gridX + i * Game1.tileSize,
+                        gridY + j * Game1.tileSize,
+                        Game1.tileSize, Game1.tileSize),
+                    $"grid{i},{j}"
+                    ));
+            }
+        }
     }
 
     internal void CloseTextBox()

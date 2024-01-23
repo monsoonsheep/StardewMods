@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MyCafe.CustomerFactory;
+using MyCafe.LiveChatIntegration;
 using MyCafe.Locations;
 using MyCafe.UI;
 using StardewModdingAPI;
