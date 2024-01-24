@@ -3,12 +3,15 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MyCafe.CustomerFactory;
-using MyCafe.LiveChatIntegration;
 using MyCafe.Locations;
 using MyCafe.UI;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+
+#if YOUTUBE || TWITCH
+using MyCafe.LiveChatIntegration;
+#endif
 
 namespace MyCafe;
 
@@ -44,7 +47,7 @@ internal class Debug
                         {
                             Vector2 pos = customer.getLocalPosition(Game1.viewport);
                             pos.Y -= 32 + customer.Sprite.SpriteHeight * 3;
-                            Log.Debug($"pos {pos.ToString()}, Position: {customer.Position.ToString()}, viewport: {Game1.viewport.ToString()}");
+                            Log.Debug($"pos {pos}, Position: {customer.Position}, viewport: {Game1.viewport}");
                         }
                     }
                 }

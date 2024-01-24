@@ -17,7 +17,7 @@
 			  ^townInterior(_2)?\.png$,
 			  ^walls_and_floors\.png$
 		</IgnoreModFilePatterns>
-		<EnableChatIntegration>twitch</EnableChatIntegration>
+		<EnableChatIntegration>disabled</EnableChatIntegration>
 
 		<!-- SMAPI Paths -->
 		<ModFolderName>My Cafe</ModFolderName>

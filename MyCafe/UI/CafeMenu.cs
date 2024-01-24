@@ -65,6 +65,8 @@ public sealed class CafeMenu : IClickableMenu
         _pages.Add(new ChatIntegrationPage(this, sideBoxBounds));
 #endif
         PopulateTabs();
+        _menuBoard.populateClickableComponentList();
+        _menuBoard.setCurrentlySnappedComponentTo(1001);
     }
 
     private void PopulateTabs()
@@ -105,6 +107,15 @@ public sealed class CafeMenu : IClickableMenu
         _currentTab = index;
         _pages[_currentTab].populateClickableComponentList();
         _pages[_currentTab].allClickableComponents.AddRange(_tabs);
+    }
+
+    public override void populateClickableComponentList()
+    {
+        base.populateClickableComponentList();
+        foreach (var tab in _tabs)
+        {
+            allClickableComponents.Add(tab);
+        }
     }
 
     public override void receiveLeftClick(int x, int y, bool playSound = true)
@@ -210,17 +221,15 @@ public sealed class CafeMenu : IClickableMenu
         }
     }
 
-    public override void automaticSnapBehavior(int direction, int oldRegion, int oldID)
-    {
-        _pages[_currentTab].automaticSnapBehavior(direction, oldRegion, oldID);
-
-        // or 
-        //_menuBoard.automaticSnapBehavior(direction, oldRegion, oldID);
-    }
-
     public override void snapToDefaultClickableComponent()
     {
-        _pages[_currentTab].snapToDefaultClickableComponent();
+        _menuBoard.snapToDefaultClickableComponent();
+        //_pages[_currentTab].snapToDefaultClickableComponent();
+    }
+
+    protected override void noSnappedComponentFound(int direction, int oldRegion, int oldID)
+    {
+        _menuBoard.snapToDefaultClickableComponent();
     }
 
     public override void receiveGamePadButton(Buttons b)
@@ -241,7 +250,7 @@ public sealed class CafeMenu : IClickableMenu
                 }
                 break;
             default:
-                _pages[_currentTab].receiveGamePadButton(b);
+                //_pages[_currentTab].receiveGamePadButton(b);
                 break;
         }
     }
@@ -249,19 +258,31 @@ public sealed class CafeMenu : IClickableMenu
     public override void setUpForGamePadMode()
     {
         base.setUpForGamePadMode();
+        _menuBoard.setUpForGamePadMode();
         _pages[_currentTab].setUpForGamePadMode();
+    }
+
+    public override void receiveKeyPress(Keys key)
+    {
+        if (Game1.options.menuButton.Contains(new InputButton(key)) && readyToClose())
+        {
+            Game1.exitActiveMenu();
+            Game1.playSound("bigDeSelect");
+        }
+        _menuBoard.receiveKeyPress(key);
     }
 
     public override ClickableComponent getCurrentlySnappedComponent()
     {
-        return _pages[_currentTab].getCurrentlySnappedComponent();
+        Log.Warn("getcurrentlysnapped was called on cafemenu");
+        return _menuBoard.getCurrentlySnappedComponent();
     }
 
     public override void setCurrentlySnappedComponentTo(int id)
     {   
-        _pages[_currentTab].setCurrentlySnappedComponentTo(id);
+        Log.Warn("setcurrentlysnapped was called on cafemenu");
+        _menuBoard.setCurrentlySnappedComponentTo(id);
     }
-
 
     public override void draw(SpriteBatch b)
     {

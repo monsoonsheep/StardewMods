@@ -36,8 +36,8 @@ internal class OptionStatusSet : OptionsElement
         _setButton = new ClickableComponent(_setButtonBounds, $"set{_setButtonText}")
         {
             myID = optionNumber,
-            upNeighborID = -7777,
-            downNeighborID = -7777
+            upNeighborID = -99998,
+            downNeighborID = -99998
         };
         style = Style.OptionLabel;
 

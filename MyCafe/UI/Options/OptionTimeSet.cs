@@ -52,7 +52,7 @@ internal class OptionTimeSet : OptionsElement
         {
             myID = optionNumber + 1,
             upNeighborID = optionNumber,
-            downNeighborID = -7777,
+            downNeighborID = -99998,
             region = optionNumber
         };
 

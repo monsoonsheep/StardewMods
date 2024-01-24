@@ -16,7 +16,7 @@ internal class ItemsPage : MenuPageBase
     private readonly TextBox _searchBarTextBox;
     private readonly List<Item> _searchResultItems = new();
     private readonly List<ClickableComponent> _gridItems = new();
-    private int _itemCountInGrid;
+    private readonly int _itemCountInGrid;
 
     public ItemsPage(CafeMenu parent, Rectangle bounds) : base("Edit Menu", bounds, parent)
     {
@@ -40,28 +40,46 @@ internal class ItemsPage : MenuPageBase
         };
         _searchBarTextBox.OnEnterPressed += (_) => CloseTextBox();
 
-        
-        int width = (Bounds.Width - Game1.tileSize);
-        int height = (Bounds.Height - Game1.tileSize * 4);
+        int padding = 12;
 
-        int gridCountX = width / Game1.tileSize;
-        int gridWidth = gridCountX * Game1.tileSize;
-        int gridX = Bounds.X + (width - gridWidth) / 2;
+        float width = (Bounds.Width - 64f);
+        float height = (Bounds.Height - 64f * 4);
 
-        int gridCountY = height / Game1.tileSize;
-        int gridHeight = gridCountY * Game1.tileSize;
-        int gridY = Bounds.Y + Game1.tileSize * 2 + (height - gridHeight) / 2;
+        int gridCountX = (int) (width / 64f);
+        int gridCountY = (int) (height / 64f);
 
+        float gridWidth = gridCountX * 64f + gridCountX * padding;
+        float gridX = Bounds.X + (float) (Bounds.Width - gridWidth) / 2f;
+
+        float gridHeight = gridCountY * 64f + gridCountY * padding;
+        float gridY = Bounds.Y + 64f * 2 + (height - gridHeight) / 2;
+
+        int count = 0;
         for (int i = 0; i < gridCountY; i++)
         {
             for (int j = 0; j < gridCountX; j++)
             {
-                _gridItems.Add(new ClickableComponent(
-                    new Rectangle(gridX + j * Game1.tileSize,
-                        gridY + i * Game1.tileSize,
+                var component = new ClickableComponent(
+                    new Rectangle((int) gridX + (j * Game1.tileSize) + (j * padding),
+                        (int) gridY + (i * Game1.tileSize) + (i * padding),
                         Game1.tileSize, Game1.tileSize),
                     $"grid{i},{j}"
-                    ));
+                );
+
+                bool leftMost = (j == 0);
+                bool rightMost = (j == gridCountX - 1);
+                bool topMost = (i == 0);
+                bool bottom = (i == gridCountY - 1);
+
+                component.myID = 42420 + count;
+                component.leftNeighborID = (leftMost && topMost) ? -99998 : 42420 + count - 1;
+                component.rightNeighborID = (rightMost && bottom) ? -99998 : 42420 + count + 1;
+                component.downNeighborID = (bottom) ? -99998 : 42420 + count + gridCountX;
+                component.upNeighborID = (topMost) ? -99998 : 42420 + count - gridCountY;
+
+                count++;
+
+                _gridItems.Add(component);
             }
         }
 

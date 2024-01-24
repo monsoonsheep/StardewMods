@@ -13,33 +13,33 @@ using Microsoft.Xna.Framework;
 namespace MyCafe.UI;
 internal abstract class OptionsPageBase : MenuPageBase
 {
-    protected int _optionSlotsCount = 3;
-    protected readonly List<ClickableComponent> _optionSlots = new();
-    protected readonly List<OptionsElement> _options = new();
-    protected readonly Rectangle _optionSlotSize;
-    protected int _optionSlotHeld = -1;
-    protected int _currentItemIndex = 0;
+    protected int OptionSlotsCount = 3;
+    protected readonly List<ClickableComponent> OptionSlots = new();
+    protected readonly List<OptionsElement> Options = new();
+    protected readonly Rectangle OptionSlotSize;
+    protected int OptionSlotHeld = -1;
+    protected int CurrentItemIndex = 0;
 
     protected OptionsPageBase(string name, Rectangle bounds, CafeMenu parentMenu) : base(name, bounds, parentMenu)
     {
         // Config
-        for (int i = 0; i < _optionSlotsCount; i++)
-            _optionSlots.Add(new ClickableComponent(
+        for (int i = 0; i < OptionSlotsCount; i++)
+            OptionSlots.Add(new ClickableComponent(
                 new Rectangle(
                     Bounds.X + Game1.tileSize / 4,
-                    Bounds.Y + Game1.tileSize / 2 + i * (Bounds.Height / _optionSlotsCount),
+                    Bounds.Y + Game1.tileSize + i * (Bounds.Height / OptionSlotsCount),
                     Bounds.Width - Game1.tileSize / 2,
-                    (Bounds.Height - 32) / _optionSlotsCount),
+                    (Bounds.Height - 32) / OptionSlotsCount),
                 i.ToString()));
 
-        _optionSlotSize = new Rectangle(0, 0, Bounds.Width - Game1.tileSize / 4,
-            (Bounds.Height) / _optionSlotsCount);
+        OptionSlotSize = new Rectangle(0, 0, Bounds.Width - Game1.tileSize / 4,
+            (Bounds.Height) / OptionSlotsCount);
     }
 
     public override void populateClickableComponentList()
     {
         base.populateClickableComponentList();
-        foreach (var f in _options.SelectMany(op => op.GetType().GetFields()))
+        foreach (var f in Options.SelectMany(op => op.GetType().GetFields()))
         {
             if (f.FieldType.IsSubclassOf(typeof(ClickableComponent)) || f.FieldType == typeof(ClickableComponent))
             {
@@ -64,31 +64,31 @@ internal abstract class OptionsPageBase : MenuPageBase
 
     public override void receiveLeftClick(int x, int y, bool playSound = true)
     {
-        for (int i = 0; i < _optionSlots.Count; ++i)
-            if (_optionSlots[i].bounds.Contains(x, y) 
-                && _currentItemIndex +  i < _options.Count 
-                && _options[_currentItemIndex + i].bounds.Contains(x - _optionSlots[i].bounds.X, y - _optionSlots[i].bounds.Y))
+        for (int i = 0; i < OptionSlots.Count; ++i)
+            if (OptionSlots[i].bounds.Contains(x, y) 
+                && CurrentItemIndex +  i < Options.Count 
+                && Options[CurrentItemIndex + i].bounds.Contains(x - OptionSlots[i].bounds.X, y - OptionSlots[i].bounds.Y))
             {
-                _options[_currentItemIndex + i].receiveLeftClick(x - _optionSlots[i].bounds.X, y - _optionSlots[i].bounds.Y);
+                Options[CurrentItemIndex + i].receiveLeftClick(x - OptionSlots[i].bounds.X, y - OptionSlots[i].bounds.Y);
                 return;
             }
     }
 
     public override void leftClickHeld(int x, int y)
     {
-        if (_optionSlotHeld != -1)
+        if (OptionSlotHeld != -1)
         {
-            _options[_currentItemIndex + _optionSlotHeld].leftClickHeld(x - _optionSlots[_optionSlotHeld].bounds.X, y - _optionSlots[_optionSlotHeld].bounds.Y);
+            Options[CurrentItemIndex + OptionSlotHeld].leftClickHeld(x - OptionSlots[OptionSlotHeld].bounds.X, y - OptionSlots[OptionSlotHeld].bounds.Y);
         }
     }
 
     public override void releaseLeftClick(int x, int y)
     {
-        if (_optionSlotHeld != -1 && _currentItemIndex + _optionSlotHeld < _options.Count)
+        if (OptionSlotHeld != -1 && CurrentItemIndex + OptionSlotHeld < Options.Count)
         {
-            _options[_currentItemIndex + _optionSlotHeld].leftClickReleased(x - _optionSlots[_optionSlotHeld].bounds.X, y - _optionSlots[_optionSlotHeld].bounds.Y);
+            Options[CurrentItemIndex + OptionSlotHeld].leftClickReleased(x - OptionSlots[OptionSlotHeld].bounds.X, y - OptionSlots[OptionSlotHeld].bounds.Y);
         }
-        _optionSlotHeld = -1;
+        OptionSlotHeld = -1;
     }
 
 
@@ -96,10 +96,10 @@ internal abstract class OptionsPageBase : MenuPageBase
     public override void draw(SpriteBatch b)
     {
         // Options
-        for (int i = 0; i < this._optionSlots.Count; i++)
+        for (int i = 0; i < this.OptionSlots.Count; i++)
         {
-            if (_currentItemIndex + i < _options.Count)
-                _options[_currentItemIndex + i].draw(b, _optionSlots[i].bounds.X, _optionSlots[i].bounds.Y);
+            if (CurrentItemIndex + i < Options.Count)
+                Options[CurrentItemIndex + i].draw(b, OptionSlots[i].bounds.X, OptionSlots[i].bounds.Y);
         }
     }
 

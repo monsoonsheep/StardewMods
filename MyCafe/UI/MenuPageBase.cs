@@ -16,7 +16,7 @@ public abstract class MenuPageBase : IClickableMenu
     internal string HoverTitle;
     internal string HoverText;
 
-    internal MenuPageBase(string name, Rectangle bounds, IClickableMenu parentMenu)
+    internal MenuPageBase(string name, Rectangle bounds, IClickableMenu parentMenu) : base(bounds.X, bounds.Y, bounds.Width, bounds.Height)
     {
         Name = name;
         _parentMenu = parentMenu;

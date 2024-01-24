@@ -85,9 +85,6 @@ public class Cafe : INetObject<NetFields>
             });
         };
 
-
-        Debug.SetMenuItems();
-
         var data = DataLoader.CookingRecipes(Game1.content);
         foreach (var key in SUtility.GetAllPlayerUnlockedCookingRecipes())
         {
@@ -97,7 +94,10 @@ public class Cafe : INetObject<NetFields>
                 Recipes.Add(item);
             }
         }
+
+        // DEBUG
         Customers.BusCustomers.State = SpawnerState.Enabled;
+        Debug.SetMenuItems();
     }
 
     internal void DayUpdate()

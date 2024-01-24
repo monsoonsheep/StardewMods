@@ -245,8 +245,8 @@ namespace MyCafe.UI
     {
         public ChatIntegrationPage(CafeMenu parentMenu, Rectangle bounds) : base("Chat Integration", bounds, parentMenu)
         {
-            _options.Add(
-                new OptionStatusSet("Status", "Connect", "Not connected.", "Connected!", ConnectChat, IsConnected, _optionSlotSize, 43490));
+            Options.Add(
+                new OptionStatusSet("Status", "Connect", "Not connected.", "Connected!", ConnectChat, IsConnected, OptionSlotSize, 43490));
         }
 
         internal async Task<bool> ConnectChat()
