@@ -5,6 +5,7 @@ using StardewValley;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
@@ -19,7 +20,7 @@ internal abstract class OptionsPageBase : MenuPageBase
     protected int _optionSlotHeld = -1;
     protected int _currentItemIndex = 0;
 
-    protected OptionsPageBase(string name, CafeMenu parentMenu) : base(name, parentMenu)
+    protected OptionsPageBase(string name, Rectangle bounds, CafeMenu parentMenu) : base(name, bounds, parentMenu)
     {
         // Config
         for (int i = 0; i < _optionSlotsCount; i++)
@@ -35,7 +36,33 @@ internal abstract class OptionsPageBase : MenuPageBase
             (Bounds.Height) / _optionSlotsCount);
     }
 
-    internal override void LeftClick(int x, int y)
+    public override void populateClickableComponentList()
+    {
+        base.populateClickableComponentList();
+        foreach (var f in _options.SelectMany(op => op.GetType().GetFields()))
+        {
+            if (f.FieldType.IsSubclassOf(typeof(ClickableComponent)) || f.FieldType == typeof(ClickableComponent))
+            {
+                if (f.GetValue(this) != null)
+                {
+                    allClickableComponents.Add((ClickableComponent)f.GetValue(this));
+                }
+            }
+            else if (f.FieldType == typeof(List<ClickableComponent>))
+            {
+                List<ClickableComponent> components = (List<ClickableComponent>) f.GetValue(this);
+                if (components == null)
+                    continue;
+                foreach (var c in components)
+                {
+                    if (c != null)
+                        allClickableComponents.Add(c);
+                }
+            }
+        }
+    }
+
+    public override void receiveLeftClick(int x, int y, bool playSound = true)
     {
         for (int i = 0; i < _optionSlots.Count; ++i)
             if (_optionSlots[i].bounds.Contains(x, y) 
@@ -47,7 +74,7 @@ internal abstract class OptionsPageBase : MenuPageBase
             }
     }
 
-    internal override void LeftClickHeld(int x, int y)
+    public override void leftClickHeld(int x, int y)
     {
         if (_optionSlotHeld != -1)
         {
@@ -55,7 +82,7 @@ internal abstract class OptionsPageBase : MenuPageBase
         }
     }
 
-    internal override void ReleaseLeftClick(int x, int y)
+    public override void releaseLeftClick(int x, int y)
     {
         if (_optionSlotHeld != -1 && _currentItemIndex + _optionSlotHeld < _options.Count)
         {
@@ -64,17 +91,7 @@ internal abstract class OptionsPageBase : MenuPageBase
         _optionSlotHeld = -1;
     }
 
-    internal override void ScrollWheelAction(int direction)
-    {
-
-    }
-
-    internal override void HoverAction(int x, int y)
-    {
-        
-    }
-
-    internal override void Draw(SpriteBatch b)
+    public override void draw(SpriteBatch b)
     {
         // Options
         for (int i = 0; i < this._optionSlots.Count; i++)

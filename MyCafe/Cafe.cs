@@ -19,9 +19,11 @@ using System.Xml.Serialization;
 using MyCafe.CustomerFactory;
 using MyCafe.Customers;
 using StardewValley.Inventories;
+using StardewValley.ItemTypeDefinitions;
 using StardewValley.Locations;
 using xTile.Layers;
 using xTile.Tiles;
+using Object = StardewValley.Object;
 using SUtility = StardewValley.Utility;
 
 namespace MyCafe;
@@ -84,8 +86,9 @@ public class Cafe : INetObject<NetFields>
                 NewValue = newValue
             });
         };
-        MenuItems["Test"] = [ItemRegistry.Create("(O)128"), ItemRegistry.Create("(O)211")];
-        MenuItems["Test Category"] = [ItemRegistry.Create("(O)195"), ItemRegistry.Create("(O)196"), ItemRegistry.Create("(O)197")];
+
+
+        Debug.SetMenuItems();
 
         var data = DataLoader.CookingRecipes(Game1.content);
         foreach (var key in SUtility.GetAllPlayerUnlockedCookingRecipes())
@@ -96,7 +99,6 @@ public class Cafe : INetObject<NetFields>
                 Recipes.Add(item);
             }
         }
-
         Customers.BusCustomers.State = SpawnerState.Enabled;
     }
 

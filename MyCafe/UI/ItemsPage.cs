@@ -18,7 +18,7 @@ internal class ItemsPage : MenuPageBase
     private readonly List<ClickableComponent> _gridItems = new();
     private int _itemCountInGrid;
 
-    public ItemsPage(CafeMenu parent) : base("Edit Menu", parent)
+    public ItemsPage(CafeMenu parent, Rectangle bounds) : base("Edit Menu", bounds, parent)
     {
         _searchBarTextBoxBounds = new Rectangle(
             Bounds.X + Bounds.Width / 4,
@@ -81,8 +81,9 @@ internal class ItemsPage : MenuPageBase
         Game1.keyboardDispatcher.Subscriber = null;
     }
 
-    internal override void LeftClick(int x, int y)
+    public override void receiveLeftClick(int x, int y, bool playSound = true)
     {
+        base.receiveLeftClick(x, y);
         if (_searchBarTextBoxBounds.Contains(x, y))
         {
             _searchBarTextBox.Text = "";
@@ -91,22 +92,11 @@ internal class ItemsPage : MenuPageBase
         }
     }
 
-    internal override void LeftClickHeld(int x, int y)
+    public override void performHoverAction(int x, int y)
     {
-    }
-
-    internal override void ReleaseLeftClick(int x, int y)
-    {
-    }
-
-    internal override void ScrollWheelAction(int direction)
-    {
-    }
-
-    internal override void HoverAction(int x, int y)
-    {
-        _parentMenu.HoverText = "";
-        _parentMenu.HoverTitle = "";
+        base.performHoverAction(x, y);
+        HoverText = "";
+        HoverTitle = "";
 
         for (int i = 0; i < _itemCountInGrid; i++)
         {
@@ -118,19 +108,19 @@ internal class ItemsPage : MenuPageBase
             {
                 component.scale = Math.Min(component.scale + 0.05f, 1.1f);
 
-                _parentMenu.HoverTitle = _gridItems[i].item.DisplayName;
-                _parentMenu.HoverText = _gridItems[i].item.getDescription();
+                HoverTitle = _gridItems[i].item.DisplayName;
+                HoverText = _gridItems[i].item.getDescription();
             }
         }
     }
 
-    internal override void Draw(SpriteBatch b)
+    public override void draw(SpriteBatch b)
     {
         _searchBarTextBox.Draw(b, drawShadow: false);
 
         for (int i = 0; i < _itemCountInGrid; i++)
         {
-            _gridItems[i].item.drawInMenu(b, new Vector2(_gridItems[i].bounds.X, _gridItems[i].bounds.Y), 0.8f, 1f, 1f, StackDrawType.Hide, Color.White, false);
+            _gridItems[i].item.drawInMenu(b, new Vector2(_gridItems[i].bounds.X, _gridItems[i].bounds.Y), _gridItems[i].scale, 1f, 1f, StackDrawType.Hide, Color.White, false);
         }
     }
 }

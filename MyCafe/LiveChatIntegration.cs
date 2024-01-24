@@ -16,6 +16,7 @@ using StardewValley.Menus;
 using Color = Microsoft.Xna.Framework.Color;
 using Point = Microsoft.Xna.Framework.Point;
 using LogLevel = StreamingClient.Base.Util.LogLevel;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 #if TWITCH
 using Twitch.Base;
@@ -243,7 +244,7 @@ namespace MyCafe.UI
 {
     internal class ChatIntegrationPage : OptionsPageBase
     {
-        public ChatIntegrationPage(CafeMenu parentMenu) : base("Chat Integration", parentMenu)
+        public ChatIntegrationPage(CafeMenu parentMenu, Rectangle bounds) : base("Chat Integration", bounds, parentMenu)
         {
             _options.Add(new OptionsButton("Authorize", ConnectChat)
             {

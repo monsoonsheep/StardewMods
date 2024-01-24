@@ -8,27 +8,18 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewValley.Menus;
 
 namespace MyCafe.UI;
-public abstract class MenuPageBase
+public abstract class MenuPageBase : IClickableMenu
 {
-    protected readonly CafeMenu _parentMenu;
     internal Rectangle Bounds;
     internal string Name;
 
-    internal MenuPageBase(string name, CafeMenu parentMenu)
+    internal string HoverTitle;
+    internal string HoverText;
+
+    internal MenuPageBase(string name, Rectangle bounds, IClickableMenu parentMenu)
     {
         Name = name;
         _parentMenu = parentMenu;
-        Bounds = parentMenu.sideBoxBounds;
+        Bounds = bounds;
     }
-    internal abstract void LeftClick(int x, int y);
-
-    internal abstract void LeftClickHeld(int x, int y);
-
-    internal abstract void ReleaseLeftClick(int x, int y);
-
-    internal abstract void ScrollWheelAction(int direction);
-
-    internal abstract void HoverAction(int x, int y);
-
-    internal abstract void Draw(SpriteBatch b);
 }

@@ -24,9 +24,12 @@ internal class OptionTimeSet : OptionsElement
     private Rectangle minuteUpRec;
     private Rectangle minuteDownRec;
 
+    internal ClickableComponent UpArrow;
+    internal ClickableComponent DownArrow;
+
     private Rectangle source_TimeArrow = new Rectangle(16, 19, 22, 13);
 
-    public OptionTimeSet(string label, int initialValue, int minValue, int maxValue, Rectangle rec, Action<int> setFunction) : base(label, 
+    public OptionTimeSet(string label, int initialValue, int minValue, int maxValue, Rectangle rec, int optionNumber, Action<int> setFunction) : base(label, 
         rec.X + Game1.tileSize / 2,
         rec.Y + Game1.tileSize / 2, 
         rec.Width, rec.Height)
@@ -41,6 +44,15 @@ internal class OptionTimeSet : OptionsElement
 
         minuteUpRec = new Rectangle(bounds.X, bounds.Y + 12, 32, 20);
         minuteDownRec = new Rectangle(bounds.X, bounds.Y + 12 + 30, 32, 20);
+
+        UpArrow = new(minuteUpRec, "uparrow")
+        {
+            myID = optionNumber
+        };
+        DownArrow = new(minuteDownRec, "downarrow")
+        {
+            myID = optionNumber + 1
+        };
 
         labelOffset = new Vector2(0, -40f);
     }

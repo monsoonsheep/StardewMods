@@ -56,22 +56,7 @@ internal class Debug
                 Log.LogWithHudMessage($"Cafe time: {Mod.Cafe.ClosingTime.Value}");
                 break;
             case SButton.NumPad7:
-                Mod.Cafe.MenuItems["Test"] =
-                [
-                    ItemRegistry.Create("(O)128"),
-                    ItemRegistry.Create("(O)211")
-                ];
-
-                Mod.Cafe.MenuItems["Test Category"] =
-                [
-                    ItemRegistry.Create("(O)195"),
-                    ItemRegistry.Create("(O)196"),
-                    ItemRegistry.Create("(O)197"),
-                    ItemRegistry.Create("(O)198"),
-                    ItemRegistry.Create("(O)199"),
-                    ItemRegistry.Create("(O)200"),
-                    ItemRegistry.Create("(O)201"),
-                ];
+                SetMenuItems();
                 break;
             case SButton.NumPad8:
                 Mod.Cafe.MenuItems["Test"].Add(ItemRegistry.Create("(O)201"));
@@ -106,7 +91,18 @@ internal class Debug
         });
     }
 #endif
-   
+
+    public static void SetMenuItems()
+    {
+        Mod.Cafe.MenuItems.Clear();
+        Mod.Cafe.MenuItems["Soups"] = [ItemRegistry.Create("(O)218"), ItemRegistry.Create("(O)199"), ItemRegistry.Create("(O)727"), ItemRegistry.Create("(O)730")];
+        Mod.Cafe.MenuItems["Dessert"] = [ItemRegistry.Create("(O)211"), ItemRegistry.Create("(O)222"), ItemRegistry.Create("(O)232"), ItemRegistry.Create("(O)234")];
+        Mod.Cafe.MenuItems["Beverages"] = [
+            ItemRegistry.GetObjectTypeDefinition().CreateFlavoredJuice(ItemRegistry.Create<Object>("(O)613")), 
+            ItemRegistry.GetObjectTypeDefinition().CreateFlavoredJuice(ItemRegistry.Create<Object>("(O)635")), 
+            ItemRegistry.GetObjectTypeDefinition().CreateFlavoredJuice(ItemRegistry.Create<Object>("(O)637"))
+        ];
+    }
     public static void WarpToBus()
     {
         Game1.warpFarmer("BusStop", 12, 15, false);

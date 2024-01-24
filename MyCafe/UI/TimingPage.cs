@@ -12,12 +12,12 @@ using StardewValley.Menus;
 namespace MyCafe.UI;
 internal class TimingPage : OptionsPageBase
 {
-    public TimingPage(CafeMenu parent) : base("Timings", parent)
+    public TimingPage(CafeMenu parent, Rectangle bounds) : base("Timings", bounds, parent)
     {
-        _options.Add(new OptionTimeSet(I18n.Menu_OpeningTime(), Mod.Cafe.OpeningTime.Value, 0700, 1800, _optionSlotSize,
-            SetOpeningTime));
-        _options.Add(new OptionTimeSet(I18n.Menu_ClosingTime(), Mod.Cafe.ClosingTime.Value, 1100, 2500, _optionSlotSize,
-            SetClosingTime));
+        _options.Add(new OptionTimeSet(I18n.Menu_OpeningTime(), Mod.Cafe.OpeningTime.Value, 0700, 1800, _optionSlotSize, 0,
+            (time) => Mod.Cafe.OpeningTime.Set(time)));
+        _options.Add(new OptionTimeSet(I18n.Menu_ClosingTime(), Mod.Cafe.ClosingTime.Value, 1100, 2500, _optionSlotSize, 2,
+            (time) => Mod.Cafe.ClosingTime.Set(time)));
     }
 
     private void SetOpeningTime(int time)

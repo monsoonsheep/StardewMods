@@ -16,11 +16,10 @@ namespace MyCafe.UI;
 
 public sealed class CafeMenu : IClickableMenu
 {
-    internal string HoverTitle = "";
-    internal string HoverText = "";
-
     private Item _heldItem;
     private Item _hoveredItem;
+
+    private string _hoverText;
 
     private readonly MenuBoard _menuBoard;
 
@@ -55,16 +54,16 @@ public sealed class CafeMenu : IClickableMenu
             menuBoardBounds.Width,
             menuBoardBounds.Height - Game1.tileSize * 2);
 
-        _menuBoard = new MenuBoard(this);
+        _menuBoard = new MenuBoard(this, menuBoardBounds);
 
         _pages = [
-            new ItemsPage(this),
-            new TimingPage(this),
-#if YOUTUBE || TWITCH
-            new ChatIntegrationPage(this)
-#endif
+            new ItemsPage(this, sideBoxBounds),
+            new TimingPage(this, sideBoxBounds),
         ];
 
+#if YOUTUBE || TWITCH
+        _pages.Add(new ChatIntegrationPage(this, sideBoxBounds));
+#endif
         PopulateTabs();
     }
 
@@ -81,11 +80,17 @@ public sealed class CafeMenu : IClickableMenu
                     4f)
                 {
                     name = $"tab{i}",
-                    hoverText = _pages[i].Name
+                    hoverText = _pages[i].Name,
+                    myID = 12340 + i,
+                    downNeighborID = -99999,
+                    rightNeighborID = (i == 0) ? -99999 : 12340 + (i + 1),
+                    leftNeighborID = (i == _pages.Count - 1) ? -99999 : 12340 + (i - 1),
+                    tryDefaultIfNoDownNeighborExists = true,
+                    fullyImmutable = true
                 });
         }
 
-        _tabs[_currentTab].bounds.Y += 12;
+        SetTab(0);
     }
 
     private void SetTab(int index)
@@ -98,6 +103,8 @@ public sealed class CafeMenu : IClickableMenu
         }
 
         _currentTab = index;
+        _pages[_currentTab].populateClickableComponentList();
+        _pages[_currentTab].allClickableComponents.AddRange(_tabs);
     }
 
     public override void receiveLeftClick(int x, int y, bool playSound = true)
@@ -117,11 +124,11 @@ public sealed class CafeMenu : IClickableMenu
 
         if (menuBoardBounds.Contains(x, y))
         {
-            _menuBoard.LeftClick(x, y);
+            _menuBoard.receiveLeftClick(x, y);
         }
         else if (sideBoxBounds.Contains(x, y))
         {
-            _pages[_currentTab].LeftClick(x, y);
+            _pages[_currentTab].receiveLeftClick(x, y);
         }
     }
 
@@ -134,11 +141,11 @@ public sealed class CafeMenu : IClickableMenu
 
         if (menuBoardBounds.Contains(x, y))
         {
-            _menuBoard.ReleaseLeftClick(x, y);
+            _menuBoard.releaseLeftClick(x, y);
         }
         else if (sideBoxBounds.Contains(x, y))
         {
-            _pages[_currentTab].ReleaseLeftClick(x, y);
+            _pages[_currentTab].releaseLeftClick(x, y);
         }
 
     }
@@ -148,11 +155,11 @@ public sealed class CafeMenu : IClickableMenu
         base.leftClickHeld(x, y);
         if (menuBoardBounds.Contains(x, y))
         {
-            _menuBoard.LeftClickHeld(x, y);
+            _menuBoard.leftClickHeld(x, y);
         }
         else if (sideBoxBounds.Contains(x, y))
         {
-            _pages[_currentTab].LeftClickHeld(x, y);
+            _pages[_currentTab].leftClickHeld(x, y);
         }
     }
 
@@ -163,26 +170,26 @@ public sealed class CafeMenu : IClickableMenu
 
     public override void performHoverAction(int x, int y)
     {
+        _hoverText = "";
         _hoveredItem = null;
-        HoverText = "";
         base.performHoverAction(x, y);
 
         foreach (var tab in _tabs)
         {
             if (tab.containsPoint(x, y))
             {
-                HoverText = tab.hoverText;
+                _hoverText = tab.hoverText;
                 return;
             }
         }
 
         if (menuBoardBounds.Contains(x, y))
         {
-            _menuBoard.HoverAction(x, y);
+            _menuBoard.performHoverAction(x, y);
         }
         else if (sideBoxBounds.Contains(x, y))
         {
-            _pages[_currentTab].HoverAction(x, y);
+            _pages[_currentTab].performHoverAction(x, y);
         }
     }
 
@@ -195,19 +202,66 @@ public sealed class CafeMenu : IClickableMenu
         var (x, y) = (Game1.getMouseX(), Game1.getMouseX());
         if (menuBoardBounds.Contains(x, y))
         {
-            _menuBoard.ScrollWheelAction(direction);
+            _menuBoard.receiveScrollWheelAction(direction);
         }
         else if (sideBoxBounds.Contains(x, y))
         {
-            _pages[_currentTab].ScrollWheelAction(direction);
+            _pages[_currentTab].receiveScrollWheelAction(direction);
         }
+    }
+
+    public override void automaticSnapBehavior(int direction, int oldRegion, int oldID)
+    {
+        _pages[_currentTab].automaticSnapBehavior(direction, oldRegion, oldID);
+
+        // or 
+        //_menuBoard.automaticSnapBehavior(direction, oldRegion, oldID);
+    }
+
+    public override void snapToDefaultClickableComponent()
+    {
+        _pages[_currentTab].snapToDefaultClickableComponent();
     }
 
     public override void receiveGamePadButton(Buttons b)
     {
         base.receiveGamePadButton(b);
-
+        switch (b)
+        {
+            case Buttons.RightTrigger:
+                if (_pages[_currentTab].readyToClose())
+                {
+                    SetTab(_currentTab + 1);
+                }
+                break;
+            case Buttons.LeftTrigger:
+                if (_pages[_currentTab].readyToClose())
+                {
+                    SetTab(_currentTab - 1);
+                }
+                break;
+            default:
+                _pages[_currentTab].receiveGamePadButton(b);
+                break;
+        }
     }
+
+    public override void setUpForGamePadMode()
+    {
+        base.setUpForGamePadMode();
+        _pages[_currentTab].setUpForGamePadMode();
+    }
+
+    public override ClickableComponent getCurrentlySnappedComponent()
+    {
+        return _pages[_currentTab].getCurrentlySnappedComponent();
+    }
+
+    public override void setCurrentlySnappedComponentTo(int id)
+    {   
+        _pages[_currentTab].setCurrentlySnappedComponentTo(id);
+    }
+
 
     public override void draw(SpriteBatch b)
     {
@@ -216,14 +270,14 @@ public sealed class CafeMenu : IClickableMenu
         b.End();
         b.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp);
 
-        _menuBoard.Draw(b);
+        _menuBoard.draw(b);
 
         foreach (var tab in _tabs)
         {
             tab.draw(b);
         }
 
-        _pages[_currentTab].Draw(b);
+        _pages[_currentTab].draw(b);
 
         b.End();
         b.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp);
@@ -234,11 +288,15 @@ public sealed class CafeMenu : IClickableMenu
 
         //_heldItem?.drawInMenu(b, new Vector2(Game1.getOldMouseX() + 8, Game1.getOldMouseY() + 8), 1f);
         
-        if (!string.IsNullOrEmpty(HoverTitle))
+        if (!string.IsNullOrEmpty(_pages[_currentTab].HoverTitle))
         {
             //drawToolTip(b, _hoverText, "", null, heldItem: true, -1, 0, null, -1, null, moneyAmountToShowAtBottom: _hoverAmount);
-            //drawToolTip(b, HoverText, HoverTitle, null);
-            drawHoverText(b, HoverTitle, Game1.smallFont);
+            //drawToolTip(b, _hoverText, HoverTitle, null);
+            drawHoverText(b, _pages[_currentTab].HoverTitle, Game1.smallFont);
+        }
+        else if (!string.IsNullOrEmpty(_hoverText))
+        {
+            drawHoverText(b, _hoverText, Game1.smallFont);
         }
 
         if (shouldDrawCloseButton())

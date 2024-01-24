@@ -32,7 +32,7 @@ internal class MenuBoard : MenuPageBase
     private readonly Rectangle _scrollBarRunner;
     private int _currentItemIndex = 0;
 
-    public MenuBoard(CafeMenu parent) : base("Menu", parent)
+    public MenuBoard(CafeMenu parent, Rectangle bounds) : base("Menu", bounds, parent)
     {
         Bounds = parent.menuBoardBounds;
         target_Logo = new Rectangle(Bounds.X + (int) ((source_Board.Width - source_Logo.Width) / 2f), Bounds.Y + 40, source_Logo.Width, source_Logo.Height);
@@ -79,7 +79,7 @@ internal class MenuBoard : MenuPageBase
         _scrollBar.bounds.Height = (int) Math.Floor(((float)_scrollBarRunner.Height) / ((float)_entries.Count / (float)MENU_SLOT_COUNT));
     }
 
-    internal override void LeftClick(int x, int y)
+    public override void receiveLeftClick(int x, int y, bool playSound = true)
     {
         if (_editMode)
         {
@@ -115,20 +115,20 @@ internal class MenuBoard : MenuPageBase
             else if (!_downArrow.containsPoint(x, y) && x > Bounds.X + Bounds.Width && x < Bounds.X + Bounds.Width + 128 && y > Bounds.Y && y < Bounds.Y + Bounds.Height)
             {
                 _scrolling = true;
-                LeftClickHeld(x, y);
-                ReleaseLeftClick(x, y);
+                leftClickHeld(x, y);
+                releaseLeftClick(x, y);
             }
         }
         
         _currentItemIndex = Math.Max(0, Math.Min(_entries.Count - MENU_SLOT_COUNT, _currentItemIndex));
     }
 
-    internal override  void ReleaseLeftClick(int x, int y)
+    public override void releaseLeftClick(int x, int y)
     {
         _scrolling = false;
     }
 
-    internal override  void LeftClickHeld(int x, int y)
+    public override void leftClickHeld(int x, int y)
     {
         if (GameMenu.forcePreventClose)
             return;
@@ -147,7 +147,7 @@ internal class MenuBoard : MenuPageBase
         }
     }
 
-    internal override  void ScrollWheelAction(int direction)
+    public override void receiveScrollWheelAction(int direction)
     {
         if (direction > 0 && _currentItemIndex > 0)
         {
@@ -165,12 +165,12 @@ internal class MenuBoard : MenuPageBase
         //}
     }
 
-    internal override  void HoverAction(int x, int y)
+    public override  void performHoverAction(int x, int y)
     {
         // Show tooltip?
     }
 
-    internal override  void Draw(SpriteBatch b)
+    public override void draw(SpriteBatch b)
     {
         // Background
         b.Draw(
