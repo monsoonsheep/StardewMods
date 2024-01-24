@@ -8,7 +8,7 @@ using StardewValley.Pathfinding;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SUtility = StardewValley.Utility;
+using System.Threading.Tasks;
 
 namespace MyCafe.CustomerFactory;
 
@@ -16,7 +16,7 @@ internal class VillagerCustomerSpawner : CustomerSpawner
 {
     internal readonly Dictionary<string, VillagerCustomerData> VillagerData = new();
 
-    internal override void Initialize(IModHelper helper)
+    internal override Task<bool> Initialize(IModHelper helper)
     {
         int count = 0, doneCount = 0;
         SUtility.ForEachVillager(npc =>
@@ -39,6 +39,7 @@ internal class VillagerCustomerSpawner : CustomerSpawner
         });
 
         Log.Debug($"{doneCount} NPCs have Schedule Data. The other {count} won't visit the cafe.");
+        return Task.FromResult(true);
     }
 
     private bool CanNpcVisitDuringTime(NPC npc, int timeOfDay)

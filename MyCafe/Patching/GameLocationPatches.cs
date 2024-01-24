@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using StardewValley.Network;
 using xTile.Dimensions;
-using Rectangle = xTile.Dimensions.Rectangle;
 
 namespace MyCafe.Patching;
 
@@ -18,7 +17,7 @@ internal class GameLocationPatches : PatchCollection
             new(
                 typeof(GameLocation),
                 "checkAction",
-                [typeof(Location), typeof(Rectangle), typeof(Farmer)],
+                [typeof(Location), typeof(xTile.Dimensions.Rectangle), typeof(Farmer)],
                 postfix: CheckActionPostfix),
 
             new(

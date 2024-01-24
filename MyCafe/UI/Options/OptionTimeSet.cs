@@ -6,7 +6,6 @@ using StardewValley.Menus;
 
 namespace MyCafe.UI.Options;
 
-
 internal class OptionTimeSet : OptionsElement
 {
     private new readonly string label;
@@ -29,10 +28,8 @@ internal class OptionTimeSet : OptionsElement
 
     private Rectangle source_TimeArrow = new Rectangle(16, 19, 22, 13);
 
-    public OptionTimeSet(string label, int initialValue, int minValue, int maxValue, Rectangle rec, int optionNumber, Action<int> setFunction) : base(label, 
-        rec.X + Game1.tileSize / 2,
-        rec.Y + Game1.tileSize / 2, 
-        rec.Width, rec.Height)
+    public OptionTimeSet(string label, int initialValue, int minValue, int maxValue, Rectangle rec, int optionNumber, Action<int> setFunction) 
+        : base(label, rec.X, rec.Y, rec.Width, rec.Height)
     {
         this.minValue = minValue;
         this.maxValue = maxValue;
@@ -47,85 +44,36 @@ internal class OptionTimeSet : OptionsElement
 
         UpArrow = new(minuteUpRec, "uparrow")
         {
-            myID = optionNumber
+            myID = optionNumber,
+            downNeighborID = optionNumber + 1,
+            region = optionNumber
         };
         DownArrow = new(minuteDownRec, "downarrow")
         {
-            myID = optionNumber + 1
+            myID = optionNumber + 1,
+            upNeighborID = optionNumber,
+            downNeighborID = -7777,
+            region = optionNumber
         };
 
         labelOffset = new Vector2(0, -40f);
     }
 
-    private void SetTime()
-    {
-        am = hours < 12 || hours >= 24;
-        setValue(hours * 100 + minutes);
-    }
-
-    private int FormatHours()
-    {
-        int h = am ? hours % 12 : hours - 12;
-        if (h == 0)
-            h = 12;
-        return h;
-    }
     public override void receiveLeftClick(int x, int y)
     {
         base.receiveLeftClick(x, y);
         if (minuteUpRec.Contains(x, y))
         {
-            minuteUp();
+            MinuteUp();
             SetTime();
         }
         else if (minuteDownRec.Contains(x, y))
         {
-            minuteDown();
+            MinuteDown();
             SetTime();
         }
     }
 
-    private void minuteUp()
-    {
-        if (minutes >= 50)
-        {
-            int h = hours;
-            hourUp();
-            if (h == hours || hours * 100 + minutes > maxValue)
-                return;
-            minutes = 0;
-        }
-        else
-        {
-            minutes += 10;
-        }
-    }
-
-    private void minuteDown()
-    {
-        if (minutes < 10)
-        {
-            int h = hours;
-            hourDown();
-            if (h == hours || hours * 100 + minutes < minValue)
-                return;
-            minutes = 50;
-        }
-        else
-        {
-            minutes -= 10;
-        }
-    }
-
-    private void hourUp()
-    {
-        hours = Math.Min(Math.Min(25, maxValue / 100), hours + 1);
-    }
-
-    private void hourDown()
-    {
-        hours = Math.Max(Math.Max(6, minValue / 100), hours - 1);
-    }
     public override void draw(SpriteBatch b, int slotX, int slotY, IClickableMenu context = null)
     {
         StardewValley.Utility.drawTextWithShadow(
@@ -146,4 +94,59 @@ internal class OptionTimeSet : OptionsElement
         //new Rectangle(422, 472, 10, 11)
     }
 
+    private void SetTime()
+    {
+        am = hours < 12 || hours >= 24;
+        setValue(hours * 100 + minutes);
+    }
+
+    private int FormatHours()
+    {
+        int h = am ? hours % 12 : hours - 12;
+        if (h == 0)
+            h = 12;
+        return h;
+    }
+
+    private void MinuteUp()
+    {
+        if (minutes >= 50)
+        {
+            int h = hours;
+            HourUp();
+            if (h == hours || hours * 100 + minutes > maxValue)
+                return;
+            minutes = 0;
+        }
+        else
+        {
+            minutes += 10;
+        }
+    }
+
+    private void MinuteDown()
+    {
+        if (minutes < 10)
+        {
+            int h = hours;
+            HourDown();
+            if (h == hours || hours * 100 + minutes < minValue)
+                return;
+            minutes = 50;
+        }
+        else
+        {
+            minutes -= 10;
+        }
+    }
+
+    private void HourUp()
+    {
+        hours = Math.Min(Math.Min(25, maxValue / 100), hours + 1);
+    }
+
+    private void HourDown()
+    {
+        hours = Math.Max(Math.Max(6, minValue / 100), hours - 1);
+    }
 }

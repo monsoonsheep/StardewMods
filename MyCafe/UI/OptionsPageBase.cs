@@ -91,6 +91,8 @@ internal abstract class OptionsPageBase : MenuPageBase
         _optionSlotHeld = -1;
     }
 
+
+
     public override void draw(SpriteBatch b)
     {
         // Options

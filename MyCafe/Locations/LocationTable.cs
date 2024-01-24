@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using System.Xml.Serialization;
-using Rectangle = Microsoft.Xna.Framework.Rectangle;
-using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 
 namespace MyCafe.Locations;

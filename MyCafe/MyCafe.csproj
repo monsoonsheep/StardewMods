@@ -65,6 +65,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Using Include="Microsoft.Xna.Framework.Vector2" Alias="Vector2" />
+		<Using Include="Microsoft.Xna.Framework.Rectangle" Alias="Rectangle" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Mono.Cecil" Version="0.11.5.0" />
 		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
 		<PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.1.1" />

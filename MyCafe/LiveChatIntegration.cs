@@ -10,13 +10,13 @@ using MyCafe.Customers;
 using MyCafe.LiveChatIntegration;
 using MyCafe.Locations;
 using MyCafe.CustomerFactory;
+using MyCafe.UI.Options;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Menus;
 using Color = Microsoft.Xna.Framework.Color;
 using Point = Microsoft.Xna.Framework.Point;
 using LogLevel = StreamingClient.Base.Util.LogLevel;
-using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 #if TWITCH
 using Twitch.Base;
@@ -39,7 +39,7 @@ namespace MyCafe.LiveChatIntegration
 {
     internal interface IStreamManager
     {
-        public event EventHandler<ChatMessageReceivedEventArgs> OnChatMessageReceived;
+        public event EventHandler<ChatMessageReceivedEventArgs> ChatMessageReceived;
         public Task<bool> Connect();
     }
 
@@ -48,7 +48,6 @@ namespace MyCafe.LiveChatIntegration
         public string Username { get; set; }
         public string Message { get; set; }
         public Color Color { get; set; } = Color.White;
-
     }
 
     #if TWITCH
@@ -70,7 +69,7 @@ namespace MyCafe.LiveChatIntegration
         private static ChatClient chat;
         private ConnectionStatus _connectionState = ConnectionStatus.Disconnected;
 
-        public event EventHandler<ChatMessageReceivedEventArgs> OnChatMessageReceived;
+        public event EventHandler<ChatMessageReceivedEventArgs> ChatMessageReceived;
         private ColorConverter colorConverter = new ColorConverter();
 
         public async Task<bool> Connect()
@@ -126,7 +125,7 @@ namespace MyCafe.LiveChatIntegration
         {
             var color = (System.Drawing.Color)(colorConverter.ConvertFromInvariantString(e.Color) ?? System.Drawing.Color.White);
             Color resultColor = new Color(color.R, color.G, color.B);
-            OnChatMessageReceived?.Invoke(this, new ChatMessageReceivedEventArgs()
+            ChatMessageReceived?.Invoke(this, new ChatMessageReceivedEventArgs()
             {
                 Username = e.UserDisplayName,
                 Message = e.Message,
@@ -246,19 +245,28 @@ namespace MyCafe.UI
     {
         public ChatIntegrationPage(CafeMenu parentMenu, Rectangle bounds) : base("Chat Integration", bounds, parentMenu)
         {
-            _options.Add(new OptionsButton("Authorize", ConnectChat)
-            {
-                style = OptionsElement.Style.Default,
-                label = "Connect Stream"
-            });
-            _options.First().bounds.Width = (int)Game1.dialogueFont.MeasureString("Connect Stream").X + 64;
-
+            _options.Add(
+                new OptionStatusSet("Status", "Connect", "Not connected.", "Connected!", ConnectChat, IsConnected, _optionSlotSize, 43490));
         }
 
-        private void ConnectChat()
+        internal async Task<bool> ConnectChat()
         {
-            if (Mod.Cafe.Customers.ChatCustomers is { State: SpawnerState.Disabled })
-                Mod.Cafe.Customers.ChatCustomers.Initialize(Mod.ModHelper);
+            if (IsConnected())
+                return true;
+            if (IsConnecting())
+                return false;
+
+            return await Mod.Cafe.Customers.ChatCustomers.Initialize(Mod.ModHelper);
+        }
+
+        internal bool IsConnected()
+        {
+            return Mod.Cafe.Customers.ChatCustomers is { State: SpawnerState.Enabled };
+        }
+
+        internal bool IsConnecting()
+        {
+            return Mod.Cafe.Customers.ChatCustomers is { State: SpawnerState.Initializing };
         }
     }
 }
@@ -269,9 +277,10 @@ namespace MyCafe.CustomerFactory
     {
         private IStreamManager _streamManager;
 
-        private readonly List<string> _users = new List<string>();
+        private readonly List<string> _users = [];
+        private readonly List<string> _spawnedUsers = [];
 
-        internal override async void Initialize(IModHelper helper)
+        internal override async Task<bool> Initialize(IModHelper helper)
         {
 #if YOUTUBE
             _streamManager = new YoutubeManager();
@@ -280,12 +289,20 @@ namespace MyCafe.CustomerFactory
 #endif
 
             State = SpawnerState.Initializing;
-            if (_streamManager != null && await _streamManager.Connect())
+
+            if (_streamManager != null)
             {
-                State = SpawnerState.Enabled;
-                _streamManager.OnChatMessageReceived += OnChatMessageReceived;
-                Game1.chatBox.addMessage("Live chat connected!", Color.White);
+                var result = await _streamManager.Connect();
+                if (result)
+                {
+                    State = SpawnerState.Enabled;
+                    _streamManager.ChatMessageReceived += OnChatMessageReceived;
+                    Game1.chatBox.addMessage("Live chat connected!", Color.White);
+                    return true;
+                }
             }
+
+            return false;
         }
 
         internal void OnChatMessageReceived(object sender, ChatMessageReceivedEventArgs e)

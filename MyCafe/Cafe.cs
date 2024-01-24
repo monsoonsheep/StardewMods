@@ -23,8 +23,6 @@ using StardewValley.ItemTypeDefinitions;
 using StardewValley.Locations;
 using xTile.Layers;
 using xTile.Tiles;
-using Object = StardewValley.Object;
-using SUtility = StardewValley.Utility;
 
 namespace MyCafe;
 

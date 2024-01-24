@@ -11,6 +11,7 @@ using StardewValley.Pathfinding;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MyCafe.CustomerFactory;
 
@@ -18,9 +19,10 @@ internal class BusCustomerSpawner : CustomerSpawner
 {
     private IBusSchedulesApi _busSchedulesApi;
 
-    internal override void Initialize(IModHelper helper)
+    internal override Task<bool> Initialize(IModHelper helper)
     {
         _busSchedulesApi = Mod.ModHelper.ModRegistry.GetApi<IBusSchedulesApi>("MonsoonSheep.BusSchedules");
+        return Task.FromResult(true);
     }
 
     internal List<BusCustomerData> GetRandomCustomerData(int members)

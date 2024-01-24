@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MyCafe.CustomerFactory;
@@ -103,6 +104,14 @@ internal class Debug
             ItemRegistry.GetObjectTypeDefinition().CreateFlavoredJuice(ItemRegistry.Create<Object>("(O)637"))
         ];
     }
+
+    public static bool Wait10Seconds()
+    {
+        Task.Delay(3000);
+        Log.Info("Connected!");
+        return true;
+    }
+
     public static void WarpToBus()
     {
         Game1.warpFarmer("BusStop", 12, 15, false);

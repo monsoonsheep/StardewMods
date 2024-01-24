@@ -1,4 +1,7 @@
-﻿using HarmonyLib;
+﻿global using SUtility = StardewValley.Utility;
+global using SObject = StardewValley.Object;
+
+using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MyCafe.Locations;
@@ -16,11 +19,12 @@ using System.Collections.Generic;
 using System.Linq;
 using MyCafe.Customers;
 using xTile;
-using SUtility = StardewValley.Utility;
 using System.IO;
 using MyCafe.UI;
 using System.Runtime.CompilerServices;
 using StardewValley.Locations;
+
+
 
 namespace MyCafe;
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using MyCafe.Locations;
 using MyCafe.Customers;
 using StardewModdingAPI;
@@ -29,7 +30,7 @@ internal abstract class CustomerSpawner
 
     internal abstract void DayUpdate();
 
-    internal abstract void Initialize(IModHelper helper);
+    internal abstract Task<bool> Initialize(IModHelper helper);
 
     internal virtual void RemoveAll()
     {
