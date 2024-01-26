@@ -13,5 +13,5 @@ internal abstract class MenuEntry
 {
     internal static Rectangle Bounds;
 
-    internal abstract void Draw(SpriteBatch b, int slotX, int slotY, bool editMode);
+    internal abstract void Draw(SpriteBatch b, int slotX, int slotY);
 }

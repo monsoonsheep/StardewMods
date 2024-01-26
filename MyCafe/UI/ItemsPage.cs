@@ -11,12 +11,32 @@ using StardewValley.Menus;
 namespace MyCafe.UI;
 internal class ItemsPage : MenuPageBase
 {
+    private static Rectangle source_saveButton = new (62, 32, 31, 32);
+    private static Rectangle source_loadButton = new(93, 32, 31, 32);
+
     // Search
     private Rectangle _searchBarTextBoxBounds;
     private readonly TextBox _searchBarTextBox;
     private readonly List<Item> _searchResultItems = new();
-    private readonly List<ClickableComponent> _gridItems = new();
-    private readonly int _itemCountInGrid;
+    public readonly ClickableComponent[,] _gridSlots;
+
+    public readonly ClickableTextureComponent _loadButton;
+    public readonly ClickableTextureComponent _saveButton;
+
+    private readonly int gridCountX;
+    private readonly int gridCountY;
+    private int _currentRowIndex;
+
+    private IEnumerable<ClickableComponent> _slots
+    {
+        get
+        {
+            for (int i = 0; i < _searchResultItems.Count; i++)
+            {
+                yield return _gridSlots[i / gridCountX, i % gridCountX];
+            }
+        }
+    }
 
     public ItemsPage(CafeMenu parent, Rectangle bounds) : base("Edit Menu", bounds, parent)
     {
@@ -40,26 +60,55 @@ internal class ItemsPage : MenuPageBase
         };
         _searchBarTextBox.OnEnterPressed += (_) => CloseTextBox();
 
-        int padding = 12;
+        _loadButton = new ClickableTextureComponent(
+            new Rectangle(
+                Bounds.Right - source_loadButton.Width - 64, Bounds.Center.Y + source_loadButton.Height, source_loadButton.Width, source_loadButton.Height),
+            Mod.Sprites,
+            source_loadButton,
+            2f)
+        {
+            myID = 45000,
+            downNeighborID = 45001,
+            upNeighborID = -99998,
+            leftNeighborID = -99998,
+            rightNeighborID = -99999
+        };
 
-        float width = (Bounds.Width - 64f);
-        float height = (Bounds.Height - 64f * 4);
+        _saveButton = new ClickableTextureComponent(
+            new Rectangle(
+                Bounds.Right - source_loadButton.Width - 64, Bounds.Center.Y - source_loadButton.Height * 2, source_loadButton.Width, source_loadButton.Height),
+            Mod.Sprites, 
+            source_saveButton, 
+            2f)
+        {
+            myID = 45001,
+            downNeighborID = -99999,
+            upNeighborID = 45000,
+            leftNeighborID = -99998,
+            rightNeighborID = -99999
+        };
 
-        int gridCountX = (int) (width / 64f);
-        int gridCountY = (int) (height / 64f);
+        int padding = 4;
+
+        float width = (Bounds.Width - 64 - 96);
+        float height = (Bounds.Height - 64 * 4);
+
+        gridCountX = (int) (width / 64f);
+        gridCountY = (int) (height / 64f);
 
         float gridWidth = gridCountX * 64f + gridCountX * padding;
-        float gridX = Bounds.X + (float) (Bounds.Width - gridWidth) / 2f;
+        float gridX = Bounds.X + 32;
 
         float gridHeight = gridCountY * 64f + gridCountY * padding;
         float gridY = Bounds.Y + 64f * 2 + (height - gridHeight) / 2;
 
+        _gridSlots = new ClickableComponent[gridCountY, gridCountX];
         int count = 0;
         for (int i = 0; i < gridCountY; i++)
         {
             for (int j = 0; j < gridCountX; j++)
             {
-                var component = new ClickableComponent(
+                ClickableComponent component = new(
                     new Rectangle((int) gridX + (j * Game1.tileSize) + (j * padding),
                         (int) gridY + (i * Game1.tileSize) + (i * padding),
                         Game1.tileSize, Game1.tileSize),
@@ -71,26 +120,29 @@ internal class ItemsPage : MenuPageBase
                 bool topMost = (i == 0);
                 bool bottom = (i == gridCountY - 1);
 
+                component.region = 42420;
                 component.myID = 42420 + count;
-                component.leftNeighborID = (leftMost && topMost) ? -99998 : 42420 + count - 1;
-                component.rightNeighborID = (rightMost && bottom) ? -99998 : 42420 + count + 1;
-                component.downNeighborID = (bottom) ? -99998 : 42420 + count + gridCountX;
-                component.upNeighborID = (topMost) ? -99998 : 42420 + count - gridCountY;
+                component.leftNeighborID = -7777;
+                component.rightNeighborID = -7777;
+                component.downNeighborID = (bottom) ? -99998 : -7777;
+                component.upNeighborID = (topMost) ? -99998 : -7777;
 
                 count++;
 
-                _gridItems.Add(component);
+                _gridSlots[i, j] = component;
             }
         }
 
-        _itemCountInGrid = 0;
         foreach (var item in Game1.player.Items)
         {
-            if (item?.Category == StardewValley.Object.CookingCategory)
+            if (item?.Category == SObject.CookingCategory)
             {
-                _gridItems[_itemCountInGrid++].item = item;
+                _searchResultItems.Add(item);
             }
         }
+
+        defaultComponent = 42420;
+        UpdateSlots();
     }
 
     internal void CloseTextBox()
@@ -110,35 +162,71 @@ internal class ItemsPage : MenuPageBase
         }
     }
 
-    public override void performHoverAction(int x, int y)
+    public override bool TryHover(int x, int y)
     {
-        base.performHoverAction(x, y);
-        HoverText = "";
-        HoverTitle = "";
+        if (!base.TryHover(x, y))
+            return false;
 
-        for (int i = 0; i < _itemCountInGrid; i++)
+        foreach (var c in _slots)
         {
-            var component = _gridItems[i];
-
-            component.scale = Math.Max(1f, component.scale - 0.025f);
-
-            if (_gridItems[i].containsPoint(x, y))
+            c.scale = Math.Max(1f, c.scale - 0.025f);
+            if (c.containsPoint(x, y) && c.item != null)
             {
-                component.scale = Math.Min(component.scale + 0.05f, 1.1f);
-
-                HoverTitle = _gridItems[i].item.DisplayName;
-                HoverText = _gridItems[i].item.getDescription();
+                c.scale = Math.Min(c.scale + 0.05f, 1.1f);
+                HoverTitle = c.item.DisplayName;
             }
+        }
+
+        return true;
+    }
+
+    protected override void customSnapBehavior(int direction, int oldRegion, int oldID)
+    {
+        switch (direction)
+        {
+            case 0:
+                //if (getComponentWithID(oldID - ))
+                // snap to search bar
+                break;
+            case 1:
+                break;
+            case 2:
+                break;
+            case 3:
+                if (oldID == 42420)
+                    SnapOutOfMenu(3);
+                break;
         }
     }
 
     public override void draw(SpriteBatch b)
     {
         _searchBarTextBox.Draw(b, drawShadow: false);
+        _loadButton.draw(b);
+        _saveButton.draw(b);
 
-        for (int i = 0; i < _itemCountInGrid; i++)
+        foreach (var slot in _slots)
         {
-            _gridItems[i].item.drawInMenu(b, new Vector2(_gridItems[i].bounds.X, _gridItems[i].bounds.Y), _gridItems[i].scale, 1f, 1f, StackDrawType.Hide, Color.White, false);
+            slot.item?.drawInMenu(b, new Vector2(slot.bounds.X, slot.bounds.Y), slot.scale, 1f, 1f, StackDrawType.Hide, Color.White, false);
         }
+    }
+
+    private void UpdateSlots()
+    {
+        int i = _currentRowIndex;
+        foreach (var slot in _slots)
+        {
+            if (i >= _searchResultItems.Count)
+                slot.item = null;
+            else
+                slot.item = _searchResultItems[i];
+
+            i++;
+        }
+    }
+
+    private ClickableComponent GetSlotAtIndex(int index)
+    {
+        return _gridSlots[index / gridCountX, index % gridCountX];
     }
 }

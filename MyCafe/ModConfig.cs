@@ -4,8 +4,6 @@ namespace MyCafe;
 
 internal static class ModConfig
 {
-    internal static ConfigModel LoadedConfig;
-
     internal static void InitializeGmcm()
     {
         static string GetFrequencyText(int n)
@@ -29,14 +27,15 @@ internal static class ModConfig
         // register mod
         configMenu.Register(
             mod: Mod.ModManifest,
-            reset: () => LoadedConfig = new ConfigModel(),
-            save: () => Mod.ModHelper.WriteConfig(LoadedConfig)
+            reset: () => Mod.Config = new ConfigModel(),
+            save: () => Mod.ModHelper.WriteConfig(Mod.Config)
         );
     }
 }
 
 internal class ConfigModel
 {
+    public bool EnableScrollbarInMenuBoard { get; set; } = false;
     public int CustomerSpawnFrequency { get; set; } = 2;
     public int NpcCustomerSpawnFrequency { get; set; } = 2;
     public string YoutubeClientId { get; set; } = "Your Client Id here";

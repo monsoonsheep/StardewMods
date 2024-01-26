@@ -36,6 +36,8 @@ public class Mod : StardewModdingAPI.Mod
     internal static IModHelper ModHelper;
     internal new static IManifest ModManifest;
 
+    internal static ConfigModel Config;
+
     internal static Cafe Cafe
         => Game1.getFarm().get_Cafe().Value;
 
@@ -51,7 +53,7 @@ public class Mod : StardewModdingAPI.Mod
         ModManifest = base.ModManifest;
         Log.Monitor = Monitor;
         I18n.Init(helper.Translation);
-        ModConfig.LoadedConfig = helper.ReadConfig<ConfigModel>();
+        Config = helper.ReadConfig<ConfigModel>();
 
         // Harmony patches
         try

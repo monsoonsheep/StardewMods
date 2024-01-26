@@ -20,7 +20,7 @@ internal class MenuCategoryEntry : MenuEntry
         _xPositionForCentering = (int)((Bounds.Width - _lengthOfText) / 2f);
     }
 
-    internal override void Draw(SpriteBatch b, int slotX, int slotY, bool editMode)
+    internal override void Draw(SpriteBatch b, int slotX, int slotY)
     {
         // Category name text
         b.DrawString(

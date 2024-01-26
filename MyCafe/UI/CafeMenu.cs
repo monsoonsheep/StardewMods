@@ -189,19 +189,14 @@ public sealed class CafeMenu : IClickableMenu
         {
             if (tab.containsPoint(x, y))
             {
+                tab.tryHover(x, y);
                 _hoverText = tab.hoverText;
                 return;
             }
         }
 
-        if (menuBoardBounds.Contains(x, y))
-        {
-            _menuBoard.performHoverAction(x, y);
-        }
-        else if (sideBoxBounds.Contains(x, y))
-        {
-            _pages[_currentTab].performHoverAction(x, y);
-        }
+        _menuBoard.TryHover(x, y);
+        _pages[_currentTab].TryHover(x, y);
     }
 
     public override void receiveScrollWheelAction(int direction)
@@ -250,7 +245,7 @@ public sealed class CafeMenu : IClickableMenu
                 }
                 break;
             default:
-                //_pages[_currentTab].receiveGamePadButton(b);
+                _menuBoard.receiveGamePadButton(b);
                 break;
         }
     }
@@ -269,7 +264,11 @@ public sealed class CafeMenu : IClickableMenu
             Game1.exitActiveMenu();
             Game1.playSound("bigDeSelect");
         }
-        _menuBoard.receiveKeyPress(key);
+
+        if (_menuBoard.currentlySnappedComponent != null)
+            _menuBoard.receiveKeyPress(key);
+        else
+            _pages[_currentTab].receiveKeyPress(key);
     }
 
     public override ClickableComponent getCurrentlySnappedComponent()
@@ -279,9 +278,15 @@ public sealed class CafeMenu : IClickableMenu
     }
 
     public override void setCurrentlySnappedComponentTo(int id)
-    {   
-        Log.Warn("setcurrentlysnapped was called on cafemenu");
-        _menuBoard.setCurrentlySnappedComponentTo(id);
+    {
+        if (id == 1)
+        {
+            _pages[_currentTab].snapToDefaultClickableComponent();
+        }
+        else if (id == 3)
+        {
+            _menuBoard.snapToDefaultClickableComponent();
+        }
     }
 
     public override void draw(SpriteBatch b)
@@ -302,7 +307,6 @@ public sealed class CafeMenu : IClickableMenu
 
         b.End();
         b.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp);
-       
         
         //if (_hoveredItem != null)
         //    drawToolTip(b, _hoveredItem.getDescription(), _hoveredItem.DisplayName, _hoveredItem, _heldItem != null);
@@ -323,8 +327,22 @@ public sealed class CafeMenu : IClickableMenu
         if (shouldDrawCloseButton())
             base.draw(b);
 
-        if (!Game1.options.SnappyMenus && !Game1.options.hardwareCursor)
+        //if (!Game1.options.SnappyMenus && !Game1.options.hardwareCursor)
             drawMouse(b, ignore_transparency: true);
     }
 
+    internal void SnapOutOfMenuBoard()
+    {
+        _pages[_currentTab].snapToDefaultClickableComponent();
+    }
+
+    internal void SaveButtonPressed()
+    {
+
+    }
+
+    internal void LoadButtonPressed()
+    {
+
+    }
 }
