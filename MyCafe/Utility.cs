@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using MyCafe.Locations;
 using MyCafe.Customers;
 using StardewValley;
 using StardewValley.Objects;
@@ -8,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using xTile.ObjectModel;
 using xTile.Tiles;
+using MyCafe.Locations.Objects;
 
 namespace MyCafe;
 

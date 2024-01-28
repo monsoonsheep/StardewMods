@@ -7,7 +7,7 @@ using System.Linq;
 using System.Xml.Serialization;
 
 
-namespace MyCafe.Locations;
+namespace MyCafe.Locations.Objects;
 
 [XmlType("Mods_MonsoonSheep_MyCafe_FurnitureTable")]
 public class FurnitureTable : Table
@@ -30,7 +30,7 @@ public class FurnitureTable : Table
     protected override void InitNetFields()
     {
         base.InitNetFields();
-        base.NetFields.AddField(ActualTable);
+        NetFields.AddField(ActualTable);
     }
 
     internal override bool Reserve(List<Customer> customers)

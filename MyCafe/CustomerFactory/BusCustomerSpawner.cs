@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MyCafe.Locations;
 using MyCafe.Customers;
 using MyCafe.Customers.Data;
 using MyCafe.Interfaces;
@@ -12,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MyCafe.Locations.Objects;
 
 namespace MyCafe.CustomerFactory;
 

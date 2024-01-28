@@ -59,6 +59,14 @@
 		<Compile Include="LiveChatIntegration.cs" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <None Remove="**\*.ase" />
+	  <None Remove="**\*.aseprite" />
+	  <None Remove="assets\Buildings\Cafe\townInterior.png" />
+	  <None Remove="assets\Buildings\Cafe\townInterior_2.png" />
+	  <None Remove="assets\Buildings\Cafe\walls_and_floors.png" />
+	</ItemGroup>
+
 	<!-- Translations -->
 	<ItemGroup>
 		<AdditionalFiles Include="i18n/default.json" />
@@ -75,4 +83,6 @@
 		<PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.1.1" />
 		<PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.0.1" />
 	</ItemGroup>
+
+	<Import Project="..\Common.Patching\Common.Patching.projitems" Label="Shared" />
 </Project>

@@ -1,7 +1,6 @@
 ﻿using System;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
-using MyCafe.Locations;
 using Netcode;
 using StardewModdingAPI;
 using StardewValley;
@@ -23,6 +22,7 @@ using StardewValley.ItemTypeDefinitions;
 using StardewValley.Locations;
 using xTile.Layers;
 using xTile.Tiles;
+using MyCafe.Locations.Objects;
 
 namespace MyCafe;
 
@@ -123,8 +123,11 @@ public class Cafe : INetObject<NetFields>
                 if (!Tables.OfType<FurnitureTable>().Any(t => t.ActualTable.Value.Equals(furniture)))
                 {
                     FurnitureTable newTable = new FurnitureTable(furniture, location.Name);
-                    if (TryAddTable(newTable))
+                    if (newTable.Seats.Count > 0)
+                    {
+                        TryAddTable(newTable);
                         count++;
+                    }
                 }
             }
         }
@@ -154,25 +157,20 @@ public class Cafe : INetObject<NetFields>
             {
                 Rectangle newRectangle = new Rectangle(pair.Key.X * 64, pair.Key.Y * 64, pair.Key.Width * 64, pair.Key.Height * 64);
                 LocationTable locationTable = new LocationTable(newRectangle, Indoor.Name, pair.Value);
-                if (TryAddTable(locationTable))
-                    count++;
-                else
+                if (locationTable.Seats.Count > 0)
                 {
-                    Log.Error("Couldn't add location-based table");
+                    TryAddTable(locationTable);
+                    count++;
                 }
             }
             Log.Debug($"{count} new map-based tables found in cafe locations.");
         }
     }
 
-    internal bool TryAddTable(Table table)
+    internal void TryAddTable(Table table)
     {
-        if (table.Seats.Count == 0)
-            return false;
-
         table.Free();
         Tables.Add(table);
-        return true;
     }
 
     internal void RemoveTable(FurnitureTable table)
@@ -314,8 +312,8 @@ public class Cafe : INetObject<NetFields>
 
     internal void PopulateRoutesToCafe()
     {
-        MethodInfo method = AccessTools.Method(typeof(WarpPathfindingCache), "AddRoute", [typeof(List<string>), typeof(Gender?)]);
-        if (method == null)
+        MethodInfo addRouteMethod = AccessTools.Method(typeof(WarpPathfindingCache), "AddRoute", [typeof(List<string>), typeof(Gender?)]);
+        if (addRouteMethod == null)
         {
             Log.Error("Couldn't find method to add route");
             return;
@@ -345,34 +343,44 @@ public class Cafe : INetObject<NetFields>
             var reverseRoute = new List<string>(route);
             reverseRoute.Reverse();
 
-            method.Invoke(null, [route, (object)null]);
-            method.Invoke(null, [reverseRoute, (object)null]);
+            addRouteMethod.Invoke(null, [route, (object)null]);
+            addRouteMethod.Invoke(null, [reverseRoute, (object)null]);
 
             if (Indoor != null)
             {
                 route.Add(Indoor.Name);
                 reverseRoute.Insert(0, Indoor.Name);
 
-                method.Invoke(null, [route, (object)null]);
-                method.Invoke(null, [reverseRoute, (object)null]);
+                addRouteMethod.Invoke(null, [route, (object)null]);
+                addRouteMethod.Invoke(null, [reverseRoute, (object)null]);
             }
         }
     }
 
-    public bool AddToMenu(Item itemToAdd, string category)
+    public bool AddToMenu(Item itemToAdd, string category, int index = 0)
     {
         if (!MenuItems.ContainsKey(category) || MenuItems.Keys.Any(cat => MenuItems[cat].Any(x => x.ItemId == itemToAdd.ItemId)))
             return false;
-        
-        MenuItems[category].Add(itemToAdd);
+
+        if (index >= MenuItems[category].Count)
+            MenuItems[category].Add(itemToAdd);
+        else
+            MenuItems[category].Insert(index, itemToAdd);
+
         return true;
     }
 
-    public void RemoveFromMenu(string category, string itemId)
+    public void RemoveFromMenu(Item item, string category = null)
     {
-        MenuItems[category] = MenuItems[category].Where(x => x.ItemId != itemId).ToList();
-        if (MenuItems[category].Count == 0)
-            MenuItems.Remove(category);
+        if (string.IsNullOrEmpty(category))
+            category = MenuItems.Keys.FirstOrDefault(key => MenuItems[key].Contains(item));
+        if (string.IsNullOrEmpty(category))
+        {
+            Log.Error("Couldn't find the item to remove");
+            return;
+        }
+
+        MenuItems[category].Remove(item);
     }
 }
 

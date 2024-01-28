@@ -4,7 +4,6 @@ global using SObject = StardewValley.Object;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MyCafe.Locations;
 using MyCafe.Customers.Data;
 using MyCafe.Interfaces;
 using MyCafe.Patching;
@@ -22,28 +21,34 @@ using xTile;
 using System.IO;
 using MyCafe.UI;
 using System.Runtime.CompilerServices;
+using MonsoonSheep.Stardew.Common.Patching;
 using StardewValley.Locations;
-
-
+using MyCafe.Locations.Objects;
 
 namespace MyCafe;
 
 public class Mod : StardewModdingAPI.Mod
 {
-    internal static ISpaceCoreApi SpaceCore;
-
     internal new static IMonitor Monitor;
     internal static IModHelper ModHelper;
     internal new static IManifest ModManifest;
 
+    internal static ISpaceCoreApi SpaceCore;
+        
     internal static ConfigModel Config;
-
-    internal static Cafe Cafe
-        => Game1.getFarm().get_Cafe().Value;
-
     internal static Texture2D Sprites;
-
     internal static Dictionary<string, BusCustomerData> CustomersData;
+
+    private static NetRef<Cafe> _cafe;
+    internal static Cafe Cafe
+    {
+        get
+        {
+            _cafe ??= Game1.getFarm().get_Cafe();
+            return _cafe.Value;
+        }
+        set => _cafe = new NetRef<Cafe>(value);
+    }
 
     /// <inheritdoc/>
     public override void Entry(IModHelper helper)
@@ -56,32 +61,32 @@ public class Mod : StardewModdingAPI.Mod
         Config = helper.ReadConfig<ConfigModel>();
 
         // Harmony patches
-        try
+        if (HarmonyPatcher.TryApply(this,
+                new LocationPatcher(),
+                new CharacterPatcher(),
+                new FurniturePatcher()
+            ) is false)
         {
-            var harmony = new Harmony(ModManifest.UniqueID);
-            new List<PatchCollection>
-            {
-                new CharacterPatches(), new GameLocationPatches()
-            }.ForEach(l => l.ApplyAll(harmony));
-        }
-        catch (Exception e)
-        {
-            Log.Debug($"Couldn't patch methods - {e}", LogLevel.Error);
             return;
-        }
-        helper.Events.GameLoop.GameLaunched += OnGameLaunched;
+        };
+       
+        IModEvents events = helper.Events;
 
-        helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
-        helper.Events.GameLoop.DayStarted += OnDayStarted;
-        helper.Events.GameLoop.Saving += OnSaving;
-        helper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;
-        helper.Events.Multiplayer.ModMessageReceived += OnModMessageReceived;
-        helper.Events.Content.AssetRequested += OnAssetRequested;
-        helper.Events.Content.AssetReady += OnAssetReady;
-        helper.Events.Display.RenderedWorld += OnRenderedWorld;
-        helper.Events.Input.ButtonPressed += Debug.ButtonPress;
+        events.GameLoop.GameLaunched += OnGameLaunched;
+        events.GameLoop.SaveLoaded += OnSaveLoaded;
+        events.GameLoop.DayStarted += OnDayStarted;
+        events.GameLoop.Saving += OnSaving;
+        events.Multiplayer.ModMessageReceived += OnModMessageReceived;
+        events.Content.AssetRequested += OnAssetRequested;
+        events.Content.AssetReady += OnAssetReady;
+        events.Display.RenderedWorld += OnRenderedWorld;
+        events.Input.ButtonPressed += Debug.ButtonPress;
 
-        Sprites = helper.ModContent.Load<Texture2D>("assets/sprites.png");
+        events.World.FurnitureListChanged += OnFurnitureListChanged;
+        events.GameLoop.TimeChanged += OnTimeChanged;
+        events.GameLoop.DayEnding += OnDayEnding;
+
+        Sprites = helper.ModContent.Load<Texture2D>(Path.Combine("assets", "sprites.png"));
     }
 
 
@@ -93,130 +98,107 @@ public class Mod : StardewModdingAPI.Mod
         CafeState.Register();
 
         ModConfig.InitializeGmcm();
-
-        GameLocation.RegisterTileAction(ModKeys.SIGNBOARD_BUILDING_CLICK_EVENT_KEY, delegate
-        {
-            Game1.activeClickableMenu = new CafeMenu();
-            return true;
-        });
+        GameLocation.RegisterTileAction(ModKeys.SIGNBOARD_BUILDING_CLICK_EVENT_KEY, CafeMenu.Action_OpenCafeMenu);
     }
 
     private void OnSaveLoaded(object sender, SaveLoadedEventArgs e)
     {
-        if (Context.IsMainPlayer)
-        {
-            LoadContentPackBusCustomers();
-            ModHelper.Events.World.FurnitureListChanged += OnFurnitureListChanged;
-            ModHelper.Events.GameLoop.TimeChanged += OnTimeChanged;
-            ModHelper.Events.GameLoop.DayEnding += OnDayEnding;
+        if (!Context.IsMainPlayer) return;
 
-            if (Game1.player.modData.TryGetValue(ModKeys.MODDATA_OPENCLOSETIMES, out var openclose))
-            {
-                var split = openclose.Split('|');
-                Cafe.OpeningTime.Set(int.Parse(split[0]));
-                Cafe.ClosingTime.Set(int.Parse(split[1]));
-            }
-            if (Game1.player.modData.TryGetValue(ModKeys.MODDATA_MENUITEMSLIST, out var menuitems))
-            {
-                Cafe.MenuItems.Clear();
-                var split = menuitems.Split('|');
-                //foreach (var item in split.Select(id => ItemRegistry.Create<Item>(id)))
-                //{
-                //    Cafe.AddToMenu(item);
-                //}
-            }
-            Cafe.Initialize(ModHelper);
+        LoadContentPacks();
+        
+        if (Game1.player.modData.TryGetValue(ModKeys.MODDATA_OPENCLOSETIMES, out var openclose))
+        {
+            var split = openclose.Split('|');
+            Cafe.OpeningTime.Set(int.Parse(split[0]));
+            Cafe.ClosingTime.Set(int.Parse(split[1]));
         }
+        if (Game1.player.modData.TryGetValue(ModKeys.MODDATA_MENUITEMSLIST, out var menuitems))
+        {
+            Cafe.MenuItems.Clear();
+            var split = menuitems.Split('|');
+            //foreach (var item in split.Select(id => ItemRegistry.Create<Item>(id)))
+            //{
+            //    Cafe.AddToMenu(item);
+            //}
+        }
+        Cafe.Initialize(ModHelper);
     }
 
     internal void OnDayStarted(object sender, DayStartedEventArgs e)
     {
-        if (Context.IsMainPlayer)
-        {
-            if (Cafe.UpdateCafeLocations() is true)
-            {
-                Cafe.Enabled = true;
-                Cafe.PopulateTables();
-                Cafe.PopulateRoutesToCafe();
-            }
-            else if (Cafe.Enabled)
-                Cafe.Enabled = false;
+        if (!Context.IsMainPlayer) return;
 
-            if (Cafe.Enabled)
-                Cafe.DayUpdate();
+        if (Cafe.UpdateCafeLocations() is true)
+        {
+            Cafe.Enabled = true;
+            Cafe.PopulateTables();
+            Cafe.PopulateRoutesToCafe();
         }
-        
+        else if (Cafe.Enabled)
+            Cafe.Enabled = false;
+
+        if (Cafe.Enabled)
+            Cafe.DayUpdate();
+
     }
 
     internal void OnSaving(object sender, SavingEventArgs e)
     {
-        if (Context.IsMainPlayer)
-        {
-            Game1.player.modData[ModKeys.MODDATA_OPENCLOSETIMES] = $"{Cafe.OpeningTime.Value}|{Cafe.ClosingTime.Value}";
-            //Game1.player.modData[ModKeys.MODDATA_MENUITEMSLIST] = string.Join('|', Cafe.MenuItems.Where(x => x != null).Select(x => x.ItemId));
-        }
+        if (!Context.IsMainPlayer) return;
+
+        Game1.player.modData[ModKeys.MODDATA_OPENCLOSETIMES] = $"{Cafe.OpeningTime.Value}|{Cafe.ClosingTime.Value}";
+        Game1.player.modData[ModKeys.MODDATA_MENUITEMSLIST] = "";
     }
 
     internal void OnDayEnding(object sender, DayEndingEventArgs e)
     {
-        StardewValley.Utility.ForEachLocation(delegate(GameLocation loc)
+        if (!Context.IsMainPlayer) return;
+
+        SUtility.ForEachLocation(delegate(GameLocation loc)
         {
             for (int i = loc.characters.Count - 1; i >= 0; i--)
-            {
                 if (loc.characters[i] is Customer)
-                {
                     loc.characters.RemoveAt(i);
-                }
-            }
             return true;
         });
     }
 
-    internal void OnReturnedToTitle(object sender, ReturnedToTitleEventArgs e)
-    {
-        ModHelper.Events.World.FurnitureListChanged -= OnFurnitureListChanged;
-        ModHelper.Events.GameLoop.TimeChanged -= OnTimeChanged;
-        ModHelper.Events.GameLoop.DayEnding -= OnDayEnding;
-    }
-
     internal static void OnAssetRequested(object sender, AssetRequestedEventArgs e)
     {
-        // Schedules
+        // NPC Schedules
         if (e.Name.IsDirectlyUnderPath(ModKeys.ASSETS_NPCSCHEDULE_PREFIX))
         {
             string npcname = e.Name.Name.Split('/').Last();
-            var file = ModHelper.Data.ReadJsonFile<VillagerCustomerData>("assets/Schedules/" + npcname + ".json");
+            var file = ModHelper.Data.ReadJsonFile<VillagerCustomerData>(Path.Combine("assets", "Schedules", npcname + ".json"));
             if (file != null)
-            {
                 e.LoadFrom(() => file, AssetLoadPriority.Low);
-            }
         }
 
-        // Buildings
+        // Buildings data (Cafe and signboard)
         else if (e.Name.IsEquivalentTo("Data/Buildings"))
         {
             e.Edit(asset =>
             {
                 var data = asset.AsDictionary<string, BuildingData>();
-                data.Data[ModKeys.CAFE_BUILDING_BUILDING_ID] = ModHelper.ModContent.Load<BuildingData>("assets/Cafe/cafebuilding.json");
-                data.Data[ModKeys.CAFE_SIGNBOARD_BUILDING_ID] = ModHelper.ModContent.Load<BuildingData>("assets/Cafe/signboard.json");
+                data.Data[ModKeys.CAFE_BUILDING_BUILDING_ID] = ModHelper.ModContent.Load<BuildingData>(Path.Combine("assets", "Buildings", "Cafe", "cafebuilding.json"));
+                data.Data[ModKeys.CAFE_SIGNBOARD_BUILDING_ID] = ModHelper.ModContent.Load<BuildingData>(Path.Combine("assets", "Buildings", "Signboard", "signboard.json"));
             }, AssetEditPriority.Early);
         }
-
-        // Cafe
+        // Cafe building texture
         else if (e.Name.IsEquivalentTo(ModKeys.CAFE_BUILDING_TEXTURE_NAME))
         {
-            e.LoadFromModFile<Texture2D>("assets/Cafe/cafebuilding.png", AssetLoadPriority.Medium);
+            e.LoadFromModFile<Texture2D>(Path.Combine("assets", "Buildings", "Cafe", "cafebuilding.png"), AssetLoadPriority.Low);
         }
+        // Cafe map tmx
         else if (e.Name.IsEquivalentTo($"Maps/{ModKeys.CAFE_MAP_NAME}"))
         {
-            e.LoadFromModFile<Map>("assets/Cafe/cafemap.tmx", AssetLoadPriority.Medium);
+            e.LoadFromModFile<Map>(Path.Combine("assets", "Buildings", "Cafe", "cafemap.tmx"), AssetLoadPriority.Low);
         }
-
-        // Signboard
+        // Signboard building texture
         else if (e.Name.IsEquivalentTo(ModKeys.CAFE_SIGNBOARD_TEXTURE_NAME))
         {
-            e.LoadFromModFile<Texture2D>("assets/Cafe/signboard.png", AssetLoadPriority.Medium);
+            e.LoadFromModFile<Texture2D>("assets/Cafe/signboard.png", AssetLoadPriority.Low);
         }
     }
     
@@ -225,13 +207,14 @@ public class Mod : StardewModdingAPI.Mod
         if (e.Name.IsDirectlyUnderPath(ModKeys.ASSETS_NPCSCHEDULE_PREFIX))
         {
             string npcname = e.Name.Name.Split('/').Last();
-            //Mod.Customers.VillagerCustomers.VillagerData[npcname] = Game1.content.Load<VillagerCustomerData>(ModKeys.ASSETS_NPCSCHEDULE_PREFIX + npcname);
         }
     }
 
 
     internal void OnTimeChanged(object sender, TimeChangedEventArgs e)
     {
+        if (!Context.IsMainPlayer) return;
+
         int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, Cafe.ClosingTime.Value);
         int minutesTillOpens = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, Cafe.OpeningTime.Value);
         int minutesSinceLastVisitors = SUtility.CalculateMinutesBetweenTimes(Cafe.LastTimeCustomersArrived, Game1.timeOfDay);
@@ -298,6 +281,8 @@ public class Mod : StardewModdingAPI.Mod
 
     internal void OnFurnitureListChanged(object sender, FurnitureListChangedEventArgs e)
     {
+        if (!Context.IsMainPlayer) return;
+
         if (e.Location.Equals(Cafe.Indoor) || e.Location.Equals(Cafe.Outdoor))
         {
             foreach (var f in e.Removed)
@@ -345,22 +330,20 @@ public class Mod : StardewModdingAPI.Mod
                         continue;
                     }
 
-                    FurnitureTable table;
+                    FurnitureTable table = Utility.IsTableTracked(facingFurniture, e.Location, out FurnitureTable existing)
+                        ? existing
+                        : new FurnitureTable(facingFurniture, e.Location.Name);
 
-                    if (Utility.IsTableTracked(facingFurniture, e.Location, out FurnitureTable existing))
-                        table = existing;
-                    else
-                        table = new FurnitureTable(facingFurniture, e.Location.Name);
-
-                    if (Cafe.TryAddTable(table))
-                        table.AddChair(f);
+                    table.AddChair(f);
+                    Cafe.TryAddTable(table);
                 }
                 else if (Utility.IsTable(f))
                 {
                     if (!Utility.IsTableTracked(f, e.Location, out _))
                     {
                         FurnitureTable table = new FurnitureTable(f, e.Location.Name);
-                        Cafe.TryAddTable(table);
+                        if (table.Seats.Count > 0)
+                            Cafe.TryAddTable(table);
                     }
 
                 }
@@ -378,9 +361,7 @@ public class Mod : StardewModdingAPI.Mod
             try
             {
                 var (key, emote) = e.ReadAs<KeyValuePair<string, int>>();
-                NPC npc = Game1.getCharacterFromName(key);
-
-                npc?.doEmote(emote);
+                Game1.getCharacterFromName(key)?.doEmote(emote);
             }
             catch
             {
@@ -389,22 +370,7 @@ public class Mod : StardewModdingAPI.Mod
         }
     }
 
-    internal static bool OpenCafeMenuTileAction(GameLocation location, string[] args, Farmer player, Point tile)
-    {
-        if (!Context.IsMainPlayer)
-            return false;
-
-        if (Game1.activeClickableMenu == null && Context.IsPlayerFree)
-        {
-            Log.Debug("Opened cafe menu menu!");
-            // Game1.activeClickableMenu = new CafeMenu();
-        }
-
-        return true;
-    }
-
-    
-    internal static bool LoadContentPackBusCustomers()
+    internal void LoadContentPacks()
     {
         CustomersData = new Dictionary<string, BusCustomerData>();
 
@@ -440,8 +406,6 @@ public class Mod : StardewModdingAPI.Mod
                 };
             }
         }
-
-        return true;
     }
 }
 
@@ -452,7 +416,7 @@ public static class CafeState
         public NetRef<Cafe> Value = new(new Cafe());
     }
 
-    internal static ConditionalWeakTable<Farm, Holder> values = new();
+    internal static ConditionalWeakTable<Farm, Holder> Values = new();
 
     internal static void Register()
     {
@@ -466,13 +430,14 @@ public static class CafeState
 
     public static NetRef<Cafe> get_Cafe(this Farm farm)
     {
-        var holder = values.GetOrCreateValue(farm);
+        var holder = Values.GetOrCreateValue(farm);
         return holder!.Value;
     }
 
     public static void set_Cafe(this Farm farm, NetRef<Cafe> value)
     {
-        var holder = values.GetOrCreateValue(farm);
+        Log.Warn("Setting Cafe field for Farm. Should this be happening?");
+        var holder = Values.GetOrCreateValue(farm);
         holder!.Value = value;
     }
 }

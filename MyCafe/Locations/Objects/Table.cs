@@ -7,7 +7,7 @@ using System.Linq;
 using System.Xml.Serialization;
 
 
-namespace MyCafe.Locations;
+namespace MyCafe.Locations.Objects;
 
 [XmlType("Mods_MonsoonSheep_MyCafe_Table")]
 [XmlInclude(typeof(FurnitureTable))]

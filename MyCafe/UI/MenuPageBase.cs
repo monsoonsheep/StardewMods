@@ -16,10 +16,12 @@ public abstract class MenuPageBase : IClickableMenu
     internal string HoverTitle;
     internal string HoverText;
 
-    protected bool snappedOut;
+    internal bool InFocus;
     protected int defaultComponent;
 
-    internal MenuPageBase(string name, Rectangle bounds, IClickableMenu parentMenu) : base(bounds.X, bounds.Y, bounds.Width, bounds.Height)
+    protected new CafeMenu _parentMenu;
+
+    internal MenuPageBase(string name, Rectangle bounds, CafeMenu parentMenu) : base(bounds.X, bounds.Y, bounds.Width, bounds.Height)
     {
         Name = name;
         _parentMenu = parentMenu;
@@ -35,7 +37,7 @@ public abstract class MenuPageBase : IClickableMenu
 
     public override void snapCursorToCurrentSnappedComponent()
     {
-        if (!snappedOut)
+        if (InFocus)
             base.snapCursorToCurrentSnappedComponent();
         else
             currentlySnappedComponent = null;
@@ -43,8 +45,7 @@ public abstract class MenuPageBase : IClickableMenu
 
     public override void snapToDefaultClickableComponent()
     {
-        snappedOut = false;
-
+        InFocus = true;
         setCurrentlySnappedComponentTo(defaultComponent);
     }
 
@@ -54,9 +55,9 @@ public abstract class MenuPageBase : IClickableMenu
         snapCursorToCurrentSnappedComponent();
     }
 
-    protected void SnapOutOfMenu(int direction)
+    protected virtual void SnapOut(int direction = 3)
     {
-        snappedOut = true;
-        _parentMenu.setCurrentlySnappedComponentTo(direction);
+        InFocus = false;
+        _parentMenu.SnapOutInDirection(direction);
     }
 }

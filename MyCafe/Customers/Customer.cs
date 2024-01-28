@@ -1,12 +1,12 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MyCafe.Locations;
 using Netcode;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Pathfinding;
 using System.Linq;
+using MyCafe.Locations.Objects;
 
 namespace MyCafe.Customers;
 

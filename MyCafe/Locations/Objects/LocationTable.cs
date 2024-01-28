@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 
 
-namespace MyCafe.Locations;
+namespace MyCafe.Locations.Objects;
 
 [XmlType("Mods_MonsoonSheep_MyCafe_LocationTable")]
 public class LocationTable : Table
@@ -20,7 +20,7 @@ public class LocationTable : Table
         foreach (var seat in seatPositions)
         {
             var locationSeat = new LocationSeat(seat.ToPoint(), this);
-            base.Seats.Add(locationSeat);
+            Seats.Add(locationSeat);
         }
     }
 }

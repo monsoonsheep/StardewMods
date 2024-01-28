@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
+using StardewValley.Minigames;
 // ReSharper disable InconsistentNaming
 
 namespace MyCafe.UI;
@@ -27,7 +28,6 @@ internal class MenuBoard : MenuPageBase
     private readonly List<MenuEntry> _entries = [];
 
     public readonly List<ClickableComponent> _slots = [];
-    public readonly ClickableTextureComponent _editButton;
 
     // Scrolling
     public readonly ClickableTextureComponent _upArrow;
@@ -42,21 +42,32 @@ internal class MenuBoard : MenuPageBase
         Mod.Sprites = Mod.ModHelper.ModContent.Load<Texture2D>("assets/sprites.png");
         target_board = Bounds;
         
-        target_Logo = new Rectangle(target_board.X + (int) ((source_Board.Width - source_Logo.Width) / 2f), target_board.Y + 40, source_Logo.Width, source_Logo.Height);
+        target_Logo = new Rectangle(
+            target_board.X + (int)((source_Board.Width - source_Logo.Width) / 2f),
+            target_board.Y + 40,
+            source_Logo.Width,
+            source_Logo.Height);
 
-        _upArrow = new ClickableTextureComponent(new Rectangle(target_board.Right - 30, target_board.Y + 101, 44, 48), Game1.mouseCursors, new Rectangle(421, 459, 11, 12), 4f);
-        _downArrow = new ClickableTextureComponent(new Rectangle(_upArrow.bounds.X, target_board.Y + target_board.Height - 48 - 2, 44, 48), Game1.mouseCursors, new Rectangle(421, 472, 11, 12), 4f);
-        _scrollBar = new ClickableTextureComponent(new Rectangle(_upArrow.bounds.X + 12, _upArrow.bounds.Y + _upArrow.bounds.Height + 4, 24, 40), Game1.mouseCursors, new Rectangle(435, 463, 6, 10), 4f);
-        _scrollBarRunner = new Rectangle(_scrollBar.bounds.X, _upArrow.bounds.Bottom + 4, _scrollBar.bounds.Width, (_downArrow.bounds.Top - _upArrow.bounds.Bottom) - 4);
-
-        _editButton = new ClickableTextureComponent(new Rectangle(
-                target_board.X + source_Board.Width - source_EditButton.Width * 2 - 64,
-                target_board.Y + 64,
-                source_EditButton.Width, source_EditButton.Height
-            ),
-            Mod.Sprites,
-            source_EditButton,
-            2f);
+        _upArrow = new ClickableTextureComponent(
+            new Rectangle(target_board.Right - 30, target_board.Y + 101, 44, 48), 
+            Game1.mouseCursors, 
+            new Rectangle(421, 459, 11, 12), 
+            4f);
+        _downArrow = new ClickableTextureComponent(
+            new Rectangle(_upArrow.bounds.X, target_board.Y + target_board.Height - 48 - 2, 44, 48), 
+            Game1.mouseCursors, 
+            new Rectangle(421, 472, 11, 12),
+            4f);
+        _scrollBar = new ClickableTextureComponent(
+            new Rectangle(_upArrow.bounds.X + 12, _upArrow.bounds.Y + _upArrow.bounds.Height + 4, 24, 40), 
+            Game1.mouseCursors, 
+            new Rectangle(435, 463, 6, 10), 
+            4f);
+        _scrollBarRunner = new Rectangle(
+            _scrollBar.bounds.X, 
+            _upArrow.bounds.Bottom + 4, 
+            _scrollBar.bounds.Width, 
+            (_downArrow.bounds.Top - _upArrow.bounds.Bottom) - 4);
 
         for (int i = 0; i < slotCount; i++)
         {
@@ -75,6 +86,9 @@ internal class MenuBoard : MenuPageBase
                 leftNeighborID = 7777
             });
         }
+        
+        MenuEntry.Bounds = new Rectangle(0, 0, _slots.First().bounds.Width, _slots.First().bounds.Height);
+
         PopulateMenuEntries();
 
         Bounds.Width += _upArrow.bounds.Width;
@@ -85,11 +99,6 @@ internal class MenuBoard : MenuPageBase
     {
         _categories.Clear();
         _entries.Clear();
-
-        int slotHeight = _slots.First().bounds.Height;
-        int slotWidth = _slots.First().bounds.Width;
-
-        MenuEntry.Bounds = new Rectangle(0, 0, slotWidth, slotHeight);
 
         foreach (var pair in Mod.Cafe.MenuItems)
         {
@@ -109,26 +118,6 @@ internal class MenuBoard : MenuPageBase
 
     public override void receiveLeftClick(int x, int y, bool playSound = true)
     {
-        if (_editMode)
-        {
-            //for (int i = 0; i < _slots.Count; i++)
-            //{
-            //    if (_slots[i].bounds.Contains(x, y)
-            //        && _currentItemIndex + i < _entries.Count
-            //        && _entries[_currentItemIndex + i] is MenuItemEntry entry
-            //        && entry.target_removeButton.Contains(x - _slots[i].bounds.X, y - _slots[i].bounds.Y))
-            //    {
-            //        RemoveItem(_currentItemIndex + i);
-            //        return;
-            //    }
-            //}
-        }
-
-        if (_editButton.containsPoint(x, y))
-        {
-            _editMode = !_editMode;
-        }
-
         if (Mod.Config.EnableScrollbarInMenuBoard)
         {
             if (_entries.Count > slotCount)
@@ -152,6 +141,29 @@ internal class MenuBoard : MenuPageBase
                     _scrolling = true;
                     leftClickHeld(x, y);
                     releaseLeftClick(x, y);
+                }
+            }
+        }
+
+        for (int i = 0; i < _slots.Count; i++)
+        {
+            if (_slots[i].containsPoint(x, y))
+            {
+                // if not held, remove or edit
+                // if held, add
+
+                int index = i + 1;
+                if (_parentMenu.HeldItem != null)
+                {
+                    while (i >= 0 && _entries[i] is not MenuCategoryEntry)
+                    {
+                        i--;
+                    }
+
+                    if (_entries[i] is MenuCategoryEntry entry)
+                    {
+                        AddItem(_parentMenu.HeldItem as SObject, entry.Name, index - i);
+                    }
                 }
             }
         }
@@ -207,15 +219,12 @@ internal class MenuBoard : MenuPageBase
         // Show tooltip?
     }
 
-   
     protected override void customSnapBehavior(int direction, int oldRegion, int oldID)
     {
         if (direction is 1 or 3)
         {
-            snappedOut = true;
-            _parentMenu.setCurrentlySnappedComponentTo(5);
+            SnapOut(1);
             return;
-            // parent menu take control to side box
         }
 
         if (direction == 2)
@@ -284,15 +293,30 @@ internal class MenuBoard : MenuPageBase
         {
             _upArrow.draw(b);
             _downArrow.draw(b);
-            // Scrollbar
             drawTextureBox(b, Game1.mouseCursors, new Rectangle(435, 463, 6, 10), _scrollBar.bounds.X, _scrollBar.bounds.Y, _scrollBar.bounds.Width, _scrollBar.bounds.Height, Color.White, 4f, false, 1f);
-            // Scrollbar runner
             drawTextureBox(b, Game1.mouseCursors, new Rectangle(403, 383, 6, 6), _scrollBarRunner.X, _scrollBarRunner.Y, _scrollBarRunner.Width, _scrollBarRunner.Height, Color.White, 4f, drawShadow: false);
         }
 
-        if (currentlySnappedComponent != null)
+        if (_parentMenu.HeldItem != null)
         {
-            drawTextureBox(b, Game1.mouseCursors, new Rectangle(403, 383, 6, 6), currentlySnappedComponent.bounds.X, currentlySnappedComponent.bounds.Y - 8, currentlySnappedComponent.bounds.Width, currentlySnappedComponent.bounds.Height, Color.White, drawShadow: false);
+            for (int i = 0; i < _slots.Count; i++)
+            {
+                if (_slots[i].bounds.Contains(Game1.getMouseX(true), Game1.getMouseY(true)) && _currentItemIndex + i < _entries.Count)
+                {
+                    if (_entries[_currentItemIndex + i] is MenuCategoryEntry)
+                    {
+                        drawTextureBox(b, Game1.mouseCursors, new Rectangle(403, 383, 6, 6), 
+                            _slots[i].bounds.X, _slots[i].bounds.Y - 8, _slots[i].bounds.Width, _slots[i].bounds.Height, 
+                            Color.White, drawShadow: false, draw_layer: 0.9f);
+                    }
+                    else
+                    {
+                        drawTextureBox(b, Game1.mouseCursors, new Rectangle(403, 383, 6, 6), 
+                            _slots[i].bounds.X, _slots[i].bounds.Y - 12, _slots[i].bounds.Width, 4, 
+                            Color.OrangeRed, drawShadow: false, draw_layer: 0.9f);
+                    }
+                }
+            }
         }
     }
 
@@ -320,29 +344,16 @@ internal class MenuBoard : MenuPageBase
         }
     }
 
-    private void ToggleEditMode()
+    private void AddItem(SObject item, string category, int index)
     {
-        _editMode = !_editMode;
-        _editButton.sourceRect = _editMode ? source_EditButtonCancel : source_EditButton;
+        Mod.Cafe.AddToMenu(item, category, index);
+        PopulateMenuEntries();
     }
 
-    private void RemoveItem(int index)
+    private void RemoveItem(int entryIndex)
     {
-        Item item = (_entries[index] as MenuItemEntry)!.Item;
-
-        string category = _categories.First();
-        int i = index;
-        while (i >= 0)
-        {
-            if (_entries[i] is MenuCategoryEntry entry)
-            {
-                category = entry.Name;
-                break;
-            }
-            i--;
-        }
-
-        Mod.Cafe.RemoveFromMenu(category, item.ItemId);
+        Item item = (_entries[entryIndex] as MenuItemEntry)!.Item;
+        Mod.Cafe.RemoveFromMenu(item);
         PopulateMenuEntries();
     }
 }

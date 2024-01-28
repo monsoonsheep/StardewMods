@@ -2,7 +2,7 @@ using Netcode;
 using StardewValley.Objects;
 using System.Xml.Serialization;
 
-namespace MyCafe.Locations;
+namespace MyCafe.Locations.Objects;
 
 [XmlType("Mods_MonsoonSheep_MyCafe_FurnitureSeat")]
 public sealed class FurnitureSeat : Seat
@@ -17,13 +17,13 @@ public sealed class FurnitureSeat : Seat
     public FurnitureSeat(Furniture actualChair, Table table) : base(table)
     {
         ActualChair.Set(actualChair);
-        base.Position = ActualChair.Value.TileLocation.ToPoint();
+        Position = ActualChair.Value.TileLocation.ToPoint();
     }
 
     protected override void InitNetFields()
     {
         base.InitNetFields();
-        base.NetFields.AddField(ActualChair);
+        NetFields.AddField(ActualChair);
     }
 
     internal override int SittingDirection

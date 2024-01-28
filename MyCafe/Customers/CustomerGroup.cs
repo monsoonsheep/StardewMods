@@ -1,10 +1,10 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
-using MyCafe.Locations;
 using StardewValley;
 using StardewValley.Pathfinding;
 using System.Collections.Generic;
 using System.Linq;
+using MyCafe.Locations.Objects;
 
 namespace MyCafe.Customers;
 

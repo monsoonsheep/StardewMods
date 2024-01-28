@@ -1,0 +1,92 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<!-- Metadata -->
+		<Authors>MonsoonSheep</Authors>
+		<RootNamespace>MyCafe</RootNamespace> 
+		<Version>0.1.2</Version>
+
+		<!-- Build Settings -->
+		<Configurations>Debug;Release</Configurations>
+		<TargetFramework>net6.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<EnableHarmony>true</EnableHarmony>
+		<IgnoreModFilePatterns>
+			  \.aseprite$,
+			  \.ase$,
+			  ^townInterior(_2)?\.png$,
+			  ^walls_and_floors\.png$
+		</IgnoreModFilePatterns>
+		<EnableChatIntegration>disabled</EnableChatIntegration>
+
+		<!-- SMAPI Paths -->
+		<ModFolderName>My Cafe</ModFolderName>
+		<GamePath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley</GamePath>
+		<GameModsPath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley\Mods\My Mods</GameModsPath>
+	</PropertyGroup>
+	
+	<!-- Enable/disable Live Chat Integration with StreamingClientLibrary -->
+	<ItemGroup>
+		<Compile Remove="LiveChatIntegration.cs" />
+	</ItemGroup>
+	<Choose>
+		<When Condition="'$(EnableChatIntegration)' == 'youtube'">  
+			<PropertyGroup>
+				<DefineConstants>YOUTUBE</DefineConstants>
+			</PropertyGroup>
+			<ItemGroup>
+				<PackageReference Include="StreamingClientLibrary.YouTube" Version="1.0.0.21" />
+			</ItemGroup>
+		</When>  
+		<When Condition="'$(EnableChatIntegration)' == 'twitch'">  
+			<PropertyGroup>
+				<DefineConstants>TWITCH</DefineConstants>
+			</PropertyGroup>
+			<ItemGroup>
+				<PackageReference Include="StreamingClientLibrary.Twitch" Version="1.0.0.77" />
+			</ItemGroup>
+		</When> 
+		<Otherwise>  
+			<ItemGroup>
+				<Compile Remove="LiveChatIntegration.cs" />
+			</ItemGroup>
+		</Otherwise>  
+	</Choose>
+	<PropertyGroup Condition="$(EnableChatIntegration) != 'disabled'">
+		<BundleExtraAssemblies>ThirdParty</BundleExtraAssemblies>
+	</PropertyGroup>
+	<ItemGroup Condition="$(EnableChatIntegration) != 'disabled'">
+		<Compile Include="LiveChatIntegration.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Remove="**\*.ase" />
+	  <None Remove="**\*.aseprite" />
+	  <None Remove="assets\Cafe\townInterior.png" />
+	  <None Remove="assets\Cafe\townInterior_2.png" />
+	  <None Remove="assets\Cafe\walls_and_floors.png" />
+	</ItemGroup>
+
+	<!-- Translations -->
+	<ItemGroup>
+		<AdditionalFiles Include="i18n/default.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Using Include="Microsoft.Xna.Framework.Vector2" Alias="Vector2" />
+		<Using Include="Microsoft.Xna.Framework.Rectangle" Alias="Rectangle" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Mono.Cecil" Version="0.11.5.0" />
+		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
+		<PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.1.1" />
+		<PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.0.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="assets\NewFolder\" />
+	</ItemGroup>
+
+	<Import Project="..\Common.Patching\Common.Patching.projitems" Label="Shared" />
+</Project>

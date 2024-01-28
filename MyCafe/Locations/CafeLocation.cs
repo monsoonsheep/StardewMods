@@ -10,13 +10,14 @@ using StardewValley;
 using StardewValley.Objects;
 using xTile.Layers;
 using xTile.Tiles;
+
 // ReSharper disable once CheckNamespace
 
 namespace StardewValley.Locations;
 [XmlType("Mods_MonsoonSheep_MyCafe_CafeLocation")]
 public class CafeLocation : GameLocation
 {
-    private readonly Dictionary<Rectangle, List<Vector2>> _mapTablesInCafeLocation = new();
+    private readonly Dictionary<Rectangle, List<Vector2>> _mapTables = new();
 
     private const string TABLE_MAP_PROPERTY = "MonsoonSheep.MyCafe_Table";
 
@@ -29,15 +30,15 @@ public class CafeLocation : GameLocation
 
     public Dictionary<Rectangle, List<Vector2>> GetMapTables()
     {
-        return _mapTablesInCafeLocation;
+        return _mapTables;
     }
 
     public void PopulateMapTables()
     {
-        if (_mapTablesInCafeLocation is { Count: > 0 })
+        if (_mapTables is { Count: > 0 })
             return;
 
-        _mapTablesInCafeLocation.Clear();
+        _mapTables.Clear();
         Layer layer = Map.GetLayer("Buildings");
 
         Dictionary<string, Rectangle> seatStringToTableRecs = new();
@@ -81,7 +82,7 @@ public class CafeLocation : GameLocation
 
             if (seats.Count > 0)
             {
-                _mapTablesInCafeLocation.Add(pair.Value, seats);
+                _mapTables.Add(pair.Value, seats);
             }
         }
     }

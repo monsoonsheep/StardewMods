@@ -1,0 +1,18 @@
+{
+	"Name": "Cafe Signboard",
+	"Description": "Starts your cafe",
+	"Texture": "MonsoonSheep.MyCafe_CafeSignboardTexture",
+	"Builder": "Robin",
+	"BuildCost": 100,
+	"BuildDays": 0,
+	"Size": {
+	    "X": 1,
+	    "Y": 2
+	},
+	"CollisionMap": "O\nX",
+	"DefaultAction": "MonsoonSheep.MyCafe_OpenCafeMenu",
+	"DrawShadow": false,
+	"CustomFields": {
+        "MonsoonSheep.MyCafe_IsCafeSignboard": "true"
+    }
+}

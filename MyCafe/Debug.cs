@@ -3,11 +3,12 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MyCafe.CustomerFactory;
-using MyCafe.Locations;
+using MyCafe.Locations.Objects;
 using MyCafe.UI;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.Menus;
 
 #if YOUTUBE || TWITCH
 using MyCafe.LiveChatIntegration;
@@ -25,8 +26,6 @@ internal class Debug
         switch (e.Button)
         {
             case SButton.NumPad0:
-                Log.Debug($"We're in {Game1.player.currentLocation.Name} ({Game1.player.currentLocation.NameOrUniqueName}) ");
-                Log.Debug(System.Type.GetType("CafeLocation, MyCafe")?.FullName);
                 break;
             case SButton.NumPad1:
                 WarpToBus();
@@ -53,8 +52,7 @@ internal class Debug
                 }
                 break;
             case SButton.NumPad5:
-                Mod.Cafe.OpeningTime.Set(700);
-                Mod.Cafe.ClosingTime.Set(2500);
+                
                 break;
             case SButton.NumPad6:
                 Log.LogWithHudMessage($"Cafe time: {Mod.Cafe.ClosingTime.Value}");

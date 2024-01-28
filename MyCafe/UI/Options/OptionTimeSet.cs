@@ -6,10 +6,11 @@ using StardewValley.Menus;
 
 namespace MyCafe.UI.Options;
 
-internal class OptionTimeSet : OptionsElement
+internal class OptionTimeSet : OptionsElementBase
 {
     private new readonly string label;
 
+    internal static int numberOfComponents = 2;
     private readonly Action<int> setValue;
 
     private readonly int minValue;
@@ -23,13 +24,13 @@ internal class OptionTimeSet : OptionsElement
     private Rectangle minuteUpRec;
     private Rectangle minuteDownRec;
 
-    internal ClickableComponent UpArrow;
-    internal ClickableComponent DownArrow;
+    public ClickableComponent UpArrow;
+    public ClickableComponent DownArrow;
 
     private Rectangle source_TimeArrow = new Rectangle(16, 19, 22, 13);
 
     public OptionTimeSet(string label, int initialValue, int minValue, int maxValue, Rectangle rec, int optionNumber, Action<int> setFunction) 
-        : base(label, rec.X, rec.Y, rec.Width, rec.Height)
+        : base(label, rec)
     {
         this.minValue = minValue;
         this.maxValue = maxValue;
@@ -46,12 +47,16 @@ internal class OptionTimeSet : OptionsElement
         {
             myID = optionNumber,
             downNeighborID = optionNumber + 1,
+            leftNeighborID = -7777,
+            rightNeighborID = -7777,
             region = optionNumber
         };
         DownArrow = new(minuteDownRec, "downarrow")
         {
             myID = optionNumber + 1,
             upNeighborID = optionNumber,
+            leftNeighborID = -7777,
+            rightNeighborID = -7777,
             downNeighborID = -99998,
             region = optionNumber
         };
@@ -76,7 +81,7 @@ internal class OptionTimeSet : OptionsElement
 
     public override void draw(SpriteBatch b, int slotX, int slotY, IClickableMenu context = null)
     {
-        StardewValley.Utility.drawTextWithShadow(
+        SUtility.drawTextWithShadow(
             b, 
             base.label, 
             Game1.dialogueFont,
@@ -90,8 +95,41 @@ internal class OptionTimeSet : OptionsElement
 
         b.Draw(Mod.Sprites, new Rectangle(minuteUpRec.X + slotX, minuteUpRec.Y + slotY, minuteUpRec.Width, minuteUpRec.Height), source_TimeArrow, Color.White, 0f, Vector2.Zero, SpriteEffects.FlipVertically, 0.9f);
         b.Draw(Mod.Sprites, new Rectangle(minuteDownRec.X + slotX, minuteDownRec.Y + slotY, minuteUpRec.Width, minuteUpRec.Height), source_TimeArrow, Color.White, 0f, Vector2.Zero, SpriteEffects.None, 0.9f);
+    }
 
-        //new Rectangle(422, 472, 10, 11)
+    internal override Vector2 Snap(int direction)
+    {
+        if (direction == 0)
+        {
+            if (currentlySnapped == 0)
+            {
+                currentlySnapped = DownArrow.myID;
+                return DownArrow.bounds.Center.ToVector2();
+            }
+
+            if (currentlySnapped == DownArrow.myID)
+            {
+                currentlySnapped = UpArrow.myID;
+                return UpArrow.bounds.Center.ToVector2();
+            }
+        }
+        else if (direction == 2)
+        {
+            if (currentlySnapped == 0)
+            {
+                currentlySnapped = UpArrow.myID;
+                return UpArrow.bounds.Center.ToVector2();
+            }
+
+            if (currentlySnapped == UpArrow.myID)
+            {
+                currentlySnapped = DownArrow.myID;
+                return DownArrow.bounds.Center.ToVector2();
+            }
+        }
+
+        currentlySnapped = 0;
+        return Vector2.Zero;
     }
 
     private void SetTime()

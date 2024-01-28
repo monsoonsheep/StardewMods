@@ -4,7 +4,7 @@ using Netcode;
 using StardewValley;
 using System.Xml.Serialization;
 
-namespace MyCafe.Locations;
+namespace MyCafe.Locations.Objects;
 
 [XmlType("Mods_MonsoonSheep_MyCafe_Seat")]
 [XmlInclude(typeof(FurnitureSeat))]

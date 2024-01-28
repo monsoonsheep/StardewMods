@@ -1,8 +1,8 @@
-﻿using MyCafe.Locations;
-using MyCafe.CustomerFactory;
+﻿using MyCafe.CustomerFactory;
 using StardewModdingAPI;
 using System.Collections.Generic;
 using System.Linq;
+using MyCafe.Locations.Objects;
 
 namespace MyCafe.Customers;
 

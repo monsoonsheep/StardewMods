@@ -14,10 +14,12 @@ internal class TimingPage : OptionsPageBase
 {
     public TimingPage(CafeMenu parent, Rectangle bounds) : base("Timings", bounds, parent)
     {
-        Options.Add(new OptionTimeSet(I18n.Menu_OpeningTime(), Mod.Cafe.OpeningTime.Value, 0700, 1800, OptionSlotSize, 43430,
+        int optionNumber = 43430;
+        Options.Add(new OptionTimeSet(I18n.Menu_OpeningTime(), Mod.Cafe.OpeningTime.Value, 0700, 1800, OptionSlotSize, optionNumber,
             (time) => Mod.Cafe.OpeningTime.Set(time)));
-        Options.Add(new OptionTimeSet(I18n.Menu_ClosingTime(), Mod.Cafe.ClosingTime.Value, 1100, 2500, OptionSlotSize, 43432,
+        Options.Add(new OptionTimeSet(I18n.Menu_ClosingTime(), Mod.Cafe.ClosingTime.Value, 1100, 2500, OptionSlotSize, optionNumber + OptionTimeSet.numberOfComponents,
             (time) => Mod.Cafe.ClosingTime.Set(time)));
+
     }
 
     private void SetOpeningTime(int time)

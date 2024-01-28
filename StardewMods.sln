@@ -12,6 +12,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyCafe", "MyCafe\MyCafe.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BusSchedules", "BusSchedules\BusSchedules.csproj", "{3FEEF67D-9D45-4650-9399-52F1C9411251}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = ".Common.Patching", "Common.Patching\.Common.Patching.shproj", "{49C40E04-5A9F-47DA-8906-FA717816E772}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {736CB6EB-5A10-4114-8E8F-12200A9D42B8}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Common.Patching\Common.Patching.projitems*{187dda81-a5bd-46dc-8c02-fefa02ea1dc6}*SharedItemsImports = 5
+		Common.Patching\Common.Patching.projitems*{49c40e04-5a9f-47da-8906-fa717816e772}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal

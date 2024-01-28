@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using MyCafe.Locations;
 using MyCafe.Customers;
 using MyCafe.Customers.Data;
 using StardewModdingAPI;
@@ -9,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MyCafe.Locations.Objects;
 
 namespace MyCafe.CustomerFactory;
 
