@@ -83,7 +83,9 @@ internal class ItemsPage : MenuPageBase
 
         LoadButton = new ClickableTextureComponent(
             new Rectangle(
-                Bounds.Right - source_loadButton.Width - 64, Bounds.Center.Y - source_loadButton.Height, source_loadButton.Width, source_loadButton.Height),
+                Bounds.Right - source_loadButton.Width - 64, 
+                Bounds.Center.Y - source_loadButton.Height, 
+                source_loadButton.Width, source_loadButton.Height),
             Mod.Sprites,
             source_loadButton,
             2f)
@@ -99,7 +101,9 @@ internal class ItemsPage : MenuPageBase
 
         SaveButton = new ClickableTextureComponent(
             new Rectangle(
-                Bounds.Right - source_loadButton.Width - 64, Bounds.Center.Y + source_loadButton.Height * 2, source_loadButton.Width, source_loadButton.Height),
+                Bounds.Right - source_loadButton.Width - 64, 
+                Bounds.Center.Y + source_loadButton.Height * 2, 
+                source_loadButton.Width, source_loadButton.Height),
             Mod.Sprites,
             source_saveButton,
             2f)
@@ -146,7 +150,7 @@ internal class ItemsPage : MenuPageBase
                 component.region = 42420;
                 component.myID = 42420 + count;
                 component.leftNeighborID = -7777;
-                component.rightNeighborID = (rightMost) ? 45000 : -7777;
+                component.rightNeighborID = -7777;
                 component.downNeighborID = (bottom) ? -99998 : -7777;
                 component.upNeighborID = (topMost) ? 50000 : -7777;
                 component.rightNeighborImmutable = true;
@@ -158,21 +162,35 @@ internal class ItemsPage : MenuPageBase
             }
         }
 
-        var topRightSlot = GridSlots[0, GridSlots.GetLength(0) - 1];
+        var topRightSlot = GridSlots[0, GridSlots.GetLength(1) - 1];
         var bottomRightSlot = GridSlots[GridSlots.GetLength(0) - 1, GridSlots.GetLength(1) - 1];
 
         var upArrowBounds = new Rectangle(
-            topRightSlot.bounds.Right + 32,
-            topRightSlot.bounds.Top + 8,
+            topRightSlot.bounds.Right,
+            topRightSlot.bounds.Top,
             44, 48);
 
         var downArrowBounds = new Rectangle(
-            bottomRightSlot.bounds.Right + 32,
+            bottomRightSlot.bounds.Right,
             bottomRightSlot.bounds.Bottom - 40,
             44, 48);
 
-        UpArrow = new ClickableTextureComponent(upArrowBounds, Game1.mouseCursors, new Rectangle(421, 459, 11, 12), 4f);
-        DownArrow = new ClickableTextureComponent(downArrowBounds, Game1.mouseCursors, new Rectangle(421, 472, 11, 12), 4f);
+        UpArrow = new ClickableTextureComponent(upArrowBounds, Game1.mouseCursors, new Rectangle(421, 459, 11, 12), 4f)
+        {
+            myID = 46460,
+            leftNeighborID = 42423,
+            rightNeighborID = 45000,
+            downNeighborID = 46461,
+            fullyImmutable = true
+        };
+        DownArrow = new ClickableTextureComponent(downArrowBounds, Game1.mouseCursors, new Rectangle(421, 472, 11, 12), 4f)
+        {
+            myID = 46461,
+            leftNeighborID = 42431,
+            rightNeighborID = 45001,
+            upNeighborID = 46460,
+            fullyImmutable = true
+        };
 
         defaultComponent = 42420;
         _searchResultItems.AddRange(Game1.player.Items.Where(i => i?.Category == SObject.CookingCategory));
@@ -191,8 +209,22 @@ internal class ItemsPage : MenuPageBase
 
     public override void receiveKeyPress(Keys key)
     {
-        if (!_searchBarTextBox.Selected && Game1.keyboardDispatcher.Subscriber == null)
+        if (Game1.globalFade)
+        {
+            return;
+        }
+        if (Game1.options.menuButton.Contains(new InputButton(key)) && _searchBarTextBox is not { Selected: true })
+        {
+            Game1.playSound("smallSelect");
+            if (readyToClose())
+            {
+                Game1.exitActiveMenu();
+            }
+        }
+        else if (Game1.options.SnappyMenus && (!Game1.options.menuButton.Contains(new InputButton(key)) || _searchBarTextBox == null || !_searchBarTextBox.Selected))
+        {
             base.receiveKeyPress(key);
+        }
     }
 
     public override void receiveLeftClick(int x, int y, bool playSound = true)
@@ -214,6 +246,17 @@ internal class ItemsPage : MenuPageBase
                     else
                         _parentMenu.HeldItem = slot.item;
                 }
+            }
+
+            if (DownArrow.containsPoint(x, y) && _currentRowIndex < Math.Max(0, _searchResultItems.Count / GridSlots.GetLength(1) - GridSlots.GetLength(0)))
+            {
+                DownArrowPressed();
+                Game1.playSound("shwip");
+            }
+            else if (UpArrow.containsPoint(x, y) && _currentRowIndex > 0)
+            {
+                UpArrowPressed();
+                Game1.playSound("shwip");
             }
         }
     }
@@ -246,9 +289,28 @@ internal class ItemsPage : MenuPageBase
                     setCurrentlySnappedComponentTo(upComponent.myID);
                 break;
             case 1:
-               var rightComponent = getComponentWithID(oldID + 1);
-                if (rightComponent is { item: not null })
-                    setCurrentlySnappedComponentTo(rightComponent.myID);
+                int countX = GridSlots.GetLength(1);
+                int countY = GridSlots.GetLength(0);
+                if ((oldID + 1 - 42420) % countX == 0 && _searchResultItems.Count / countX > countY)
+                {
+                    automaticSnapBehavior(direction, oldRegion, oldID);
+                    if (currentlySnappedComponent == UpArrow && _currentRowIndex == 0)
+                    {
+                        setCurrentlySnappedComponentTo(DownArrow.myID);
+                    }
+
+                    if (currentlySnappedComponent == DownArrow &&
+                        _currentRowIndex >= Math.Max(0, _searchResultItems.Count / countX - countY))
+                    {
+                        setCurrentlySnappedComponentTo(UpArrow.myID);
+                    }
+                }
+                else
+                {
+                    var rightComponent = getComponentWithID(oldID + 1);
+                    if (rightComponent is { item: not null })
+                        setCurrentlySnappedComponentTo(rightComponent.myID);
+                }
                 break;
             case 2:
                 var downComponent = getComponentWithID(oldID + gridCountX);
@@ -290,16 +352,19 @@ internal class ItemsPage : MenuPageBase
         }
     }
 
-    private void UpdateSlots()
+    private void UpdateSlots(int row = 0)
     {
-        _currentRowIndex = 0;
+        _currentRowIndex = row;
 
         foreach (var s in GridSlots)
             s.item = null;
 
-        for (int n = 0; n < _searchResultItems.Count && n < GridSlots.GetLength(0) * GridSlots.GetLength(1); n++)
+        int yCount = GridSlots.GetLength(0);
+        int xCount = GridSlots.GetLength(1);
+
+        for (int n = 0; n < _searchResultItems.Count && n < GridSlots.Length; n++)
         {
-            GetSlotAtIndex(n).item = _searchResultItems[n];
+            GetSlotAtIndex(n).item = _searchResultItems[_currentRowIndex * xCount + n];
         }
     }
 
@@ -332,5 +397,17 @@ internal class ItemsPage : MenuPageBase
         }
 
         UpdateSlots();
+    }
+
+    private void DownArrowPressed()
+    {
+        _currentRowIndex++;
+        UpdateSlots(_currentRowIndex);
+    }
+
+    private void UpArrowPressed()
+    {
+        _currentRowIndex--;
+        UpdateSlots(_currentRowIndex);
     }
 }

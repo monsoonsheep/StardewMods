@@ -152,7 +152,7 @@ internal class MenuBoard : MenuPageBase
                 // if not held, remove or edit
                 // if held, add
 
-                int index = i + 1;
+                int index = i;
                 if (_parentMenu.HeldItem != null)
                 {
                     while (i >= 0 && _entries[i] is not MenuCategoryEntry)
@@ -162,7 +162,18 @@ internal class MenuBoard : MenuPageBase
 
                     if (_entries[i] is MenuCategoryEntry entry)
                     {
-                        AddItem(_parentMenu.HeldItem as SObject, entry.Name, index - i);
+                        if (AddItem(_parentMenu.HeldItem as SObject, entry.Name, index - i))
+                            _parentMenu.HeldItem = null;
+                        break;
+                    }
+                }
+                else
+                {
+                    Item item = (_entries[_currentItemIndex + i] as MenuItemEntry)?.Item;
+                    if (item != null)
+                    {
+                        RemoveItem(_currentItemIndex + i);
+                        _parentMenu.HeldItem = item;
                     }
                 }
             }
@@ -215,8 +226,19 @@ internal class MenuBoard : MenuPageBase
 
     public override bool TryHover(int x, int y)
     {
+        for (int i = _currentItemIndex; i < Math.Min(_currentItemIndex + slotCount, _entries.Count); i++)
+        {
+            if (_entries[i] is MenuItemEntry entry)
+            {
+                entry.Scale = Math.Max(1f, entry.Scale - 0.025f);
+                if (_slots[i - _currentItemIndex].containsPoint(x, y))
+                {
+                    entry.Scale = Math.Min(entry.Scale + 0.05f, 1.1f);
+                }
+            }
+        }
+
         return base.TryHover(x, y);
-        // Show tooltip?
     }
 
     protected override void customSnapBehavior(int direction, int oldRegion, int oldID)
@@ -235,7 +257,7 @@ internal class MenuBoard : MenuPageBase
             {
                 DownArrowPressed();
             }
-            else
+            else if (_currentItemIndex + (oldRegion + 1 - 1001) < _entries.Count)
             {
                 base.setCurrentlySnappedComponentTo(oldRegion + 1);
             }
@@ -248,7 +270,7 @@ internal class MenuBoard : MenuPageBase
             {
                 UpArrowPressed();
             }
-            else
+            else if (_currentItemIndex + (oldRegion - 1 - 1001) < _entries.Count)
             {
                 base.setCurrentlySnappedComponentTo(oldRegion - 1);
             }
@@ -312,7 +334,7 @@ internal class MenuBoard : MenuPageBase
                     else
                     {
                         drawTextureBox(b, Game1.mouseCursors, new Rectangle(403, 383, 6, 6), 
-                            _slots[i].bounds.X, _slots[i].bounds.Y - 12, _slots[i].bounds.Width, 4, 
+                            _slots[i].bounds.X, _slots[i].bounds.Y + 28, _slots[i].bounds.Width, 4, 
                             Color.OrangeRed, drawShadow: false, draw_layer: 0.9f);
                     }
                 }
@@ -344,10 +366,16 @@ internal class MenuBoard : MenuPageBase
         }
     }
 
-    private void AddItem(SObject item, string category, int index)
+    private bool AddItem(SObject item, string category, int index)
     {
-        Mod.Cafe.AddToMenu(item, category, index);
+        if (!Mod.Cafe.AddToMenu(item, category, index))
+        {
+            Log.Warn("Can't add that");
+            return false;
+        }
+
         PopulateMenuEntries();
+        return true;
     }
 
     private void RemoveItem(int entryIndex)

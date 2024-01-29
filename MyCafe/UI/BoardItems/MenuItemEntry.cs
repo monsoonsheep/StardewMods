@@ -8,6 +8,7 @@ internal class MenuItemEntry : MenuEntry
 {
     internal Item Item;
     internal string Category;
+    internal float Scale = 1f;
 
     internal MenuItemEntry(Item item, string category)
     {
@@ -20,7 +21,7 @@ internal class MenuItemEntry : MenuEntry
         Item.drawInMenu(
             b,
             new Vector2(slotX, slotY - 22),
-            0.5f,
+            0.5f * Scale,
             1f,
             1f,
             StackDrawType.Hide,

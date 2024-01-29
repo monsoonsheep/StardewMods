@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using StardewValley;
 using StardewValley.Menus;
 
 namespace MyCafe.UI;
@@ -53,6 +55,26 @@ public abstract class MenuPageBase : IClickableMenu
     {
         base.setCurrentlySnappedComponentTo(id);
         snapCursorToCurrentSnappedComponent();
+    }
+
+    public override void receiveKeyPress(Keys key)
+    {
+        if (Game1.globalFade)
+        {
+            return;
+        }
+        if (Game1.options.menuButton.Contains(new InputButton(key)))
+        {
+            Game1.playSound("smallSelect");
+            if (readyToClose())
+            {
+                Game1.exitActiveMenu();
+            }
+        }
+        else if (Game1.options.SnappyMenus)
+        {
+            base.receiveKeyPress(key);
+        }
     }
 
     protected virtual void SnapOut(int direction = 3)

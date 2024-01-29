@@ -66,9 +66,7 @@ public class Mod : StardewModdingAPI.Mod
                 new CharacterPatcher(),
                 new FurniturePatcher()
             ) is false)
-        {
             return;
-        };
        
         IModEvents events = helper.Events;
 

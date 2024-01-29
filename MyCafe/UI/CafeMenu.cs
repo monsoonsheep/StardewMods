@@ -253,16 +253,10 @@ public sealed class CafeMenu : IClickableMenu
 
     public override void receiveKeyPress(Keys key)
     {
-        if (Game1.options.menuButton.Contains(new InputButton(key)) && readyToClose())
-        {
-            Game1.exitActiveMenu();
-            Game1.playSound("bigDeSelect");
-        }
-
-        if (_menuBoard.currentlySnappedComponent != null)
-            _menuBoard.receiveKeyPress(key);
-        else
+        if (_pages[_currentTab].currentlySnappedComponent != null)
             _pages[_currentTab].receiveKeyPress(key);
+        else
+            _menuBoard.receiveKeyPress(key);
     }
 
     public override void draw(SpriteBatch b)
