@@ -27,7 +27,7 @@ internal class BusManager
             return l;
         }
     }
-    internal Point BusDoorPosition = new Point(12, 9);
+    internal Point BusDoorPosition = Mod.BusDoorTile;
 
     internal bool BusLeaving;
     internal bool BusGone;
@@ -81,7 +81,7 @@ internal class BusManager
         if (!this.BusLocation.characters.Contains(pam) || pam.TilePoint is not { X: 11, Y: 10 })
             this.CloseDoorAndDriveAway();
         else
-            pam.temporaryController = new PathFindController(pam, this.BusLocation, new Point(12, 9), 3, delegate(Character c, GameLocation _)
+            pam.temporaryController = new PathFindController(pam, this.BusLocation, Mod.BusDoorTile, 3, delegate(Character c, GameLocation _)
             {
                 if (c is NPC p)
                     p.Position = new Vector2(-1000f, -1000f);

@@ -30,6 +30,7 @@ internal sealed class Mod : StardewModdingAPI.Mod
     internal byte BusArrivalsToday;
     internal int[] BusArrivalTimes = [630, 1200, 1500, 1800, 2400];
     internal List<int> BusLeaveTimes = [];
+    internal static Point BusDoorTile = new Point(12, 9);
 
     public Mod()
     {
