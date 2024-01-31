@@ -117,7 +117,7 @@ public class Customer : NPC
         if (this.DrawItemOrder.Value && this.ItemToOrder.Value != null)
         {
             Vector2 offset = new Vector2(0,
-                (float)Math.Round(4f * Math.Sin(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 250.0)));
+                (float) Math.Round(4f * Math.Sin(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 250.0)));
 
             Vector2 pos = this.getLocalPosition(Game1.viewport);
             pos.Y -= 32 + this.Sprite.SpriteHeight * 3;
