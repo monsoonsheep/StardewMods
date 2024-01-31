@@ -1,8 +1,6 @@
-﻿using System.IO;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MyCafe.CustomerFactory;
 using MyCafe.Locations.Objects;
 using MyCafe.UI;
 using StardewModdingAPI;
@@ -18,7 +16,7 @@ namespace MyCafe;
 
 internal class Debug
 {
-    public static void ButtonPress(object sender, ButtonPressedEventArgs e)
+    public static void ButtonPress(object? sender, ButtonPressedEventArgs e)
     {
         if (!Context.CanPlayerMove)
             return;
@@ -26,6 +24,7 @@ internal class Debug
         switch (e.Button)
         {
             case SButton.NumPad0:
+                Game1.activeClickableMenu = new CarpenterMenu("Robin");
                 break;
             case SButton.NumPad1:
                 WarpToBus();
@@ -66,8 +65,8 @@ internal class Debug
             case SButton.NumPad9:
                 break;
             case SButton.U:
-                Mod.Sprites = Mod.ModHelper.ModContent.Load<Texture2D>("assets/sprites.png");
-                Game1.activeClickableMenu = new CafeMenu();
+                //Mod.Sprites = Mod.ModHelper.ModContent.Load<Texture2D>("assets/sprites.png");
+                Game1.activeClickableMenu = new CafeMenu(Mod.Instance.Sprites);
                 break;
             default:
                 return;

@@ -2,15 +2,19 @@
 using StardewModdingAPI;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Xna.Framework.Graphics;
+using MyCafe.Customers.Data;
 using MyCafe.Locations.Objects;
 
 namespace MyCafe.Customers;
 
 internal sealed class CustomerManager
 {
+    internal Cafe Cafe;
+
     internal CustomerSpawner BusCustomers;
     internal CustomerSpawner VillagerCustomers;
-    internal CustomerSpawner ChatCustomers;
+    internal CustomerSpawner? ChatCustomers = null!;
 
     internal IEnumerable<CustomerGroup> CurrentGroups
     {
@@ -21,13 +25,14 @@ internal sealed class CustomerManager
         }
     }
 
-    internal CustomerManager(IModHelper helper)
+    internal CustomerManager(IModHelper helper, Dictionary<string, BusCustomerData> customersData, Texture2D sprites, Cafe cafe)
     {
-        BusCustomers = new BusCustomerSpawner();
-        VillagerCustomers = new VillagerCustomerSpawner();
+        BusCustomers = new BusCustomerSpawner(customersData, sprites);
+        VillagerCustomers = new VillagerCustomerSpawner(sprites);
 
         BusCustomers.Initialize(helper);
         VillagerCustomers.Initialize(helper);
+        Cafe = cafe;
 
 #if YOUTUBE || TWITCH
         ChatCustomers = new ChatCustomerSpawner();
@@ -43,7 +48,7 @@ internal sealed class CustomerManager
 
     internal void SpawnCustomers()
     {
-        Table table = Mod.Cafe.Tables.Where(t => !t.IsReserved).MinBy(t => t.Seats.Count);
+        Table? table = this.Cafe.Tables.Where(t => !t.IsReserved).MinBy(t => t.Seats.Count);
         if (table == null)
         {
             Log.Debug("No tables available");
@@ -71,7 +76,7 @@ internal sealed class CustomerManager
         ChatCustomers?.RemoveAll();
     }
 
-    internal CustomerGroup GetGroupFromTable(Table table)
+    internal CustomerGroup? GetGroupFromTable(Table table)
     {
         return CurrentGroups.FirstOrDefault(g => g.ReservedTable == table);
     }

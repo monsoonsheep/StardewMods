@@ -6,19 +6,17 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
-using StardewValley.Minigames;
+using SObject = StardewValley.Object;
 // ReSharper disable InconsistentNaming
 
 namespace MyCafe.UI;
 internal class MenuBoard : MenuPageBase
 {
-    private bool _editMode;
-
     // Menu board
     internal int slotCount = 9;
     internal static Rectangle source_Board = new(0, 64, 444, 576);
     internal static Rectangle source_Logo = new(134, 11, 94, 52);
-    internal static Rectangle source_EditButton = new(0, 32, 31, 32);
+    internal static Rectangle source_EditButton = new(41, 19, 15, 13);
     internal static Rectangle source_EditButtonCancel = new(31, 32, 31, 32);
 
     private readonly Rectangle target_Logo;
@@ -37,9 +35,8 @@ internal class MenuBoard : MenuPageBase
     private readonly Rectangle _scrollBarRunner;
     private int _currentItemIndex;
 
-    public MenuBoard(CafeMenu parent, Rectangle bounds) : base("Menu", bounds, parent)
+    public MenuBoard(CafeMenu parent, Rectangle bounds, Texture2D sprites) : base("Menu", bounds, parent, sprites)
     {
-        Mod.Sprites = Mod.ModHelper.ModContent.Load<Texture2D>("assets/sprites.png");
         target_board = Bounds;
         
         target_Logo = new Rectangle(
@@ -73,7 +70,7 @@ internal class MenuBoard : MenuPageBase
         {
             _slots.Add(new ClickableComponent(new Rectangle(
                     target_board.X + 24,
-                    target_board.Y + 101 + (i * 43),
+                    target_board.Y + 111 + (i * 43),
                     target_board.Width - (27 * 2),
                     43), 
                 $"slot{i}")
@@ -92,7 +89,7 @@ internal class MenuBoard : MenuPageBase
         PopulateMenuEntries();
 
         Bounds.Width += _upArrow.bounds.Width;
-        defaultComponent = 1001;
+        DefaultComponent = 1001;
     }
 
     private void PopulateMenuEntries()
@@ -105,11 +102,11 @@ internal class MenuBoard : MenuPageBase
             if (!_categories.Contains(pair.Key))
             {
                 _categories.Add(pair.Key);
-                _entries.Add(new MenuCategoryEntry(pair.Key));
+                _entries.Add(new MenuCategoryEntry(pair.Key, Sprites));
             }
             foreach (var item in pair.Value)
             {
-                _entries.Add(new MenuItemEntry(item, pair.Key));
+                _entries.Add(new MenuItemEntry(item, pair.Key, Sprites));
             }
         }
 
@@ -118,7 +115,7 @@ internal class MenuBoard : MenuPageBase
 
     public override void receiveLeftClick(int x, int y, bool playSound = true)
     {
-        if (Mod.Config.EnableScrollbarInMenuBoard)
+        if (Mod.Instance.Config.EnableScrollbarInMenuBoard)
         {
             if (_entries.Count > slotCount)
             {
@@ -153,7 +150,7 @@ internal class MenuBoard : MenuPageBase
                 // if held, add
 
                 int index = i;
-                if (_parentMenu.HeldItem != null)
+                if (_parentMenu.HeldItem is SObject held)
                 {
                     while (i >= 0 && _entries[i] is not MenuCategoryEntry)
                     {
@@ -162,14 +159,14 @@ internal class MenuBoard : MenuPageBase
 
                     if (_entries[i] is MenuCategoryEntry entry)
                     {
-                        if (AddItem(_parentMenu.HeldItem as SObject, entry.Name, index - i))
+                        if (AddItem(held, entry.Name, index - i))
                             _parentMenu.HeldItem = null;
                         break;
                     }
                 }
                 else
                 {
-                    Item item = (_entries[_currentItemIndex + i] as MenuItemEntry)?.Item;
+                    Item? item = (_entries[_currentItemIndex + i] as MenuItemEntry)?.Item;
                     if (item != null)
                     {
                         RemoveItem(_currentItemIndex + i);
@@ -236,6 +233,10 @@ internal class MenuBoard : MenuPageBase
                     entry.Scale = Math.Min(entry.Scale + 0.05f, 1.1f);
                 }
             }
+            else
+            {
+
+            }
         }
 
         return base.TryHover(x, y);
@@ -281,7 +282,7 @@ internal class MenuBoard : MenuPageBase
     {
         // Background
         b.Draw(
-            Mod.Sprites,
+            Sprites,
             target_board,
             source_Board,
             Color.White,
@@ -292,7 +293,7 @@ internal class MenuBoard : MenuPageBase
 
         // Logo
         b.Draw(
-            Mod.Sprites,
+            Sprites,
             target_Logo,
             source_Logo,
             Color.White,
@@ -306,39 +307,43 @@ internal class MenuBoard : MenuPageBase
         {
             if (_currentItemIndex + i < _entries.Count)
             {
-                _entries[_currentItemIndex + i].Draw(b, _slots[i].bounds.X, _slots[i].bounds.Y);
+                var entry = _entries[_currentItemIndex + i];
+                
+                entry.Draw(b, _slots[i].bounds.X, _slots[i].bounds.Y);
+
+                if (_slots[i].bounds.Contains(Game1.getMouseX(true), Game1.getMouseY(true)) && _currentItemIndex + i < _entries.Count)
+                {
+                    if (entry is MenuCategoryEntry)
+                    {
+                        if (_parentMenu.HeldItem != null)
+                        {
+                            drawTextureBox(b, Game1.mouseCursors, new Rectangle(403, 383, 6, 6), 
+                                _slots[i].bounds.X, _slots[i].bounds.Y - 8, _slots[i].bounds.Width, _slots[i].bounds.Height, 
+                                Color.White, drawShadow: false, draw_layer: 0.9f);
+                        }
+                        
+                        // draw edit icon
+                    }
+                    else
+                    {
+                        if (_parentMenu.HeldItem != null)
+                        {
+                            drawTextureBox(b, Game1.mouseCursors, new Rectangle(403, 383, 6, 6), 
+                                _slots[i].bounds.X, _slots[i].bounds.Y + 28, _slots[i].bounds.Width, 4, 
+                                Color.OrangeRed, drawShadow: false, draw_layer: 0.9f);
+                        }
+                    }
+                }
             }
         }
 
         // Scroll bar
-        if (Mod.Config.EnableScrollbarInMenuBoard && _entries.Count > slotCount)
+        if (Mod.Instance.Config.EnableScrollbarInMenuBoard && _entries.Count > slotCount)
         {
             _upArrow.draw(b);
             _downArrow.draw(b);
             drawTextureBox(b, Game1.mouseCursors, new Rectangle(435, 463, 6, 10), _scrollBar.bounds.X, _scrollBar.bounds.Y, _scrollBar.bounds.Width, _scrollBar.bounds.Height, Color.White, 4f, false, 1f);
             drawTextureBox(b, Game1.mouseCursors, new Rectangle(403, 383, 6, 6), _scrollBarRunner.X, _scrollBarRunner.Y, _scrollBarRunner.Width, _scrollBarRunner.Height, Color.White, 4f, drawShadow: false);
-        }
-
-        if (_parentMenu.HeldItem != null)
-        {
-            for (int i = 0; i < _slots.Count; i++)
-            {
-                if (_slots[i].bounds.Contains(Game1.getMouseX(true), Game1.getMouseY(true)) && _currentItemIndex + i < _entries.Count)
-                {
-                    if (_entries[_currentItemIndex + i] is MenuCategoryEntry)
-                    {
-                        drawTextureBox(b, Game1.mouseCursors, new Rectangle(403, 383, 6, 6), 
-                            _slots[i].bounds.X, _slots[i].bounds.Y - 8, _slots[i].bounds.Width, _slots[i].bounds.Height, 
-                            Color.White, drawShadow: false, draw_layer: 0.9f);
-                    }
-                    else
-                    {
-                        drawTextureBox(b, Game1.mouseCursors, new Rectangle(403, 383, 6, 6), 
-                            _slots[i].bounds.X, _slots[i].bounds.Y + 28, _slots[i].bounds.Width, 4, 
-                            Color.OrangeRed, drawShadow: false, draw_layer: 0.9f);
-                    }
-                }
-            }
         }
     }
 

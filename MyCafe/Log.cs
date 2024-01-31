@@ -5,7 +5,7 @@ namespace MyCafe;
 
 internal static class Log
 {
-    internal static IMonitor Monitor = Mod.Monitor;
+    internal static IMonitor Monitor = null!;
 
     public static void Debug(string message, LogLevel level = LogLevel.Debug)
     {

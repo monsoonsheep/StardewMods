@@ -6,7 +6,6 @@ using MyCafe.Customers.Data;
 using MyCafe.Interfaces;
 using StardewModdingAPI;
 using StardewValley;
-using StardewValley.Pathfinding;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,24 +16,31 @@ namespace MyCafe.CustomerFactory;
 
 internal class BusCustomerSpawner : CustomerSpawner
 {
-    private IBusSchedulesApi _busSchedulesApi;
+    internal Dictionary<string, BusCustomerData> CustomersData;
+
+    private IBusSchedulesApi? _busSchedulesApi;
+
+    internal BusCustomerSpawner(Dictionary<string, BusCustomerData> customersData, Texture2D sprites) : base(sprites)
+    {
+        CustomersData = customersData;
+    }
 
     internal override Task<bool> Initialize(IModHelper helper)
     {
-        _busSchedulesApi = Mod.ModHelper.ModRegistry.GetApi<IBusSchedulesApi>("MonsoonSheep.BusSchedules");
+        _busSchedulesApi = helper.ModRegistry.GetApi<IBusSchedulesApi>("MonsoonSheep.BusSchedules");
         return Task.FromResult(true);
     }
 
     internal List<BusCustomerData> GetRandomCustomerData(int members)
     {
-        return Mod.CustomersData.Values.OrderBy(_ => Game1.random.Next()).Take(members).ToList();
+        return CustomersData.Values.OrderBy(_ => Game1.random.Next()).Take(members).ToList();
     }
 
     internal static Customer GetCustomerFromData(BusCustomerData data)
     {
         Texture2D portrait = Game1.content.Load<Texture2D>(data.Model.PortraitName);
         AnimatedSprite sprite = new AnimatedSprite(data.Model.Spritesheet, 0, 16, 32);
-        Customer c = new Customer($"CustomerNPC_{data.Model.Name}", new Vector2(10, 12) * 64f, "BusStop", sprite, portrait);
+        Customer c = new Customer($"CustomerNPC_{data.Model.Name}", new Vector2(10, 12) * 64f, "BusStop", sprite, portrait, Mod.Instance.Sprites);
         return c;
     }
 
@@ -42,7 +48,7 @@ internal class BusCustomerSpawner : CustomerSpawner
     {
         group = new CustomerGroup();
         List<BusCustomerData> datas = GetRandomCustomerData(1);
-        if (datas == null || !datas.Any())
+        if (!datas.Any())
             return false;
 
         List<Customer> customers = [];
@@ -63,6 +69,7 @@ internal class BusCustomerSpawner : CustomerSpawner
 
         foreach (var c in customers)
             group.Add(c);
+
         if (!group.ReserveTable(table))
         {
             Log.Error("Table couldn't be reserved. Bug!");
@@ -100,6 +107,7 @@ internal class BusCustomerSpawner : CustomerSpawner
             }
         }
         
+        Log.Debug("Customers are coming");
         ActiveGroups.Add(group);
         return true;
     }
@@ -134,10 +142,11 @@ internal class BusCustomerSpawner : CustomerSpawner
         foreach (Customer c in group.Members)
         {
             c.Position = new Vector2(-1000, -1000);
-            AccessTools.Field(typeof(NPC), "returningToEndPoint")?.SetValue(c, true);
-            AccessTools.Field(typeof(Character), "freezeMotion")?.SetValue(c, true);
-            if (!_busSchedulesApi.AddVisitorsForNextArrival(c, 0))
+            AccessTools.Field(typeof(NPC), "returningToEndPoint").SetValue(c, true);
+            AccessTools.Field(typeof(Character), "freezeMotion").SetValue(c, true);
+            if (_busSchedulesApi != null && !_busSchedulesApi.AddVisitorsForNextArrival(c, 0))
             {
+                Log.Debug("But couldn'");
                 return false;
             }
         }

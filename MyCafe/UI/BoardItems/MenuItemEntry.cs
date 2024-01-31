@@ -10,7 +10,7 @@ internal class MenuItemEntry : MenuEntry
     internal string Category;
     internal float Scale = 1f;
 
-    internal MenuItemEntry(Item item, string category)
+    internal MenuItemEntry(Item item, string category, Texture2D sprites) : base(sprites)
     {
         Item = item;
         Category = category;

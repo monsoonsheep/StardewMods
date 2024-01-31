@@ -1,11 +1,12 @@
-﻿namespace MyCafe.Customers.Data;
+﻿using System.Text.Json.Serialization;
+
+namespace MyCafe.Customers.Data;
 
 internal class CustomerModel
 {
-    public string Name { get; set; }
+    public string Name { get; set; } = null!;
 
-    public string Spritesheet { get; set; }
+    public string Spritesheet { get; set; } = null!;
 
-    public string PortraitName { get; set; }
-
+    public string PortraitName { get; set; } = null!;
 }

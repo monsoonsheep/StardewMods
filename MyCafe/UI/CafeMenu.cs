@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using MyCafe.CustomerFactory;
-using MyCafe.UI.BoardItems;
-using MyCafe.UI.Options;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Menus;
@@ -16,10 +11,11 @@ namespace MyCafe.UI;
 
 public sealed class CafeMenu : IClickableMenu
 {
-    internal Item HeldItem;
-    private Item _hoveredItem;
+    internal Texture2D Sprites;
 
-    private string _hoverText;
+    internal Item? HeldItem;
+
+    private string? _hoverText;
 
     // Menu board
     internal Rectangle menuBoardBounds;
@@ -34,7 +30,7 @@ public sealed class CafeMenu : IClickableMenu
     private readonly List<MenuPageBase> _pages;
     private int _currentTab;
 
-    public CafeMenu()
+    public CafeMenu(Texture2D sprites)
         : base(
             Game1.uiViewport.Width / 2 - (800 + borderWidth * 2) / 2,
             Game1.uiViewport.Height / 2 - (600 + borderWidth * 2) / 2,
@@ -42,6 +38,8 @@ public sealed class CafeMenu : IClickableMenu
             Game1.uiViewport.Height,
             showUpperRightCloseButton: true)
     {
+        this.Sprites = sprites;
+
         menuBoardBounds = new Rectangle(
             xPositionOnScreen, 
             yPositionOnScreen + Game1.pixelZoom + Game1.tileSize, 
@@ -54,11 +52,11 @@ public sealed class CafeMenu : IClickableMenu
             menuBoardBounds.Width,
             menuBoardBounds.Height - Game1.tileSize * 2);
 
-        _menuBoard = new MenuBoard(this, menuBoardBounds);
+        _menuBoard = new MenuBoard(this, menuBoardBounds, Sprites);
 
         _pages = [
-            new ItemsPage(this, sideBoxBounds),
-            new TimingPage(this, sideBoxBounds),
+            new ItemsPage(this, sideBoxBounds, Sprites),
+            new TimingPage(this, sideBoxBounds, Sprites),
         ];
 
 #if YOUTUBE || TWITCH
@@ -77,7 +75,7 @@ public sealed class CafeMenu : IClickableMenu
             _tabs.Add(
                 new ClickableTextureComponent(
                     new Rectangle(sideBoxBounds.X + 64 * i, sideBoxBounds.Y - Game1.tileSize - 12, 64, 64),
-                    Mod.Sprites,
+                    Sprites,
                     new Rectangle(0 + 16 * i, 0, 16, 16),
                     4f)
                 {
@@ -169,7 +167,6 @@ public sealed class CafeMenu : IClickableMenu
     public override void performHoverAction(int x, int y)
     {
         _hoverText = "";
-        _hoveredItem = null;
         base.performHoverAction(x, y);
 
         foreach (var tab in _tabs)
@@ -314,7 +311,7 @@ public sealed class CafeMenu : IClickableMenu
         if (Game1.activeClickableMenu == null && Context.IsPlayerFree)
         {
             Log.Debug("Opened cafe menu menu!");
-            Game1.activeClickableMenu = new CafeMenu();
+            Game1.activeClickableMenu = new CafeMenu(Mod.Instance.Sprites);
         }
 
         return true;

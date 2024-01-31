@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using MonsoonSheep.Stardew.Common;
 using MyCafe.Customers;
 using Netcode;
 using StardewValley;
@@ -15,9 +16,9 @@ public abstract class Seat : INetObject<NetFields>
 
     private readonly NetPoint _position = [];
 
-    private readonly NetRef<Customer> _reservingCustomer = [];
+    private readonly NetRef<Customer?> _reservingCustomer = [];
 
-    private Table _table;
+    private Table? _table;
 
     internal Table Table
     {
@@ -25,13 +26,21 @@ public abstract class Seat : INetObject<NetFields>
         set => _table = value;
     }
 
-    internal Customer ReservingCustomer
+    internal Customer? ReservingCustomer
     {
         get => _reservingCustomer.Value;
         set => _reservingCustomer.Set(value);
     }
 
-    internal GameLocation Location => Utility.GetLocationFromName(Table?.CurrentLocation);
+    internal GameLocation? Location
+    {
+        get
+        {
+            if (Table?.CurrentLocation != null)
+                return CommonHelper.GetLocation(Table.CurrentLocation);
+            return null;
+        }
+    }
 
     internal Point Position
     {

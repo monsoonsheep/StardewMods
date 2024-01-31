@@ -10,7 +10,7 @@ namespace BusSchedules;
 #if DEBUG
 internal static class Debug
 {
-    internal static void ButtonPress(object sender, ButtonPressedEventArgs e)
+    internal static void ButtonPress(object? sender, ButtonPressedEventArgs e)
     {
         if (!Context.IsMainPlayer || !Context.CanPlayerMove)
             return;

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using MonsoonSheep.Stardew.Common;
 using StardewValley;
 using StardewValley.Objects;
 using StardewValley.Pathfinding;
@@ -13,11 +14,11 @@ public static class PathfindingExtensions
 {
 
     public static bool PathTo(this NPC me, GameLocation targetLocation, Point targetTile, int finalFacingDirection = 0,
-        PathFindController.endBehavior endBehavior = null)
+        PathFindController.endBehavior? endBehavior = null)
     {
         me.controller = null;
 
-        Stack<Point> path = null;
+        Stack<Point>? path = null;
         try
         {
             path = PathfindFromLocationToLocation(me.currentLocation, me.TilePoint, targetLocation, targetTile, me);
@@ -45,7 +46,7 @@ public static class PathfindingExtensions
         return true;
     }
 
-    public static Stack<Point> PathfindFromLocationToLocation(GameLocation startingLocation, Point startTile,
+    public static Stack<Point>? PathfindFromLocationToLocation(GameLocation startingLocation, Point startTile,
         GameLocation targetLocation, Point targetTile, NPC character)
     {
         Point nextStartPosition = startTile;
@@ -56,23 +57,30 @@ public static class PathfindingExtensions
             return FindPath(nextStartPosition, targetTile, startingLocation, character);
         }
 
-        string[] locationsRoute = WarpPathfindingCache.GetLocationRoute(startingLocation.Name, targetLocation.Name, character.Gender);
+        string[]? locationsRoute = WarpPathfindingCache.GetLocationRoute(startingLocation.Name, targetLocation.Name, character.Gender);
         if (locationsRoute == null)
             throw new Exception("Location route not found");
 
         for (int i = 0; i < locationsRoute.Length; i++)
         {
-            GameLocation current = Utility.GetLocationFromName(locationsRoute[i]);
+            GameLocation? current = CommonHelper.GetLocation(locationsRoute[i]);
+            if (current == null)
+            {
+                Log.Error($"Couldn't find location {locationsRoute[i]} for pathfinding");
+                return null;
+            }
+
             if (i < locationsRoute.Length - 1)
             {
-                Point target = locationsRoute[i + 1] == Mod.Cafe.Indoor.Name
-                ? current.getWarpPointTo(Mod.Cafe.Indoor.uniqueName.Value)
-                : current.getWarpPointTo(locationsRoute[i + 1]);
+                Point target = 
+                    (locationsRoute[i + 1] == Mod.CafeIndoor?.Name)
+                    ? current.getWarpPointTo(Mod.CafeIndoor.uniqueName.Value)
+                    : current.getWarpPointTo(locationsRoute[i + 1]);
 
                 if (target.Equals(Point.Zero))
                     throw new Exception("Error finding route to cafe. Couldn't find warp point");
 
-                Stack<Point> nextPath = FindPath(nextStartPosition, target, current, character);
+                Stack<Point>? nextPath = FindPath(nextStartPosition, target, current, character);
                 if (nextPath == null)
                     return null;
                 path = CombineStacks(path, nextPath);
@@ -80,11 +88,10 @@ public static class PathfindingExtensions
                 nextStartPosition = current.getWarpPointTarget(target);
                 if (nextStartPosition == Point.Zero)
                 {
-                    GameLocation indoors = current.getBuildingAt(target.ToVector2()).GetIndoors();
-                    if (indoors != null)
+                    GameLocation? indoors = current.getBuildingAt(target.ToVector2()).GetIndoors();
+                    if (indoors?.warps.FirstOrDefault() is { } warp)
                     {
-                        Warp w = indoors.warps.FirstOrDefault();
-                        nextStartPosition = new Point(w.X, w.Y - 1);
+                        nextStartPosition = new Point(warp.X, warp.Y - 1);
                     }
                 }
             }
@@ -99,9 +106,6 @@ public static class PathfindingExtensions
 
         static Stack<Point> CombineStacks(Stack<Point> original, Stack<Point> toAdd)
         {
-            if (toAdd == null)
-                return original;
-
             original = new Stack<Point>(original);
             while (original.Count > 0)
                 toAdd.Push(original.Pop());
@@ -112,7 +116,7 @@ public static class PathfindingExtensions
         return path;
     }
 
-    public static Stack<Point> FindPath(Point startTile, Point targetTile, GameLocation location, Character character, int iterations = 30000)
+    public static Stack<Point>? FindPath(Point startTile, Point targetTile, GameLocation location, Character character, int iterations = 30000)
     {
 
         Furniture furniture = location.GetFurnitureAt(targetTile.ToVector2());
@@ -126,7 +130,7 @@ public static class PathfindingExtensions
                 new sbyte[] { 1, 0 }, // right
             };
 
-            Stack<Point> shortestPath = null;
+            Stack<Point>? shortestPath = null;
             foreach (var direction in directions)
             {
                 Point newTile = targetTile + new Point(direction[0], direction[1]);

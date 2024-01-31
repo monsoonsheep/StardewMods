@@ -13,7 +13,7 @@ internal class MenuCategoryEntry : MenuEntry
     private readonly int _xPositionForCentering;
     private readonly int _lengthOfText;
 
-    internal MenuCategoryEntry(string name)
+    internal MenuCategoryEntry(string name, Texture2D sprites) : base(sprites)
     {
         Name = name;
         _lengthOfText = (int)Game1.smallFont.MeasureString(name).X;
@@ -37,7 +37,7 @@ internal class MenuCategoryEntry : MenuEntry
         Rectangle stretch = source_sideLine;
 
         b.Draw(
-            Mod.Sprites,
+            Sprites,
             new Vector2(slotX + 16, slotY + 8),
             stretch,
             Color.White,
@@ -47,7 +47,7 @@ internal class MenuCategoryEntry : MenuEntry
             SpriteEffects.None,
             1f);
         b.Draw(
-            Mod.Sprites,
+            Sprites,
             new Vector2(slotX + Bounds.Width - 16, slotY + 8),
             stretch,
             Color.White,
@@ -61,7 +61,7 @@ internal class MenuCategoryEntry : MenuEntry
         stretch.Width = 1;
 
         b.Draw(
-            Mod.Sprites,
+            Sprites,
             new Vector2(slotX + 20, slotY + 8),
             stretch,
             Color.White,
@@ -71,7 +71,7 @@ internal class MenuCategoryEntry : MenuEntry
             SpriteEffects.None,
             1f);
         b.Draw(
-            Mod.Sprites,
+            Sprites,
             new Vector2(slotX + _xPositionForCentering + _lengthOfText + 18, slotY + 8),
             stretch,
             Color.White,
@@ -82,5 +82,9 @@ internal class MenuCategoryEntry : MenuEntry
             1f);
 
 
+        if (EditMode)
+        {
+
+        }
     }
 }

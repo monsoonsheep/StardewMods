@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>b9e9edfc-e98a-4370-994f-40a9f39a0284</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Common</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\CollectionExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MapExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ObjectExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\IInvariantSet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\MutableInvariantSet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CommonHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Enums\TreeType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DrawHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GameI18n.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Items\SearchableItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Items\ItemRepository.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ListExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ModDataDictionaryExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SpriteInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TileHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UI\BaseOverlay.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UI\CommonSprites.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UI\DropdownList.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UI\Dropdown.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\Cached.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\InvariantDictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\InvariantSet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\ObjectReferenceComparer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\SetExtensions.cs" />
+  </ItemGroup>
+</Project>

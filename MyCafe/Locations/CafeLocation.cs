@@ -1,13 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
-using StardewValley;
-using StardewValley.Objects;
 using xTile.Layers;
 using xTile.Tiles;
 

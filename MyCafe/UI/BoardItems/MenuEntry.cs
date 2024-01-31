@@ -1,17 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using StardewValley.Menus;
 
 namespace MyCafe.UI.BoardItems;
 
 internal abstract class MenuEntry
 {
     internal static Rectangle Bounds;
+    internal bool EditMode;
+    protected Texture2D Sprites;
+
+    internal MenuEntry(Texture2D sprites)
+    {
+        this.Sprites = sprites;
+    }
 
     internal abstract void Draw(SpriteBatch b, int slotX, int slotY);
 }

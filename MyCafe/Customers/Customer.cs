@@ -6,25 +6,28 @@ using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Pathfinding;
 using System.Linq;
+using MonsoonSheep.Stardew.Common;
 using MyCafe.Locations.Objects;
 
 namespace MyCafe.Customers;
 
 public class Customer : NPC
 {
-    private Seat _reservedSeat;
+    private readonly Texture2D Sprites;
+    private Seat? _reservedSeat;
 
-    internal Seat ReservedSeat
+    internal Seat? ReservedSeat
     {
-        get => _reservedSeat ??= Group?.ReservedTable.Seats.FirstOrDefault(s => s.ReservingCustomer.Equals(this));
+        get => _reservedSeat ??= Group?.ReservedTable?.Seats.FirstOrDefault(s => s.ReservingCustomer == this);
         set => _reservedSeat = value;
     }
+
     internal NetRef<Item> ItemToOrder = [];
     internal NetBool DrawName = new NetBool(false);
     internal NetBool DrawItemOrder = new NetBool(false);
 
     internal bool IsSittingDown;
-    internal CustomerGroup Group;
+    internal CustomerGroup Group = null!;
     private Vector2 _lerpStartPosition;
     private Vector2 _lerpEndPosition;
     private float _lerpPosition = -1f;
@@ -34,14 +37,14 @@ public class Customer : NPC
     {
         if (c is Customer customer)
         {
-            int direction = Utility.DirectionIntFromVectors(customer.Tile, customer.ReservedSeat.Position.ToVector2());
+            int direction = CommonHelper.DirectionIntFromVectors(customer.Tile, customer.ReservedSeat!.Position.ToVector2());
             customer.SitDown(direction);
             customer.faceDirection(customer.ReservedSeat.SittingDirection);
 
             customer.IsSittingDown = true;
             if (customer.Group.Members.Any(other => !other.IsSittingDown))
                 return;
-            customer.ReservedSeat.Table.State.Set(TableState.CustomersThinkingOfOrder);
+            customer.ReservedSeat!.Table!.State.Set(TableState.CustomersThinkingOfOrder);
         }
     };
 
@@ -50,8 +53,9 @@ public class Customer : NPC
 
     }
 
-    public Customer(string name, Vector2 position, string location, AnimatedSprite sprite, Texture2D portrait) : base(sprite, position, location, 2, name, portrait, eventActor: true)
+    public Customer(string name, Vector2 position, string location, AnimatedSprite sprite, Texture2D portrait, Texture2D sprites) : base(sprite, position, location, 2, name, portrait, eventActor: true)
     {
+        this.Sprites = sprites;
     }
 
     protected override void initNetFields()
@@ -135,7 +139,7 @@ public class Customer : NPC
             pos.Y -= 32 + Sprite.SpriteHeight * 3;
 
             b.Draw(
-                Mod.Sprites,
+                Sprites,
                 pos + offset,
                 new Rectangle(0, 16, 16, 16),
                 Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 
@@ -153,9 +157,9 @@ public class Customer : NPC
     {
         if (!probe)
         {
-            Table table = Group.ReservedTable;
+            Table? table = Group.ReservedTable;
             
-            if (Mod.Cafe.InteractWithTable(table, who))
+            if (table != null && Mod.PlayerInteractWithTable(table, who))
                 return true;
         }
         
@@ -164,7 +168,7 @@ public class Customer : NPC
 
     internal void SitDown(int direction)
     {
-        Vector2 sitPosition = Position + Utility.DirectionIntToDirectionVector(direction) * 64f;
+        Vector2 sitPosition = Position + CommonHelper.DirectionIntToDirectionVector(direction) * 64f;
         LerpPosition(Position, sitPosition, 0.2f);
     }
 

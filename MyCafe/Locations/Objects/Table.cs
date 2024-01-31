@@ -1,10 +1,9 @@
 ﻿using System;
 using MyCafe.Customers;
 using Netcode;
-using StardewValley;
 using System.Collections.Generic;
-using System.Linq;
 using System.Xml.Serialization;
+using Microsoft.Xna.Framework;
 
 
 namespace MyCafe.Locations.Objects;

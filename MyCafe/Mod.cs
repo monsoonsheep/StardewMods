@@ -1,7 +1,4 @@
-﻿global using SUtility = StardewValley.Utility;
-global using SObject = StardewValley.Object;
-
-using HarmonyLib;
+﻿using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MyCafe.Customers.Data;
@@ -15,56 +12,65 @@ using StardewValley.GameData.Buildings;
 using StardewValley.Objects;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using MyCafe.Customers;
 using xTile;
 using System.IO;
 using MyCafe.UI;
 using System.Runtime.CompilerServices;
+using MonsoonSheep.Stardew.Common;
 using MonsoonSheep.Stardew.Common.Patching;
 using StardewValley.Locations;
 using MyCafe.Locations.Objects;
+using SUtility = StardewValley.Utility;
 
 namespace MyCafe;
 
 public class Mod : StardewModdingAPI.Mod
 {
-    internal new static IMonitor Monitor;
-    internal static IModHelper ModHelper;
-    internal new static IManifest ModManifest;
+    internal static Mod Instance = null!;
+    internal static string UniqueId = null!;
 
-    internal static ISpaceCoreApi SpaceCore;
+    internal ISpaceCoreApi SpaceCore = null!;
         
-    internal static ConfigModel Config;
-    internal static Texture2D Sprites;
-    internal static Dictionary<string, BusCustomerData> CustomersData;
+    internal ConfigModel Config = null!;
+    internal Texture2D Sprites = null!;
+    internal Dictionary<string, BusCustomerData> CustomersData = [];
 
-    private static NetRef<Cafe> _cafe;
+    internal static bool IsPlacingSignBoard;
+
+    private NetRef<Cafe> _cafe = null!;
+
     internal static Cafe Cafe
     {
-        get
-        {
-            _cafe ??= Game1.getFarm().get_Cafe();
-            return _cafe.Value;
-        }
-        set => _cafe = new NetRef<Cafe>(value);
+        get => Instance._cafe.Value;
+        set => Instance._cafe = new NetRef<Cafe>(value);
+    }
+
+    internal static GameLocation? CafeIndoor => Cafe.Indoor;
+    internal static GameLocation? CafeOutdoor => Cafe.Outdoor;
+
+    public Mod()
+    {
+        Instance = this;
     }
 
     /// <inheritdoc/>
     public override void Entry(IModHelper helper)
     {
-        Monitor = base.Monitor;
-        ModHelper = helper;
-        ModManifest = base.ModManifest;
+        Harmony.DEBUG = true;
         Log.Monitor = Monitor;
         I18n.Init(helper.Translation);
         Config = helper.ReadConfig<ConfigModel>();
+        UniqueId = ModManifest.UniqueID;
 
         // Harmony patches
         if (HarmonyPatcher.TryApply(this,
                 new LocationPatcher(),
                 new CharacterPatcher(),
-                new FurniturePatcher()
+                new FurniturePatcher(),
+                new BuildingPatcher()
             ) is false)
             return;
        
@@ -87,19 +93,18 @@ public class Mod : StardewModdingAPI.Mod
         Sprites = helper.ModContent.Load<Texture2D>(Path.Combine("assets", "sprites.png"));
     }
 
-
-    private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
+    private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
     {
-        SpaceCore = ModHelper.ModRegistry.GetApi<ISpaceCoreApi>("spacechase0.SpaceCore")!;
+        SpaceCore = this.Helper.ModRegistry.GetApi<ISpaceCoreApi>("spacechase0.SpaceCore")!;
         SpaceCore.RegisterSerializerType(typeof(Cafe));
         SpaceCore.RegisterSerializerType(typeof(CafeLocation));
         CafeState.Register();
 
-        ModConfig.InitializeGmcm();
+        ModConfig.InitializeGmcm(this.Helper, this.ModManifest);
         GameLocation.RegisterTileAction(ModKeys.SIGNBOARD_BUILDING_CLICK_EVENT_KEY, CafeMenu.Action_OpenCafeMenu);
     }
 
-    private void OnSaveLoaded(object sender, SaveLoadedEventArgs e)
+    private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
     {
         if (!Context.IsMainPlayer) return;
 
@@ -114,16 +119,16 @@ public class Mod : StardewModdingAPI.Mod
         if (Game1.player.modData.TryGetValue(ModKeys.MODDATA_MENUITEMSLIST, out var menuitems))
         {
             Cafe.MenuItems.Clear();
-            var split = menuitems.Split('|');
+            //var split = menuitems.Split('|');
             //foreach (var item in split.Select(id => ItemRegistry.Create<Item>(id)))
             //{
             //    Cafe.AddToMenu(item);
             //}
         }
-        Cafe.Initialize(ModHelper);
+        Cafe.Initialize(this.Helper, this.CustomersData, this.Sprites);
     }
 
-    internal void OnDayStarted(object sender, DayStartedEventArgs e)
+    internal void OnDayStarted(object? sender, DayStartedEventArgs e)
     {
         if (!Context.IsMainPlayer) return;
 
@@ -141,7 +146,7 @@ public class Mod : StardewModdingAPI.Mod
 
     }
 
-    internal void OnSaving(object sender, SavingEventArgs e)
+    internal void OnSaving(object? sender, SavingEventArgs e)
     {
         if (!Context.IsMainPlayer) return;
 
@@ -149,7 +154,7 @@ public class Mod : StardewModdingAPI.Mod
         Game1.player.modData[ModKeys.MODDATA_MENUITEMSLIST] = "";
     }
 
-    internal void OnDayEnding(object sender, DayEndingEventArgs e)
+    internal void OnDayEnding(object? sender, DayEndingEventArgs e)
     {
         if (!Context.IsMainPlayer) return;
 
@@ -162,13 +167,13 @@ public class Mod : StardewModdingAPI.Mod
         });
     }
 
-    internal static void OnAssetRequested(object sender, AssetRequestedEventArgs e)
+    internal void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
     {
         // NPC Schedules
         if (e.Name.IsDirectlyUnderPath(ModKeys.ASSETS_NPCSCHEDULE_PREFIX))
         {
             string npcname = e.Name.Name.Split('/').Last();
-            var file = ModHelper.Data.ReadJsonFile<VillagerCustomerData>(Path.Combine("assets", "Schedules", npcname + ".json"));
+            var file = this.Helper.Data.ReadJsonFile<VillagerCustomerData>(Path.Combine("assets", "Schedules", npcname + ".json"));
             if (file != null)
                 e.LoadFrom(() => file, AssetLoadPriority.Low);
         }
@@ -179,8 +184,8 @@ public class Mod : StardewModdingAPI.Mod
             e.Edit(asset =>
             {
                 var data = asset.AsDictionary<string, BuildingData>();
-                data.Data[ModKeys.CAFE_BUILDING_BUILDING_ID] = ModHelper.ModContent.Load<BuildingData>(Path.Combine("assets", "Buildings", "Cafe", "cafebuilding.json"));
-                data.Data[ModKeys.CAFE_SIGNBOARD_BUILDING_ID] = ModHelper.ModContent.Load<BuildingData>(Path.Combine("assets", "Buildings", "Signboard", "signboard.json"));
+                data.Data[ModKeys.CAFE_BUILDING_BUILDING_ID] = this.Helper.ModContent.Load<BuildingData>(Path.Combine("assets", "Buildings", "Cafe", "cafebuilding.json"));
+                data.Data[ModKeys.CAFE_SIGNBOARD_BUILDING_ID] = this.Helper.ModContent.Load<BuildingData>(Path.Combine("assets", "Buildings", "Signboard", "signboard.json"));
             }, AssetEditPriority.Early);
         }
         // Cafe building texture
@@ -200,7 +205,7 @@ public class Mod : StardewModdingAPI.Mod
         }
     }
     
-    internal static void OnAssetReady(object sender, AssetReadyEventArgs e)
+    internal static void OnAssetReady(object? sender, AssetReadyEventArgs e)
     {
         if (e.Name.IsDirectlyUnderPath(ModKeys.ASSETS_NPCSCHEDULE_PREFIX))
         {
@@ -208,8 +213,7 @@ public class Mod : StardewModdingAPI.Mod
         }
     }
 
-
-    internal void OnTimeChanged(object sender, TimeChangedEventArgs e)
+    internal void OnTimeChanged(object? sender, TimeChangedEventArgs e)
     {
         if (!Context.IsMainPlayer) return;
 
@@ -246,8 +250,8 @@ public class Mod : StardewModdingAPI.Mod
             prob += Game1.random.Next(20 + Math.Max(0, minutesTillCloses / 3)) >= 28 ? 0.2f : -0.5f;
     }
 
-
-    internal void OnRenderedWorld(object sender, RenderedWorldEventArgs e)
+    [SuppressMessage("ReSharper", "PossibleLossOfFraction", Justification = "Deliberate in order to get the tile")]
+    internal void OnRenderedWorld(object? sender, RenderedWorldEventArgs e)
     {
         // get list of reserved tables with center coords
         foreach (var table in Cafe.Tables)
@@ -275,9 +279,33 @@ public class Mod : StardewModdingAPI.Mod
                 }
             }
         }
+
+        if (Mod.IsPlacingSignBoard)
+        {
+            foreach (Vector2 tile in TileHelper.GetCircularTileGrid(new Vector2((Game1.viewport.X + Game1.getOldMouseX(false)) / 64, (Game1.viewport.Y + Game1.getOldMouseY(false)) / 64 ), Config.DistanceForSignboardToRegisterTables))
+            {
+                
+                // get tile area in screen pixels
+                Rectangle area = new((int)(tile.X * Game1.tileSize - Game1.viewport.X), (int)(tile.Y * Game1.tileSize - Game1.viewport.Y), Game1.tileSize, Game1.tileSize);
+
+                // choose tile color
+                Color color = Color.LightCyan;
+
+                // draw background
+                e.SpriteBatch.DrawLine(area.X, area.Y, new Vector2(area.Width, area.Height), color * 0.2f);
+
+                // draw border
+                int borderSize = 1;
+                Color borderColor = color * 0.5f;
+                e.SpriteBatch.DrawLine(area.X, area.Y, new Vector2(area.Width, borderSize), borderColor); // top
+                e.SpriteBatch.DrawLine(area.X, area.Y, new Vector2(borderSize, area.Height), borderColor); // left
+                e.SpriteBatch.DrawLine(area.X + area.Width, area.Y, new Vector2(borderSize, area.Height), borderColor); // right
+                e.SpriteBatch.DrawLine(area.X, area.Y + area.Height, new Vector2(area.Width, borderSize), borderColor); // bottom
+            }
+        }
     }
 
-    internal void OnFurnitureListChanged(object sender, FurnitureListChangedEventArgs e)
+    internal void OnFurnitureListChanged(object? sender, FurnitureListChangedEventArgs e)
     {
         if (!Context.IsMainPlayer) return;
 
@@ -287,7 +315,7 @@ public class Mod : StardewModdingAPI.Mod
             {
                 if (Utility.IsChair(f))
                 {
-                    FurnitureSeat trackedChair = Cafe.Tables
+                    FurnitureSeat? trackedChair = Cafe.Tables
                         .OfType<FurnitureTable>()
                         .SelectMany(t => t.Seats)
                         .OfType<FurnitureSeat>()
@@ -314,7 +342,7 @@ public class Mod : StardewModdingAPI.Mod
                 if (Utility.IsChair(f))
                 {
                     // Get position of table in front of the chair
-                    Vector2 tablePos = f.TileLocation + Utility.DirectionIntToDirectionVector(f.currentRotation.Value) * new Vector2(1, -1);
+                    Vector2 tablePos = f.TileLocation + CommonHelper.DirectionIntToDirectionVector(f.currentRotation.Value) * new Vector2(1, -1);
 
                     // Get table Furniture object
                     Furniture facingFurniture = e.Location.GetFurnitureAt(tablePos);
@@ -328,7 +356,8 @@ public class Mod : StardewModdingAPI.Mod
                         continue;
                     }
 
-                    FurnitureTable table = Utility.IsTableTracked(facingFurniture, e.Location, out FurnitureTable existing)
+                    FurnitureTable table = 
+                        Utility.IsTableTracked(facingFurniture, e.Location, out FurnitureTable existing)
                         ? existing
                         : new FurnitureTable(facingFurniture, e.Location.Name);
 
@@ -343,15 +372,14 @@ public class Mod : StardewModdingAPI.Mod
                         if (table.Seats.Count > 0)
                             Cafe.TryAddTable(table);
                     }
-
                 }
             }
         }
     }
 
-    internal static void OnModMessageReceived(object sender, ModMessageReceivedEventArgs e)
+    internal void OnModMessageReceived(object? sender, ModMessageReceivedEventArgs e)
     {
-        if (e.FromModID != ModManifest.UniqueID)
+        if (e.FromModID != this.ModManifest.UniqueID)
             return;
 
         if (e.Type == "VisitorDoEmote" && !Context.IsMainPlayer)
@@ -370,15 +398,15 @@ public class Mod : StardewModdingAPI.Mod
 
     internal void LoadContentPacks()
     {
-        CustomersData = new Dictionary<string, BusCustomerData>();
+        CustomersData = [];
 
-        foreach (IContentPack contentPack in ModHelper.ContentPacks.GetOwned())
+        foreach (IContentPack contentPack in this.Helper.ContentPacks.GetOwned())
         {
             Log.Debug($"Loading content pack {contentPack.Manifest.Name} by {contentPack.Manifest.Author}");
             var modelsInPack = new DirectoryInfo(Path.Combine(contentPack.DirectoryPath, "Customers")).GetDirectories();
             foreach (var modelFolder in modelsInPack)
             {
-                CustomerModel model = contentPack.ReadJsonFile<CustomerModel>(Path.Combine("Customers", modelFolder.Name, "customer.json"));
+                CustomerModel? model = contentPack.ReadJsonFile<CustomerModel>(Path.Combine("Customers", modelFolder.Name, "customer.json"));
                 if (model == null)
                 {
                     Log.Debug("Couldn't read json for content pack");
@@ -395,7 +423,7 @@ public class Mod : StardewModdingAPI.Mod
                 else
                 {
                     string portraitName = string.IsNullOrEmpty(model.PortraitName) ? "cat" : model.PortraitName;
-                    model.PortraitName = ModHelper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", portraitName + ".png")).Name;
+                    model.PortraitName = this.Helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", portraitName + ".png")).Name;
                 }
 
                 CustomersData[model.Name] = new BusCustomerData()
@@ -404,6 +432,11 @@ public class Mod : StardewModdingAPI.Mod
                 };
             }
         }
+    }
+
+    internal static bool PlayerInteractWithTable(Table table, Farmer who)
+    {
+        return Cafe.InteractWithTable(table, who);
     }
 }
 
@@ -418,7 +451,7 @@ public static class CafeState
 
     internal static void Register()
     {
-        Mod.SpaceCore.RegisterCustomProperty(
+        Mod.Instance.SpaceCore.RegisterCustomProperty(
             typeof(Farm),
             "Cafe",
             typeof(NetRef<Cafe>),

@@ -1,9 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
-using StardewValley.Buildings;
 using StardewValley.Objects;
-using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
 using MonsoonSheep.Stardew.Common.Patching;

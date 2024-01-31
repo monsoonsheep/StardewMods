@@ -1,27 +1,29 @@
 ﻿using MyCafe.Interfaces;
+using StardewModdingAPI;
 
 namespace MyCafe;
 
 internal static class ModConfig
 {
-    internal static void InitializeGmcm()
+    internal static void InitializeGmcm(IModHelper helper, IManifest manifest)
     {
         // get Generic Mod Config Menu's API (if it's installed)
-        var configMenu = Mod.ModHelper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
+        var configMenu = helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
         if (configMenu is null)
             return;
 
         // register mod
         configMenu.Register(
-            mod: Mod.ModManifest,
-            reset: () => Mod.Config = new ConfigModel(),
-            save: () => Mod.ModHelper.WriteConfig(Mod.Config)
+            mod: manifest,
+            reset: () => Mod.Instance.Config = new ConfigModel(),
+            save: () => helper.WriteConfig(Mod.Instance.Config)
         );
     }
 }
 
 internal class ConfigModel
 {
+    public int DistanceForSignboardToRegisterTables { get; set; } = 7;
     public bool EnableScrollbarInMenuBoard { get; set; } = false;
     public int CustomerSpawnFrequency { get; set; } = 2;
     public int NpcCustomerSpawnFrequency { get; set; } = 2;

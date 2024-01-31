@@ -5,9 +5,9 @@ namespace MyCafe.Customers.Data;
 
 public class VillagerCustomerData : CustomerData
 {
-    public Dictionary<string, List<BusyPeriod>> BusyTimes;
+    public Dictionary<string, List<BusyPeriod>> BusyTimes = null!;
 
-    internal NPC RealNpc;
+    internal NPC RealNpc = null!;
 }
 
 public class BusyPeriod

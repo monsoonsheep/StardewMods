@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Xna.Framework.Graphics;
 using MyCafe.Customers;
 using StardewModdingAPI;
 using MyCafe.Locations.Objects;
@@ -10,9 +11,11 @@ internal abstract class CustomerSpawner
 {
     internal List<CustomerGroup> ActiveGroups;
     internal SpawnerState State = SpawnerState.Disabled;
+    protected Texture2D sprites;
 
-    internal CustomerSpawner()
+    internal CustomerSpawner(Texture2D sprites)
     {
+        this.sprites = sprites;
         ActiveGroups = [];
     }
 

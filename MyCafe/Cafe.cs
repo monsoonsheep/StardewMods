@@ -1,5 +1,4 @@
-﻿using System;
-using HarmonyLib;
+﻿using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Netcode;
 using StardewModdingAPI;
@@ -11,37 +10,36 @@ using StardewValley.Pathfinding;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Xml;
-using System.Xml.Schema;
 using System.Xml.Serialization;
+using Microsoft.Xna.Framework.Graphics;
+using MonsoonSheep.Stardew.Common;
 using MyCafe.CustomerFactory;
 using MyCafe.Customers;
-using StardewValley.Inventories;
-using StardewValley.ItemTypeDefinitions;
+using MyCafe.Customers.Data;
 using StardewValley.Locations;
-using xTile.Layers;
-using xTile.Tiles;
 using MyCafe.Locations.Objects;
+using SUtility = StardewValley.Utility;
 
 namespace MyCafe;
 
 [XmlType("Mods_MonsoonSheep_MyCafe_Cafe")]
 public class Cafe : INetObject<NetFields>
 {
+    internal Texture2D Sprites = null!;
+
+    internal CustomerManager Customers = null!;
+
     public NetFields NetFields { get; } = new NetFields("Cafe");
 
     internal readonly NetInt OpeningTime = new NetInt(630);
     internal readonly NetInt ClosingTime = new NetInt(2200);
+    internal int LastTimeCustomersArrived = 0;
 
     private readonly NetCollection<Table> _tables = [];
     private readonly NetBool _cafeEnabled = new NetBool();
     private readonly NetLocationRef _cafeIndoor = new NetLocationRef();
     private readonly NetLocationRef _cafeOutdoor = new NetLocationRef();
 
-    internal int LastTimeCustomersArrived = 0;
-
-    internal CustomerManager Customers;
 
     internal Dictionary<string, List<Item>> MenuItems = new Dictionary<string, List<Item>>();
     internal readonly List<Item> Recipes = new();
@@ -52,13 +50,13 @@ public class Cafe : INetObject<NetFields>
         set => _cafeEnabled.Set(value);
     }
 
-    internal CafeLocation Indoor
+    internal CafeLocation? Indoor
     {
         get => _cafeIndoor.Value as CafeLocation;
         set => _cafeIndoor.Set(value);
     }
 
-    internal GameLocation Outdoor
+    internal GameLocation? Outdoor
     {
         get => _cafeOutdoor.Value;
         set => _cafeOutdoor.Set(value);
@@ -73,9 +71,11 @@ public class Cafe : INetObject<NetFields>
             .AddField(OpeningTime).AddField(ClosingTime).AddField(_tables).AddField(_cafeEnabled).AddField(_cafeIndoor.NetFields).AddField(_cafeOutdoor.NetFields);
     }
 
-    internal void Initialize(IModHelper helper)
+    internal void Initialize(IModHelper helper, Dictionary<string, BusCustomerData> customersData, Texture2D sprites)
     {
-        Customers = new CustomerManager(helper);
+        this.Sprites = sprites;
+
+        Customers = new CustomerManager(helper, customersData, sprites, this);
         _tables.OnValueAdded += delegate(Table table)
         {
             table.State.fieldChangeVisibleEvent += (_, oldValue, newValue) => OnTableStateChange(table, new TableStateChangedEventArgs()
@@ -141,9 +141,11 @@ public class Cafe : INetObject<NetFields>
         // Remove duplicate tables
         for (var i = Tables.Count - 1; i >= 0; i--)
         {
-            GameLocation location = Utility.GetLocationFromName(Tables[i].CurrentLocation);
-            if (Tables[i] is FurnitureTable t && !location.furniture.Any(f => f.TileLocation == t.Position) ||
-                locations.Any(l => Tables[i].CurrentLocation == l.Name))
+            GameLocation? location = CommonHelper.GetLocation(Tables[i].CurrentLocation);
+            if (location != null 
+                && Tables[i] is FurnitureTable t
+                && !location.furniture.Any(f => f.TileLocation == t.Position) 
+                || locations.Any(l => Tables[i].CurrentLocation == l.Name))
             {
                 Tables.RemoveAt(i);
             }
@@ -193,7 +195,7 @@ public class Cafe : INetObject<NetFields>
                 return true;
             case TableState.CustomersWaitingForFood:
             {
-                var itemsNeeded = table.Seats.Where(s => s.ReservingCustomer != null).Select(c => c.ReservingCustomer.ItemToOrder.Value.ItemId).ToList();
+                var itemsNeeded = table.Seats.Where(s => s.ReservingCustomer != null).Select(c => c.ReservingCustomer!.ItemToOrder.Value.ItemId).ToList();
                 foreach (var item in itemsNeeded)
                 {
                     if (!who.Items.ContainsId(item, minimum: itemsNeeded.Count(x => x == item)))
@@ -235,16 +237,16 @@ public class Cafe : INetObject<NetFields>
                 Log.Debug("Table decided");
                 break;
             case TableState.CustomersWaitingForFood:
-                foreach (Customer c in table.Seats.Where(s => s.ReservingCustomer != null).Select(s => s.ReservingCustomer))
+                foreach (Customer? c in table.Seats.Select(s => s.ReservingCustomer))
                 {
-                    c.DrawItemOrder.Set(true);
+                    c?.DrawItemOrder.Set(true);
                 }
                 Log.Debug("Table waiting for order");
                 break;
             case TableState.CustomersEating:
-                foreach (Customer c in table.Seats.Where(s => s.ReservingCustomer != null).Select(s => s.ReservingCustomer))
+                foreach (Customer? c in table.Seats.Select(s => s.ReservingCustomer))
                 {
-                    c.DrawItemOrder.Set(false);
+                    c?.DrawItemOrder.Set(false);
                 }
                 Log.Debug("Table eating");
                 Game1.delayedActions.Add(new DelayedAction(2000, delegate ()
@@ -254,8 +256,11 @@ public class Cafe : INetObject<NetFields>
                 break;
             case TableState.CustomersFinishedEating:
                 Log.Debug("Table finished meal");
-                CustomerGroup group = Customers.GetGroupFromTable(table);
-                Customers.LetGo(group);
+                CustomerGroup? group = Customers.GetGroupFromTable(table);
+                if (group != null)
+                    Customers.LetGo(group);
+                else
+                    Log.Error("Problem getting group from table!");
                 break;
         }
     }
@@ -263,7 +268,7 @@ public class Cafe : INetObject<NetFields>
     internal Table GetTableOfSeat(Seat seat)
     {
         Log.Error("Should remove this method");
-        return Tables.FirstOrDefault(t => t.Seats.Contains(seat));
+        return Tables.FirstOrDefault(t => t.Seats.Contains(seat))!;
     }
 
     internal bool UpdateCafeLocations()
@@ -313,15 +318,15 @@ public class Cafe : INetObject<NetFields>
     internal void PopulateRoutesToCafe()
     {
         MethodInfo addRouteMethod = AccessTools.Method(typeof(WarpPathfindingCache), "AddRoute", [typeof(List<string>), typeof(Gender?)]);
-        if (addRouteMethod == null)
+        if (addRouteMethod == null || Outdoor == null)
         {
-            Log.Error("Couldn't find method to add route");
+            Log.Error("Couldn't populate routes to cafe");
             return;
         }
 
         foreach (var location in Game1.locations)
         {
-            List<string> route = WarpPathfindingCache.GetLocationRoute(location.Name, Outdoor.Name, Gender.Undefined)?.ToList();
+            List<string>? route = WarpPathfindingCache.GetLocationRoute(location.Name, Outdoor.Name, Gender.Undefined)?.ToList();
 
             if (route == null && Outdoor.Equals(Game1.getFarm()))
             {
@@ -343,16 +348,16 @@ public class Cafe : INetObject<NetFields>
             var reverseRoute = new List<string>(route);
             reverseRoute.Reverse();
 
-            addRouteMethod.Invoke(null, [route, (object)null]);
-            addRouteMethod.Invoke(null, [reverseRoute, (object)null]);
+            addRouteMethod.Invoke(null, [route, null]);
+            addRouteMethod.Invoke(null, [reverseRoute, null]);
 
             if (Indoor != null)
             {
                 route.Add(Indoor.Name);
                 reverseRoute.Insert(0, Indoor.Name);
 
-                addRouteMethod.Invoke(null, [route, (object)null]);
-                addRouteMethod.Invoke(null, [reverseRoute, (object)null]);
+                addRouteMethod.Invoke(null, [route, null]);
+                addRouteMethod.Invoke(null, [reverseRoute, null]);
             }
         }
     }
@@ -370,7 +375,7 @@ public class Cafe : INetObject<NetFields>
         return true;
     }
 
-    public void RemoveFromMenu(Item item, string category = null)
+    public void RemoveFromMenu(Item item, string? category = null)
     {
         if (string.IsNullOrEmpty(category))
             category = MenuItems.Keys.FirstOrDefault(key => MenuItems[key].Contains(item));

@@ -23,9 +23,9 @@ internal class OptionItemSlider : OptionsElement
 
     private int PixelWidth => bounds.Width - 10 * Game1.pixelZoom;
 
-    private Func<int, string> formatFunction;
+    private readonly Func<int, string> formatFunction;
 
-    public OptionItemSlider(string label, int value, Action<int> setValue, int minValue, int maxValue, int width = 48, Func<int, string> formatFunction = null)
+    public OptionItemSlider(string label, int value, Action<int> setValue, int minValue, int maxValue, int width = 48, Func<int, string>? formatFunction = null)
         : base(label, 32, 32, width * Game1.pixelZoom, 6 * Game1.pixelZoom)
     {
         this.label = label;
@@ -79,7 +79,7 @@ internal class OptionItemSlider : OptionsElement
         setValue(value);
     }
 
-    public override void draw(SpriteBatch b, int slotX, int slotY, IClickableMenu context = null)
+    public override void draw(SpriteBatch b, int slotX, int slotY, IClickableMenu? context = null)
     {
         base.label = $"{label}: {formatFunction(value)}";
 

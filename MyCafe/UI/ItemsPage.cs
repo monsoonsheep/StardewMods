@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using StardewValley;
 using StardewValley.ItemTypeDefinitions;
 using StardewValley.Menus;
-
+using SObject = StardewValley.Object;
+using SUtility = StardewValley.Utility;
 namespace MyCafe.UI;
 internal class ItemsPage : MenuPageBase
 {
@@ -47,7 +46,7 @@ internal class ItemsPage : MenuPageBase
         }
     }
 
-    public ItemsPage(CafeMenu parent, Rectangle bounds) : base("Edit Menu", bounds, parent)
+    public ItemsPage(CafeMenu parent, Rectangle bounds, Texture2D sprites) : base("Edit Menu", bounds, parent, sprites)
     {
         _searchBarTextBoxBounds = new Rectangle(
             Bounds.X + Bounds.Width / 4,
@@ -86,7 +85,7 @@ internal class ItemsPage : MenuPageBase
                 Bounds.Right - source_loadButton.Width - 64, 
                 Bounds.Center.Y - source_loadButton.Height, 
                 source_loadButton.Width, source_loadButton.Height),
-            Mod.Sprites,
+            Sprites,
             source_loadButton,
             2f)
         {
@@ -104,7 +103,7 @@ internal class ItemsPage : MenuPageBase
                 Bounds.Right - source_loadButton.Width - 64, 
                 Bounds.Center.Y + source_loadButton.Height * 2, 
                 source_loadButton.Width, source_loadButton.Height),
-            Mod.Sprites,
+            Sprites,
             source_saveButton,
             2f)
         {
@@ -192,7 +191,7 @@ internal class ItemsPage : MenuPageBase
             fullyImmutable = true
         };
 
-        defaultComponent = 42420;
+        DefaultComponent = 42420;
         _searchResultItems.AddRange(Game1.player.Items.Where(i => i?.Category == SObject.CookingCategory));
         UpdateSlots();
     }

@@ -1,3 +1,4 @@
+using MonsoonSheep.Stardew.Common;
 using MyCafe.Customers;
 using Netcode;
 using StardewValley;
@@ -5,6 +6,7 @@ using StardewValley.Objects;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Serialization;
+using Microsoft.Xna.Framework;
 
 
 namespace MyCafe.Locations.Objects;
@@ -62,8 +64,8 @@ public class FurnitureTable : Table
                     continue;
                 }
 
-                GameLocation location = Utility.GetLocationFromName(CurrentLocation);
-                Furniture chairAt = location.GetFurnitureAt(new Vector2(Position.X + i, Position.Y + j));
+                GameLocation? location = CommonHelper.GetLocation(CurrentLocation);
+                Furniture? chairAt = location?.GetFurnitureAt(new Vector2(Position.X + i, Position.Y + j));
                 if (chairAt == null || !Utility.IsChair(chairAt))
                     continue;
 
@@ -85,7 +87,7 @@ public class FurnitureTable : Table
         }
     }
 
-    internal FurnitureSeat AddChair(Furniture chairToAdd)
+    internal FurnitureSeat? AddChair(Furniture chairToAdd)
     {
         if (IsReserved)
             return null;

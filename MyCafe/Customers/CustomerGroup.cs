@@ -1,17 +1,17 @@
-﻿using System;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.Pathfinding;
 using System.Collections.Generic;
 using System.Linq;
 using MyCafe.Locations.Objects;
+using MonsoonSheep.Stardew.Common;
 
 namespace MyCafe.Customers;
 
 public class CustomerGroup
 {
     internal List<Customer> Members = [];
-    internal Table ReservedTable;
+    internal Table? ReservedTable;
 
     internal CustomerGroup(List<Customer> members)
     {
@@ -42,9 +42,12 @@ public class CustomerGroup
 
     internal bool MoveToTable()
     {
-        List<Point> tiles = Members.Select(m => m.ReservedSeat.Position).ToList();
+        List<Point> tiles = Members.Select(m => m.ReservedSeat!.Position).ToList();
+        if (ReservedTable == null)
+            return false;
+
         ReservedTable.State.Set(TableState.WaitingForCustomers);
-        return MoveTo(Utility.GetLocationFromName(ReservedTable.CurrentLocation), tiles, Customer.SitDownBehavior);
+        return MoveTo(CommonHelper.GetLocation(ReservedTable.CurrentLocation)!, tiles, Customer.SitDownBehavior);
     }
 
     internal bool MoveTo(GameLocation location, List<Point> tilePositions, PathFindController.endBehavior endBehavior)

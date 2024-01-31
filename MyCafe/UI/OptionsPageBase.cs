@@ -4,12 +4,7 @@ using StardewValley.Menus;
 using StardewValley;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
-using System.Security.Cryptography;
 
 namespace MyCafe.UI;
 internal abstract class OptionsPageBase : MenuPageBase
@@ -27,7 +22,7 @@ internal abstract class OptionsPageBase : MenuPageBase
     private readonly Rectangle _scrollBarRunner;
     protected int CurrentItemIndex = 0;
 
-    protected OptionsPageBase(string name, Rectangle bounds, CafeMenu parentMenu) : base(name, bounds, parentMenu)
+    protected OptionsPageBase(string name, Rectangle bounds, CafeMenu parentMenu, Texture2D sprites) : base(name, bounds, parentMenu, sprites)
     {
         _upArrow = new ClickableTextureComponent(
             new Rectangle(bounds.Right - 30, bounds.Y + 101, 44, 48), 
@@ -75,7 +70,7 @@ internal abstract class OptionsPageBase : MenuPageBase
         OptionSlotSize = new Rectangle(0, 0, Bounds.Width - Game1.tileSize / 4,
             (Bounds.Height) / OptionSlotsCount);
 
-        defaultComponent = 41410;
+        DefaultComponent = 41410;
     }
 
     public override void receiveLeftClick(int x, int y, bool playSound = true)

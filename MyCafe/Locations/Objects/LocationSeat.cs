@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using MonsoonSheep.Stardew.Common;
 using MyCafe.Customers;
 using StardewValley;
 using System.Linq;
@@ -46,8 +47,11 @@ public sealed class LocationSeat : Seat
         if (!base.Reserve(customer))
             return false;
 
-        GameLocation location = Utility.GetLocationFromName(Table.CurrentLocation);
-        MapSeat mapSeat = location.mapSeats.FirstOrDefault(s => s.tilePosition.Value.Equals(Position.ToVector2()));
+        GameLocation? location = CommonHelper.GetLocation(Table.CurrentLocation);
+        if (location == null) 
+            return false;
+
+        MapSeat? mapSeat = location.mapSeats.FirstOrDefault(s => s.tilePosition.Value.Equals(Position.ToVector2()));
         mapSeat?.sittingFarmers.Add(Game1.MasterPlayer.UniqueMultiplayerID, 0);
 
         return true;
@@ -56,8 +60,8 @@ public sealed class LocationSeat : Seat
     internal override void Free()
     {
         base.Free();
-        GameLocation location = Utility.GetLocationFromName(Table.CurrentLocation);
-        MapSeat mapSeat = location.mapSeats.ToList().FirstOrDefault(s => s.tilePosition.Value.Equals(Position.ToVector2()));
+        GameLocation? location = CommonHelper.GetLocation(Table.CurrentLocation);
+        MapSeat? mapSeat = location?.mapSeats?.ToList().FirstOrDefault(s => s.tilePosition.Value.Equals(Position.ToVector2()));
         mapSeat?.RemoveSittingFarmer(Game1.MasterPlayer);
     }
 

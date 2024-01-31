@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using Microsoft.Xna.Framework;
 using MyCafe.Customers;
 using StardewModdingAPI;
 using StardewValley;
@@ -8,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using MonsoonSheep.Stardew.Common.Patching;
-using MyCafe.Locations;
 using Object = StardewValley.Object;
 
 namespace MyCafe.Patching;

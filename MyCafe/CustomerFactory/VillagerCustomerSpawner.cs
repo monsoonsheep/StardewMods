@@ -4,17 +4,23 @@ using MyCafe.Customers.Data;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Pathfinding;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Xna.Framework.Graphics;
 using MyCafe.Locations.Objects;
-
+using SObject = StardewValley.Object;
+using SUtility = StardewValley.Utility;
 namespace MyCafe.CustomerFactory;
 
 internal class VillagerCustomerSpawner : CustomerSpawner
 {
     internal readonly Dictionary<string, VillagerCustomerData> VillagerData = new();
+
+    internal VillagerCustomerSpawner(Texture2D sprites) : base(sprites)
+    {
+
+    }
 
     internal override Task<bool> Initialize(IModHelper helper)
     {
@@ -54,7 +60,7 @@ internal class VillagerCustomerSpawner : CustomerSpawner
             return false;
 
         // If no busy period for today, they're free all day
-        if (!data.BusyTimes.TryGetValue(npc.ScheduleKey, out List<BusyPeriod> busyPeriods) || busyPeriods.Count == 0)
+        if (!data.BusyTimes.TryGetValue(npc.ScheduleKey, out List<BusyPeriod>? busyPeriods) || busyPeriods.Count == 0)
             return true;
 
         // Check their busy periods for their current schedule key
@@ -78,7 +84,7 @@ internal class VillagerCustomerSpawner : CustomerSpawner
     {
         NPC npc = Game1.getCharacterFromName("Shane");
 
-        Customer customer = new Customer(npc.Name, npc.Position, npc.DefaultMap, npc.Sprite, npc.Portrait);
+        Customer customer = new Customer(npc.Name, npc.Position, npc.DefaultMap, npc.Sprite, npc.Portrait, sprites);
         npc.currentLocation.characters.Remove(npc);
         npc.currentLocation.characters.Add(customer);
 
@@ -134,10 +140,12 @@ internal class VillagerCustomerSpawner : CustomerSpawner
             GameLocation targetLocation = Game1.getLocationFromName(originalPathDescription.targetLocationName);
             if (targetLocation != null)
             {
-                Stack<Point> routeToScheduleItem =
-                    PathfindingExtensions.PathfindFromLocationToLocation(original.currentLocation, original.TilePoint,
-                                                               targetLocation, originalPathDescription.targetTile,
-                                                               original);
+                Stack<Point>? routeToScheduleItem = PathfindingExtensions.PathfindFromLocationToLocation(
+                    original.currentLocation, 
+                    original.TilePoint,
+                    targetLocation, 
+                    originalPathDescription.targetTile,
+                    original);
 
                 SchedulePathDescription toInsert = new SchedulePathDescription(
                     routeToScheduleItem,

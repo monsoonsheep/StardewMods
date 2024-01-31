@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -15,16 +11,20 @@ public abstract class MenuPageBase : IClickableMenu
     internal Rectangle Bounds;
     internal string Name;
 
-    internal string HoverTitle;
-    internal string HoverText;
+    protected Texture2D Sprites;
+
+    internal string? HoverTitle;
+    internal string? HoverText;
 
     internal bool InFocus;
-    protected int defaultComponent;
+    protected int DefaultComponent;
 
     protected new CafeMenu _parentMenu;
 
-    internal MenuPageBase(string name, Rectangle bounds, CafeMenu parentMenu) : base(bounds.X, bounds.Y, bounds.Width, bounds.Height)
+    internal MenuPageBase(string name, Rectangle bounds, CafeMenu parentMenu, Texture2D sprites) : base(bounds.X, bounds.Y, bounds.Width, bounds.Height)
     {
+        this.Sprites = sprites;
+
         Name = name;
         _parentMenu = parentMenu;
         Bounds = bounds;
@@ -48,7 +48,7 @@ public abstract class MenuPageBase : IClickableMenu
     public override void snapToDefaultClickableComponent()
     {
         InFocus = true;
-        setCurrentlySnappedComponentTo(defaultComponent);
+        setCurrentlySnappedComponentTo(DefaultComponent);
     }
 
     public override void setCurrentlySnappedComponentTo(int id)

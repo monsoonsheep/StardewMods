@@ -1,29 +1,26 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using StardewValley.GameData.HomeRenovations;
 using StardewValley;
 using StardewValley.Menus;
+using SObject = StardewValley.Object;
+using SUtility = StardewValley.Utility;
 
 namespace MyCafe.UI.Options;
 internal class OptionStatusSet : OptionsElement
 {
     private Rectangle _setButtonBounds;
-    private ClickableComponent _setButton;
-    private string _setButtonText;
-    private Vector2 _textCenter;
-    private string _unsetText;
-    private string _setText;
-    private bool isSetTaskRunning;
+    private readonly ClickableComponent _setButton;
+    private readonly string _setButtonText;
+    private readonly Vector2 _textCenter;
+    private readonly string _unsetText;
+    private readonly string _setText;
     private bool isSet;
-    private Func<Task<bool>> setFunction;
+    private readonly Func<Task<bool>> setFunction;
     private Func<bool> checkFunction;
-    private Task<bool> runTask;
+    private Task<bool> runTask = null!;
     private readonly CancellationTokenSource cancellation = new CancellationTokenSource();
 
     public OptionStatusSet(string label, string buttonText, string unsetText, string setText, Func<Task<bool>> setFunction, Func<bool> checkFunction, Rectangle rec, int optionNumber) : base(label, rec.X, rec.Y, rec.Width, rec.Height)
@@ -43,7 +40,7 @@ internal class OptionStatusSet : OptionsElement
 
         this.setFunction = setFunction;
         this.checkFunction = checkFunction;
-        if (checkFunction != null && checkFunction.Invoke() == true)
+        if (checkFunction.Invoke() == true)
         {
             isSet = true;
         }
@@ -71,7 +68,7 @@ internal class OptionStatusSet : OptionsElement
         }
     }
 
-    public override void draw(SpriteBatch b, int slotX, int slotY, IClickableMenu context = null)
+    public override void draw(SpriteBatch b, int slotX, int slotY, IClickableMenu? context = null)
     {
         // Label
         // base.draw(b, slotX, slotY, context);

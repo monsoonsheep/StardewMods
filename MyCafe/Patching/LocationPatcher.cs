@@ -1,10 +1,7 @@
 ﻿using StardewModdingAPI;
 using StardewValley;
-using System.Collections.Generic;
-using System.Linq;
 using HarmonyLib;
 using MonsoonSheep.Stardew.Common.Patching;
-using StardewValley.Network;
 using xTile.Dimensions;
 using MyCafe.Locations.Objects;
 
@@ -26,7 +23,7 @@ internal class LocationPatcher : BasePatcher
 
     private static void After_InitNetFields(Farm __instance)
     {
-        __instance.NetFields.AddField(__instance.get_Cafe(), $"{Mod.ModManifest.UniqueID}.Cafe");
+        __instance.NetFields.AddField(__instance.get_Cafe(), $"{Mod.UniqueId}.Cafe");
         Mod.Cafe = __instance.get_Cafe().Value;
     }
 

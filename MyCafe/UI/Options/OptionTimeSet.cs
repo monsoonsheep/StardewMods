@@ -3,47 +3,45 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 using StardewValley.Menus;
+using SUtility = StardewValley.Utility;
 
 namespace MyCafe.UI.Options;
 
 internal class OptionTimeSet : OptionsElementBase
 {
-    private new readonly string label;
+    internal static int NumberOfComponents = 2;
+    private readonly Action<int> _setValue;
 
-    internal static int numberOfComponents = 2;
-    private readonly Action<int> setValue;
+    private readonly int _minValue;
+    private readonly int _maxValue;
 
-    private readonly int minValue;
-    private readonly int maxValue;
+    private int _hours;
+    private int _minutes;
+    private bool _am;
 
-    private int hours;
-    private int minutes;
-    private bool am;
-
-    private Vector2 textPos;
-    private Rectangle minuteUpRec;
-    private Rectangle minuteDownRec;
+    private Rectangle _minuteUpRec;
+    private Rectangle _minuteDownRec;
 
     public ClickableComponent UpArrow;
     public ClickableComponent DownArrow;
 
-    private Rectangle source_TimeArrow = new Rectangle(16, 19, 22, 13);
+    private static readonly Rectangle source_timeArrow = new Rectangle(16, 19, 22, 13);
 
-    public OptionTimeSet(string label, int initialValue, int minValue, int maxValue, Rectangle rec, int optionNumber, Action<int> setFunction) 
-        : base(label, rec)
+    public OptionTimeSet(string label, int initialValue, int minValue, int maxValue, Rectangle rec, int optionNumber, Action<int> setFunction, Texture2D sprites) 
+        : base(label, rec, sprites)
     {
-        this.minValue = minValue;
-        this.maxValue = maxValue;
-        setValue = setFunction;
+        this._minValue = minValue;
+        this._maxValue = maxValue;
+        _setValue = setFunction;
 
-        minutes = initialValue % 100;
-        am = initialValue < 1200 || initialValue >= 2400;
-        hours = initialValue / 100;
+        _minutes = initialValue % 100;
+        _am = initialValue < 1200 || initialValue >= 2400;
+        _hours = initialValue / 100;
 
-        minuteUpRec = new Rectangle(bounds.X, bounds.Y + 12, 32, 20);
-        minuteDownRec = new Rectangle(bounds.X, bounds.Y + 12 + 30, 32, 20);
+        _minuteUpRec = new Rectangle(bounds.X, bounds.Y + 12, 32, 20);
+        _minuteDownRec = new Rectangle(bounds.X, bounds.Y + 12 + 30, 32, 20);
 
-        UpArrow = new(minuteUpRec, "uparrow")
+        UpArrow = new(_minuteUpRec, "uparrow")
         {
             myID = optionNumber,
             downNeighborID = optionNumber + 1,
@@ -51,7 +49,7 @@ internal class OptionTimeSet : OptionsElementBase
             rightNeighborID = -7777,
             region = optionNumber
         };
-        DownArrow = new(minuteDownRec, "downarrow")
+        DownArrow = new(_minuteDownRec, "downarrow")
         {
             myID = optionNumber + 1,
             upNeighborID = optionNumber,
@@ -67,19 +65,19 @@ internal class OptionTimeSet : OptionsElementBase
     public override void receiveLeftClick(int x, int y)
     {
         base.receiveLeftClick(x, y);
-        if (minuteUpRec.Contains(x, y))
+        if (_minuteUpRec.Contains(x, y))
         {
             MinuteUp();
             SetTime();
         }
-        else if (minuteDownRec.Contains(x, y))
+        else if (_minuteDownRec.Contains(x, y))
         {
             MinuteDown();
             SetTime();
         }
     }
 
-    public override void draw(SpriteBatch b, int slotX, int slotY, IClickableMenu context = null)
+    public override void draw(SpriteBatch b, int slotX, int slotY, IClickableMenu? context = null)
     {
         SUtility.drawTextWithShadow(
             b, 
@@ -89,58 +87,58 @@ internal class OptionTimeSet : OptionsElementBase
 
         b.DrawString(
             Game1.dialogueFont,
-            FormatHours().ToString().PadLeft(2, '0') + " : " + minutes.ToString().PadLeft(2, '0') + (am ? " am" : " pm"),
+            FormatHours().ToString().PadLeft(2, '0') + " : " + _minutes.ToString().PadLeft(2, '0') + (_am ? " am" : " pm"),
             new Vector2(slotX + bounds.X + 32, slotY + bounds.Y + 14),
             Color.Black);
 
-        b.Draw(Mod.Sprites, new Rectangle(minuteUpRec.X + slotX, minuteUpRec.Y + slotY, minuteUpRec.Width, minuteUpRec.Height), source_TimeArrow, Color.White, 0f, Vector2.Zero, SpriteEffects.FlipVertically, 0.9f);
-        b.Draw(Mod.Sprites, new Rectangle(minuteDownRec.X + slotX, minuteDownRec.Y + slotY, minuteUpRec.Width, minuteUpRec.Height), source_TimeArrow, Color.White, 0f, Vector2.Zero, SpriteEffects.None, 0.9f);
+        b.Draw(Sprites, new Rectangle(_minuteUpRec.X + slotX, _minuteUpRec.Y + slotY, _minuteUpRec.Width, _minuteUpRec.Height), source_timeArrow, Color.White, 0f, Vector2.Zero, SpriteEffects.FlipVertically, 0.9f);
+        b.Draw(Sprites, new Rectangle(_minuteDownRec.X + slotX, _minuteDownRec.Y + slotY, _minuteUpRec.Width, _minuteUpRec.Height), source_timeArrow, Color.White, 0f, Vector2.Zero, SpriteEffects.None, 0.9f);
     }
 
     internal override Vector2 Snap(int direction)
     {
         if (direction == 0)
         {
-            if (currentlySnapped == 0)
+            if (CurrentlySnapped == 0)
             {
-                currentlySnapped = DownArrow.myID;
+                CurrentlySnapped = DownArrow.myID;
                 return DownArrow.bounds.Center.ToVector2();
             }
 
-            if (currentlySnapped == DownArrow.myID)
+            if (CurrentlySnapped == DownArrow.myID)
             {
-                currentlySnapped = UpArrow.myID;
+                CurrentlySnapped = UpArrow.myID;
                 return UpArrow.bounds.Center.ToVector2();
             }
         }
         else if (direction == 2)
         {
-            if (currentlySnapped == 0)
+            if (CurrentlySnapped == 0)
             {
-                currentlySnapped = UpArrow.myID;
+                CurrentlySnapped = UpArrow.myID;
                 return UpArrow.bounds.Center.ToVector2();
             }
 
-            if (currentlySnapped == UpArrow.myID)
+            if (CurrentlySnapped == UpArrow.myID)
             {
-                currentlySnapped = DownArrow.myID;
+                CurrentlySnapped = DownArrow.myID;
                 return DownArrow.bounds.Center.ToVector2();
             }
         }
 
-        currentlySnapped = 0;
+        CurrentlySnapped = 0;
         return Vector2.Zero;
     }
 
     private void SetTime()
     {
-        am = hours < 12 || hours >= 24;
-        setValue(hours * 100 + minutes);
+        _am = _hours < 12 || _hours >= 24;
+        _setValue(_hours * 100 + _minutes);
     }
 
     private int FormatHours()
     {
-        int h = am ? hours % 12 : hours - 12;
+        int h = _am ? _hours % 12 : _hours - 12;
         if (h == 0)
             h = 12;
         return h;
@@ -148,43 +146,43 @@ internal class OptionTimeSet : OptionsElementBase
 
     private void MinuteUp()
     {
-        if (minutes >= 50)
+        if (_minutes >= 50)
         {
-            int h = hours;
+            int h = _hours;
             HourUp();
-            if (h == hours || hours * 100 + minutes > maxValue)
+            if (h == _hours || _hours * 100 + _minutes > _maxValue)
                 return;
-            minutes = 0;
+            _minutes = 0;
         }
         else
         {
-            minutes += 10;
+            _minutes += 10;
         }
     }
 
     private void MinuteDown()
     {
-        if (minutes < 10)
+        if (_minutes < 10)
         {
-            int h = hours;
+            int h = _hours;
             HourDown();
-            if (h == hours || hours * 100 + minutes < minValue)
+            if (h == _hours || _hours * 100 + _minutes < _minValue)
                 return;
-            minutes = 50;
+            _minutes = 50;
         }
         else
         {
-            minutes -= 10;
+            _minutes -= 10;
         }
     }
 
     private void HourUp()
     {
-        hours = Math.Min(Math.Min(25, maxValue / 100), hours + 1);
+        _hours = Math.Min(Math.Min(25, _maxValue / 100), _hours + 1);
     }
 
     private void HourDown()
     {
-        hours = Math.Max(Math.Max(6, minValue / 100), hours - 1);
+        _hours = Math.Max(Math.Max(6, _minValue / 100), _hours - 1);
     }
 }

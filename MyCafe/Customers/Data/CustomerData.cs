@@ -1,5 +1,4 @@
 ﻿using StardewValley;
-using System.Collections.Generic;
 
 namespace MyCafe.Customers.Data;
 
