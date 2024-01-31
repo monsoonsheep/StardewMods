@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Threading;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
@@ -82,27 +80,27 @@ internal class BusManager
         NPC pam = Game1.getCharacterFromName("Pam");
         if (!BusLocation.characters.Contains(pam) || pam.TilePoint is not { X: 11, Y: 10 })
             CloseDoorAndDriveAway();
-
         else
-            pam.temporaryController = new PathFindController(pam, BusLocation, new Point(12, 9), 3, delegate(Character c, GameLocation loc)
+            pam.temporaryController = new PathFindController(pam, BusLocation, new Point(12, 9), 3, delegate(Character c, GameLocation _)
             {
                 if (c is NPC p)
-                {
                     p.Position = new Vector2(-1000f, -1000f);
-                }
-
+                
                 CloseDoorAndDriveAway();
             });
     }
 
     internal void CloseDoorAndDriveAway()
     {
+        if (Context.IsMainPlayer)
+            Mod.SendMessageToClient("BusDoorClose");
+
         void DriveAwayAction(bool animate)
         {
             Log.Debug("Bus is leaving");
 
-            BusLeaving = true;
             BusReturning = false;
+            BusLeaving = true;
 
             // Instantly leave if no farmer is in bus stop
             if (!animate)
@@ -110,7 +108,7 @@ internal class BusManager
                 BusGone = true;
                 BusLeaving = false;
                 BusMotion = Vector2.Zero;
-                SetBusOutOfFrame();
+                MoveBusOutOfMap();
             }
 
             var tiles = BusLocation.Map.GetLayer("Buildings").Tiles;
@@ -126,7 +124,7 @@ internal class BusManager
         if (Game1.player.currentLocation.Equals(BusLocation))
         {
             ResetDoor();
-            var door = BusDoor;
+            TemporaryAnimatedSprite door = BusDoor;
             door.interval = 70f;
             door.timer = 0f;
             door.endFunction = delegate
@@ -144,7 +142,7 @@ internal class BusManager
         }
     }
 
-    internal void SetBusPark()
+    internal void ParkBus()
     {
         BusMotion = Vector2.Zero;
         
@@ -155,7 +153,7 @@ internal class BusManager
         BusPosition = new Vector2(704f, BusPosition.Y);
     }
 
-    internal void SetBusOutOfFrame()
+    internal void MoveBusOutOfMap()
     {
         BusGone = true;
         BusReturning = false;
@@ -176,7 +174,7 @@ internal class BusManager
 
         if (Game1.player.currentLocation.Equals(BusLocation))
         {
-            SetBusOutOfFrame();
+            MoveBusOutOfMap();
             BusLocation.localSound("busDriveOff");
             // The UpdateWhenCurrentLocation postfix will handle the movement and call AfterDriveBack
             BusReturning = true;
@@ -217,7 +215,7 @@ internal class BusManager
 
     internal void ResetBus()
     {
-        SetBusPark();
+        ParkBus();
         var tiles = BusLocation.Map.GetLayer("Buildings").Tiles;
         for (int i = 11; i <= 18; i++)
         {

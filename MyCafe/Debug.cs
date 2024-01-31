@@ -35,6 +35,7 @@ internal class Debug
                 break;
             case SButton.NumPad3:
                 Mod.Cafe.Customers.RemoveAllCustomers();
+                Mod.Cafe.PopulateTables();
                 break;
             case SButton.NumPad4:
                 foreach (var table in Mod.Cafe.Tables)
@@ -66,7 +67,7 @@ internal class Debug
                 break;
             case SButton.U:
                 //Mod.Sprites = Mod.ModHelper.ModContent.Load<Texture2D>("assets/sprites.png");
-                Game1.activeClickableMenu = new CafeMenu(Mod.Instance.Sprites);
+                Game1.activeClickableMenu = new CafeMenu(Mod.Sprites);
                 break;
             default:
                 return;

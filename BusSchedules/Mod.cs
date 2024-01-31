@@ -120,10 +120,6 @@ internal sealed class Mod : StardewModdingAPI.Mod
             BusEvents.BusArrive += SpawnVisitors;
             BusEvents.BusArrive += BusManager.PamBackToSchedule;
         }
-        else
-        {
-
-        }
     }
     private void UnhookEvents()
     {

@@ -9,7 +9,7 @@ namespace BusSchedules;
 
 internal static class Log
 {
-    internal static IMonitor Monitor;
+    internal static IMonitor Monitor = null!;
 
     internal static void Debug(string message)
     {

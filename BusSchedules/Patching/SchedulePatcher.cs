@@ -15,7 +15,7 @@ namespace BusSchedules.Patching;
 
 internal class SchedulePatcher : BasePatcher
 {
-    private static readonly BusManager Bm = Mod.Instance.BusManager;
+    private static BusManager Bm => Mod.Instance.BusManager;
 
     public override void Apply(Harmony harmony, IMonitor monitor)
     {
@@ -43,7 +43,7 @@ internal class SchedulePatcher : BasePatcher
             __instance.DefaultPosition = new Vector2(12, 9) * 64f;
         }
 
-        __state = new KeyValuePair<string, Vector2>(null, Vector2.Zero);
+        __state = new KeyValuePair<string, Vector2>("", Vector2.Zero);
 
         return true;
     }

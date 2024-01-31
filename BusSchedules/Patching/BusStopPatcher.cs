@@ -9,16 +9,15 @@ using Microsoft.Xna.Framework.Graphics;
 using MonsoonSheep.Stardew.Common.Patching;
 using StardewModdingAPI;
 using StardewValley;
-using StardewValley.Extensions;
 using StardewValley.Locations;
 using StardewValley.Pathfinding;
-using xTile;
 
 namespace BusSchedules.Patching;
 
 internal class BusStopPatcher : BasePatcher
 {
-    private static readonly BusManager Bm = Mod.Instance.BusManager;
+    private static BusManager Bm => Mod.Instance.BusManager;
+
     public override void Apply(Harmony harmony, IMonitor monitor)
     {
         harmony.Patch(
@@ -57,7 +56,7 @@ internal class BusStopPatcher : BasePatcher
         if (Bm.BusGone)
         {
             Bm.BusMotion = Vector2.Zero;
-            Bm.SetBusOutOfFrame();
+            Bm.MoveBusOutOfMap();
             Bm.ResetDoor();
         }
     }
@@ -70,7 +69,7 @@ internal class BusStopPatcher : BasePatcher
         // If bus is currently moving in the location or it's about to arrive in 20 minutes or it's only been 20 minutes since it left
         if (Bm.BusLeaving || Bm.BusReturning || (Bm.BusGone && (Mod.Instance.TimeUntilNextArrival <= 20 || Mod.Instance.TimeSinceLastArrival <= 20)))
         {
-            Game1.chatBox.addMessage("The bus will be ready in 10 minutes.", Color.White);
+            Game1.chatBox.addMessage("The bus will arrive shortly.", Color.White);
             __result = false;
             return false;
         }
@@ -111,11 +110,11 @@ internal class BusStopPatcher : BasePatcher
     /// <summary>
     /// Prevent the game from stopping you from boarding the bus when Pam isn't there
     /// </summary>
-    private static IEnumerable<CodeInstruction> Transpiler_answerDialogue(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    private static IEnumerable<CodeInstruction> Transpiler_answerDialogue(IEnumerable<CodeInstruction> instructions)
     {
         var list = instructions.ToList();
         int idx1 = -1;
-        int idx2 = -2;
+        int idx2 = -1;
 
         MethodInfo drawObjectDialogMethod = AccessTools.Method(typeof(Game1), nameof(Game1.drawObjectDialogue), new[] { typeof(string) });
 
@@ -152,7 +151,7 @@ internal class BusStopPatcher : BasePatcher
         }
         if (Bm.BusLeaving || Bm.BusGone)
         {
-            Bm.SetBusOutOfFrame();
+            Bm.MoveBusOutOfMap();
             Bm.ResetDoor(closed: true);
         }
     }
@@ -162,11 +161,11 @@ internal class BusStopPatcher : BasePatcher
     /// </summary>
     private static void After_cleanupForVacancy(GameLocation __instance)
     {
-        if (__instance is BusStop busStop)
+        if (__instance is BusStop)
         {
             if (Bm.BusLeaving || Bm.BusGone)
             {
-                Bm.SetBusOutOfFrame();
+                Bm.MoveBusOutOfMap();
                 Bm.BusMotion = Vector2.Zero;
             }
             else if (Bm.BusReturning)
@@ -189,7 +188,7 @@ internal class BusStopPatcher : BasePatcher
             // Stop moving the bus once it's off screen
             if (Bm.BusPosition.X < -512f)
             {
-                Bm.SetBusOutOfFrame();
+                Bm.MoveBusOutOfMap();
                 Bm.BusMotion = Vector2.Zero;
             }
         }

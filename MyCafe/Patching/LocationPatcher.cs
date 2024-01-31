@@ -24,7 +24,7 @@ internal class LocationPatcher : BasePatcher
     private static void After_InitNetFields(Farm __instance)
     {
         __instance.NetFields.AddField(__instance.get_Cafe(), $"{Mod.UniqueId}.Cafe");
-        Mod.Cafe = __instance.get_Cafe().Value;
+        Mod.Instance.NetCafe = __instance.get_Cafe();
     }
 
     private static void After_CheckAction(Farm __instance, Location tileLocation, Rectangle viewport, Farmer who, ref bool __result)

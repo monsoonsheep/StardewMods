@@ -311,7 +311,7 @@ public sealed class CafeMenu : IClickableMenu
         if (Game1.activeClickableMenu == null && Context.IsPlayerFree)
         {
             Log.Debug("Opened cafe menu menu!");
-            Game1.activeClickableMenu = new CafeMenu(Mod.Instance.Sprites);
+            Game1.activeClickableMenu = new CafeMenu(Mod.Sprites);
         }
 
         return true;

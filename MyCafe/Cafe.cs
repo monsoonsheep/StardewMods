@@ -195,10 +195,10 @@ public class Cafe : INetObject<NetFields>
                 return true;
             case TableState.CustomersWaitingForFood:
             {
-                var itemsNeeded = table.Seats.Where(s => s.ReservingCustomer != null).Select(c => c.ReservingCustomer!.ItemToOrder.Value.ItemId).ToList();
+                var itemsNeeded = table.Seats.Where(s => s.ReservingCustomer != null).Select(c => c.ReservingCustomer!.ItemToOrder.Value?.ItemId).ToList();
                 foreach (var item in itemsNeeded)
                 {
-                    if (!who.Items.ContainsId(item, minimum: itemsNeeded.Count(x => x == item)))
+                    if (!string.IsNullOrEmpty(item) && !who.Items.ContainsId(item, minimum: itemsNeeded.Count(x => x == item)))
                     {
                         return false;
                     }

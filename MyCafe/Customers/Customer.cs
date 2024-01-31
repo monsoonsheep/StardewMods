@@ -13,16 +13,15 @@ namespace MyCafe.Customers;
 
 public class Customer : NPC
 {
-    private readonly Texture2D Sprites;
     private Seat? _reservedSeat;
 
     internal Seat? ReservedSeat
     {
-        get => _reservedSeat ??= Group?.ReservedTable?.Seats.FirstOrDefault(s => s.ReservingCustomer == this);
+        get => _reservedSeat ??= Group.ReservedTable?.Seats.FirstOrDefault(s => s.ReservingCustomer == this);
         set => _reservedSeat = value;
     }
 
-    internal NetRef<Item> ItemToOrder = [];
+    internal NetRef<Item?> ItemToOrder = new NetRef<Item?>(null);
     internal NetBool DrawName = new NetBool(false);
     internal NetBool DrawItemOrder = new NetBool(false);
 
@@ -50,12 +49,10 @@ public class Customer : NPC
 
     public Customer()
     {
-
     }
 
-    public Customer(string name, Vector2 position, string location, AnimatedSprite sprite, Texture2D portrait, Texture2D sprites) : base(sprite, position, location, 2, name, portrait, eventActor: true)
+    public Customer(string name, Vector2 position, string location, AnimatedSprite sprite, Texture2D portrait) : base(sprite, position, location, 2, name, portrait, eventActor: true)
     {
-        this.Sprites = sprites;
     }
 
     protected override void initNetFields()
@@ -76,11 +73,11 @@ public class Customer : NPC
             while (currentLocation.Name.Equals("BusStop") && controller.pathToEndPoint?.Count > 2)
             {
                 controller.pathToEndPoint.Pop();
-                GameLocation loc = currentLocation;
                 controller.handleWarps(new Rectangle(controller.pathToEndPoint.Peek().X * 64, controller.pathToEndPoint.Peek().Y * 64, 64, 64));
                 base.Position = new Vector2(controller.pathToEndPoint.Peek().X * 64, controller.pathToEndPoint.Peek().Y * 64 + 16);
             }
         }
+
         speed = 4;
 
         if (_lerpPosition >= 0f)
@@ -102,9 +99,11 @@ public class Customer : NPC
     {
         float mainLayerDepth = Math.Max(0f, base.StandingPixel.Y / 10000f);
 
+        Vector2 localPosition = getLocalPosition(Game1.viewport);
+
         b.Draw(
             Sprite.Texture, 
-            getLocalPosition(Game1.viewport) + new Vector2((float) GetSpriteWidthForPositioning() * 4 / 2, (float) GetBoundingBox().Height / 2) + (shakeTimer > 0 ? new Vector2(Game1.random.Next(-1, 2), Game1.random.Next(-1, 2)) : Vector2.Zero), 
+            localPosition + new Vector2((float) GetSpriteWidthForPositioning() * 4 / 2, (float) GetBoundingBox().Height / 2) + (shakeTimer > 0 ? new Vector2(Game1.random.Next(-1, 2), Game1.random.Next(-1, 2)) : Vector2.Zero), 
             Sprite.SourceRect, 
             Color.White * alpha, 
             rotation, 
@@ -116,7 +115,7 @@ public class Customer : NPC
 
         if (DrawName.Value)
         {
-            Vector2 p = getLocalPosition(Game1.viewport) - new Vector2(40, 64);
+            Vector2 p = localPosition - new Vector2(40, 64);
             b.DrawString(
                 Game1.dialogueFont,
                 this.displayName,
@@ -130,7 +129,7 @@ public class Customer : NPC
                 );
         }
 
-        if (DrawItemOrder.Value)
+        if (DrawItemOrder.Value && ItemToOrder.Value != null)
         {
             Vector2 offset = new Vector2(0,
                 (float) Math.Round(4f * Math.Sin(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 250.0)));
@@ -139,7 +138,7 @@ public class Customer : NPC
             pos.Y -= 32 + Sprite.SpriteHeight * 3;
 
             b.Draw(
-                Sprites,
+                Mod.Sprites,
                 pos + offset,
                 new Rectangle(0, 16, 16, 16),
                 Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 

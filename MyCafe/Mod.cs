@@ -35,18 +35,15 @@ public class Mod : StardewModdingAPI.Mod
     internal ISpaceCoreApi SpaceCore = null!;
         
     internal ConfigModel Config = null!;
-    internal Texture2D Sprites = null!;
+    internal static Texture2D Sprites = null!;
     internal Dictionary<string, BusCustomerData> CustomersData = [];
 
     internal static bool IsPlacingSignBoard;
 
-    private NetRef<Cafe> _cafe = null!;
+    internal NetRef<Cafe> NetCafe = new NetRef<Cafe>();
 
-    internal static Cafe Cafe
-    {
-        get => Instance._cafe.Value;
-        set => Instance._cafe = new NetRef<Cafe>(value);
-    }
+    internal static Cafe Cafe 
+        => Instance.NetCafe.Value;
 
     internal static GameLocation? CafeIndoor => Cafe.Indoor;
     internal static GameLocation? CafeOutdoor => Cafe.Outdoor;
@@ -59,7 +56,6 @@ public class Mod : StardewModdingAPI.Mod
     /// <inheritdoc/>
     public override void Entry(IModHelper helper)
     {
-        Harmony.DEBUG = true;
         Log.Monitor = Monitor;
         I18n.Init(helper.Translation);
         Config = helper.ReadConfig<ConfigModel>();
@@ -119,13 +115,8 @@ public class Mod : StardewModdingAPI.Mod
         if (Game1.player.modData.TryGetValue(ModKeys.MODDATA_MENUITEMSLIST, out var menuitems))
         {
             Cafe.MenuItems.Clear();
-            //var split = menuitems.Split('|');
-            //foreach (var item in split.Select(id => ItemRegistry.Create<Item>(id)))
-            //{
-            //    Cafe.AddToMenu(item);
-            //}
         }
-        Cafe.Initialize(this.Helper, this.CustomersData, this.Sprites);
+        Cafe.Initialize(this.Helper, this.CustomersData, Mod.Sprites);
     }
 
     internal void OnDayStarted(object? sender, DayStartedEventArgs e)

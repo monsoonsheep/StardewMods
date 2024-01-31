@@ -23,11 +23,11 @@ internal abstract class CustomerSpawner
 
     internal virtual bool LetGo(CustomerGroup group, bool force = false)
     {
-        if (group == null || !ActiveGroups.Contains(group))
+        if (!ActiveGroups.Contains(group))
             return false;
         Log.Debug("Removing group");
         ActiveGroups.Remove(group);
-        group.ReservedTable.Free();
+        group.ReservedTable?.Free();
         return true;
     }
 

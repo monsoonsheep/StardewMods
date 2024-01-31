@@ -84,7 +84,7 @@ internal class VillagerCustomerSpawner : CustomerSpawner
     {
         NPC npc = Game1.getCharacterFromName("Shane");
 
-        Customer customer = new Customer(npc.Name, npc.Position, npc.DefaultMap, npc.Sprite, npc.Portrait, sprites);
+        Customer customer = new Customer(npc.Name, npc.Position, npc.DefaultMap, npc.Sprite, npc.Portrait);
         npc.currentLocation.characters.Remove(npc);
         npc.currentLocation.characters.Add(customer);
 

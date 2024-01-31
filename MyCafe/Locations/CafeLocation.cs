@@ -30,11 +30,11 @@ public class CafeLocation : GameLocation
 
     public void PopulateMapTables()
     {
-        if (_mapTables is { Count: > 0 })
-            return;
+        //if (_mapTables is { Count: > 0 })
+        //    return;
 
         _mapTables.Clear();
-        Layer layer = Map.GetLayer("Buildings");
+        Layer layer = Map.GetLayer("Back");
 
         Dictionary<string, Rectangle> seatStringToTableRecs = new();
 

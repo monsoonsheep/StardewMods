@@ -35,14 +35,6 @@ public class FurnitureTable : Table
         NetFields.AddField(ActualTable);
     }
 
-    internal override bool Reserve(List<Customer> customers)
-    {
-        if (!base.Reserve(customers))
-            return false;
-
-        return true;
-    }
-
     internal void PopulateChairs()
     {
         int sizeY = ActualTable.Value.getTilesHigh();
