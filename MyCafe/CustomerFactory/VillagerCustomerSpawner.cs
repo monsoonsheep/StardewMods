@@ -1,15 +1,14 @@
-﻿using Microsoft.Xna.Framework;
-using MyCafe.Customers;
-using MyCafe.Customers.Data;
-using StardewModdingAPI;
-using StardewValley;
-using StardewValley.Pathfinding;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MyCafe.Customers;
+using MyCafe.Customers.Data;
 using MyCafe.Locations.Objects;
-using SObject = StardewValley.Object;
+using StardewModdingAPI;
+using StardewValley;
+using StardewValley.Pathfinding;
 using SUtility = StardewValley.Utility;
 namespace MyCafe.CustomerFactory;
 
@@ -31,7 +30,7 @@ internal class VillagerCustomerSpawner : CustomerSpawner
             {
                 if (Game1.content.Load<VillagerCustomerData>(ModKeys.ASSETS_NPCSCHEDULE_PREFIX + npc.Name) is { } data)
                 {
-                    VillagerData[npc.Name] = data;
+                    this.VillagerData[npc.Name] = data;
                     doneCount++;
                 }
             }
@@ -50,7 +49,7 @@ internal class VillagerCustomerSpawner : CustomerSpawner
 
     private bool CanNpcVisitDuringTime(NPC npc, int timeOfDay)
     {
-        VillagerCustomerData data = VillagerData[npc.Name];
+        VillagerCustomerData data = this.VillagerData[npc.Name];
 
         if (data == null ||
             npc.isSleeping.Value is true ||
@@ -88,9 +87,9 @@ internal class VillagerCustomerSpawner : CustomerSpawner
         npc.currentLocation.characters.Remove(npc);
         npc.currentLocation.characters.Add(customer);
 
-        VillagerData[npc.Name].RealNpc = npc;
+        this.VillagerData[npc.Name].RealNpc = npc;
         CustomerGroup group = new CustomerGroup([customer]);
-        ActiveGroups.Add(group);
+        this.ActiveGroups.Add(group);
         groupSpawned = group;
         return true;
     }
@@ -101,7 +100,7 @@ internal class VillagerCustomerSpawner : CustomerSpawner
             return false;
 
         Customer v = group.Members.First();
-        NPC original = VillagerData[v.Name].RealNpc;
+        NPC original = this.VillagerData[v.Name].RealNpc;
 
         if (original != null)
         {
@@ -114,8 +113,8 @@ internal class VillagerCustomerSpawner : CustomerSpawner
             var activityTimes = v.Schedule.Keys.OrderBy(i => i).ToList();
             int timeOfCurrent = activityTimes.LastOrDefault(t => t <= Game1.timeOfDay);
             int timeOfNext = activityTimes.FirstOrDefault(t => t > Game1.timeOfDay);
-            var minutesSinceCurrentStarted = SUtility.CalculateMinutesBetweenTimes(timeOfCurrent, Game1.timeOfDay);
-            var minutesTillNextStarts = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, timeOfNext);
+            int minutesSinceCurrentStarted = SUtility.CalculateMinutesBetweenTimes(timeOfCurrent, Game1.timeOfDay);
+            int minutesTillNextStarts = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, timeOfNext);
             int timeOfActivity;
             if (timeOfCurrent == 0) // Means it's the start of the day
             {
@@ -141,9 +140,9 @@ internal class VillagerCustomerSpawner : CustomerSpawner
             if (targetLocation != null)
             {
                 Stack<Point>? routeToScheduleItem = PathfindingExtensions.PathfindFromLocationToLocation(
-                    original.currentLocation, 
+                    original.currentLocation,
                     original.TilePoint,
-                    targetLocation, 
+                    targetLocation,
                     originalPathDescription.targetTile,
                     original);
 
@@ -173,7 +172,7 @@ internal class VillagerCustomerSpawner : CustomerSpawner
     {
         // Set which NPCs can visit today based on how many days it's been since their last visit, and their 
         // visit frequency level given in their visit data.
-        foreach (var data in VillagerData)
+        foreach (var data in this.VillagerData)
         {
             int daysSinceLastVisit = Game1.Date.TotalDays - data.Value.LastVisitedDate.TotalDays;
             int daysAllowedBetweenVisits = data.Value.Frequency switch

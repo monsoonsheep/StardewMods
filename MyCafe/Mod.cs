@@ -1,28 +1,29 @@
-﻿using HarmonyLib;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MonsoonSheep.Stardew.Common;
+using MonsoonSheep.Stardew.Common.Patching;
+using MyCafe.Customers;
 using MyCafe.Customers.Data;
+using MyCafe.Enums;
 using MyCafe.Interfaces;
+using MyCafe.Locations.Objects;
 using MyCafe.Patching;
+using MyCafe.UI;
 using Netcode;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.GameData.Buildings;
-using StardewValley.Objects;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using MyCafe.Customers;
-using xTile;
-using System.IO;
-using MyCafe.UI;
-using System.Runtime.CompilerServices;
-using MonsoonSheep.Stardew.Common;
-using MonsoonSheep.Stardew.Common.Patching;
 using StardewValley.Locations;
-using MyCafe.Locations.Objects;
+using StardewValley.Objects;
+using xTile;
 using SUtility = StardewValley.Utility;
 
 namespace MyCafe;
@@ -33,7 +34,7 @@ public class Mod : StardewModdingAPI.Mod
     internal static string UniqueId = null!;
 
     internal ISpaceCoreApi SpaceCore = null!;
-        
+
     internal ConfigModel Config = null!;
     internal static Texture2D Sprites = null!;
     internal Dictionary<string, BusCustomerData> CustomersData = [];
@@ -42,7 +43,7 @@ public class Mod : StardewModdingAPI.Mod
 
     internal NetRef<Cafe> NetCafe = new NetRef<Cafe>();
 
-    internal static Cafe Cafe 
+    internal static Cafe Cafe
         => Instance.NetCafe.Value;
 
     internal static GameLocation? CafeIndoor => Cafe.Indoor;
@@ -56,10 +57,10 @@ public class Mod : StardewModdingAPI.Mod
     /// <inheritdoc/>
     public override void Entry(IModHelper helper)
     {
-        Log.Monitor = Monitor;
+        Log.Monitor = this.Monitor;
         I18n.Init(helper.Translation);
-        Config = helper.ReadConfig<ConfigModel>();
-        UniqueId = ModManifest.UniqueID;
+        this.Config = helper.ReadConfig<ConfigModel>();
+        UniqueId = this.ModManifest.UniqueID;
 
         // Harmony patches
         if (HarmonyPatcher.TryApply(this,
@@ -69,31 +70,31 @@ public class Mod : StardewModdingAPI.Mod
                 new BuildingPatcher()
             ) is false)
             return;
-       
+
         IModEvents events = helper.Events;
 
-        events.GameLoop.GameLaunched += OnGameLaunched;
-        events.GameLoop.SaveLoaded += OnSaveLoaded;
-        events.GameLoop.DayStarted += OnDayStarted;
-        events.GameLoop.Saving += OnSaving;
-        events.Multiplayer.ModMessageReceived += OnModMessageReceived;
-        events.Content.AssetRequested += OnAssetRequested;
+        events.GameLoop.GameLaunched += this.OnGameLaunched;
+        events.GameLoop.SaveLoaded += this.OnSaveLoaded;
+        events.GameLoop.DayStarted += this.OnDayStarted;
+        events.GameLoop.Saving += this.OnSaving;
+        events.Multiplayer.ModMessageReceived += this.OnModMessageReceived;
+        events.Content.AssetRequested += this.OnAssetRequested;
         events.Content.AssetReady += OnAssetReady;
-        events.Display.RenderedWorld += OnRenderedWorld;
+        events.Display.RenderedWorld += this.OnRenderedWorld;
         events.Input.ButtonPressed += Debug.ButtonPress;
 
-        events.World.FurnitureListChanged += OnFurnitureListChanged;
-        events.GameLoop.TimeChanged += OnTimeChanged;
-        events.GameLoop.DayEnding += OnDayEnding;
+        events.World.FurnitureListChanged += this.OnFurnitureListChanged;
+        events.GameLoop.TimeChanged += this.OnTimeChanged;
+        events.GameLoop.DayEnding += this.OnDayEnding;
 
         Sprites = helper.ModContent.Load<Texture2D>(Path.Combine("assets", "sprites.png"));
     }
 
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
     {
-        SpaceCore = this.Helper.ModRegistry.GetApi<ISpaceCoreApi>("spacechase0.SpaceCore")!;
-        SpaceCore.RegisterSerializerType(typeof(Cafe));
-        SpaceCore.RegisterSerializerType(typeof(CafeLocation));
+        this.SpaceCore = this.Helper.ModRegistry.GetApi<ISpaceCoreApi>("spacechase0.SpaceCore")!;
+        this.SpaceCore.RegisterSerializerType(typeof(Cafe));
+        this.SpaceCore.RegisterSerializerType(typeof(CafeLocation));
         CafeState.Register();
 
         ModConfig.InitializeGmcm(this.Helper, this.ModManifest);
@@ -104,19 +105,19 @@ public class Mod : StardewModdingAPI.Mod
     {
         if (!Context.IsMainPlayer) return;
 
-        LoadContentPacks();
-        
-        if (Game1.player.modData.TryGetValue(ModKeys.MODDATA_OPENCLOSETIMES, out var openclose))
+        this.LoadContentPacks();
+
+        if (Game1.player.modData.TryGetValue(ModKeys.MODDATA_OPENCLOSETIMES, out string? openclose))
         {
-            var split = openclose.Split('|');
+            string[] split = openclose.Split('|');
             Cafe.OpeningTime.Set(int.Parse(split[0]));
             Cafe.ClosingTime.Set(int.Parse(split[1]));
         }
-        if (Game1.player.modData.TryGetValue(ModKeys.MODDATA_MENUITEMSLIST, out var menuitems))
+        if (Game1.player.modData.TryGetValue(ModKeys.MODDATA_MENUITEMSLIST, out string? menuitems))
         {
             Cafe.MenuItems.Clear();
         }
-        Cafe.Initialize(this.Helper, this.CustomersData, Mod.Sprites);
+        Cafe.Initialize(this.Helper, this.CustomersData, Sprites);
     }
 
     internal void OnDayStarted(object? sender, DayStartedEventArgs e)
@@ -149,7 +150,7 @@ public class Mod : StardewModdingAPI.Mod
     {
         if (!Context.IsMainPlayer) return;
 
-        SUtility.ForEachLocation(delegate(GameLocation loc)
+        SUtility.ForEachLocation(delegate (GameLocation loc)
         {
             for (int i = loc.characters.Count - 1; i >= 0; i--)
                 if (loc.characters[i] is Customer)
@@ -195,7 +196,7 @@ public class Mod : StardewModdingAPI.Mod
             e.LoadFromModFile<Texture2D>("assets/Cafe/signboard.png", AssetLoadPriority.Low);
         }
     }
-    
+
     internal static void OnAssetReady(object? sender, AssetReadyEventArgs e)
     {
         if (e.Name.IsDirectlyUnderPath(ModKeys.ASSETS_NPCSCHEDULE_PREFIX))
@@ -211,7 +212,7 @@ public class Mod : StardewModdingAPI.Mod
         int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, Cafe.ClosingTime.Value);
         int minutesTillOpens = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, Cafe.OpeningTime.Value);
         int minutesSinceLastVisitors = SUtility.CalculateMinutesBetweenTimes(Cafe.LastTimeCustomersArrived, Game1.timeOfDay);
-        float percentageOfTablesFree = (float)Mod.Cafe.Tables.Count(t => !t.IsReserved) / Cafe.Tables.Count;
+        float percentageOfTablesFree = (float)Cafe.Tables.Count(t => !t.IsReserved) / Cafe.Tables.Count;
 
         if (minutesTillCloses <= 20)
             return;
@@ -271,11 +272,11 @@ public class Mod : StardewModdingAPI.Mod
             }
         }
 
-        if (Mod.IsPlacingSignBoard)
+        if (IsPlacingSignBoard)
         {
-            foreach (Vector2 tile in TileHelper.GetCircularTileGrid(new Vector2((Game1.viewport.X + Game1.getOldMouseX(false)) / 64, (Game1.viewport.Y + Game1.getOldMouseY(false)) / 64 ), Config.DistanceForSignboardToRegisterTables))
+            foreach (Vector2 tile in TileHelper.GetCircularTileGrid(new Vector2((Game1.viewport.X + Game1.getOldMouseX(false)) / 64, (Game1.viewport.Y + Game1.getOldMouseY(false)) / 64), this.Config.DistanceForSignboardToRegisterTables))
             {
-                
+
                 // get tile area in screen pixels
                 Rectangle area = new((int)(tile.X * Game1.tileSize - Game1.viewport.X), (int)(tile.Y * Game1.tileSize - Game1.viewport.Y), Game1.tileSize, Game1.tileSize);
 
@@ -347,7 +348,7 @@ public class Mod : StardewModdingAPI.Mod
                         continue;
                     }
 
-                    FurnitureTable table = 
+                    FurnitureTable table =
                         Utility.IsTableTracked(facingFurniture, e.Location, out FurnitureTable existing)
                         ? existing
                         : new FurnitureTable(facingFurniture, e.Location.Name);
@@ -389,7 +390,7 @@ public class Mod : StardewModdingAPI.Mod
 
     internal void LoadContentPacks()
     {
-        CustomersData = [];
+        this.CustomersData = [];
 
         foreach (IContentPack contentPack in this.Helper.ContentPacks.GetOwned())
         {
@@ -417,7 +418,7 @@ public class Mod : StardewModdingAPI.Mod
                     model.PortraitName = this.Helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", portraitName + ".png")).Name;
                 }
 
-                CustomersData[model.Name] = new BusCustomerData()
+                this.CustomersData[model.Name] = new BusCustomerData()
                 {
                     Model = model
                 };

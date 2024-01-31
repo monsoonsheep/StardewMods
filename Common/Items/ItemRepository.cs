@@ -21,7 +21,7 @@ namespace MonsoonSheep.Stardew.Common.Items
         /// <summary>Get all spawnable items.</summary>
         /// <param name="onlyType">Only include items for the given <see cref="IItemDataDefinition.Identifier"/>.</param>
         /// <param name="includeVariants">Whether to include flavored variants like "Sunflower Honey".</param>
-        [SuppressMessage("ReSharper", "AccessToModifiedClosure", Justification = $"{nameof(ItemRepository.TryCreate)} invokes the lambda immediately.")]
+        [SuppressMessage("ReSharper", "AccessToModifiedClosure", Justification = $"{nameof(TryCreate)} invokes the lambda immediately.")]
         public IEnumerable<SearchableItem> GetAll(string? onlyType = null, bool includeVariants = true)
         {
             //

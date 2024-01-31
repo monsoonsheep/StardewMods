@@ -1,10 +1,10 @@
-﻿using Microsoft.Xna.Framework.Graphics;
-using MyCafe.UI.Options;
-using StardewValley.Menus;
-using StardewValley;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using MyCafe.UI.Options;
+using StardewValley;
+using StardewValley.Menus;
 
 namespace MyCafe.UI;
 internal abstract class OptionsPageBase : MenuPageBase
@@ -24,35 +24,29 @@ internal abstract class OptionsPageBase : MenuPageBase
 
     protected OptionsPageBase(string name, Rectangle bounds, CafeMenu parentMenu, Texture2D sprites) : base(name, bounds, parentMenu, sprites)
     {
-        _upArrow = new ClickableTextureComponent(
-            new Rectangle(bounds.Right - 30, bounds.Y + 101, 44, 48), 
-            Game1.mouseCursors, 
-            new Rectangle(421, 459, 11, 12), 
+        this._upArrow = new ClickableTextureComponent(
+            new Rectangle(bounds.Right - 30, bounds.Y + 101, 44, 48),
+            Game1.mouseCursors,
+            new Rectangle(421, 459, 11, 12),
             4f);
-        _downArrow = new ClickableTextureComponent(
-            new Rectangle(_upArrow.bounds.X, bounds.Y + bounds.Height - 48 - 2, 44, 48), 
-            Game1.mouseCursors, 
+        this._downArrow = new ClickableTextureComponent(
+            new Rectangle(this._upArrow.bounds.X, bounds.Y + bounds.Height - 48 - 2, 44, 48),
+            Game1.mouseCursors,
             new Rectangle(421, 472, 11, 12),
             4f);
-        _scrollBar = new ClickableTextureComponent(
-            new Rectangle(_upArrow.bounds.X + 12, _upArrow.bounds.Y + _upArrow.bounds.Height + 4, 24, 40), 
-            Game1.mouseCursors, 
-            new Rectangle(435, 463, 6, 10), 
+        this._scrollBar = new ClickableTextureComponent(
+            new Rectangle(this._upArrow.bounds.X + 12, this._upArrow.bounds.Y + this._upArrow.bounds.Height + 4, 24, 40),
+            Game1.mouseCursors,
+            new Rectangle(435, 463, 6, 10),
             4f);
-        _scrollBarRunner = new Rectangle(
-            _scrollBar.bounds.X, 
-            _upArrow.bounds.Bottom + 4, 
-            _scrollBar.bounds.Width, 
-            (_downArrow.bounds.Top - _upArrow.bounds.Bottom) - 4);
+        this._scrollBarRunner = new Rectangle(this._scrollBar.bounds.X, this._upArrow.bounds.Bottom + 4, this._scrollBar.bounds.Width,
+            (this._downArrow.bounds.Top - this._upArrow.bounds.Bottom) - 4);
 
 
-        for (int i = 0; i < OptionSlotsCount; i++)
-            OptionSlots.Add(new ClickableComponent(
-                new Rectangle(
-                    Bounds.X + Game1.tileSize / 4,
-                    Bounds.Y + Game1.tileSize + i * (Bounds.Height / OptionSlotsCount),
-                    Bounds.Width - Game1.tileSize / 2,
-                    (Bounds.Height - 32) / OptionSlotsCount),
+        for (int i = 0; i < this.OptionSlotsCount; i++)
+            this.OptionSlots.Add(new ClickableComponent(
+                new Rectangle(this.Bounds.X + Game1.tileSize / 4, this.Bounds.Y + Game1.tileSize + i * (this.Bounds.Height / this.OptionSlotsCount), this.Bounds.Width - Game1.tileSize / 2,
+                    (this.Bounds.Height - 32) / this.OptionSlotsCount),
                 i.ToString())
             {
                 region = 41410,
@@ -67,44 +61,44 @@ internal abstract class OptionsPageBase : MenuPageBase
             });
         // Config
 
-        OptionSlotSize = new Rectangle(0, 0, Bounds.Width - Game1.tileSize / 4,
-            (Bounds.Height) / OptionSlotsCount);
+        this.OptionSlotSize = new Rectangle(0, 0, this.Bounds.Width - Game1.tileSize / 4,
+            (this.Bounds.Height) / this.OptionSlotsCount);
 
-        DefaultComponent = 41410;
+        this.DefaultComponent = 41410;
     }
 
     public override void receiveLeftClick(int x, int y, bool playSound = true)
     {
-        for (int i = 0; i < OptionSlots.Count; ++i)
-            if (OptionSlots[i].bounds.Contains(x, y) 
-                && CurrentItemIndex +  i < Options.Count 
-                && Options[CurrentItemIndex + i].bounds.Contains(x - OptionSlots[i].bounds.X, y - OptionSlots[i].bounds.Y))
+        for (int i = 0; i < this.OptionSlots.Count; ++i)
+            if (this.OptionSlots[i].bounds.Contains(x, y)
+                && this.CurrentItemIndex + i < this.Options.Count
+                && this.Options[this.CurrentItemIndex + i].bounds.Contains(x - this.OptionSlots[i].bounds.X, y - this.OptionSlots[i].bounds.Y))
             {
-                Options[CurrentItemIndex + i].receiveLeftClick(x - OptionSlots[i].bounds.X, y - OptionSlots[i].bounds.Y);
+                this.Options[this.CurrentItemIndex + i].receiveLeftClick(x - this.OptionSlots[i].bounds.X, y - this.OptionSlots[i].bounds.Y);
                 return;
             }
-        
-        if (Options.Count > OptionSlotsCount)
+
+        if (this.Options.Count > this.OptionSlotsCount)
         {
-            if (_downArrow.containsPoint(x, y) && CurrentItemIndex < Math.Max(0, Options.Count - OptionSlotsCount))
+            if (this._downArrow.containsPoint(x, y) && this.CurrentItemIndex < Math.Max(0, this.Options.Count - this.OptionSlotsCount))
             {
-                DownArrowPressed();
+                this.DownArrowPressed();
                 Game1.playSound("shwip");
             }
-            else if (_upArrow.containsPoint(x, y) && CurrentItemIndex > 0)
+            else if (this._upArrow.containsPoint(x, y) && this.CurrentItemIndex > 0)
             {
-                UpArrowPressed();
+                this.UpArrowPressed();
                 Game1.playSound("shwip");
             }
-            else if (_scrollBar.containsPoint(x, y))
+            else if (this._scrollBar.containsPoint(x, y))
             {
-                _scrolling = true;
+                this._scrolling = true;
             }
-            else if (!_downArrow.containsPoint(x, y))
+            else if (!this._downArrow.containsPoint(x, y))
             {
-                _scrolling = true;
-                leftClickHeld(x, y);
-                releaseLeftClick(x, y);
+                this._scrolling = true;
+                this.leftClickHeld(x, y);
+                this.releaseLeftClick(x, y);
             }
         }
     }
@@ -115,101 +109,101 @@ internal abstract class OptionsPageBase : MenuPageBase
             return;
 
         base.leftClickHeld(x, y);
-        if (_scrolling)
+        if (this._scrolling)
         {
-            int oldY = _scrollBar.bounds.Y;
-            _scrollBar.bounds.Y = Math.Min(Bounds.Y + Bounds.Height - 64 - 12 - _scrollBar.bounds.Height, Math.Max(y, Bounds.Y + _upArrow.bounds.Height + 20));
-            float percentage = (y - _scrollBarRunner.Y) / (float) _scrollBarRunner.Height;
-            CurrentItemIndex = Math.Min(Options.Count - 7, Math.Max(0, (int)(Options.Count * percentage)));
-            SetScrollBarToCurrentIndex();
+            int oldY = this._scrollBar.bounds.Y;
+            this._scrollBar.bounds.Y = Math.Min(this.Bounds.Y + this.Bounds.Height - 64 - 12 - this._scrollBar.bounds.Height, Math.Max(y, this.Bounds.Y + this._upArrow.bounds.Height + 20));
+            float percentage = (y - this._scrollBarRunner.Y) / (float)this._scrollBarRunner.Height;
+            this.CurrentItemIndex = Math.Min(this.Options.Count - 7, Math.Max(0, (int)(this.Options.Count * percentage)));
+            this.SetScrollBarToCurrentIndex();
 
-            if (oldY != _scrollBar.bounds.Y)
+            if (oldY != this._scrollBar.bounds.Y)
                 Game1.playSound("shiny4");
 
             return;
         }
 
-        if (OptionSlotHeld != -1)
+        if (this.OptionSlotHeld != -1)
         {
-            Options[CurrentItemIndex + OptionSlotHeld].leftClickHeld(x - OptionSlots[OptionSlotHeld].bounds.X, y - OptionSlots[OptionSlotHeld].bounds.Y);
+            this.Options[this.CurrentItemIndex + this.OptionSlotHeld].leftClickHeld(x - this.OptionSlots[this.OptionSlotHeld].bounds.X, y - this.OptionSlots[this.OptionSlotHeld].bounds.Y);
         }
     }
 
     public override void releaseLeftClick(int x, int y)
     {
-        if (GameMenu.forcePreventClose) 
+        if (GameMenu.forcePreventClose)
             return;
 
         base.releaseLeftClick(x, y);
-        if (OptionSlotHeld != -1 && CurrentItemIndex + OptionSlotHeld < Options.Count)
+        if (this.OptionSlotHeld != -1 && this.CurrentItemIndex + this.OptionSlotHeld < this.Options.Count)
         {
-            Options[CurrentItemIndex + OptionSlotHeld].leftClickReleased(x - OptionSlots[OptionSlotHeld].bounds.X, y - OptionSlots[OptionSlotHeld].bounds.Y);
+            this.Options[this.CurrentItemIndex + this.OptionSlotHeld].leftClickReleased(x - this.OptionSlots[this.OptionSlotHeld].bounds.X, y - this.OptionSlots[this.OptionSlotHeld].bounds.Y);
         }
-        OptionSlotHeld = -1;
-        _scrolling = false;
+
+        this.OptionSlotHeld = -1;
+        this._scrolling = false;
     }
 
     protected override void customSnapBehavior(int direction, int oldRegion, int oldID)
     {
-        var currentSlot = getComponentWithID(oldID);
-        var option = Options[CurrentItemIndex + OptionSlots.IndexOf(currentSlot)];
+        var currentSlot = this.getComponentWithID(oldID);
+        var option = this.Options[this.CurrentItemIndex + this.OptionSlots.IndexOf(currentSlot)];
 
         Vector2 positionForSnap = option.Snap(direction);
         if (positionForSnap != Vector2.Zero)
         {
-            Game1.setMousePosition((int) (currentSlot.bounds.X + positionForSnap.X), (int) (currentSlot.bounds.Y + positionForSnap.Y), ui_scale: false);
+            Game1.setMousePosition((int)(currentSlot.bounds.X + positionForSnap.X), (int)(currentSlot.bounds.Y + positionForSnap.Y), ui_scale: false);
             return;
         }
 
         switch (direction)
         {
             case 0:
-                setCurrentlySnappedComponentTo(currentSlot.myID - 1);
+                this.setCurrentlySnappedComponentTo(currentSlot.myID - 1);
                 break;
             case 1:
-                currentlySnappedComponent = null;
+                this.currentlySnappedComponent = null;
                 break;
             case 2:
-                setCurrentlySnappedComponentTo(currentSlot.myID + 1);
+                this.setCurrentlySnappedComponentTo(currentSlot.myID + 1);
                 break;
             case 3:
-                currentlySnappedComponent = null;
+                this.currentlySnappedComponent = null;
                 break;
         }
 
-        if (currentlySnappedComponent == null)
+        if (this.currentlySnappedComponent == null)
         {
             if (direction is 1 or 3)
-                SnapOut(3);
-            else if (direction is 0)
-                setCurrentlySnappedComponentTo(12340);
+                this.SnapOut(3);
+            else if (direction is 0) this.setCurrentlySnappedComponentTo(12340);
         }
         else
         {
-            int i = CurrentItemIndex + OptionSlots.IndexOf(currentlySnappedComponent);
-            if (i >= Options.Count)
+            int i = this.CurrentItemIndex + this.OptionSlots.IndexOf(this.currentlySnappedComponent);
+            if (i >= this.Options.Count)
             {
-                setCurrentlySnappedComponentTo(12340);
+                this.setCurrentlySnappedComponentTo(12340);
             }
             else
             {
-                var o = Options[CurrentItemIndex + OptionSlots.IndexOf(currentlySnappedComponent)];
+                var o = this.Options[this.CurrentItemIndex + this.OptionSlots.IndexOf(this.currentlySnappedComponent)];
 
                 Vector2 p = o.Snap(direction);
                 if (p != Vector2.Zero)
                 {
                     Log.Info("snapping mouse to option subslot again");
-                    Game1.setMousePosition((int) (currentlySnappedComponent.bounds.X + p.X), (int) (currentlySnappedComponent.bounds.Y + p.Y), ui_scale: false);
+                    Game1.setMousePosition((int)(this.currentlySnappedComponent.bounds.X + p.X), (int)(this.currentlySnappedComponent.bounds.Y + p.Y), ui_scale: false);
                     return;
                 }
             }
-            
+
         }
     }
 
     public override void snapCursorToCurrentSnappedComponent()
     {
-        if (currentlySnappedComponent?.region != 41410)
+        if (this.currentlySnappedComponent?.region != 41410)
         {
             base.snapCursorToCurrentSnappedComponent();
         }
@@ -218,14 +212,14 @@ internal abstract class OptionsPageBase : MenuPageBase
     public override void snapToDefaultClickableComponent()
     {
         base.snapToDefaultClickableComponent();
-        var currentSlot = currentlySnappedComponent;
-        if (currentSlot != null && OptionSlots.Contains(currentSlot))
+        var currentSlot = this.currentlySnappedComponent;
+        if (currentSlot != null && this.OptionSlots.Contains(currentSlot))
         {
-            var option = Options[CurrentItemIndex + OptionSlots.IndexOf(currentSlot)];
+            var option = this.Options[this.CurrentItemIndex + this.OptionSlots.IndexOf(currentSlot)];
             Vector2 positionForSnap = option.Snap(2);
             if (positionForSnap != Vector2.Zero)
             {
-                Game1.setMousePosition((int) (currentSlot.bounds.X + positionForSnap.X), (int) (currentSlot.bounds.Y + positionForSnap.Y), ui_scale: true);
+                Game1.setMousePosition((int)(currentSlot.bounds.X + positionForSnap.X), (int)(currentSlot.bounds.Y + positionForSnap.Y), ui_scale: true);
             }
         }
     }
@@ -235,32 +229,31 @@ internal abstract class OptionsPageBase : MenuPageBase
         // Options
         for (int i = 0; i < this.OptionSlots.Count; i++)
         {
-            if (CurrentItemIndex + i < Options.Count)
-                Options[CurrentItemIndex + i].draw(b, OptionSlots[i].bounds.X, OptionSlots[i].bounds.Y);
+            if (this.CurrentItemIndex + i < this.Options.Count) this.Options[this.CurrentItemIndex + i].draw(b, this.OptionSlots[i].bounds.X, this.OptionSlots[i].bounds.Y);
         }
     }
 
-    
+
     private void DownArrowPressed()
     {
-        CurrentItemIndex++;
-        SetScrollBarToCurrentIndex();
+        this.CurrentItemIndex++;
+        this.SetScrollBarToCurrentIndex();
     }
 
     private void UpArrowPressed()
     {
-        CurrentItemIndex--;
-        SetScrollBarToCurrentIndex();
+        this.CurrentItemIndex--;
+        this.SetScrollBarToCurrentIndex();
     }
 
     private void SetScrollBarToCurrentIndex()
     {
-        if (Options.Count > 0)
+        if (this.Options.Count > 0)
         {
-            _scrollBar.bounds.Y = _upArrow.bounds.Bottom + _scrollBarRunner.Height / Math.Max(1, Options.Count - OptionSlotsCount + 1) * CurrentItemIndex + 4;
-            if (_scrollBar.bounds.Y > _downArrow.bounds.Y - _scrollBar.bounds.Height - 4)
+            this._scrollBar.bounds.Y = this._upArrow.bounds.Bottom + this._scrollBarRunner.Height / Math.Max(1, this.Options.Count - this.OptionSlotsCount + 1) * this.CurrentItemIndex + 4;
+            if (this._scrollBar.bounds.Y > this._downArrow.bounds.Y - this._scrollBar.bounds.Height - 4)
             {
-                _scrollBar.bounds.Y = _downArrow.bounds.Y - _scrollBar.bounds.Height - 4;
+                this._scrollBar.bounds.Y = this._downArrow.bounds.Y - this._scrollBar.bounds.Height - 4;
             }
         }
     }

@@ -1,9 +1,9 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.Xml.Serialization;
+using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common;
 using MyCafe.Customers;
 using Netcode;
 using StardewValley;
-using System.Xml.Serialization;
 
 namespace MyCafe.Locations.Objects;
 
@@ -22,64 +22,66 @@ public abstract class Seat : INetObject<NetFields>
 
     internal Table Table
     {
-        get => _table ??= Mod.Cafe.GetTableOfSeat(this);
-        set => _table = value;
+        get => this._table ??= Mod.Cafe.GetTableOfSeat(this);
+        set => this._table = value;
     }
 
     internal Customer? ReservingCustomer
     {
-        get => _reservingCustomer.Value;
-        set => _reservingCustomer.Set(value);
+        get => this._reservingCustomer.Value;
+        set => this._reservingCustomer.Set(value);
     }
 
     internal GameLocation? Location
     {
         get
         {
-            if (Table?.CurrentLocation != null)
-                return CommonHelper.GetLocation(Table.CurrentLocation);
+            if (this.Table?.CurrentLocation != null)
+                return CommonHelper.GetLocation(this.Table.CurrentLocation);
             return null;
         }
     }
 
     internal Point Position
     {
-        get => _position.Value;
-        set => _position.Set(value);
+        get => this._position.Value;
+        set => this._position.Set(value);
     }
 
     internal virtual int SittingDirection { get; set; }
 
     internal bool IsReserved
-        => ReservingCustomer != null;
+        =>
+            this.ReservingCustomer != null;
 
     public Seat()
     {
-        NetFields = new NetFields(NetFields.GetNameForInstance(this));
-        InitNetFields();
+        this.NetFields = new NetFields(NetFields.GetNameForInstance(this));
+        this.InitNetFields();
     }
 
     public Seat(Table table) : this()
     {
-        Table = table;
+        this.Table = table;
     }
 
     protected virtual void InitNetFields()
     {
-        NetFields.SetOwner(this)
-            .AddField(_position).AddField(_reservingCustomer);
+        this.NetFields.SetOwner(this)
+            .AddField(this._position).AddField(this._reservingCustomer);
     }
 
     internal virtual bool Reserve(Customer customer)
     {
-        if (ReservingCustomer != null)
+        if (this.ReservingCustomer != null)
             return false;
 
         customer.ReservedSeat = this;
-        ReservingCustomer = customer;
+        this.ReservingCustomer = customer;
         return true;
     }
 
     internal virtual void Free()
-        => ReservingCustomer = null;
+        =>
+            this.ReservingCustomer = null;
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -38,20 +38,22 @@ internal sealed class Mod : StardewModdingAPI.Mod
     }
 
     internal int NextArrivalTime 
-        => BusArrivalsToday < BusArrivalTimes.Length ? BusArrivalTimes[BusArrivalsToday] : 99999;
+        =>
+            this.BusArrivalsToday < this.BusArrivalTimes.Length ? this.BusArrivalTimes[this.BusArrivalsToday] : 99999;
     internal int LastArrivalTime 
-        => BusArrivalsToday == 0 ? 0 : BusArrivalTimes[BusArrivalsToday - 1];
+        =>
+            this.BusArrivalsToday == 0 ? 0 : this.BusArrivalTimes[this.BusArrivalsToday - 1];
     internal int TimeUntilNextArrival 
-        => Utility.CalculateMinutesBetweenTimes(Game1.timeOfDay, NextArrivalTime);
+        => Utility.CalculateMinutesBetweenTimes(Game1.timeOfDay, this.NextArrivalTime);
     internal int TimeSinceLastArrival 
-        => Utility.CalculateMinutesBetweenTimes(LastArrivalTime, Game1.timeOfDay);
+        => Utility.CalculateMinutesBetweenTimes(this.LastArrivalTime, Game1.timeOfDay);
 
 
     /// <inheritdoc />
     public override void Entry(IModHelper helper)
     {
-        Log.Monitor = Monitor;
-        UniqueID = ModManifest.UniqueID;
+        Log.Monitor = this.Monitor;
+        UniqueID = this.ModManifest.UniqueID;
 
         // Harmony patches
         if (HarmonyPatcher.TryApply(this,
@@ -60,8 +62,8 @@ internal sealed class Mod : StardewModdingAPI.Mod
             ) is false)
             return;
 
-        helper.Events.GameLoop.GameLaunched += OnGameLaunched;
-        helper.Events.Content.AssetRequested += OnAssetRequested;
+        helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
+        helper.Events.Content.AssetRequested += this.OnAssetRequested;
 #if DEBUG
         helper.Events.Input.ButtonPressed += Debug.ButtonPress;
 #endif
@@ -69,22 +71,22 @@ internal sealed class Mod : StardewModdingAPI.Mod
 
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
     {
-        this.Helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
-        this.Helper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;
-        this.Helper.Events.Multiplayer.ModMessageReceived += OnModMessageReceived;
+        this.Helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
+        this.Helper.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
+        this.Helper.Events.Multiplayer.ModMessageReceived += this.OnModMessageReceived;
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
     {
-        UpdateBusLocation((BusStop) Game1.getLocationFromName("BusStop"));
+        this.UpdateBusLocation((BusStop) Game1.getLocationFromName("BusStop"));
 
-        if (BusEnabled == false && Game1.MasterPlayer.mailReceived.Contains("ccVault"))
+        if (this.BusEnabled == false && Game1.MasterPlayer.mailReceived.Contains("ccVault"))
         {
-            BusEnabled = true;
-            HookEvents();
+            this.BusEnabled = true;
+            this.HookEvents();
         }
 
-        if (Context.IsMainPlayer && VisitorsData.Count == 0)
+        if (Context.IsMainPlayer && this.VisitorsData.Count == 0)
         {
             // Force load NPC schedules so they can be edited by AssetRequested
             Utility.ForEachCharacter(delegate(NPC n)
@@ -97,55 +99,55 @@ internal sealed class Mod : StardewModdingAPI.Mod
 
     private void OnReturnedToTitle(object? sender, ReturnedToTitleEventArgs e)
     {
-        UnhookEvents();
-        BusEnabled = false;
-        BusLeaveTimes.Clear();
-        BusArrivalsToday = 0;
-        BusManager.BusGone = false;
-        BusManager.BusLeaving = false;
-        BusManager.BusReturning = false;
+        this.UnhookEvents();
+        this.BusEnabled = false;
+        this.BusLeaveTimes.Clear();
+        this.BusArrivalsToday = 0;
+        this.BusManager.BusGone = false;
+        this.BusManager.BusLeaving = false;
+        this.BusManager.BusReturning = false;
     }
 
     private void HookEvents()
     {
         // Hooks for host and clients
-        BusEvents.BusArrive += BusManager.OnDoorOpen;
+        BusEvents.BusArrive += this.BusManager.OnDoorOpen;
 
         if (Context.IsMainPlayer)
         {
             // Hooks for host only
-            this.Helper.Events.GameLoop.DayStarted += OnDayStarted;
-            this.Helper.Events.GameLoop.Saving += OnSaving;
-            this.Helper.Events.GameLoop.TimeChanged += OnTimeChanged;
-            BusEvents.BusArrive += SpawnVisitors;
-            BusEvents.BusArrive += BusManager.PamBackToSchedule;
+            this.Helper.Events.GameLoop.DayStarted += this.OnDayStarted;
+            this.Helper.Events.GameLoop.Saving += this.OnSaving;
+            this.Helper.Events.GameLoop.TimeChanged += this.OnTimeChanged;
+            BusEvents.BusArrive += this.SpawnVisitors;
+            BusEvents.BusArrive += this.BusManager.PamBackToSchedule;
         }
     }
     private void UnhookEvents()
     {
         // Clients and Host
-        BusEvents.BusArrive -= BusManager.OnDoorOpen;
+        BusEvents.BusArrive -= this.BusManager.OnDoorOpen;
 
         // Host only
-        this.Helper.Events.GameLoop.DayStarted -= OnDayStarted;
-        this.Helper.Events.GameLoop.Saving -= OnSaving;
-        this.Helper.Events.GameLoop.TimeChanged -= OnTimeChanged;
+        this.Helper.Events.GameLoop.DayStarted -= this.OnDayStarted;
+        this.Helper.Events.GameLoop.Saving -= this.OnSaving;
+        this.Helper.Events.GameLoop.TimeChanged -= this.OnTimeChanged;
 
-        BusEvents.BusArrive -= SpawnVisitors;
-        BusEvents.BusArrive -= BusManager.PamBackToSchedule;
+        BusEvents.BusArrive -= this.SpawnVisitors;
+        BusEvents.BusArrive -= this.BusManager.PamBackToSchedule;
     }
 
     private void OnDayStarted(object? sender, DayStartedEventArgs e)
     {
-        if (BusEnabled == false && Game1.MasterPlayer.mailReceived.Contains("ccVault"))
+        if (this.BusEnabled == false && Game1.MasterPlayer.mailReceived.Contains("ccVault"))
         {
-            BusEnabled = true;
-            HookEvents();
+            this.BusEnabled = true;
+            this.HookEvents();
         }
 
-        BusArrivalsToday = 0;
+        this.BusArrivalsToday = 0;
 
-        foreach (var pair in VisitorsData)
+        foreach (var pair in this.VisitorsData)
         {
             var npc = Game1.getCharacterFromName(pair.Key);
             if (npc == null)
@@ -163,13 +165,13 @@ internal sealed class Mod : StardewModdingAPI.Mod
             if (npc.GetData().Home is { Count: > 0 } &&
                 npc.GetData().Home[0].Location == "BusStop")
             {
-                Game1.warpCharacter(npc, BusManager.BusLocation, new Vector2(-10000f / 64, -10000f / 64));
+                Game1.warpCharacter(npc, this.BusManager.BusLocation, new Vector2(-10000f / 64, -10000f / 64));
             }
 
             // If NPC will arrive by bus today, warp them to a hidden place in bus stop
             if (pair.Value.ScheduleKeysForBusArrival.ContainsKey(npc.ScheduleKey))
             {
-                Game1.warpCharacter(npc, BusManager.BusLocation, new Vector2(-10000f / 64, -10000f / 64));
+                Game1.warpCharacter(npc, this.BusManager.BusLocation, new Vector2(-10000f / 64, -10000f / 64));
             }
             else
             {
@@ -181,33 +183,32 @@ internal sealed class Mod : StardewModdingAPI.Mod
         if (Game1.player.mailReceived.Contains("ccVault"))
         {
             // Early morning bus departure
-            BusManager.BusLeave();
+            this.BusManager.BusLeave();
         }
 
         // Populate bus departure times for the day
-        for (var i = 0; i < BusArrivalTimes.Length; i++)
+        for (int i = 0; i < this.BusArrivalTimes.Length; i++)
         {
             if (i == 0)
-                BusLeaveTimes.Add(Utility.ModifyTime(BusArrivalTimes[1], -70));
+                this.BusLeaveTimes.Add(Utility.ModifyTime(this.BusArrivalTimes[1], -70));
             else
-                BusLeaveTimes.Add(BusArrivalTimes[i] + 20);
+                this.BusLeaveTimes.Add(this.BusArrivalTimes[i] + 20);
         }
     }
 
     private void OnSaving(object? sender, SavingEventArgs e)
     {
-        if (Context.IsMainPlayer)
-            BusManager.ResetBus();
+        if (Context.IsMainPlayer) this.BusManager.ResetBus();
     }
 
     private void OnTimeChanged(object? sender, TimeChangedEventArgs e)
     {
-        if (Utility.CalculateMinutesBetweenTimes(e.NewTime, NextArrivalTime) == 10)
+        if (Utility.CalculateMinutesBetweenTimes(e.NewTime, this.NextArrivalTime) == 10)
         {
-            BusArrivalsToday++;
-            BusManager.DriveBack();
+            this.BusArrivalsToday++;
+            this.BusManager.DriveBack();
             
-            foreach (var pair in VisitorsData)
+            foreach (var pair in this.VisitorsData)
             {
                 var npc = Game1.getCharacterFromName(pair.Key);
                 if (npc?.ScheduleKey == null || !pair.Value.ScheduleKeysForBusArrival.TryGetValue(npc.ScheduleKey, out var arrivalDepartureIndices))
@@ -215,17 +216,17 @@ internal sealed class Mod : StardewModdingAPI.Mod
                     continue;
                 }
 
-                if (arrivalDepartureIndices.Item1 == NextArrivalTime)
+                if (arrivalDepartureIndices.Item1 == this.NextArrivalTime)
                 {
-                    VisitorsForNextArrival.Enqueue(npc, 0);
+                    this.VisitorsForNextArrival.Enqueue(npc, 0);
                 }
             }
 
         }
         // Bus leaves based on leaving times
-        else if (BusLeaveTimes.Contains(e.NewTime))
+        else if (this.BusLeaveTimes.Contains(e.NewTime))
         {
-            BusManager.BusLeave();
+            this.BusManager.BusLeave();
         }
     }
 
@@ -236,7 +237,7 @@ internal sealed class Mod : StardewModdingAPI.Mod
 
         if (e.Name.IsDirectlyUnderPath("Characters/schedules"))
         {
-            var npcName = e.Name.BaseName.Replace("Characters/schedules/", "");
+            string? npcName = e.Name.BaseName.Replace("Characters/schedules/", "");
 
             e.Edit(asset =>
                 {
@@ -246,8 +247,8 @@ internal sealed class Mod : StardewModdingAPI.Mod
                     var busTimeRegex = new Regex(@"b(\d{3,})");
                     foreach (var entry in assetData.Data)
                     {
-                        var splitScheduleCommands = NPC.SplitScheduleCommands(entry.Value);
-                        var startIndex = 0;
+                        string[]? splitScheduleCommands = NPC.SplitScheduleCommands(entry.Value);
+                        int startIndex = 0;
 
                         if (splitScheduleCommands[0].StartsWith("NOT friendship"))
                             startIndex = 1;
@@ -257,23 +258,23 @@ internal sealed class Mod : StardewModdingAPI.Mod
                         if (firstMatch.Success)
                         {
                             VisitorData visitorData;
-                            if (!VisitorsData.ContainsKey(npcName))
+                            if (!this.VisitorsData.ContainsKey(npcName))
                             {
                                 visitorData = new VisitorData();
-                                VisitorsData.Add(npcName, visitorData);
+                                this.VisitorsData.Add(npcName, visitorData);
                             }
                             else
                             {
 
-                                visitorData = VisitorsData[npcName];
+                                visitorData = this.VisitorsData[npcName];
                             }
 
                             int busArrivalTime = int.Parse(firstMatch.Groups[1].Value);
 
-                            if (!BusArrivalTimes.Contains(busArrivalTime) || busArrivalTime == BusArrivalTimes[^1])
+                            if (!this.BusArrivalTimes.Contains(busArrivalTime) || busArrivalTime == this.BusArrivalTimes[^1])
                             {
                                 Log.Error($"Invalid time given in schdule for {npcName} in key {entry.Key}: {entry.Value}");
-                                busArrivalTime = BusArrivalTimes[0];
+                                busArrivalTime = this.BusArrivalTimes[0];
                             }
 
                             splitScheduleCommands[startIndex] = splitScheduleCommands[startIndex].Replace(firstMatch.Groups[0].Value, firstMatch.Groups[1].Value);
@@ -282,13 +283,13 @@ internal sealed class Mod : StardewModdingAPI.Mod
                             int busDepartureTime;
                             var d = busTimeRegex.Match(splitScheduleCommands[^1]);
 
-                            if (d.Success && splitScheduleCommands.Length > startIndex + 1 && BusArrivalTimes.Contains(int.Parse(d.Groups[1].Value)))
+                            if (d.Success && splitScheduleCommands.Length > startIndex + 1 && this.BusArrivalTimes.Contains(int.Parse(d.Groups[1].Value)))
                             {
                                 busDepartureTime = int.Parse(d.Groups[1].Value);
                             }
                             else
                             {
-                                busDepartureTime = BusArrivalTimes.Last();
+                                busDepartureTime = this.BusArrivalTimes.Last();
                                 splitScheduleCommands = splitScheduleCommands.AddItem("").ToArray();
                             }
 
@@ -317,17 +318,17 @@ internal sealed class Mod : StardewModdingAPI.Mod
         if (!Context.IsWorldReady)
             return;
 
-        if (!Context.IsMainPlayer && e.FromModID.Equals(ModManifest.UniqueID) && e.Type.Equals("BusSchedules"))
+        if (!Context.IsMainPlayer && e.FromModID.Equals(this.ModManifest.UniqueID) && e.Type.Equals("BusSchedules"))
         {
-            BusManager.UpdateLocation(this.Helper, (BusStop) Game1.getLocationFromName("BusStop"));
-            var data = e.ReadAs<string>();
+            this.BusManager.UpdateLocation(this.Helper, (BusStop) Game1.getLocationFromName("BusStop"));
+            string? data = e.ReadAs<string>();
             switch (data)
             {
                 case "BusDoorClose":
-                    BusManager.CloseDoorAndDriveAway();
+                    this.BusManager.CloseDoorAndDriveAway();
                     break;
                 case "BusDriveBack":
-                    BusManager.CloseDoorAndDriveAway();
+                    this.BusManager.CloseDoorAndDriveAway();
                     break;
             }
         }
@@ -341,7 +342,7 @@ internal sealed class Mod : StardewModdingAPI.Mod
     private void SpawnVisitors(object? sender, EventArgs e)
     {
         int count = 0;
-        while (VisitorsForNextArrival.TryDequeue(out NPC? visitor, out int priority))
+        while (this.VisitorsForNextArrival.TryDequeue(out NPC? visitor, out int priority))
         {
             Game1.delayedActions.Add(new DelayedAction(count * 800 + Game1.random.Next(0, 100), delegate
             {
@@ -354,7 +355,7 @@ internal sealed class Mod : StardewModdingAPI.Mod
                 }
                 else
                 {
-                    visitor.checkSchedule(LastArrivalTime);
+                    visitor.checkSchedule(this.LastArrivalTime);
                 }
 
                 Log.Debug($"Visitor {visitor.displayName} arrived at {Game1.timeOfDay}");
@@ -365,7 +366,7 @@ internal sealed class Mod : StardewModdingAPI.Mod
 
     internal void UpdateBusLocation(BusStop location)
     {
-        BusManager.UpdateLocation(Instance.Helper, location);
+        this.BusManager.UpdateLocation(Instance.Helper, location);
     }
 
     public static void VisitorReachBusEndBehavior(Character c, GameLocation location)

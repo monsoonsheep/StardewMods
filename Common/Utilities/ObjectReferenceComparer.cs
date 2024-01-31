@@ -17,7 +17,7 @@ namespace MonsoonSheep.Stardew.Common.Utilities
         /// <param name="y">The second object to compare.</param>
         public bool Equals(T? x, T? y)
         {
-            return object.ReferenceEquals(x, y);
+            return ReferenceEquals(x, y);
         }
 
         /// <summary>Get a hash code for the specified object.</summary>

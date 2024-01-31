@@ -1,6 +1,6 @@
+using System.Xml.Serialization;
 using Netcode;
 using StardewValley.Objects;
-using System.Xml.Serialization;
 
 namespace MyCafe.Locations.Objects;
 
@@ -16,16 +16,17 @@ public sealed class FurnitureSeat : Seat
 
     public FurnitureSeat(Furniture actualChair, Table table) : base(table)
     {
-        ActualChair.Set(actualChair);
-        Position = ActualChair.Value.TileLocation.ToPoint();
+        this.ActualChair.Set(actualChair);
+        this.Position = this.ActualChair.Value.TileLocation.ToPoint();
     }
 
     protected override void InitNetFields()
     {
         base.InitNetFields();
-        NetFields.AddField(ActualChair);
+        this.NetFields.AddField(this.ActualChair);
     }
 
     internal override int SittingDirection
-        => ActualChair.Value?.GetSittingDirection() ?? 0;
+        =>
+            this.ActualChair.Value?.GetSittingDirection() ?? 0;
 }

@@ -1,12 +1,10 @@
-using MonsoonSheep.Stardew.Common;
-using MyCafe.Customers;
-using Netcode;
-using StardewValley;
-using StardewValley.Objects;
-using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Serialization;
 using Microsoft.Xna.Framework;
+using MonsoonSheep.Stardew.Common;
+using Netcode;
+using StardewValley;
+using StardewValley.Objects;
 
 
 namespace MyCafe.Locations.Objects;
@@ -23,22 +21,22 @@ public class FurnitureTable : Table
 
     internal FurnitureTable(Furniture actualTable, string location) : base(location)
     {
-        ActualTable.Set(actualTable);
+        this.ActualTable.Set(actualTable);
         base.BoundingBox.Set(actualTable.boundingBox.Value);
-        base.Position = ActualTable.Value.TileLocation;
-        PopulateChairs();
+        base.Position = this.ActualTable.Value.TileLocation;
+        this.PopulateChairs();
     }
 
     protected override void InitNetFields()
     {
         base.InitNetFields();
-        NetFields.AddField(ActualTable);
+        this.NetFields.AddField(this.ActualTable);
     }
 
     internal void PopulateChairs()
     {
-        int sizeY = ActualTable.Value.getTilesHigh();
-        int sizeX = ActualTable.Value.getTilesWide();
+        int sizeY = this.ActualTable.Value.getTilesHigh();
+        int sizeX = this.ActualTable.Value.getTilesWide();
 
         for (int i = -1; i <= sizeX; i++)
         {
@@ -56,8 +54,8 @@ public class FurnitureTable : Table
                     continue;
                 }
 
-                GameLocation? location = CommonHelper.GetLocation(CurrentLocation);
-                Furniture? chairAt = location?.GetFurnitureAt(new Vector2(Position.X + i, Position.Y + j));
+                GameLocation? location = CommonHelper.GetLocation(this.CurrentLocation);
+                Furniture? chairAt = location?.GetFurnitureAt(new Vector2(this.Position.X + i, this.Position.Y + j));
                 if (chairAt == null || !Utility.IsChair(chairAt))
                     continue;
 
@@ -73,7 +71,7 @@ public class FurnitureTable : Table
 
                 if (valid)
                 {
-                    AddChair(chairAt);
+                    this.AddChair(chairAt);
                 }
             }
         }
@@ -81,30 +79,30 @@ public class FurnitureTable : Table
 
     internal FurnitureSeat? AddChair(Furniture chairToAdd)
     {
-        if (IsReserved)
+        if (this.IsReserved)
             return null;
 
-        if (Seats.Any(c => c.Position == chairToAdd.TileLocation.ToPoint()))
+        if (this.Seats.Any(c => c.Position == chairToAdd.TileLocation.ToPoint()))
             return null;
 
         Log.Debug("Adding chair to table");
         var furnitureChair = new FurnitureSeat(chairToAdd, this);
-        Seats.Add(furnitureChair);
+        this.Seats.Add(furnitureChair);
         return furnitureChair;
     }
 
     internal bool RemoveChair(Furniture chairToRemove)
     {
-        if (IsReserved)
+        if (this.IsReserved)
             return false;
 
-        if (!Seats.Any(c => c.Position == chairToRemove.TileLocation.ToPoint()))
+        if (!this.Seats.Any(c => c.Position == chairToRemove.TileLocation.ToPoint()))
         {
             Log.Debug("Trying to remove a chair that wasn't tracked");
             return false;
         }
 
-        Seats.Set(Seats.TakeWhile(c => c.Position != chairToRemove.TileLocation.ToPoint()).ToList());
+        this.Seats.Set(this.Seats.TakeWhile(c => c.Position != chairToRemove.TileLocation.ToPoint()).ToList());
         Log.Debug("Removed chair from table");
         return true;
     }

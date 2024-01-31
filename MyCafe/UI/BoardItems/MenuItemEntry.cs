@@ -12,16 +12,16 @@ internal class MenuItemEntry : MenuEntry
 
     internal MenuItemEntry(Item item, string category, Texture2D sprites) : base(sprites)
     {
-        Item = item;
-        Category = category;
+        this.Item = item;
+        this.Category = category;
     }
 
     internal override void Draw(SpriteBatch b, int slotX, int slotY)
     {
-        Item.drawInMenu(
+        this.Item.drawInMenu(
             b,
             new Vector2(slotX, slotY - 22),
-            0.5f * Scale,
+            0.5f * this.Scale,
             1f,
             1f,
             StackDrawType.Hide,
@@ -30,8 +30,7 @@ internal class MenuItemEntry : MenuEntry
         );
 
         b.DrawString(
-            Game1.smallFont,
-            Item.DisplayName,
+            Game1.smallFont, this.Item.DisplayName,
             new Vector2(slotX + 64, slotY),
             Color.White,
             0f,

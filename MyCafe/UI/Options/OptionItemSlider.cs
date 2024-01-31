@@ -21,7 +21,7 @@ internal class OptionItemSlider : OptionsElement
 
     private float valuePosition;
 
-    private int PixelWidth => bounds.Width - 10 * Game1.pixelZoom;
+    private int PixelWidth => this.bounds.Width - 10 * Game1.pixelZoom;
 
     private readonly Func<int, string> formatFunction;
 
@@ -35,20 +35,20 @@ internal class OptionItemSlider : OptionsElement
         this.maxValue = maxValue;
         this.setValue = setValue;
 
-        valuePosition = GetRangePosition(this.value, this.minValue, this.maxValue);
+        this.valuePosition = GetRangePosition(this.value, this.minValue, this.maxValue);
         this.formatFunction = formatFunction ?? ((i) => i.ToString());
     }
 
 
     public override void leftClickHeld(int x, int y)
     {
-        if (greyedOut)
+        if (this.greyedOut)
             return;
 
         base.leftClickHeld(x, y);
 
-        valuePosition = GetRangePosition(x, bounds.X, bounds.X + PixelWidth);
-        value = GetValueAtPosition(valuePosition, minValue, maxValue);
+        this.valuePosition = GetRangePosition(x, this.bounds.X, this.bounds.X + this.PixelWidth);
+        this.value = GetValueAtPosition(this.valuePosition, this.minValue, this.maxValue);
     }
 
     public static float GetRangePosition(int value, int minValue, int maxValue)
@@ -65,29 +65,29 @@ internal class OptionItemSlider : OptionsElement
 
     public override void receiveLeftClick(int x, int y)
     {
-        if (greyedOut)
+        if (this.greyedOut)
             return;
 
         base.receiveLeftClick(x, y);
-        leftClickHeld(x, y);
+        this.leftClickHeld(x, y);
     }
 
 
     public override void leftClickReleased(int x, int y)
     {
-        valuePosition = GetRangePosition(value, minValue, maxValue);
-        setValue(value);
+        this.valuePosition = GetRangePosition(this.value, this.minValue, this.maxValue);
+        this.setValue(this.value);
     }
 
     public override void draw(SpriteBatch b, int slotX, int slotY, IClickableMenu? context = null)
     {
-        base.label = $"{label}: {formatFunction(value)}";
+        base.label = $"{this.label}: {this.formatFunction(this.value)}";
 
 
 
-        int sliderOffsetX = GetValueAtPosition(valuePosition, 0, PixelWidth);
-        IClickableMenu.drawTextureBox(b, Game1.mouseCursors, OptionsSlider.sliderBGSource, slotX + bounds.X, slotY + bounds.Y, bounds.Width, bounds.Height, Color.White, Game1.pixelZoom, false);
-        b.Draw(Game1.mouseCursors, new Vector2(slotX + bounds.X + sliderOffsetX, slotY + bounds.Y), OptionsSlider.sliderButtonRect, Color.White, 0.0f, Vector2.Zero, Game1.pixelZoom, SpriteEffects.None, 0.9f);
+        int sliderOffsetX = GetValueAtPosition(this.valuePosition, 0, this.PixelWidth);
+        IClickableMenu.drawTextureBox(b, Game1.mouseCursors, OptionsSlider.sliderBGSource, slotX + this.bounds.X, slotY + this.bounds.Y, this.bounds.Width, this.bounds.Height, Color.White, Game1.pixelZoom, false);
+        b.Draw(Game1.mouseCursors, new Vector2(slotX + this.bounds.X + sliderOffsetX, slotY + this.bounds.Y), OptionsSlider.sliderButtonRect, Color.White, 0.0f, Vector2.Zero, Game1.pixelZoom, SpriteEffects.None, 0.9f);
 
         base.draw(b, slotX, slotY + 12, context);
     }

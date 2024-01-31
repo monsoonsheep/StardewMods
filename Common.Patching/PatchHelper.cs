@@ -20,7 +20,7 @@ namespace MonsoonSheep.Stardew.Common.Patching
         {
             return
                 AccessTools.Constructor(typeof(TTarget), parameters)
-                ?? throw new InvalidOperationException($"Can't find constructor {PatchHelper.GetMethodString(typeof(TTarget), null, parameters)} to patch.");
+                ?? throw new InvalidOperationException($"Can't find constructor {GetMethodString(typeof(TTarget), null, parameters)} to patch.");
         }
 
         /// <summary>Get a method and assert that it was found.</summary>
@@ -33,7 +33,7 @@ namespace MonsoonSheep.Stardew.Common.Patching
         {
             return
                 AccessTools.Method(typeof(TTarget), name, parameters, generics)
-                ?? throw new InvalidOperationException($"Can't find method {PatchHelper.GetMethodString(typeof(TTarget), name, parameters, generics)} to patch.");
+                ?? throw new InvalidOperationException($"Can't find method {GetMethodString(typeof(TTarget), name, parameters, generics)} to patch.");
         }
 
         /// <summary>Get a human-readable representation of a method target.</summary>

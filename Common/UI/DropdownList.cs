@@ -201,7 +201,7 @@ namespace MonsoonSheep.Stardew.Common.UI
                     sprites.Draw(CommonSprites.DropDown.Sheet, option.bounds, CommonSprites.DropDown.InactiveBackground, Color.White * opacity);
 
                 // draw text
-                Vector2 position = new Vector2(option.bounds.X + DropdownList<TValue>.DropdownPadding, option.bounds.Y + Game1.tileSize / 16);
+                Vector2 position = new Vector2(option.bounds.X + DropdownPadding, option.bounds.Y + Game1.tileSize / 16);
                 sprites.DrawString(this.Font, option.label, position, Color.Black * opacity);
             }
 
@@ -213,14 +213,14 @@ namespace MonsoonSheep.Stardew.Common.UI
         }
 
         /// <summary>Recalculate dimensions and components for rendering.</summary>
-        [MemberNotNull(nameof(DropdownList<TValue>.UpArrow), nameof(DropdownList<TValue>.DownArrow))]
+        [MemberNotNull(nameof(UpArrow), nameof(DownArrow))]
         public void ReinitializeComponents()
         {
             int x = this.bounds.X;
             int y = this.bounds.Y;
 
             // get item size
-            int itemWidth = this.MaxLabelWidth = Math.Max(this.Options.Max(p => p.LabelWidth), Game1.tileSize * 2) + DropdownList<TValue>.DropdownPadding * 2;
+            int itemWidth = this.MaxLabelWidth = Math.Max(this.Options.Max(p => p.LabelWidth), Game1.tileSize * 2) + DropdownPadding * 2;
             int itemHeight = this.MaxLabelHeight;
 
             // get pagination

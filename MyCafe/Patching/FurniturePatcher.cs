@@ -1,11 +1,11 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.Linq;
+using HarmonyLib;
+using Microsoft.Xna.Framework;
+using MonsoonSheep.Stardew.Common.Patching;
+using MyCafe.Locations.Objects;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Objects;
-using System.Linq;
-using HarmonyLib;
-using MonsoonSheep.Stardew.Common.Patching;
-using MyCafe.Locations.Objects;
 
 namespace MyCafe.Patching;
 
@@ -15,23 +15,23 @@ internal class FurniturePatcher : BasePatcher
     {
         harmony.Patch(
             original: this.RequireMethod<Furniture>("clicked"),
-            prefix: this.GetHarmonyMethod(nameof(FurniturePatcher.Before_Clicked))
+            prefix: this.GetHarmonyMethod(nameof(Before_Clicked))
         );
         harmony.Patch(
             original: this.RequireMethod<Furniture>(nameof(Furniture.GetAdditionalFurniturePlacementStatus)),
-            postfix: this.GetHarmonyMethod(nameof(FurniturePatcher.After_GetAdditionalFurniturePlacementStatus))
+            postfix: this.GetHarmonyMethod(nameof(After_GetAdditionalFurniturePlacementStatus))
         );
         harmony.Patch(
             original: this.RequireMethod<Furniture>(nameof(Furniture.performObjectDropInAction)),
-            prefix: this.GetHarmonyMethod(nameof(FurniturePatcher.Before_PerformObjectDropInAction))
+            prefix: this.GetHarmonyMethod(nameof(Before_PerformObjectDropInAction))
         );
         harmony.Patch(
             original: this.RequireMethod<Furniture>(nameof(Furniture.canBeRemoved)),
-            postfix: this.GetHarmonyMethod(nameof(FurniturePatcher.After_CanBeRemoved))
+            postfix: this.GetHarmonyMethod(nameof(After_CanBeRemoved))
         );
         harmony.Patch(
             original: this.RequireMethod<Furniture>(nameof(Furniture.AddSittingFarmer)),
-            prefix: this.GetHarmonyMethod(nameof(FurniturePatcher.Before_AddSittingFarmer))
+            prefix: this.GetHarmonyMethod(nameof(Before_AddSittingFarmer))
         );
     }
 
@@ -87,7 +87,7 @@ internal class FurniturePatcher : BasePatcher
 
     private static bool Before_Clicked(Furniture __instance, Farmer who, ref bool __result)
     {
-        if (!Utility.IsTable(__instance)) 
+        if (!Utility.IsTable(__instance))
             return true;
 
         //if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable.IsReserved)

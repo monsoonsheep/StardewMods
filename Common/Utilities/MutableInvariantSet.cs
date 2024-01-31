@@ -30,7 +30,7 @@ namespace MonsoonSheep.Stardew.Common.Utilities
         public bool IsReadOnly { get; private set; }
 
         /// <summary>Whether the set is empty.</summary>
-        [MemberNotNullWhen(false, nameof(MutableInvariantSet.Set))]
+        [MemberNotNullWhen(false, nameof(Set))]
         public bool IsEmpty => this.Set?.Count is null or 0;
 
 
@@ -318,7 +318,7 @@ namespace MonsoonSheep.Stardew.Common.Utilities
         }
 
         /// <summary>Get the underlying set, creating it if needed.</summary>
-        [MemberNotNull(nameof(MutableInvariantSet.Set))]
+        [MemberNotNull(nameof(Set))]
         private HashSet<string> EnsureSet()
         {
             return this.Set ??= this.CreateSet();

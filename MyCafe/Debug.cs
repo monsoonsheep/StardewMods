@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using MyCafe.Locations.Objects;
 using MyCafe.UI;
 using StardewModdingAPI;
@@ -52,7 +51,7 @@ internal class Debug
                 }
                 break;
             case SButton.NumPad5:
-                
+
                 break;
             case SButton.NumPad6:
                 Log.LogWithHudMessage($"Cafe time: {Mod.Cafe.ClosingTime.Value}");
@@ -74,7 +73,7 @@ internal class Debug
         }
     }
 
-    
+
 #if YOUTUBE || TWITCH
     public static void RefreshChat()
     {
@@ -100,8 +99,8 @@ internal class Debug
         Mod.Cafe.MenuItems["Soups"] = [ItemRegistry.Create("(O)218"), ItemRegistry.Create("(O)199"), ItemRegistry.Create("(O)727"), ItemRegistry.Create("(O)730")];
         Mod.Cafe.MenuItems["Dessert"] = [ItemRegistry.Create("(O)211"), ItemRegistry.Create("(O)222"), ItemRegistry.Create("(O)232"), ItemRegistry.Create("(O)234")];
         Mod.Cafe.MenuItems["Beverages"] = [
-            ItemRegistry.GetObjectTypeDefinition().CreateFlavoredJuice(ItemRegistry.Create<Object>("(O)613")), 
-            ItemRegistry.GetObjectTypeDefinition().CreateFlavoredJuice(ItemRegistry.Create<Object>("(O)635")), 
+            ItemRegistry.GetObjectTypeDefinition().CreateFlavoredJuice(ItemRegistry.Create<Object>("(O)613")),
+            ItemRegistry.GetObjectTypeDefinition().CreateFlavoredJuice(ItemRegistry.Create<Object>("(O)635")),
             ItemRegistry.GetObjectTypeDefinition().CreateFlavoredJuice(ItemRegistry.Create<Object>("(O)637"))
         ];
     }

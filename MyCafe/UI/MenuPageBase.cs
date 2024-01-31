@@ -25,36 +25,36 @@ public abstract class MenuPageBase : IClickableMenu
     {
         this.Sprites = sprites;
 
-        Name = name;
-        _parentMenu = parentMenu;
-        Bounds = bounds;
+        this.Name = name;
+        this._parentMenu = parentMenu;
+        this.Bounds = bounds;
     }
 
     public virtual bool TryHover(int x, int y)
     {
-        HoverText = "";
-        HoverTitle = "";
-        return Bounds.Contains(x, y);
+        this.HoverText = "";
+        this.HoverTitle = "";
+        return this.Bounds.Contains(x, y);
     }
 
     public override void snapCursorToCurrentSnappedComponent()
     {
-        if (InFocus)
+        if (this.InFocus)
             base.snapCursorToCurrentSnappedComponent();
         else
-            currentlySnappedComponent = null;
+            this.currentlySnappedComponent = null;
     }
 
     public override void snapToDefaultClickableComponent()
     {
-        InFocus = true;
-        setCurrentlySnappedComponentTo(DefaultComponent);
+        this.InFocus = true;
+        this.setCurrentlySnappedComponentTo(this.DefaultComponent);
     }
 
     public override void setCurrentlySnappedComponentTo(int id)
     {
         base.setCurrentlySnappedComponentTo(id);
-        snapCursorToCurrentSnappedComponent();
+        this.snapCursorToCurrentSnappedComponent();
     }
 
     public override void receiveKeyPress(Keys key)
@@ -66,7 +66,7 @@ public abstract class MenuPageBase : IClickableMenu
         if (Game1.options.menuButton.Contains(new InputButton(key)))
         {
             Game1.playSound("smallSelect");
-            if (readyToClose())
+            if (this.readyToClose())
             {
                 Game1.exitActiveMenu();
             }
@@ -79,7 +79,7 @@ public abstract class MenuPageBase : IClickableMenu
 
     protected virtual void SnapOut(int direction = 3)
     {
-        InFocus = false;
-        _parentMenu.SnapOutInDirection(direction);
+        this.InFocus = false;
+        this._parentMenu.SnapOutInDirection(direction);
     }
 }

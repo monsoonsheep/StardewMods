@@ -35,7 +35,7 @@ namespace MonsoonSheep.Stardew.Common
         ** Accessors
         *********/
         /// <summary>A blank pixel which can be colorized and stretched to draw geometric shapes.</summary>
-        public static Texture2D Pixel => CommonHelper.LazyPixel.Value;
+        public static Texture2D Pixel => LazyPixel.Value;
 
         /// <summary>The width of the horizontal and vertical scroll edges (between the origin position and start of content padding).</summary>
         public static readonly Vector2 ScrollEdgeSize = new(CommonSprites.Scroll.TopLeft.Width * Game1.pixelZoom, CommonSprites.Scroll.TopLeft.Height * Game1.pixelZoom);
@@ -205,7 +205,7 @@ namespace MonsoonSheep.Stardew.Common
         public static void DrawTab(SpriteBatch spriteBatch, int x, int y, int innerWidth, int innerHeight, out Vector2 innerDrawPosition, int align = 0, float alpha = 1, bool forIcon = false, bool drawShadow = true)
         {
             // calculate outer coordinates
-            int outerWidth = innerWidth + CommonHelper.ButtonBorderWidth * 2;
+            int outerWidth = innerWidth + ButtonBorderWidth * 2;
             int outerHeight = innerHeight + Game1.tileSize / 3;
             int offsetX = align switch
             {
@@ -218,7 +218,7 @@ namespace MonsoonSheep.Stardew.Common
             {
                 int iconOffsetX = forIcon ? -Game1.pixelZoom : 0;
                 int iconOffsetY = forIcon ? 2 * -Game1.pixelZoom : 0;
-                innerDrawPosition = new Vector2(x + CommonHelper.ButtonBorderWidth + offsetX + iconOffsetX, y + CommonHelper.ButtonBorderWidth + iconOffsetY);
+                innerDrawPosition = new Vector2(x + ButtonBorderWidth + offsetX + iconOffsetX, y + ButtonBorderWidth + iconOffsetY);
             }
 
             // draw texture
@@ -234,7 +234,7 @@ namespace MonsoonSheep.Stardew.Common
         /// <param name="padding">The padding between the content and border.</param>
         public static void DrawButton(SpriteBatch spriteBatch, in Vector2 position, in Vector2 contentSize, out Vector2 contentPos, out Rectangle bounds, int padding = 0)
         {
-            CommonHelper.DrawContentBox(
+            DrawContentBox(
                 spriteBatch: spriteBatch,
                 texture: CommonSprites.Button.Sheet,
                 background: CommonSprites.Button.Background,
@@ -263,7 +263,7 @@ namespace MonsoonSheep.Stardew.Common
         /// <param name="padding">The padding between the content and border.</param>
         public static void DrawScroll(SpriteBatch spriteBatch, in Vector2 position, in Vector2 contentSize, out Vector2 contentPos, out Rectangle bounds, int padding = 5)
         {
-            CommonHelper.DrawContentBox(
+            DrawContentBox(
                 spriteBatch: spriteBatch,
                 texture: CommonSprites.Scroll.Sheet,
                 background: in CommonSprites.Scroll.Background,
@@ -302,7 +302,7 @@ namespace MonsoonSheep.Stardew.Common
         /// <param name="padding">The padding between the content and border.</param>
         public static void DrawContentBox(SpriteBatch spriteBatch, Texture2D texture, in Rectangle background, in Rectangle top, in Rectangle right, in Rectangle bottom, in Rectangle left, in Rectangle topLeft, in Rectangle topRight, in Rectangle bottomRight, in Rectangle bottomLeft, in Vector2 position, in Vector2 contentSize, out Vector2 contentPos, out Rectangle bounds, int padding)
         {
-            CommonHelper.GetContentBoxDimensions(topLeft, contentSize, padding, out int innerWidth, out int innerHeight, out int outerWidth, out int outerHeight, out int cornerWidth, out int cornerHeight);
+            GetContentBoxDimensions(topLeft, contentSize, padding, out int innerWidth, out int innerHeight, out int outerWidth, out int outerHeight, out int cornerWidth, out int cornerHeight);
             int x = (int)position.X;
             int y = (int)position.Y;
 
@@ -352,7 +352,7 @@ namespace MonsoonSheep.Stardew.Common
         /// <param name="borderHeight">The height of the top and bottom border textures.</param>
         public static void GetScrollDimensions(Vector2 contentSize, int padding, out int innerWidth, out int innerHeight, out int labelOuterWidth, out int outerHeight, out int borderWidth, out int borderHeight)
         {
-            CommonHelper.GetContentBoxDimensions(CommonSprites.Scroll.TopLeft, contentSize, padding, out innerWidth, out innerHeight, out labelOuterWidth, out outerHeight, out borderWidth, out borderHeight);
+            GetContentBoxDimensions(CommonSprites.Scroll.TopLeft, contentSize, padding, out innerWidth, out innerHeight, out labelOuterWidth, out outerHeight, out borderWidth, out borderHeight);
         }
 
         /// <summary>Calculate the outer dimension for a content box.</summary>
@@ -386,7 +386,7 @@ namespace MonsoonSheep.Stardew.Common
         /// <param name="color">The color to tint the sprite.</param>
         public static void DrawLine(this SpriteBatch batch, float x, float y, in Vector2 size, in Color? color = null)
         {
-            batch.Draw(CommonHelper.Pixel, new Rectangle((int)x, (int)y, (int)size.X, (int)size.Y), color ?? Color.White);
+            batch.Draw(Pixel, new Rectangle((int)x, (int)y, (int)size.X, (int)size.Y), color ?? Color.White);
         }
 
         /// <summary>Draw a block of text to the screen with the specified wrap width.</summary>
@@ -435,7 +435,7 @@ namespace MonsoonSheep.Stardew.Common
             float xOffset = 0;
             float yOffset = 0;
             float lineHeight = font.MeasureString("ABC").Y * scale;
-            float spaceWidth = CommonHelper.GetSpaceWidth(font) * scale;
+            float spaceWidth = GetSpaceWidth(font) * scale;
             float blockWidth = 0;
             float blockHeight = lineHeight;
             foreach (string word in words)
@@ -509,7 +509,7 @@ namespace MonsoonSheep.Stardew.Common
         {
             detailedVerb ??= verb;
             monitor.Log($"Something went wrong {detailedVerb}:\n{ex}", LogLevel.Error);
-            CommonHelper.ShowErrorMessage($"Huh. Something went wrong {verb}. The error log has the technical details.");
+            ShowErrorMessage($"Huh. Something went wrong {verb}. The error log has the technical details.");
         }
 
         /****

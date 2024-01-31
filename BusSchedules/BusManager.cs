@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
@@ -18,7 +18,7 @@ internal class BusManager
     {
         get
         {
-            if (_busLocation.TryGetTarget(out BusStop? b))
+            if (this._busLocation.TryGetTarget(out BusStop? b))
                 return b;
 
             Log.Warn("Bus Location updating");
@@ -43,27 +43,27 @@ internal class BusManager
 
     internal Vector2 BusPosition
     {
-        get => BusPositionField.GetValue();
-        set => BusPositionField.SetValue(value);
+        get => this.BusPositionField.GetValue();
+        set => this.BusPositionField.SetValue(value);
     }
     internal Vector2 BusMotion
     {
-        get => BusMotionField.GetValue();
-        set => BusMotionField.SetValue(value);
+        get => this.BusMotionField.GetValue();
+        set => this.BusMotionField.SetValue(value);
     }
     internal TemporaryAnimatedSprite BusDoor
     {
-        get => BusDoorField.GetValue();
-        set => BusDoorField.SetValue(value);
+        get => this.BusDoorField.GetValue();
+        set => this.BusDoorField.SetValue(value);
     }
 
     internal void UpdateLocation(IModHelper helper, BusStop location)
     {
-        _busLocation.SetTarget(location);
+        this._busLocation.SetTarget(location);
 
-        BusPositionField = helper.Reflection.GetField<Vector2>(location, "busPosition");
-        BusMotionField = helper.Reflection.GetField<Vector2>(location, "busMotion");
-        BusDoorField = helper.Reflection.GetField<TemporaryAnimatedSprite>(location, "busDoor");
+        this.BusPositionField = helper.Reflection.GetField<Vector2>(location, "busPosition");
+        this.BusMotionField = helper.Reflection.GetField<Vector2>(location, "busMotion");
+        this.BusDoorField = helper.Reflection.GetField<TemporaryAnimatedSprite>(location, "busDoor");
 
         var tiles = location.Map.GetLayer("Buildings").Tiles;
         _roadTile = tiles[12, 7];
@@ -78,15 +78,15 @@ internal class BusManager
     internal void BusLeave()
     {
         NPC pam = Game1.getCharacterFromName("Pam");
-        if (!BusLocation.characters.Contains(pam) || pam.TilePoint is not { X: 11, Y: 10 })
-            CloseDoorAndDriveAway();
+        if (!this.BusLocation.characters.Contains(pam) || pam.TilePoint is not { X: 11, Y: 10 })
+            this.CloseDoorAndDriveAway();
         else
-            pam.temporaryController = new PathFindController(pam, BusLocation, new Point(12, 9), 3, delegate(Character c, GameLocation _)
+            pam.temporaryController = new PathFindController(pam, this.BusLocation, new Point(12, 9), 3, delegate(Character c, GameLocation _)
             {
                 if (c is NPC p)
                     p.Position = new Vector2(-1000f, -1000f);
-                
-                CloseDoorAndDriveAway();
+
+                this.CloseDoorAndDriveAway();
             });
     }
 
@@ -99,19 +99,19 @@ internal class BusManager
         {
             Log.Debug("Bus is leaving");
 
-            BusReturning = false;
-            BusLeaving = true;
+            this.BusReturning = false;
+            this.BusLeaving = true;
 
             // Instantly leave if no farmer is in bus stop
             if (!animate)
             {
-                BusGone = true;
-                BusLeaving = false;
-                BusMotion = Vector2.Zero;
-                MoveBusOutOfMap();
+                this.BusGone = true;
+                this.BusLeaving = false;
+                this.BusMotion = Vector2.Zero;
+                this.MoveBusOutOfMap();
             }
 
-            var tiles = BusLocation.Map.GetLayer("Buildings").Tiles;
+            var tiles = this.BusLocation.Map.GetLayer("Buildings").Tiles;
             for (int i = 11; i <= 18; i++)
             {
                 for (int j = 7; j <= 9; j++)
@@ -121,20 +121,20 @@ internal class BusManager
             }
         }
 
-        if (Game1.player.currentLocation.Equals(BusLocation))
+        if (Game1.player.currentLocation.Equals(this.BusLocation))
         {
-            ResetDoor();
-            TemporaryAnimatedSprite door = BusDoor;
+            this.ResetDoor();
+            TemporaryAnimatedSprite door = this.BusDoor;
             door.interval = 70f;
             door.timer = 0f;
             door.endFunction = delegate
             {
                 DriveAwayAction(animate: true);
-                BusLocation.localSound("batFlap");
-                BusLocation.localSound("busDriveOff");
+                this.BusLocation.localSound("batFlap");
+                this.BusLocation.localSound("busDriveOff");
             };
             door.paused = false;
-            BusDoor = door;
+            this.BusDoor = door;
         }
         else
         {
@@ -144,22 +144,22 @@ internal class BusManager
 
     internal void ParkBus()
     {
-        BusMotion = Vector2.Zero;
-        
-        BusReturning = false;
-        BusLeaving = false;
-        BusGone = false;
+        this.BusMotion = Vector2.Zero;
 
-        BusPosition = new Vector2(704f, BusPosition.Y);
+        this.BusReturning = false;
+        this.BusLeaving = false;
+        this.BusGone = false;
+
+        this.BusPosition = new Vector2(704f, this.BusPosition.Y);
     }
 
     internal void MoveBusOutOfMap()
     {
-        BusGone = true;
-        BusReturning = false;
-        BusLeaving = false;
+        this.BusGone = true;
+        this.BusReturning = false;
+        this.BusLeaving = false;
 
-        BusPosition = new Vector2(BusLocation.map.RequireLayer("Back").DisplayWidth, BusPosition.Y);
+        this.BusPosition = new Vector2(this.BusLocation.map.RequireLayer("Back").DisplayWidth, this.BusPosition.Y);
     }
 
     internal void DriveBack()
@@ -169,45 +169,45 @@ internal class BusManager
 
         Log.Debug("Bus is returning");
 
-        BusLeaving = false;
-        BusGone = false;
+        this.BusLeaving = false;
+        this.BusGone = false;
 
-        if (Game1.player.currentLocation.Equals(BusLocation))
+        if (Game1.player.currentLocation.Equals(this.BusLocation))
         {
-            MoveBusOutOfMap();
-            BusLocation.localSound("busDriveOff");
+            this.MoveBusOutOfMap();
+            this.BusLocation.localSound("busDriveOff");
             // The UpdateWhenCurrentLocation postfix will handle the movement and call AfterDriveBack
-            BusReturning = true;
-            BusMotion = new Vector2(-6f, 0f);
+            this.BusReturning = true;
+            this.BusMotion = new Vector2(-6f, 0f);
         }
         else
         {
-            AfterDriveBack(animate: false);
+            this.AfterDriveBack(animate: false);
         }
 
-        ResetDoor(closed: true);
+        this.ResetDoor(closed: true);
     }
 
     internal void AfterDriveBack(bool animate = true)
     {
-        ResetBus();
+        this.ResetBus();
 
-        BusReturning = false;
-        BusGone = false;
-        BusLeaving = false;
+        this.BusReturning = false;
+        this.BusGone = false;
+        this.BusLeaving = false;
 
         // Animate bus door to open
         if (animate)
         {
-            var door = BusDoor;
+            var door = this.BusDoor;
             door.timer = 0f;
             door.pingPong = true;
             door.interval = 70f;
             door.currentParentTileIndex = 5;
             door.endFunction = _ => BusEvents.Invoke_BusArrive();
             door.paused = false;
-            BusDoor = door;
-            BusLocation.localSound("trashcanlid");
+            this.BusDoor = door;
+            this.BusLocation.localSound("trashcanlid");
         }
         else
             BusEvents.Invoke_BusArrive();
@@ -215,8 +215,8 @@ internal class BusManager
 
     internal void ResetBus()
     {
-        ParkBus();
-        var tiles = BusLocation.Map.GetLayer("Buildings").Tiles;
+        this.ParkBus();
+        var tiles = this.BusLocation.Map.GetLayer("Buildings").Tiles;
         for (int i = 11; i <= 18; i++)
         {
             for (int j = 7; j <= 9; j++)
@@ -235,15 +235,15 @@ internal class BusManager
     internal void OnDoorOpen(object? sender, EventArgs e)
     {
         Log.Debug("Bus has arrived");
-        if (Game1.player.currentLocation.Equals(BusLocation))
+        if (Game1.player.currentLocation.Equals(this.BusLocation))
         {
             // Reset bus door sprite
-            ResetDoor();
-            TemporaryAnimatedSprite door = BusDoor;
+            this.ResetDoor();
+            TemporaryAnimatedSprite door = this.BusDoor;
             door.interval = 999999f;
             door.animationLength = 6;
             door.holdLastFrame = true;
-            door.layerDepth = (BusPosition.Y + 192f) / 10000f + 1E-05f;
+            door.layerDepth = (this.BusPosition.Y + 192f) / 10000f + 1E-05f;
             door.scale = 4f;
         }
     }
@@ -252,31 +252,29 @@ internal class BusManager
     {
         if (closed)
         {
-            BusDoor = new TemporaryAnimatedSprite(
+            this.BusDoor = new TemporaryAnimatedSprite(
                 "LooseSprites\\Cursors",
-                new Rectangle(368, 1311, 16, 38),
-                BusPosition + new Vector2(16f, 26f) * 4f,
+                new Rectangle(368, 1311, 16, 38), this.BusPosition + new Vector2(16f, 26f) * 4f,
                 false, 0f, Color.White)
             {
                 interval = 999999f,
                 animationLength = 1,
                 holdLastFrame = true,
-                layerDepth = (BusPosition.Y + 192f) / 10000f + 1E-05f,
+                layerDepth = (this.BusPosition.Y + 192f) / 10000f + 1E-05f,
                 scale = 4f
             };
         }
         else
         {
-            BusDoor = new TemporaryAnimatedSprite(
+            this.BusDoor = new TemporaryAnimatedSprite(
                 "LooseSprites\\Cursors",
-                new Rectangle(288, 1311, 16, 38),
-                BusPosition + new Vector2(16f, 26f) * 4f,
+                new Rectangle(288, 1311, 16, 38), this.BusPosition + new Vector2(16f, 26f) * 4f,
                 false, 0f, Color.White)
             {
                 interval = 999999f,
                 animationLength = 6,
                 holdLastFrame = true,
-                layerDepth = (BusPosition.Y + 192f) / 10000f + 1E-05f,
+                layerDepth = (this.BusPosition.Y + 192f) / 10000f + 1E-05f,
                 scale = 4f
             };
 
@@ -289,10 +287,10 @@ internal class BusManager
     public void PamBackToSchedule(object? sender, EventArgs e)
     {
         var pam = Game1.getCharacterFromName("Pam");
-        if (BusLocation.characters.Contains(pam))
+        if (this.BusLocation.characters.Contains(pam))
         {
-            pam.Position = BusDoorPosition.ToVector2() * 64f;
-            pam.temporaryController = new PathFindController(pam, BusLocation, new Point(11, 10), 2, delegate(Character c, GameLocation location)
+            pam.Position = this.BusDoorPosition.ToVector2() * 64f;
+            pam.temporaryController = new PathFindController(pam, this.BusLocation, new Point(11, 10), 2, delegate(Character c, GameLocation location)
             {
                 if (c is NPC p)
                 {

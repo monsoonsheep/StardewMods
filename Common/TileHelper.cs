@@ -24,7 +24,7 @@ namespace MonsoonSheep.Stardew.Common
                 return Enumerable.Empty<Vector2>();
 
             Layer layer = location.Map.Layers[0];
-            return TileHelper.GetTiles(0, 0, layer.LayerWidth, layer.LayerHeight);
+            return GetTiles(0, 0, layer.LayerWidth, layer.LayerHeight);
         }
 
         /****
@@ -34,7 +34,7 @@ namespace MonsoonSheep.Stardew.Common
         /// <param name="area">The tile area to search.</param>
         public static IEnumerable<Vector2> GetTiles(this Rectangle area)
         {
-            return TileHelper.GetTiles(area.X, area.Y, area.Width, area.Height);
+            return GetTiles(area.X, area.Y, area.Width, area.Height);
         }
 
         /// <summary>Expand a rectangle equally in all directions.</summary>
@@ -94,7 +94,7 @@ namespace MonsoonSheep.Stardew.Common
         /// <param name="expand">The number of tiles to expand in each direction, to avoid tile edge pop-in.</param>
         public static IEnumerable<Vector2> GetVisibleTiles(int expand = 0)
         {
-            return TileHelper.GetVisibleArea(expand).GetTiles();
+            return GetVisibleArea(expand).GetTiles();
         }
 
         /// <summary>Get the tile area visible on-screen.</summary>
@@ -115,7 +115,7 @@ namespace MonsoonSheep.Stardew.Common
         /// <summary>Get the tile under the player's cursor (not restricted to the player's grab tile range).</summary>
         public static Vector2 GetTileFromCursor()
         {
-            return TileHelper.GetTileFromScreenPosition(Game1.getMouseX(), Game1.getMouseY());
+            return GetTileFromScreenPosition(Game1.getMouseX(), Game1.getMouseY());
         }
 
         /// <summary>Get the tile at the non-UI pixel coordinate relative to the top-left corner of the screen.</summary>
@@ -166,7 +166,7 @@ namespace MonsoonSheep.Stardew.Common
         {
             for (int x = -distance; x <= distance; x++)
                 for (int y = -distance; y <= distance; y++)
-                    if (x * x + y * y <=  Math.Abs(distance) * Math.Abs(distance))
+                    if (x * x + y * y <= Math.Abs(distance) * Math.Abs(distance))
                         yield return new Vector2(origin.X + x, origin.Y + y);
         }
     }

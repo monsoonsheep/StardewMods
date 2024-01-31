@@ -1,9 +1,10 @@
 ﻿using System;
-using MyCafe.Customers;
-using Netcode;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using Microsoft.Xna.Framework;
+using MyCafe.Customers;
+using MyCafe.Enums;
+using Netcode;
 
 
 namespace MyCafe.Locations.Objects;
@@ -27,70 +28,60 @@ public class Table : INetObject<NetFields>
 
     public virtual Vector2 Position
     {
-        get => NetPosition.Value;
-        set => NetPosition.Set(value);
+        get => this.NetPosition.Value;
+        set => this.NetPosition.Set(value);
     }
 
     internal string CurrentLocation
     {
-        get => NetCurrentLocation.Value;
-        set => NetCurrentLocation.Set(value);
+        get => this.NetCurrentLocation.Value;
+        set => this.NetCurrentLocation.Set(value);
     }
 
-    internal virtual Vector2 Center => BoundingBox.Center.ToVector2();
+    internal virtual Vector2 Center => this.BoundingBox.Center.ToVector2();
 
-    internal bool IsReserved => State.Value != TableState.Free;
+    internal bool IsReserved => this.State.Value != TableState.Free;
 
     public Table()
     {
-        NetFields = new NetFields(NetFields.GetNameForInstance(this));
-        InitNetFields();
+        this.NetFields = new NetFields(NetFields.GetNameForInstance(this));
+        this.InitNetFields();
     }
 
     protected Table(string location) : this()
     {
-        CurrentLocation = location;
+        this.CurrentLocation = location;
     }
 
     protected virtual void InitNetFields()
     {
-        NetFields.SetOwner(this)
-            .AddField(State).AddField(Seats).AddField(NetCurrentLocation).AddField(NetPosition).AddField(BoundingBox);
+        this.NetFields.SetOwner(this)
+            .AddField(this.State).AddField(this.Seats).AddField(this.NetCurrentLocation).AddField(this.NetPosition).AddField(this.BoundingBox);
     }
 
     internal virtual void Free()
     {
-        State.Set(TableState.Free);
-        foreach (var s in Seats)
+        this.State.Set(TableState.Free);
+        foreach (var s in this.Seats)
             s.Free();
     }
 
     internal virtual bool Reserve(List<Customer> customers)
     {
-        if (IsReserved || Seats.Count < customers.Count)
+        if (this.IsReserved || this.Seats.Count < customers.Count)
             return false;
 
         for (int i = 0; i < customers.Count; i++)
         {
-            customers[i].ReservedSeat = Seats[i];
-            Seats[i].Reserve(customers[i]);
+            customers[i].ReservedSeat = this.Seats[i];
+            this.Seats[i].Reserve(customers[i]);
         }
 
-        State.Set(TableState.WaitingForCustomers);
+        this.State.Set(TableState.WaitingForCustomers);
         return true;
     }
 }
 
-public enum TableState
-{
-    Free,
-    WaitingForCustomers,
-    CustomersThinkingOfOrder,
-    CustomersDecidedOnOrder,
-    CustomersWaitingForFood,
-    CustomersEating,
-    CustomersFinishedEating
-}
 
 internal class TableStateChangedEventArgs : EventArgs
 {

@@ -1,7 +1,7 @@
-﻿using StardewValley;
-using StardewValley.Objects;
-using System.Linq;
+﻿using System.Linq;
 using MyCafe.Locations.Objects;
+using StardewValley;
+using StardewValley.Objects;
 
 namespace MyCafe;
 

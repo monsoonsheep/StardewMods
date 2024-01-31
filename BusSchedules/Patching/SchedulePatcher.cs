@@ -1,4 +1,4 @@
-﻿#region Usings
+#region Usings
 
 using System.Collections.Generic;
 using HarmonyLib;
@@ -21,16 +21,16 @@ internal class SchedulePatcher : BasePatcher
     {
         harmony.Patch(
             original: this.RequireMethod<NPC>(nameof(NPC.TryLoadSchedule), [typeof(string)]),
-            prefix: this.GetHarmonyMethod(nameof(SchedulePatcher.Before_TryLoadSchedule)),
-            postfix: this.GetHarmonyMethod(nameof(SchedulePatcher.After_TryLoadSchedule))
+            prefix: this.GetHarmonyMethod(nameof(Before_TryLoadSchedule)),
+            postfix: this.GetHarmonyMethod(nameof(After_TryLoadSchedule))
         );
         harmony.Patch(
             original: this.RequireMethod<NPC>(nameof(NPC.checkSchedule)),
-            postfix: this.GetHarmonyMethod(nameof(SchedulePatcher.After_checkSchedule))
+            postfix: this.GetHarmonyMethod(nameof(After_checkSchedule))
         );
         harmony.Patch(
             original: this.RequireMethod<NPC>("getRouteEndBehaviorFunction"),
-            prefix: this.GetHarmonyMethod(nameof(SchedulePatcher.Before_getRouteEndBehaviorFunction))
+            prefix: this.GetHarmonyMethod(nameof(Before_getRouteEndBehaviorFunction))
         );
     }
     

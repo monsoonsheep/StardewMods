@@ -1,9 +1,9 @@
+using System.Linq;
+using System.Xml.Serialization;
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common;
 using MyCafe.Customers;
 using StardewValley;
-using System.Linq;
-using System.Xml.Serialization;
 
 namespace MyCafe.Locations.Objects;
 
@@ -17,17 +17,17 @@ public sealed class LocationSeat : Seat
 
     public LocationSeat(Point position, Table table) : base(table)
     {
-        Position = position;
+        this.Position = position;
     }
 
     internal override int SittingDirection
     {
         get
         {
-            if (Table is LocationTable table)
+            if (this.Table is LocationTable table)
             {
                 Rectangle tableBox = table.BoundingBox.Value;
-                Vector2 myPos = new Vector2(Position.X * 64, Position.Y * 64);
+                Vector2 myPos = new Vector2(this.Position.X * 64, this.Position.Y * 64);
                 if (tableBox.Contains(myPos.X, myPos.Y - 64))
                     return 0;
                 if (tableBox.Contains(myPos.X + 64, myPos.Y))
@@ -47,11 +47,11 @@ public sealed class LocationSeat : Seat
         if (!base.Reserve(customer))
             return false;
 
-        GameLocation? location = CommonHelper.GetLocation(Table.CurrentLocation);
-        if (location == null) 
+        GameLocation? location = CommonHelper.GetLocation(this.Table.CurrentLocation);
+        if (location == null)
             return false;
 
-        MapSeat? mapSeat = location.mapSeats.FirstOrDefault(s => s.tilePosition.Value.Equals(Position.ToVector2()));
+        MapSeat? mapSeat = location.mapSeats.FirstOrDefault(s => s.tilePosition.Value.Equals(this.Position.ToVector2()));
         mapSeat?.sittingFarmers.Add(Game1.MasterPlayer.UniqueMultiplayerID, 0);
 
         return true;
@@ -60,8 +60,8 @@ public sealed class LocationSeat : Seat
     internal override void Free()
     {
         base.Free();
-        GameLocation? location = CommonHelper.GetLocation(Table.CurrentLocation);
-        MapSeat? mapSeat = location?.mapSeats?.ToList().FirstOrDefault(s => s.tilePosition.Value.Equals(Position.ToVector2()));
+        GameLocation? location = CommonHelper.GetLocation(this.Table.CurrentLocation);
+        MapSeat? mapSeat = location?.mapSeats?.ToList().FirstOrDefault(s => s.tilePosition.Value.Equals(this.Position.ToVector2()));
         mapSeat?.RemoveSittingFarmer(Game1.MasterPlayer);
     }
 

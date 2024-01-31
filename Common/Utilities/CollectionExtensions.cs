@@ -59,7 +59,7 @@ namespace MonsoonSheep.Stardew.Common.Utilities
             if (collection == null)
                 return new(StringComparer.OrdinalIgnoreCase);
 
-            if (!object.ReferenceEquals(collection.Comparer, StringComparer.OrdinalIgnoreCase))
+            if (!ReferenceEquals(collection.Comparer, StringComparer.OrdinalIgnoreCase))
                 return new(collection, StringComparer.OrdinalIgnoreCase);
 
             return collection;
@@ -74,7 +74,7 @@ namespace MonsoonSheep.Stardew.Common.Utilities
             if (collection == null)
                 return new(StringComparer.OrdinalIgnoreCase);
 
-            if (!object.ReferenceEquals(collection.Comparer, StringComparer.OrdinalIgnoreCase))
+            if (!ReferenceEquals(collection.Comparer, StringComparer.OrdinalIgnoreCase))
                 return new(collection, StringComparer.OrdinalIgnoreCase);
 
             return collection;

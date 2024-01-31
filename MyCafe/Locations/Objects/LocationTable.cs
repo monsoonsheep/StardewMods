@@ -21,7 +21,7 @@ public class LocationTable : Table
         foreach (var seat in seatPositions)
         {
             var locationSeat = new LocationSeat(seat.ToPoint(), this);
-            Seats.Add(locationSeat);
+            this.Seats.Add(locationSeat);
         }
     }
 }

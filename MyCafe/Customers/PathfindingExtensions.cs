@@ -1,11 +1,11 @@
-﻿using Microsoft.Xna.Framework;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common;
 using StardewValley;
 using StardewValley.Objects;
 using StardewValley.Pathfinding;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using xTile.Dimensions;
 
 namespace MyCafe.Customers;
@@ -72,7 +72,7 @@ public static class PathfindingExtensions
 
             if (i < locationsRoute.Length - 1)
             {
-                Point target = 
+                Point target =
                     (locationsRoute[i + 1] == Mod.CafeIndoor?.Name)
                     ? current.getWarpPointTo(Mod.CafeIndoor.uniqueName.Value)
                     : current.getWarpPointTo(locationsRoute[i + 1]);
@@ -131,7 +131,7 @@ public static class PathfindingExtensions
             };
 
             Stack<Point>? shortestPath = null;
-            foreach (var direction in directions)
+            foreach (sbyte[]? direction in directions)
             {
                 Point newTile = targetTile + new Point(direction[0], direction[1]);
 
@@ -178,8 +178,8 @@ public class PathNotFoundException : Exception
     /// <inheritdoc />
     public PathNotFoundException(string message, Point startPoint, Point targetPoint, string fromLocation, string toLocation, Character forCharacter) : base(message)
     {
-        (_fromTile, _toTile, _fromLocation, _toLocation, _forCharacter) = (startPoint, targetPoint, fromLocation, toLocation, forCharacter);
+        (this._fromTile, this._toTile, this._fromLocation, this._toLocation, this._forCharacter) = (startPoint, targetPoint, fromLocation, toLocation, forCharacter);
     }
 
-    public override string Message => $"From {_fromTile} in {_fromLocation} to {_toTile} in {_toLocation} for character {_forCharacter.Name}";
+    public override string Message => $"From {this._fromTile} in {this._fromLocation} to {this._toTile} in {this._toLocation} for character {this._forCharacter.Name}";
 }

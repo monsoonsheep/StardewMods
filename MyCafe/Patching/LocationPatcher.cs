@@ -1,9 +1,9 @@
-﻿using StardewModdingAPI;
-using StardewValley;
-using HarmonyLib;
+﻿using HarmonyLib;
 using MonsoonSheep.Stardew.Common.Patching;
-using xTile.Dimensions;
 using MyCafe.Locations.Objects;
+using StardewModdingAPI;
+using StardewValley;
+using xTile.Dimensions;
 
 namespace MyCafe.Patching;
 
@@ -13,11 +13,11 @@ internal class LocationPatcher : BasePatcher
     {
         harmony.Patch(
             original: this.RequireMethod<GameLocation>("checkAction"),
-            postfix: this.GetHarmonyMethod(nameof(LocationPatcher.After_CheckAction))
+            postfix: this.GetHarmonyMethod(nameof(After_CheckAction))
             );
         harmony.Patch(
             original: this.RequireMethod<Farm>("initNetFields"),
-            postfix: this.GetHarmonyMethod(nameof(LocationPatcher.After_InitNetFields))
+            postfix: this.GetHarmonyMethod(nameof(After_InitNetFields))
             );
     }
 
@@ -34,7 +34,7 @@ internal class LocationPatcher : BasePatcher
 
         foreach (Table table in Mod.Cafe.Tables)
         {
-            if (table.BoundingBox.Value.Contains(tileLocation.X * 64, tileLocation.Y * 64) 
+            if (table.BoundingBox.Value.Contains(tileLocation.X * 64, tileLocation.Y * 64)
                 && Mod.Cafe.InteractWithTable(table, who))
             {
                 __result = true;

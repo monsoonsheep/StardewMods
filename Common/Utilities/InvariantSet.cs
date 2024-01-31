@@ -37,7 +37,7 @@ namespace MonsoonSheep.Stardew.Common.Utilities
         /// <summary>Construct an instance.</summary>
         public InvariantSet()
         {
-            this.Set = InvariantSet.EmptyHashSet;
+            this.Set = EmptyHashSet;
         }
 
         /// <summary>Construct an instance.</summary>
@@ -48,7 +48,7 @@ namespace MonsoonSheep.Stardew.Common.Utilities
             {
                 InvariantSet set => set.Set,
                 HashSet<string> set => set.ToNonNullCaseInsensitive(),
-                ICollection<string> { Count: 0 } => InvariantSet.EmptyHashSet,
+                ICollection<string> { Count: 0 } => EmptyHashSet,
                 _ => this.CreateSet(values)
             };
         }

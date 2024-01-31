@@ -1,12 +1,12 @@
-﻿using HarmonyLib;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Reflection.Emit;
+using HarmonyLib;
+using MonsoonSheep.Stardew.Common.Patching;
 using MyCafe.Customers;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Pathfinding;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Emit;
-using MonsoonSheep.Stardew.Common.Patching;
 using Object = StardewValley.Object;
 
 namespace MyCafe.Patching;
@@ -17,15 +17,15 @@ internal class CharacterPatcher : BasePatcher
     {
         harmony.Patch(
             original: this.RequireMethod<PathFindController>("moveCharacter"),
-            transpiler: this.GetHarmonyMethod(nameof(CharacterPatcher.Transpile_MoveCharacter))
+            transpiler: this.GetHarmonyMethod(nameof(Transpile_MoveCharacter))
         );
         harmony.Patch(
             original: this.RequireMethod<NPC>("ChooseAppearance"),
-            prefix: this.GetHarmonyMethod(nameof(CharacterPatcher.Before_ChooseAppearance))
+            prefix: this.GetHarmonyMethod(nameof(Before_ChooseAppearance))
         );
         harmony.Patch(
             original: this.RequireMethod<Character>(nameof(Character.doEmote), [typeof(int), typeof(bool), typeof(bool)]),
-            postfix: this.GetHarmonyMethod(nameof(CharacterPatcher.After_DoEmote))
+            postfix: this.GetHarmonyMethod(nameof(After_DoEmote))
         );
     }
 

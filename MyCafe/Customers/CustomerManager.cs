@@ -1,10 +1,10 @@
-﻿using MyCafe.CustomerFactory;
-using StardewModdingAPI;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework.Graphics;
+using MyCafe.CustomerFactory;
 using MyCafe.Customers.Data;
 using MyCafe.Locations.Objects;
+using StardewModdingAPI;
 
 namespace MyCafe.Customers;
 
@@ -20,19 +20,19 @@ internal sealed class CustomerManager
     {
         get
         {
-            var l = BusCustomers.ActiveGroups.Concat(VillagerCustomers.ActiveGroups);
-            return ChatCustomers == null ? l : l.Concat(ChatCustomers.ActiveGroups);
+            var l = this.BusCustomers.ActiveGroups.Concat(this.VillagerCustomers.ActiveGroups);
+            return this.ChatCustomers == null ? l : l.Concat(this.ChatCustomers.ActiveGroups);
         }
     }
 
     internal CustomerManager(IModHelper helper, Dictionary<string, BusCustomerData> customersData, Texture2D sprites, Cafe cafe)
     {
-        BusCustomers = new BusCustomerSpawner(customersData, sprites);
-        VillagerCustomers = new VillagerCustomerSpawner(sprites);
+        this.BusCustomers = new BusCustomerSpawner(customersData, sprites);
+        this.VillagerCustomers = new VillagerCustomerSpawner(sprites);
 
-        BusCustomers.Initialize(helper);
-        VillagerCustomers.Initialize(helper);
-        Cafe = cafe;
+        this.BusCustomers.Initialize(helper);
+        this.VillagerCustomers.Initialize(helper);
+        this.Cafe = cafe;
 
 #if YOUTUBE || TWITCH
         ChatCustomers = new ChatCustomerSpawner();
@@ -41,9 +41,9 @@ internal sealed class CustomerManager
 
     internal void DayUpdate()
     {
-        VillagerCustomers.DayUpdate();
-        BusCustomers.DayUpdate();
-        ChatCustomers?.DayUpdate();
+        this.VillagerCustomers.DayUpdate();
+        this.BusCustomers.DayUpdate();
+        this.ChatCustomers?.DayUpdate();
     }
 
     internal void SpawnCustomers()
@@ -55,15 +55,15 @@ internal sealed class CustomerManager
             return;
         }
 
-        if (ChatCustomers is { State: SpawnerState.Enabled })
+        if (this.ChatCustomers is { State: SpawnerState.Enabled })
         {
-            if (ChatCustomers.Spawn(table, out _) is true)
+            if (this.ChatCustomers.Spawn(table, out _) is true)
             {
                 return;
             }
         }
 
-        if (BusCustomers.Spawn(table, out _) is true)
+        if (this.BusCustomers.Spawn(table, out _) is true)
         {
             return;
         }
@@ -71,24 +71,24 @@ internal sealed class CustomerManager
 
     internal void RemoveAllCustomers()
     {
-        BusCustomers.RemoveAll();
-        VillagerCustomers.RemoveAll();
-        ChatCustomers?.RemoveAll();
+        this.BusCustomers.RemoveAll();
+        this.VillagerCustomers.RemoveAll();
+        this.ChatCustomers?.RemoveAll();
     }
 
     internal CustomerGroup? GetGroupFromTable(Table table)
     {
-        return CurrentGroups.FirstOrDefault(g => g.ReservedTable == table);
+        return this.CurrentGroups.FirstOrDefault(g => g.ReservedTable == table);
     }
 
     internal void LetGo(CustomerGroup group, bool force = false)
     {
-        if (BusCustomers.ActiveGroups.Contains(group))
-            BusCustomers.LetGo(group, force);
-        else if (VillagerCustomers.ActiveGroups.Contains(group))
-            VillagerCustomers.LetGo(group, force);
-        else if (ChatCustomers?.ActiveGroups.Contains(group) ?? false)
-            ChatCustomers.LetGo(group, force);
+        if (this.BusCustomers.ActiveGroups.Contains(group))
+            this.BusCustomers.LetGo(group, force);
+        else if (this.VillagerCustomers.ActiveGroups.Contains(group))
+            this.VillagerCustomers.LetGo(group, force);
+        else if (this.ChatCustomers?.ActiveGroups.Contains(group) ?? false)
+            this.ChatCustomers.LetGo(group, force);
         else
         {
             Log.Error("Group not found, couldn't be deleted. This is a bug.");

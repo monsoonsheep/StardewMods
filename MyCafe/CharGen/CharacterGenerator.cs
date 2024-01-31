@@ -1,7 +1,7 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewValley;
-using Microsoft.Xna.Framework;
 
 namespace MyCafe.CharGen;
 internal class CharacterGenerator
@@ -14,10 +14,10 @@ internal class CharacterGenerator
 
     internal void LoadTextures(IModContentHelper modContent)
     {
-        bodyTex = modContent.Load<Texture2D>("assets/base_male.png");
-        hairTex = modContent.Load<Texture2D>("assets/hair1.png");
-        pantsTex = modContent.Load<Texture2D>("assets/jeans1.png");
-        shirtTex = modContent.Load<Texture2D>("assets/shirt1.png");
+        this.bodyTex = modContent.Load<Texture2D>("assets/base_male.png");
+        this.hairTex = modContent.Load<Texture2D>("assets/hair1.png");
+        this.pantsTex = modContent.Load<Texture2D>("assets/jeans1.png");
+        this.shirtTex = modContent.Load<Texture2D>("assets/shirt1.png");
     }
 
     private Texture2D GetCharacterSpriteFromParts(Texture2D body, Texture2D hair, Texture2D pants, Texture2D shirt)
@@ -37,7 +37,7 @@ internal class CharacterGenerator
         sb.End();
         Game1.graphics.GraphicsDevice.SetRenderTargets(orig);
         Color[] data = new Color[64 * 160];
-        target.GetData(data, 0, 64*160);
+        target.GetData(data, 0, 64 * 160);
         sprite.SetData(data);
 
         sb.Dispose();

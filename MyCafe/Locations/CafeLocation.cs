@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using Microsoft.Xna.Framework;
@@ -25,7 +25,7 @@ public class CafeLocation : GameLocation
 
     public Dictionary<Rectangle, List<Vector2>> GetMapTables()
     {
-        return _mapTables;
+        return this._mapTables;
     }
 
     public void PopulateMapTables()
@@ -33,8 +33,8 @@ public class CafeLocation : GameLocation
         //if (_mapTables is { Count: > 0 })
         //    return;
 
-        _mapTables.Clear();
-        Layer layer = Map.GetLayer("Back");
+        this._mapTables.Clear();
+        Layer layer = this.Map.GetLayer("Back");
 
         Dictionary<string, Rectangle> seatStringToTableRecs = new();
 
@@ -60,7 +60,7 @@ public class CafeLocation : GameLocation
 
         foreach (var pair in seatStringToTableRecs)
         {
-            var splitValues = pair.Key.Split(' ');
+            string[] splitValues = pair.Key.Split(' ');
             var seats = new List<Vector2>();
 
             for (int i = 0; i < splitValues.Length; i += 2)
@@ -77,7 +77,7 @@ public class CafeLocation : GameLocation
 
             if (seats.Count > 0)
             {
-                _mapTables.Add(pair.Value, seats);
+                this._mapTables.Add(pair.Value, seats);
             }
         }
     }

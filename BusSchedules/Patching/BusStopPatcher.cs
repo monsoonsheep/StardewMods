@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -22,29 +22,29 @@ internal class BusStopPatcher : BasePatcher
     {
         harmony.Patch(
             original: this.RequireMethod<BusStop>("doorOpenAfterReturn"),
-            postfix: this.GetHarmonyMethod(nameof(BusStopPatcher.After_doorOpenAfterReturn))
+            postfix: this.GetHarmonyMethod(nameof(After_doorOpenAfterReturn))
         );
         harmony.Patch(
             original: this.RequireMethod<BusStop>("UpdateWhenCurrentLocation", [typeof(GameTime)]),
-            postfix: this.GetHarmonyMethod(nameof(BusStopPatcher.After_UpdateWhenCurrentLocation))
+            postfix: this.GetHarmonyMethod(nameof(After_UpdateWhenCurrentLocation))
         );
         harmony.Patch(
             original: this.RequireMethod<GameLocation>("cleanupForVacancy"),
-            postfix: this.GetHarmonyMethod(nameof(BusStopPatcher.After_cleanupForVacancy))
+            postfix: this.GetHarmonyMethod(nameof(After_cleanupForVacancy))
         );
         harmony.Patch(
             original: this.RequireMethod<BusStop>("resetLocalState"),
-            postfix: this.GetHarmonyMethod(nameof(BusStopPatcher.After_resetLocalState))
+            postfix: this.GetHarmonyMethod(nameof(After_resetLocalState))
         );
         harmony.Patch(
             original: this.RequireMethod<BusStop>("answerDialogue", [typeof(Response)]),
-            prefix: this.GetHarmonyMethod(nameof(BusStopPatcher.Before_answerDialogue)),
-            postfix: this.GetHarmonyMethod(nameof(BusStopPatcher.After_answerDialogue)),
-            transpiler: this.GetHarmonyMethod(nameof(BusStopPatcher.Transpiler_answerDialogue))
+            prefix: this.GetHarmonyMethod(nameof(Before_answerDialogue)),
+            postfix: this.GetHarmonyMethod(nameof(After_answerDialogue)),
+            transpiler: this.GetHarmonyMethod(nameof(Transpiler_answerDialogue))
         );
         harmony.Patch(
             original: this.RequireMethod<BusStop>("draw", [typeof(SpriteBatch)]),
-            postfix: this.GetHarmonyMethod(nameof(BusStopPatcher.After_draw))
+            postfix: this.GetHarmonyMethod(nameof(After_draw))
         );
     }
 

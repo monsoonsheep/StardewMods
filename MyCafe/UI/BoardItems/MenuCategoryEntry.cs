@@ -15,19 +15,17 @@ internal class MenuCategoryEntry : MenuEntry
 
     internal MenuCategoryEntry(string name, Texture2D sprites) : base(sprites)
     {
-        Name = name;
-        _lengthOfText = (int)Game1.smallFont.MeasureString(name).X;
-        _xPositionForCentering = (int)((Bounds.Width - _lengthOfText) / 2f);
+        this.Name = name;
+        this._lengthOfText = (int)Game1.smallFont.MeasureString(name).X;
+        this._xPositionForCentering = (int)((Bounds.Width - this._lengthOfText) / 2f);
     }
 
     internal override void Draw(SpriteBatch b, int slotX, int slotY)
     {
         // Category name text
         b.DrawString(
-            Game1.smallFont,
-            Name,
-            new Vector2(slotX + _xPositionForCentering + 2, slotY),
-            _color,
+            Game1.smallFont, this.Name,
+            new Vector2(slotX + this._xPositionForCentering + 2, slotY), this._color,
             0f,
             Vector2.Zero,
             Vector2.One,
@@ -36,8 +34,7 @@ internal class MenuCategoryEntry : MenuEntry
 
         Rectangle stretch = source_sideLine;
 
-        b.Draw(
-            Sprites,
+        b.Draw(this.Sprites,
             new Vector2(slotX + 16, slotY + 8),
             stretch,
             Color.White,
@@ -46,8 +43,7 @@ internal class MenuCategoryEntry : MenuEntry
             new Vector2(1, 1),
             SpriteEffects.None,
             1f);
-        b.Draw(
-            Sprites,
+        b.Draw(this.Sprites,
             new Vector2(slotX + Bounds.Width - 16, slotY + 8),
             stretch,
             Color.White,
@@ -60,29 +56,27 @@ internal class MenuCategoryEntry : MenuEntry
         stretch.X += 4;
         stretch.Width = 1;
 
-        b.Draw(
-            Sprites,
+        b.Draw(this.Sprites,
             new Vector2(slotX + 20, slotY + 8),
             stretch,
             Color.White,
             0f,
             Vector2.Zero,
-            new Vector2(_xPositionForCentering - 32, 1f),
+            new Vector2(this._xPositionForCentering - 32, 1f),
             SpriteEffects.None,
             1f);
-        b.Draw(
-            Sprites,
-            new Vector2(slotX + _xPositionForCentering + _lengthOfText + 18, slotY + 8),
+        b.Draw(this.Sprites,
+            new Vector2(slotX + this._xPositionForCentering + this._lengthOfText + 18, slotY + 8),
             stretch,
             Color.White,
             0f,
             Vector2.Zero,
-            new Vector2(_xPositionForCentering - 32, 1),
+            new Vector2(this._xPositionForCentering - 32, 1),
             SpriteEffects.None,
             1f);
 
 
-        if (EditMode)
+        if (this.EditMode)
         {
 
         }

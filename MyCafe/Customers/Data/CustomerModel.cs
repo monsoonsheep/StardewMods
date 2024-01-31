@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace MyCafe.Customers.Data;
+﻿namespace MyCafe.Customers.Data;
 
 internal class CustomerModel
 {
