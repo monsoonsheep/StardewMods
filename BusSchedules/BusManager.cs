@@ -12,13 +12,13 @@ namespace BusSchedules;
 
 internal class BusManager
 {
-    private readonly WeakReference<BusStop> _busLocation = new WeakReference<BusStop>((BusStop) Game1.getLocationFromName("BusStop"));
+    private readonly WeakReference<BusStop> BusLocationRef = new WeakReference<BusStop>((BusStop) Game1.getLocationFromName("BusStop"));
    
     internal BusStop BusLocation
     {
         get
         {
-            if (this._busLocation.TryGetTarget(out BusStop? b))
+            if (this.BusLocationRef.TryGetTarget(out BusStop? b))
                 return b;
 
             Log.Warn("Bus Location updating");
@@ -37,9 +37,9 @@ internal class BusManager
     internal IReflectedField<Vector2> BusMotionField = null!;
     internal IReflectedField<Vector2> BusPositionField = null!;
 
-    private static Tile _roadTile = null!;
-    private static Tile _lineTile = null!;
-    private static Tile _shadowTile = null!;
+    private static Tile RoadTile = null!;
+    private static Tile LineTile = null!;
+    private static Tile ShadowTile = null!;
 
     internal Vector2 BusPosition
     {
@@ -59,16 +59,16 @@ internal class BusManager
 
     internal void UpdateLocation(IModHelper helper, BusStop location)
     {
-        this._busLocation.SetTarget(location);
+        this.BusLocationRef.SetTarget(location);
 
         this.BusPositionField = helper.Reflection.GetField<Vector2>(location, "busPosition");
         this.BusMotionField = helper.Reflection.GetField<Vector2>(location, "busMotion");
         this.BusDoorField = helper.Reflection.GetField<TemporaryAnimatedSprite>(location, "busDoor");
 
         var tiles = location.Map.GetLayer("Buildings").Tiles;
-        _roadTile = tiles[12, 7];
-        _lineTile = tiles[12, 8];
-        _shadowTile = tiles[13, 8];
+        RoadTile = tiles[12, 7];
+        LineTile = tiles[12, 8];
+        ShadowTile = tiles[13, 8];
     }
 
     /// <summary>
@@ -222,13 +222,13 @@ internal class BusManager
             for (int j = 7; j <= 9; j++)
             {
                 if (j == 7 || j == 9)
-                    tiles[i, j] = _roadTile;
+                    tiles[i, j] = RoadTile;
                 else if (j == 8)
-                    tiles[i, j] = _lineTile;
+                    tiles[i, j] = LineTile;
             }
         }
-        tiles[13, 8] = _shadowTile;
-        tiles[16, 8] = _shadowTile;
+        tiles[13, 8] = ShadowTile;
+        tiles[16, 8] = ShadowTile;
         tiles[12, 9] = null;
     }
 

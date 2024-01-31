@@ -19,7 +19,7 @@ internal class BusCustomerSpawner : CustomerSpawner
 {
     internal Dictionary<string, BusCustomerData> CustomersData;
 
-    private IBusSchedulesApi? _busSchedulesApi;
+    private IBusSchedulesApi? BusSchedulesApi;
 
     internal BusCustomerSpawner(Dictionary<string, BusCustomerData> customersData, Texture2D sprites) : base(sprites)
     {
@@ -28,7 +28,7 @@ internal class BusCustomerSpawner : CustomerSpawner
 
     internal override Task<bool> Initialize(IModHelper helper)
     {
-        this._busSchedulesApi = helper.ModRegistry.GetApi<IBusSchedulesApi>("MonsoonSheep.BusSchedules");
+        this.BusSchedulesApi = helper.ModRegistry.GetApi<IBusSchedulesApi>("MonsoonSheep.BusSchedules");
         return Task.FromResult(true);
     }
 
@@ -84,7 +84,7 @@ internal class BusCustomerSpawner : CustomerSpawner
 
         GameLocation busStop = Game1.getLocationFromName("BusStop");
 
-        bool busAvailable = this._busSchedulesApi?.GetMinutesTillNextBus() is <= 30 and > 10;
+        bool busAvailable = this.BusSchedulesApi?.GetMinutesTillNextBus() is <= 30 and > 10;
 
         foreach (Customer c in customers)
         {
@@ -146,7 +146,7 @@ internal class BusCustomerSpawner : CustomerSpawner
             c.Position = new Vector2(-1000, -1000);
             AccessTools.Field(typeof(NPC), "returningToEndPoint").SetValue(c, true);
             AccessTools.Field(typeof(Character), "freezeMotion").SetValue(c, true);
-            if (this._busSchedulesApi != null && !this._busSchedulesApi.AddVisitorsForNextArrival(c, 0))
+            if (this.BusSchedulesApi != null && !this.BusSchedulesApi.AddVisitorsForNextArrival(c, 0))
             {
                 Log.Debug("But couldn'");
                 return false;

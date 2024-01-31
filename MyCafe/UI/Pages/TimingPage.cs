@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using MyCafe.UI.Options;
 
-namespace MyCafe.UI;
+namespace MyCafe.UI.Pages;
 internal class TimingPage : OptionsPageBase
 {
     public TimingPage(CafeMenu parent, Rectangle bounds, Texture2D sprites) : base("Timings", bounds, parent, sprites)

@@ -29,9 +29,9 @@ internal class CharacterPatcher : BasePatcher
         );
     }
 
-    private static bool Before_ChooseAppearance(NPC __instance, LocalizedContentManager content)
+    private static bool Before_ChooseAppearance(NPC instance, LocalizedContentManager content)
     {
-        if (__instance is Customer c && c.Name.StartsWith("CustomerNPC"))
+        if (instance is Customer c && c.Name.StartsWith("CustomerNPC"))
             return false;
 
         return true;
@@ -72,9 +72,9 @@ internal class CharacterPatcher : BasePatcher
         return codeList.AsEnumerable();
     }
 
-    private static void After_DoEmote(Character __instance, int whichEmote, bool playSound, bool nextEventCommand)
+    private static void After_DoEmote(Character instance, int whichEmote, bool playSound, bool nextEventCommand)
     {
-        if (__instance is Customer c && Context.IsMainPlayer)
+        if (instance is Customer c && Context.IsMainPlayer)
         {
             // send emote command to clients
         }

@@ -9,7 +9,7 @@ using StardewValley.Menus;
 using SObject = StardewValley.Object;
 // ReSharper disable InconsistentNaming
 
-namespace MyCafe.UI;
+namespace MyCafe.UI.Pages;
 internal class MenuBoard : MenuPageBase
 {
     // Menu board
@@ -59,11 +59,11 @@ internal class MenuBoard : MenuPageBase
             new Rectangle(435, 463, 6, 10),
             4f);
         this._scrollBarRunner = new Rectangle(this._scrollBar.bounds.X, this._upArrow.bounds.Bottom + 4, this._scrollBar.bounds.Width,
-            (this._downArrow.bounds.Top - this._upArrow.bounds.Bottom) - 4);
+            this._downArrow.bounds.Top - this._upArrow.bounds.Bottom - 4);
 
         for (int i = 0; i < this.slotCount; i++)
         {
-            this._slots.Add(new ClickableComponent(new Rectangle(this.target_board.X + 24, this.target_board.Y + 111 + (i * 43), this.target_board.Width - (27 * 2),
+            this._slots.Add(new ClickableComponent(new Rectangle(this.target_board.X + 24, this.target_board.Y + 111 + i * 43, this.target_board.Width - 27 * 2,
                     43),
                 $"slot{i}")
             {
@@ -102,7 +102,7 @@ internal class MenuBoard : MenuPageBase
             }
         }
 
-        this._scrollBar.bounds.Height = (int)((this._scrollBarRunner.Height) / (float)(this._entries.Count - this.slotCount));
+        this._scrollBar.bounds.Height = (int)(this._scrollBarRunner.Height / (float)(this._entries.Count - this.slotCount));
     }
 
     public override void receiveLeftClick(int x, int y, bool playSound = true)
@@ -142,7 +142,7 @@ internal class MenuBoard : MenuPageBase
                 // if held, add
 
                 int index = i;
-                if (this._parentMenu.HeldItem is SObject held)
+                if (this.ParentMenu.HeldItem is SObject held)
                 {
                     while (i >= 0 && this._entries[i] is not MenuCategoryEntry)
                     {
@@ -151,7 +151,7 @@ internal class MenuBoard : MenuPageBase
 
                     if (this._entries[i] is MenuCategoryEntry entry)
                     {
-                        if (this.AddItem(held, entry.Name, index - i)) this._parentMenu.HeldItem = null;
+                        if (this.AddItem(held, entry.Name, index - i)) this.ParentMenu.HeldItem = null;
                         break;
                     }
                 }
@@ -161,7 +161,7 @@ internal class MenuBoard : MenuPageBase
                     if (item != null)
                     {
                         this.RemoveItem(this._currentItemIndex + i);
-                        this._parentMenu.HeldItem = item;
+                        this.ParentMenu.HeldItem = item;
                     }
                 }
             }
@@ -302,7 +302,7 @@ internal class MenuBoard : MenuPageBase
                 {
                     if (entry is MenuCategoryEntry)
                     {
-                        if (this._parentMenu.HeldItem != null)
+                        if (this.ParentMenu.HeldItem != null)
                         {
                             drawTextureBox(b, Game1.mouseCursors, new Rectangle(403, 383, 6, 6), this._slots[i].bounds.X, this._slots[i].bounds.Y - 8, this._slots[i].bounds.Width, this._slots[i].bounds.Height,
                                 Color.White, drawShadow: false, draw_layer: 0.9f);
@@ -312,7 +312,7 @@ internal class MenuBoard : MenuPageBase
                     }
                     else
                     {
-                        if (this._parentMenu.HeldItem != null)
+                        if (this.ParentMenu.HeldItem != null)
                         {
                             drawTextureBox(b, Game1.mouseCursors, new Rectangle(403, 383, 6, 6), this._slots[i].bounds.X, this._slots[i].bounds.Y + 28, this._slots[i].bounds.Width, 4,
                                 Color.OrangeRed, drawShadow: false, draw_layer: 0.9f);

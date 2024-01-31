@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -19,14 +19,14 @@ public abstract class MenuPageBase : IClickableMenu
     internal bool InFocus;
     protected int DefaultComponent;
 
-    protected new CafeMenu _parentMenu;
+    protected CafeMenu ParentMenu;
 
     internal MenuPageBase(string name, Rectangle bounds, CafeMenu parentMenu, Texture2D sprites) : base(bounds.X, bounds.Y, bounds.Width, bounds.Height)
     {
         this.Sprites = sprites;
 
         this.Name = name;
-        this._parentMenu = parentMenu;
+        this.ParentMenu = parentMenu;
         this.Bounds = bounds;
     }
 
@@ -80,6 +80,6 @@ public abstract class MenuPageBase : IClickableMenu
     protected virtual void SnapOut(int direction = 3)
     {
         this.InFocus = false;
-        this._parentMenu.SnapOutInDirection(direction);
+        this.ParentMenu.SnapOutInDirection(direction);
     }
 }

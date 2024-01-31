@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
@@ -9,34 +9,34 @@ namespace MyCafe.UI.Options;
 
 internal class OptionItemSlider : OptionsElement
 {
-    private new readonly string label;
+    private readonly string Label;
 
-    private readonly Action<int> setValue;
+    private readonly Action<int> SetValue;
 
-    private readonly int minValue;
+    private readonly int MinValue;
 
-    private readonly int maxValue;
+    private readonly int MaxValue;
 
-    private int value;
+    private int Value;
 
-    private float valuePosition;
+    private float ValuePosition;
 
     private int PixelWidth => this.bounds.Width - 10 * Game1.pixelZoom;
 
-    private readonly Func<int, string> formatFunction;
+    private readonly Func<int, string> FormatFunction;
 
     public OptionItemSlider(string label, int value, Action<int> setValue, int minValue, int maxValue, int width = 48, Func<int, string>? formatFunction = null)
         : base(label, 32, 32, width * Game1.pixelZoom, 6 * Game1.pixelZoom)
     {
-        this.label = label;
-        this.value = value;
+        this.Label = label;
+        this.Value = value;
 
-        this.minValue = minValue;
-        this.maxValue = maxValue;
-        this.setValue = setValue;
+        this.MinValue = minValue;
+        this.MaxValue = maxValue;
+        this.SetValue = setValue;
 
-        this.valuePosition = GetRangePosition(this.value, this.minValue, this.maxValue);
-        this.formatFunction = formatFunction ?? ((i) => i.ToString());
+        this.ValuePosition = GetRangePosition(this.Value, this.MinValue, this.MaxValue);
+        this.FormatFunction = formatFunction ?? ((i) => i.ToString());
     }
 
 
@@ -47,8 +47,8 @@ internal class OptionItemSlider : OptionsElement
 
         base.leftClickHeld(x, y);
 
-        this.valuePosition = GetRangePosition(x, this.bounds.X, this.bounds.X + this.PixelWidth);
-        this.value = GetValueAtPosition(this.valuePosition, this.minValue, this.maxValue);
+        this.ValuePosition = GetRangePosition(x, this.bounds.X, this.bounds.X + this.PixelWidth);
+        this.Value = GetValueAtPosition(this.ValuePosition, this.MinValue, this.MaxValue);
     }
 
     public static float GetRangePosition(int value, int minValue, int maxValue)
@@ -75,17 +75,17 @@ internal class OptionItemSlider : OptionsElement
 
     public override void leftClickReleased(int x, int y)
     {
-        this.valuePosition = GetRangePosition(this.value, this.minValue, this.maxValue);
-        this.setValue(this.value);
+        this.ValuePosition = GetRangePosition(this.Value, this.MinValue, this.MaxValue);
+        this.SetValue(this.Value);
     }
 
     public override void draw(SpriteBatch b, int slotX, int slotY, IClickableMenu? context = null)
     {
-        base.label = $"{this.label}: {this.formatFunction(this.value)}";
+        base.label = $"{this.Label}: {this.FormatFunction(this.Value)}";
 
 
 
-        int sliderOffsetX = GetValueAtPosition(this.valuePosition, 0, this.PixelWidth);
+        int sliderOffsetX = GetValueAtPosition(this.ValuePosition, 0, this.PixelWidth);
         IClickableMenu.drawTextureBox(b, Game1.mouseCursors, OptionsSlider.sliderBGSource, slotX + this.bounds.X, slotY + this.bounds.Y, this.bounds.Width, this.bounds.Height, Color.White, Game1.pixelZoom, false);
         b.Draw(Game1.mouseCursors, new Vector2(slotX + this.bounds.X + sliderOffsetX, slotY + this.bounds.Y), OptionsSlider.sliderButtonRect, Color.White, 0.0f, Vector2.Zero, Game1.pixelZoom, SpriteEffects.None, 0.9f);
 

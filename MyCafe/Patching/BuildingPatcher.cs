@@ -20,9 +20,9 @@ internal class BuildingPatcher : BasePatcher
         );
     }
 
-    private static void After_SetUpForBuildingPlacement(CarpenterMenu __instance)
+    private static void After_SetUpForBuildingPlacement(CarpenterMenu instance)
     {
-        Building? building = (Building?)AccessTools.Field(typeof(CarpenterMenu), "currentBuilding")?.GetValue(__instance);
+        Building? building = (Building?)AccessTools.Field(typeof(CarpenterMenu), "currentBuilding")?.GetValue(instance);
         if (building != null && building.GetData()?.CustomFields.TryGetValue(ModKeys.CAFE_SIGNBOARD_CUSTOMFIELD, out string? value) is true && value == "true")
             Mod.IsPlacingSignBoard = true;
     }

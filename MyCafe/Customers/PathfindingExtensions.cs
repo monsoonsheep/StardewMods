@@ -169,17 +169,17 @@ public static class PathfindingExtensions
 
 public class PathNotFoundException : Exception
 {
-    private readonly Point _fromTile;
-    private readonly Point _toTile;
-    private readonly string _fromLocation;
-    private readonly string _toLocation;
-    private readonly Character _forCharacter;
+    private readonly Point FromTile;
+    private readonly Point ToTile;
+    private readonly string FromLocation;
+    private readonly string ToLocation;
+    private readonly Character ForCharacter;
 
     /// <inheritdoc />
     public PathNotFoundException(string message, Point startPoint, Point targetPoint, string fromLocation, string toLocation, Character forCharacter) : base(message)
     {
-        (this._fromTile, this._toTile, this._fromLocation, this._toLocation, this._forCharacter) = (startPoint, targetPoint, fromLocation, toLocation, forCharacter);
+        (this.FromTile, this.ToTile, this.FromLocation, this.ToLocation, this.ForCharacter) = (startPoint, targetPoint, fromLocation, toLocation, forCharacter);
     }
 
-    public override string Message => $"From {this._fromTile} in {this._fromLocation} to {this._toTile} in {this._toLocation} for character {this._forCharacter.Name}";
+    public override string Message => $"From {this.FromTile} in {this.FromLocation} to {this.ToTile} in {this.ToLocation} for character {this.ForCharacter.Name}";
 }

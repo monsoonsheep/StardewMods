@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using Microsoft.Xna.Framework;
@@ -12,9 +12,9 @@ namespace StardewValley.Locations;
 [XmlType("Mods_MonsoonSheep_MyCafe_CafeLocation")]
 public class CafeLocation : GameLocation
 {
-    private readonly Dictionary<Rectangle, List<Vector2>> _mapTables = new();
+    private readonly Dictionary<Rectangle, List<Vector2>> MapTables = new();
 
-    private const string TABLE_MAP_PROPERTY = "MonsoonSheep.MyCafe_Table";
+    private const string TableMapProperty = "MonsoonSheep.MyCafe_Table";
 
     public CafeLocation()
     {
@@ -25,7 +25,7 @@ public class CafeLocation : GameLocation
 
     public Dictionary<Rectangle, List<Vector2>> GetMapTables()
     {
-        return this._mapTables;
+        return this.MapTables;
     }
 
     public void PopulateMapTables()
@@ -33,7 +33,7 @@ public class CafeLocation : GameLocation
         //if (_mapTables is { Count: > 0 })
         //    return;
 
-        this._mapTables.Clear();
+        this.MapTables.Clear();
         Layer layer = this.Map.GetLayer("Back");
 
         Dictionary<string, Rectangle> seatStringToTableRecs = new();
@@ -46,8 +46,8 @@ public class CafeLocation : GameLocation
                 if (tile == null)
                     continue;
 
-                if (tile.TileIndexProperties.TryGetValue(TABLE_MAP_PROPERTY, out var val)
-                    || tile.Properties.TryGetValue(TABLE_MAP_PROPERTY, out val))
+                if (tile.TileIndexProperties.TryGetValue(TableMapProperty, out var val)
+                    || tile.Properties.TryGetValue(TableMapProperty, out val))
                 {
                     Rectangle thisTile = new Rectangle(i, j, 1, 1);
 
@@ -77,7 +77,7 @@ public class CafeLocation : GameLocation
 
             if (seats.Count > 0)
             {
-                this._mapTables.Add(pair.Value, seats);
+                this.MapTables.Add(pair.Value, seats);
             }
         }
     }

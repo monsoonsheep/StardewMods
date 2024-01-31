@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework.Graphics;
 using MyCafe.CustomerFactory;
 using MyCafe.Customers.Data;
 using MyCafe.Locations.Objects;
+using MyCafe.Enums;
 using StardewModdingAPI;
 
 namespace MyCafe.Customers;

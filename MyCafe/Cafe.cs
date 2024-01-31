@@ -36,10 +36,10 @@ public class Cafe : INetObject<NetFields>
     internal readonly NetInt ClosingTime = new NetInt(2200);
     internal int LastTimeCustomersArrived = 0;
 
-    private readonly NetCollection<Table> _tables = [];
-    private readonly NetBool _cafeEnabled = new NetBool();
-    private readonly NetLocationRef _cafeIndoor = new NetLocationRef();
-    private readonly NetLocationRef _cafeOutdoor = new NetLocationRef();
+    private readonly NetCollection<Table> NetTables = [];
+    private readonly NetBool CafeEnabled = new NetBool();
+    private readonly NetLocationRef CafeIndoor = new NetLocationRef();
+    private readonly NetLocationRef CafeOutdoor = new NetLocationRef();
 
 
     internal Dictionary<string, List<Item>> MenuItems = new Dictionary<string, List<Item>>();
@@ -47,30 +47,30 @@ public class Cafe : INetObject<NetFields>
 
     internal bool Enabled
     {
-        get => this._cafeEnabled.Value;
-        set => this._cafeEnabled.Set(value);
+        get => this.CafeEnabled.Value;
+        set => this.CafeEnabled.Set(value);
     }
 
     internal CafeLocation? Indoor
     {
-        get => this._cafeIndoor.Value as CafeLocation;
-        set => this._cafeIndoor.Set(value);
+        get => this.CafeIndoor.Value as CafeLocation;
+        set => this.CafeIndoor.Set(value);
     }
 
     internal GameLocation? Outdoor
     {
-        get => this._cafeOutdoor.Value;
-        set => this._cafeOutdoor.Set(value);
+        get => this.CafeOutdoor.Value;
+        set => this.CafeOutdoor.Set(value);
     }
 
     internal IList<Table> Tables
         =>
-            this._tables as IList<Table>;
+            this.NetTables as IList<Table>;
 
     public Cafe()
     {
         this.NetFields.SetOwner(this)
-            .AddField(this.OpeningTime).AddField(this.ClosingTime).AddField(this._tables).AddField(this._cafeEnabled).AddField(this._cafeIndoor.NetFields).AddField(this._cafeOutdoor.NetFields);
+            .AddField(this.OpeningTime).AddField(this.ClosingTime).AddField(this.NetTables).AddField(this.CafeEnabled).AddField(this.CafeIndoor.NetFields).AddField(this.CafeOutdoor.NetFields);
     }
 
     internal void Initialize(IModHelper helper, Dictionary<string, BusCustomerData> customersData, Texture2D sprites)
@@ -78,7 +78,7 @@ public class Cafe : INetObject<NetFields>
         this.Sprites = sprites;
 
         this.Customers = new CustomerManager(helper, customersData, sprites, this);
-        this._tables.OnValueAdded += delegate (Table table)
+        this.NetTables.OnValueAdded += delegate (Table table)
         {
             table.State.fieldChangeVisibleEvent += (_, oldValue, newValue) => this.OnTableStateChange(table, new TableStateChangedEventArgs()
             {

@@ -6,18 +6,18 @@ using StardewValley;
 namespace MyCafe.CharGen;
 internal class CharacterGenerator
 {
-    private Texture2D bodyTex;
-    private Texture2D hairTex;
-    private Texture2D shirtTex;
-    private Texture2D pantsTex;
-    private Texture2D characterSprite;
+    private Texture2D BodyTex;
+    private Texture2D HairTex;
+    private Texture2D ShirtTex;
+    private Texture2D PantsTex;
+    private Texture2D CharacterSprite;
 
     internal void LoadTextures(IModContentHelper modContent)
     {
-        this.bodyTex = modContent.Load<Texture2D>("assets/base_male.png");
-        this.hairTex = modContent.Load<Texture2D>("assets/hair1.png");
-        this.pantsTex = modContent.Load<Texture2D>("assets/jeans1.png");
-        this.shirtTex = modContent.Load<Texture2D>("assets/shirt1.png");
+        this.BodyTex = modContent.Load<Texture2D>("assets/base_male.png");
+        this.HairTex = modContent.Load<Texture2D>("assets/hair1.png");
+        this.PantsTex = modContent.Load<Texture2D>("assets/jeans1.png");
+        this.ShirtTex = modContent.Load<Texture2D>("assets/shirt1.png");
     }
 
     private Texture2D GetCharacterSpriteFromParts(Texture2D body, Texture2D hair, Texture2D pants, Texture2D shirt)

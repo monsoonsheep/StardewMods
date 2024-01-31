@@ -15,32 +15,32 @@ internal abstract class OptionsPageBase : MenuPageBase
     protected readonly Rectangle OptionSlotSize;
     protected int OptionSlotHeld = -1;
 
-    public readonly ClickableTextureComponent _upArrow;
-    public readonly ClickableTextureComponent _downArrow;
-    public readonly ClickableTextureComponent _scrollBar;
-    private bool _scrolling;
-    private readonly Rectangle _scrollBarRunner;
+    public readonly ClickableTextureComponent UpArrow;
+    public readonly ClickableTextureComponent DownArrow;
+    public readonly ClickableTextureComponent ScrollBar;
+    private bool Scrolling;
+    private readonly Rectangle ScrollBarRunner;
     protected int CurrentItemIndex = 0;
 
     protected OptionsPageBase(string name, Rectangle bounds, CafeMenu parentMenu, Texture2D sprites) : base(name, bounds, parentMenu, sprites)
     {
-        this._upArrow = new ClickableTextureComponent(
+        this.UpArrow = new ClickableTextureComponent(
             new Rectangle(bounds.Right - 30, bounds.Y + 101, 44, 48),
             Game1.mouseCursors,
             new Rectangle(421, 459, 11, 12),
             4f);
-        this._downArrow = new ClickableTextureComponent(
-            new Rectangle(this._upArrow.bounds.X, bounds.Y + bounds.Height - 48 - 2, 44, 48),
+        this.DownArrow = new ClickableTextureComponent(
+            new Rectangle(this.UpArrow.bounds.X, bounds.Y + bounds.Height - 48 - 2, 44, 48),
             Game1.mouseCursors,
             new Rectangle(421, 472, 11, 12),
             4f);
-        this._scrollBar = new ClickableTextureComponent(
-            new Rectangle(this._upArrow.bounds.X + 12, this._upArrow.bounds.Y + this._upArrow.bounds.Height + 4, 24, 40),
+        this.ScrollBar = new ClickableTextureComponent(
+            new Rectangle(this.UpArrow.bounds.X + 12, this.UpArrow.bounds.Y + this.UpArrow.bounds.Height + 4, 24, 40),
             Game1.mouseCursors,
             new Rectangle(435, 463, 6, 10),
             4f);
-        this._scrollBarRunner = new Rectangle(this._scrollBar.bounds.X, this._upArrow.bounds.Bottom + 4, this._scrollBar.bounds.Width,
-            (this._downArrow.bounds.Top - this._upArrow.bounds.Bottom) - 4);
+        this.ScrollBarRunner = new Rectangle(this.ScrollBar.bounds.X, this.UpArrow.bounds.Bottom + 4, this.ScrollBar.bounds.Width,
+            (this.DownArrow.bounds.Top - this.UpArrow.bounds.Bottom) - 4);
 
 
         for (int i = 0; i < this.OptionSlotsCount; i++)
@@ -80,23 +80,23 @@ internal abstract class OptionsPageBase : MenuPageBase
 
         if (this.Options.Count > this.OptionSlotsCount)
         {
-            if (this._downArrow.containsPoint(x, y) && this.CurrentItemIndex < Math.Max(0, this.Options.Count - this.OptionSlotsCount))
+            if (this.DownArrow.containsPoint(x, y) && this.CurrentItemIndex < Math.Max(0, this.Options.Count - this.OptionSlotsCount))
             {
                 this.DownArrowPressed();
                 Game1.playSound("shwip");
             }
-            else if (this._upArrow.containsPoint(x, y) && this.CurrentItemIndex > 0)
+            else if (this.UpArrow.containsPoint(x, y) && this.CurrentItemIndex > 0)
             {
                 this.UpArrowPressed();
                 Game1.playSound("shwip");
             }
-            else if (this._scrollBar.containsPoint(x, y))
+            else if (this.ScrollBar.containsPoint(x, y))
             {
-                this._scrolling = true;
+                this.Scrolling = true;
             }
-            else if (!this._downArrow.containsPoint(x, y))
+            else if (!this.DownArrow.containsPoint(x, y))
             {
-                this._scrolling = true;
+                this.Scrolling = true;
                 this.leftClickHeld(x, y);
                 this.releaseLeftClick(x, y);
             }
@@ -109,15 +109,15 @@ internal abstract class OptionsPageBase : MenuPageBase
             return;
 
         base.leftClickHeld(x, y);
-        if (this._scrolling)
+        if (this.Scrolling)
         {
-            int oldY = this._scrollBar.bounds.Y;
-            this._scrollBar.bounds.Y = Math.Min(this.Bounds.Y + this.Bounds.Height - 64 - 12 - this._scrollBar.bounds.Height, Math.Max(y, this.Bounds.Y + this._upArrow.bounds.Height + 20));
-            float percentage = (y - this._scrollBarRunner.Y) / (float)this._scrollBarRunner.Height;
+            int oldY = this.ScrollBar.bounds.Y;
+            this.ScrollBar.bounds.Y = Math.Min(this.Bounds.Y + this.Bounds.Height - 64 - 12 - this.ScrollBar.bounds.Height, Math.Max(y, this.Bounds.Y + this.UpArrow.bounds.Height + 20));
+            float percentage = (y - this.ScrollBarRunner.Y) / (float)this.ScrollBarRunner.Height;
             this.CurrentItemIndex = Math.Min(this.Options.Count - 7, Math.Max(0, (int)(this.Options.Count * percentage)));
             this.SetScrollBarToCurrentIndex();
 
-            if (oldY != this._scrollBar.bounds.Y)
+            if (oldY != this.ScrollBar.bounds.Y)
                 Game1.playSound("shiny4");
 
             return;
@@ -141,12 +141,12 @@ internal abstract class OptionsPageBase : MenuPageBase
         }
 
         this.OptionSlotHeld = -1;
-        this._scrolling = false;
+        this.Scrolling = false;
     }
 
-    protected override void customSnapBehavior(int direction, int oldRegion, int oldID)
+    protected override void customSnapBehavior(int direction, int oldRegion, int oldId)
     {
-        var currentSlot = this.getComponentWithID(oldID);
+        var currentSlot = this.getComponentWithID(oldId);
         var option = this.Options[this.CurrentItemIndex + this.OptionSlots.IndexOf(currentSlot)];
 
         Vector2 positionForSnap = option.Snap(direction);
@@ -250,10 +250,10 @@ internal abstract class OptionsPageBase : MenuPageBase
     {
         if (this.Options.Count > 0)
         {
-            this._scrollBar.bounds.Y = this._upArrow.bounds.Bottom + this._scrollBarRunner.Height / Math.Max(1, this.Options.Count - this.OptionSlotsCount + 1) * this.CurrentItemIndex + 4;
-            if (this._scrollBar.bounds.Y > this._downArrow.bounds.Y - this._scrollBar.bounds.Height - 4)
+            this.ScrollBar.bounds.Y = this.UpArrow.bounds.Bottom + this.ScrollBarRunner.Height / Math.Max(1, this.Options.Count - this.OptionSlotsCount + 1) * this.CurrentItemIndex + 4;
+            if (this.ScrollBar.bounds.Y > this.DownArrow.bounds.Y - this.ScrollBar.bounds.Height - 4)
             {
-                this._scrollBar.bounds.Y = this._downArrow.bounds.Y - this._scrollBar.bounds.Height - 4;
+                this.ScrollBar.bounds.Y = this.DownArrow.bounds.Y - this.ScrollBar.bounds.Height - 4;
             }
         }
     }

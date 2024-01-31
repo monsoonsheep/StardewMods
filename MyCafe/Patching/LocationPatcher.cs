@@ -21,15 +21,15 @@ internal class LocationPatcher : BasePatcher
             );
     }
 
-    private static void After_InitNetFields(Farm __instance)
+    private static void After_InitNetFields(Farm instance)
     {
-        __instance.NetFields.AddField(__instance.get_Cafe(), $"{Mod.UniqueId}.Cafe");
-        Mod.Instance.NetCafe = __instance.get_Cafe();
+        instance.NetFields.AddField(instance.get_Cafe(), $"{Mod.UniqueId}.Cafe");
+        Mod.Instance.NetCafe = instance.get_Cafe();
     }
 
-    private static void After_CheckAction(Farm __instance, Location tileLocation, Rectangle viewport, Farmer who, ref bool __result)
+    private static void After_CheckAction(Farm instance, Location tileLocation, Rectangle viewport, Farmer who, ref bool result)
     {
-        if (__result == true || (!__instance.Equals(Mod.Cafe.Indoor) && !__instance.Equals(Mod.Cafe.Outdoor)))
+        if (result == true || (!instance.Equals(Mod.Cafe.Indoor) && !instance.Equals(Mod.Cafe.Outdoor)))
             return;
 
         foreach (Table table in Mod.Cafe.Tables)
@@ -37,7 +37,7 @@ internal class LocationPatcher : BasePatcher
             if (table.BoundingBox.Value.Contains(tileLocation.X * 64, tileLocation.Y * 64)
                 && Mod.Cafe.InteractWithTable(table, who))
             {
-                __result = true;
+                result = true;
                 return;
             }
         }

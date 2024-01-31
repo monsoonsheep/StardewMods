@@ -1,4 +1,4 @@
-﻿using System.Xml.Serialization;
+using System.Xml.Serialization;
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common;
 using MyCafe.Customers;
@@ -14,22 +14,22 @@ public abstract class Seat : INetObject<NetFields>
 {
     public NetFields NetFields { get; }
 
-    private readonly NetPoint _position = [];
+    private readonly NetPoint NetPosition = [];
 
-    private readonly NetRef<Customer?> _reservingCustomer = [];
+    private readonly NetRef<Customer?> NetReservingCustomer = [];
 
-    private Table? _table;
+    private Table? TableField;
 
     internal Table Table
     {
-        get => this._table ??= Mod.Cafe.GetTableOfSeat(this);
-        set => this._table = value;
+        get => this.TableField ??= Mod.Cafe.GetTableOfSeat(this);
+        set => this.TableField = value;
     }
 
     internal Customer? ReservingCustomer
     {
-        get => this._reservingCustomer.Value;
-        set => this._reservingCustomer.Set(value);
+        get => this.NetReservingCustomer.Value;
+        set => this.NetReservingCustomer.Set(value);
     }
 
     internal GameLocation? Location
@@ -44,8 +44,8 @@ public abstract class Seat : INetObject<NetFields>
 
     internal Point Position
     {
-        get => this._position.Value;
-        set => this._position.Set(value);
+        get => this.NetPosition.Value;
+        set => this.NetPosition.Set(value);
     }
 
     internal virtual int SittingDirection { get; set; }
@@ -68,7 +68,7 @@ public abstract class Seat : INetObject<NetFields>
     protected virtual void InitNetFields()
     {
         this.NetFields.SetOwner(this)
-            .AddField(this._position).AddField(this._reservingCustomer);
+            .AddField(this.NetPosition).AddField(this.NetReservingCustomer);
     }
 
     internal virtual bool Reserve(Customer customer)

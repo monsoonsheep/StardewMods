@@ -19,7 +19,7 @@ namespace BusSchedules;
 internal sealed class Mod : StardewModdingAPI.Mod
 {
     internal static Mod Instance = null!;
-    internal static string UniqueID = null!;
+    internal static string UniqueId = null!;
 
     internal BusManager BusManager;
 
@@ -53,7 +53,7 @@ internal sealed class Mod : StardewModdingAPI.Mod
     public override void Entry(IModHelper helper)
     {
         Log.Monitor = this.Monitor;
-        UniqueID = this.ModManifest.UniqueID;
+        UniqueId = this.ModManifest.UniqueID;
 
         // Harmony patches
         if (HarmonyPatcher.TryApply(this,
@@ -336,7 +336,7 @@ internal sealed class Mod : StardewModdingAPI.Mod
 
     internal static void SendMessageToClient(string message)
     {
-        Instance.Helper.Multiplayer.SendMessage(message, "BusSchedules", new [] { UniqueID });
+        Instance.Helper.Multiplayer.SendMessage(message, "BusSchedules", new [] { UniqueId });
     }
 
     private void SpawnVisitors(object? sender, EventArgs e)

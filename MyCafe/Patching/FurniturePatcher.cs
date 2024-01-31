@@ -35,20 +35,20 @@ internal class FurniturePatcher : BasePatcher
         );
     }
 
-    private static void After_GetAdditionalFurniturePlacementStatus(Furniture __instance, GameLocation location, int x, int y, Farmer who, ref int __result)
+    private static void After_GetAdditionalFurniturePlacementStatus(Furniture instance, GameLocation location, int x, int y, Farmer who, ref int result)
     {
-        if (Utility.IsTable(__instance))
+        if (Utility.IsTable(instance))
         {
             Furniture table = location.GetFurnitureAt(new Vector2(x, y));
             if (Utility.IsTableTracked(table, location, out FurnitureTable trackedTable) && trackedTable.IsReserved)
-                __result = 2;
+                result = 2;
         }
     }
-    private static bool Before_AddSittingFarmer(Furniture __instance, Farmer who, ref Vector2? __result)
+    private static bool Before_AddSittingFarmer(Furniture instance, Farmer who, ref Vector2? result)
     {
-        if (Utility.IsChair(__instance) && Mod.Cafe.Tables.Any(t => t.Seats.OfType<FurnitureSeat>().Any(s => s.IsReserved && s.ActualChair.Value.Equals(__instance))))
+        if (Utility.IsChair(instance) && Mod.Cafe.Tables.Any(t => t.Seats.OfType<FurnitureSeat>().Any(s => s.IsReserved && s.ActualChair.Value.Equals(instance))))
         {
-            __result = null;
+            result = null;
             return false;
         }
 
@@ -56,13 +56,13 @@ internal class FurniturePatcher : BasePatcher
     }
 
 
-    private static bool Before_PerformObjectDropInAction(Furniture __instance, Item dropInItem, bool probe, Farmer who, ref bool __result)
+    private static bool Before_PerformObjectDropInAction(Furniture instance, Item dropInItem, bool probe, Farmer who, ref bool result)
     {
-        if (Utility.IsTable(__instance))
+        if (Utility.IsTable(instance))
         {
-            if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable.IsReserved)
+            if (Utility.IsTableTracked(instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable.IsReserved)
             {
-                __result = false;
+                result = false;
                 return false;
             }
         }
@@ -70,24 +70,24 @@ internal class FurniturePatcher : BasePatcher
         return true;
     }
 
-    private static void After_CanBeRemoved(Furniture __instance, Farmer who, ref bool __result)
+    private static void After_CanBeRemoved(Furniture instance, Farmer who, ref bool result)
     {
-        if (__result is false)
+        if (result is false)
             return;
 
-        if (Utility.IsTable(__instance))
+        if (Utility.IsTable(instance))
         {
-            if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable.IsReserved)
+            if (Utility.IsTableTracked(instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable.IsReserved)
             {
                 Game1.addHUDMessage(new HUDMessage("Can't remove this furniture", 1000, fadeIn: false));
-                __result = false;
+                result = false;
             }
         }
     }
 
-    private static bool Before_Clicked(Furniture __instance, Farmer who, ref bool __result)
+    private static bool Before_Clicked(Furniture instance, Farmer who, ref bool result)
     {
-        if (!Utility.IsTable(__instance))
+        if (!Utility.IsTable(instance))
             return true;
 
         //if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable.IsReserved)
