@@ -32,23 +32,23 @@ internal sealed class Mod : StardewModdingAPI.Mod
     internal List<int> BusLeaveTimes = [];
     internal static Point BusDoorTile = new Point(12, 9);
 
+    internal int NextArrivalTime 
+        => this.BusArrivalsToday < this.BusArrivalTimes.Length ? this.BusArrivalTimes[this.BusArrivalsToday] : 99999;
+
+    internal int LastArrivalTime 
+        => this.BusArrivalsToday == 0 ? 0 : this.BusArrivalTimes[this.BusArrivalsToday - 1];
+
+    internal int TimeUntilNextArrival 
+        => Utility.CalculateMinutesBetweenTimes(Game1.timeOfDay, this.NextArrivalTime);
+
+    internal int TimeSinceLastArrival 
+        => Utility.CalculateMinutesBetweenTimes(this.LastArrivalTime, Game1.timeOfDay);
+
     public Mod()
     {
         Instance = this;
         this.BusManager = new BusManager();
     }
-
-    internal int NextArrivalTime 
-        =>
-            this.BusArrivalsToday < this.BusArrivalTimes.Length ? this.BusArrivalTimes[this.BusArrivalsToday] : 99999;
-    internal int LastArrivalTime 
-        =>
-            this.BusArrivalsToday == 0 ? 0 : this.BusArrivalTimes[this.BusArrivalsToday - 1];
-    internal int TimeUntilNextArrival 
-        => Utility.CalculateMinutesBetweenTimes(Game1.timeOfDay, this.NextArrivalTime);
-    internal int TimeSinceLastArrival 
-        => Utility.CalculateMinutesBetweenTimes(this.LastArrivalTime, Game1.timeOfDay);
-
 
     /// <inheritdoc />
     public override void Entry(IModHelper helper)
@@ -63,18 +63,24 @@ internal sealed class Mod : StardewModdingAPI.Mod
             ) is false)
             return;
 
-        helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
-        helper.Events.Content.AssetRequested += this.OnAssetRequested;
+        IModEvents events = this.Helper.Events;
+        events.GameLoop.SaveLoaded += this.OnSaveLoaded;
+        events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
+        events.Multiplayer.ModMessageReceived += this.OnModMessageReceived;
+        events.Content.AssetRequested += this.OnAssetRequested;
+
+        // Populate bus departure times
+        for (int i = 0; i < this.BusArrivalTimes.Length; i++)
+        {
+            if (i == 0)
+                this.BusLeaveTimes.Add(Utility.ModifyTime(this.BusArrivalTimes[1], -70));
+            else
+                this.BusLeaveTimes.Add(this.BusArrivalTimes[i] + 20);
+        }
+
 #if DEBUG
         helper.Events.Input.ButtonPressed += Debug.ButtonPress;
 #endif
-    }
-
-    private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
-    {
-        this.Helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
-        this.Helper.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
-        this.Helper.Events.Multiplayer.ModMessageReceived += this.OnModMessageReceived;
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
@@ -96,13 +102,13 @@ internal sealed class Mod : StardewModdingAPI.Mod
                 return true;
             });
         }
+
     }
 
     private void OnReturnedToTitle(object? sender, ReturnedToTitleEventArgs e)
     {
         this.UnhookEvents();
         this.BusEnabled = false;
-        this.BusLeaveTimes.Clear();
         this.BusArrivalsToday = 0;
         this.BusManager.BusGone = false;
         this.BusManager.BusLeaving = false;
@@ -124,6 +130,7 @@ internal sealed class Mod : StardewModdingAPI.Mod
             BusEvents.BusArrive += this.BusManager.PamBackToSchedule;
         }
     }
+
     private void UnhookEvents()
     {
         // Clients and Host
@@ -181,19 +188,11 @@ internal sealed class Mod : StardewModdingAPI.Mod
             }
         }
 
-        if (Game1.player.mailReceived.Contains("ccVault"))
+        if (this.BusEnabled)
         {
             // Early morning bus departure
             this.BusManager.BusLeave();
-        }
 
-        // Populate bus departure times for the day
-        for (int i = 0; i < this.BusArrivalTimes.Length; i++)
-        {
-            if (i == 0)
-                this.BusLeaveTimes.Add(Utility.ModifyTime(this.BusArrivalTimes[1], -70));
-            else
-                this.BusLeaveTimes.Add(this.BusArrivalTimes[i] + 20);
         }
     }
 
@@ -238,7 +237,7 @@ internal sealed class Mod : StardewModdingAPI.Mod
 
         if (e.Name.IsDirectlyUnderPath("Characters/schedules"))
         {
-            string? npcName = e.Name.BaseName.Replace("Characters/schedules/", "");
+            string npcName = e.Name.BaseName.Replace("Characters/schedules/", "");
 
             e.Edit(asset =>
                 {
@@ -248,60 +247,63 @@ internal sealed class Mod : StardewModdingAPI.Mod
                     var busTimeRegex = new Regex(@"b(\d{3,})");
                     foreach (var entry in assetData.Data)
                     {
-                        string[]? splitScheduleCommands = NPC.SplitScheduleCommands(entry.Value);
+                        string[] splitCommands = NPC.SplitScheduleCommands(entry.Value);
                         int startIndex = 0;
 
-                        if (splitScheduleCommands[0].StartsWith("NOT friendship"))
+                        if (splitCommands[0].StartsWith("NOT friendship"))
                             startIndex = 1;
-                        else if (splitScheduleCommands[0].StartsWith("MAIL")) startIndex = 2;
+                        else if (splitCommands[0].StartsWith("MAIL"))
+                            startIndex = 2;
 
-                        var firstMatch = busTimeRegex.Match(splitScheduleCommands[startIndex].Split(' ')[0]);
-                        if (firstMatch.Success)
+                        var arrivalTimeMatch = busTimeRegex.Match(splitCommands[startIndex].Split(' ')[0]);
+                        if (!arrivalTimeMatch.Success)
+                            continue;
+
+                        VisitorData visitorData;
+                        if (!this.VisitorsData.ContainsKey(npcName))
                         {
-                            VisitorData visitorData;
-                            if (!this.VisitorsData.ContainsKey(npcName))
-                            {
-                                visitorData = new VisitorData();
-                                this.VisitorsData.Add(npcName, visitorData);
-                            }
-                            else
-                            {
-
-                                visitorData = this.VisitorsData[npcName];
-                            }
-
-                            int busArrivalTime = int.Parse(firstMatch.Groups[1].Value);
-
-                            if (!this.BusArrivalTimes.Contains(busArrivalTime) || busArrivalTime == this.BusArrivalTimes[^1])
-                            {
-                                Log.Error($"Invalid time given in schdule for {npcName} in key {entry.Key}: {entry.Value}");
-                                busArrivalTime = this.BusArrivalTimes[0];
-                            }
-
-                            splitScheduleCommands[startIndex] = splitScheduleCommands[startIndex].Replace(firstMatch.Groups[0].Value, firstMatch.Groups[1].Value);
-
-                            // Leaving time (Look at last command in schedule entry)
-                            int busDepartureTime;
-                            var d = busTimeRegex.Match(splitScheduleCommands[^1]);
-
-                            if (d.Success && splitScheduleCommands.Length > startIndex + 1 && this.BusArrivalTimes.Contains(int.Parse(d.Groups[1].Value)))
-                            {
-                                busDepartureTime = int.Parse(d.Groups[1].Value);
-                            }
-                            else
-                            {
-                                busDepartureTime = this.BusArrivalTimes.Last();
-                                splitScheduleCommands = splitScheduleCommands.AddItem("").ToArray();
-                            }
-
-                            splitScheduleCommands[^1] = "a" + (busDepartureTime + 10) +
-                                        $" BusStop 12 9 0 BoardBus";
-
-                            // Perform Edit on the asset
-                            assetData.Data[entry.Key] = string.Join('/', splitScheduleCommands);
-                            keysEdited.Add(entry.Key);
-                            visitorData.ScheduleKeysForBusArrival.Add(entry.Key, (busArrivalTime, busDepartureTime));
+                            visitorData = new VisitorData();
+                            this.VisitorsData.Add(npcName, visitorData);
                         }
+                        else
+                        {
+                            Log.Error("Visitor data entry already exists? How?");
+                            visitorData = this.VisitorsData[npcName];
+                        }
+
+                        int arrivalTime = int.Parse(arrivalTimeMatch.Groups[1].Value);
+
+                        if (!this.BusArrivalTimes.Contains(arrivalTime) || arrivalTime == this.BusArrivalTimes[^1])
+                        {
+                            Log.Error($"Invalid time given in schdule for {npcName} in key {entry.Key}: {entry.Value}");
+                            arrivalTime = this.BusArrivalTimes[0];
+                        }
+
+                        splitCommands[startIndex] = splitCommands[startIndex]
+                            .Replace(arrivalTimeMatch.Groups[0].Value, arrivalTimeMatch.Groups[1].Value);
+
+                        // Leaving time (Look at last command in schedule entry)
+                        int busDepartureTime;
+
+                        Match departureTimeMatch = busTimeRegex.Match(splitCommands[^1]);
+                        if (departureTimeMatch.Success && splitCommands.Length > startIndex + 1 && this.BusArrivalTimes.Contains(int.Parse(departureTimeMatch.Groups[1].Value)))
+                        {
+                            busDepartureTime = int.Parse(departureTimeMatch.Groups[1].Value);
+                        }
+                        else
+                        {
+                            busDepartureTime = this.BusArrivalTimes.Last();
+                            splitCommands = splitCommands.AddItem("").ToArray();
+                        }
+
+                        // Last command will be a<time> so they arrive at the bus by the given time
+                        splitCommands[^1] = "a" + (busDepartureTime + 10) +
+                                                    $" BusStop 12 9 0 BoardBus";
+
+                        // Perform Edit on the asset
+                        assetData.Data[entry.Key] = string.Join('/', splitCommands);
+                        keysEdited.Add(entry.Key);
+                        visitorData.ScheduleKeysForBusArrival.Add(entry.Key, (arrivalTime, busDepartureTime));
                     }
 
                     if (keysEdited.Count > 0)
