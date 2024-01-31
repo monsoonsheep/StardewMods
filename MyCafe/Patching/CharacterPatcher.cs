@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection.Emit;
 using HarmonyLib;
@@ -11,6 +12,7 @@ using Object = StardewValley.Object;
 
 namespace MyCafe.Patching;
 
+[SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony patching requirement")]
 internal class CharacterPatcher : BasePatcher
 {
     public override void Apply(Harmony harmony, IMonitor monitor)
@@ -29,9 +31,9 @@ internal class CharacterPatcher : BasePatcher
         );
     }
 
-    private static bool Before_ChooseAppearance(NPC instance, LocalizedContentManager content)
+    private static bool Before_ChooseAppearance(NPC __instance, LocalizedContentManager content)
     {
-        if (instance is Customer c && c.Name.StartsWith("CustomerNPC"))
+        if (__instance is Customer c && c.Name.StartsWith("CustomerNPC"))
             return false;
 
         return true;
@@ -72,9 +74,9 @@ internal class CharacterPatcher : BasePatcher
         return codeList.AsEnumerable();
     }
 
-    private static void After_DoEmote(Character instance, int whichEmote, bool playSound, bool nextEventCommand)
+    private static void After_DoEmote(Character __instance, int whichEmote, bool playSound, bool nextEventCommand)
     {
-        if (instance is Customer c && Context.IsMainPlayer)
+        if (__instance is Customer c && Context.IsMainPlayer)
         {
             // send emote command to clients
         }

@@ -1,6 +1,7 @@
-﻿#region Usings
+#region Usings
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common.Patching;
@@ -13,6 +14,7 @@ using StardewValley.Pathfinding;
 
 namespace BusSchedules.Patching;
 
+[SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony patching requirement")]
 internal class SchedulePatcher : BasePatcher
 {
     private static BusManager Bm => Mod.Instance.BusManager;
@@ -33,46 +35,53 @@ internal class SchedulePatcher : BasePatcher
             prefix: this.GetHarmonyMethod(nameof(Before_getRouteEndBehaviorFunction))
         );
     }
-    
-    private static bool Before_TryLoadSchedule(NPC instance, string key, ref bool result, out KeyValuePair<string, Vector2> state)
-    {
-        if (Mod.Instance.VisitorsData.ContainsKey(instance.Name))
-        {
-            state = new KeyValuePair<string, Vector2>(instance.DefaultMap, instance.DefaultPosition);
-            instance.DefaultMap = "BusStop";
-            instance.DefaultPosition = new Vector2(12, 9) * 64f;
-        }
 
-        state = new KeyValuePair<string, Vector2>("", Vector2.Zero);
+    /// <summary>
+    /// Before TryLoadSchedule is called, change the NPC's DefaultMap and DefaultPosition to the bus location and position, storing
+    /// the original in a state variable. Only if the NPC is a bus visitor
+    /// </summary>
+    private static bool Before_TryLoadSchedule(NPC __instance, string key, ref bool result, out (string, Vector2)? __state)
+    {
+        if (Mod.Instance.VisitorsData.ContainsKey(__instance.Name))
+        {
+            __state = new(__instance.DefaultMap, __instance.DefaultPosition);
+
+            __instance.DefaultMap = "BusStop";
+            __instance.DefaultPosition = Mod.BusDoorTile.ToVector2() * 64f;
+        }
+        else
+            __state = null;
 
         return true;
     }
 
-    private static void After_TryLoadSchedule(NPC instance, string key, ref bool result, ref KeyValuePair<string, Vector2> state)
+    /// <summary>
+    /// Restore the original DefaultMap and DefaultPosition after loading schedule
+    /// </summary>
+    private static void After_TryLoadSchedule(NPC __instance, string key, ref bool result, ref (string, Vector2)? __state)
     {
-        if (!string.IsNullOrEmpty(state.Key))
+        if (__state != null)
         {
-            instance.DefaultMap = state.Key;
-            instance.DefaultPosition = state.Value;
+            (__instance.DefaultMap, __instance.DefaultPosition) = __state.Value;
         }
     }
 
-    private static void After_checkSchedule(NPC instance, int timeOfDay)
+    private static void After_checkSchedule(NPC __instance, int timeOfDay)
     {
-        if (instance.Name.Equals("Pam"))
+        if (__instance.Name.Equals("Pam"))
         {
-            if (instance.currentLocation.Equals(Bm.BusLocation) && instance.controller != null &&
-                instance.controller.pathToEndPoint.TryPeek(out Point result) && result is { X: 12, Y: 9 } &&
-                timeOfDay == instance.DirectionsToNewLocation.time)
+            if (__instance.currentLocation.Equals(Bm.BusLocation) && __instance.controller != null &&
+                __instance.controller.pathToEndPoint.TryPeek(out Point result) && result is { X: 12, Y: 9 } &&
+                timeOfDay == __instance.DirectionsToNewLocation.time)
             {
-                instance.Position = result.ToVector2() * 64f;
+                __instance.Position = result.ToVector2() * 64f;
             }
         }
     }
 
-    private static void Before_getRouteEndBehaviorFunction(NPC instance, string behaviorName, string endMessage, ref PathFindController.endBehavior? result)
+    private static void Before_getRouteEndBehaviorFunction(NPC __instance, string behaviorName, string endMessage, ref PathFindController.endBehavior? __result)
     {
-        if (result == null && Mod.Instance.VisitorsData.ContainsKey(instance.Name) && instance.Schedule != null && behaviorName == "BoardBus")
-            result = Mod.VisitorReachBusEndBehavior;
+        if (__result == null && Mod.Instance.VisitorsData.ContainsKey(__instance.Name) && __instance.Schedule != null && behaviorName == "BoardBus")
+            __result = Mod.VisitorReachBusEndBehavior;
     }
 }

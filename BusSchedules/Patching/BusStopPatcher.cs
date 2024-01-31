@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -14,6 +15,7 @@ using StardewValley.Pathfinding;
 
 namespace BusSchedules.Patching;
 
+[SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony patching requirement")]
 internal class BusStopPatcher : BasePatcher
 {
     private static BusManager Bm => Mod.Instance.BusManager;
@@ -51,7 +53,7 @@ internal class BusStopPatcher : BasePatcher
     /// <summary>
     /// When the player comes back from the desert, reset the bus to default position
     /// </summary>
-    private static void After_doorOpenAfterReturn(BusStop instance)
+    private static void After_doorOpenAfterReturn(BusStop __instance)
     {
         if (Bm.BusGone)
         {
@@ -64,13 +66,13 @@ internal class BusStopPatcher : BasePatcher
     /// <summary>
     /// If the player tries to board the bus while it's about to arrive or just left, make the player wait
     /// </summary>
-    private static bool Before_answerDialogue(BusStop instance, Response answer, ref bool result)
+    private static bool Before_answerDialogue(BusStop __instance, Response answer, ref bool __result)
     {
         // If bus is currently moving in the location or it's about to arrive in 20 minutes or it's only been 20 minutes since it left
         if (Bm.BusLeaving || Bm.BusReturning || (Bm.BusGone && (Mod.Instance.TimeUntilNextArrival <= 20 || Mod.Instance.TimeSinceLastArrival <= 20)))
         {
             Game1.chatBox.addMessage("The bus will arrive shortly.", Color.White);
-            result = false;
+            __result = false;
             return false;
         }
 
@@ -81,9 +83,9 @@ internal class BusStopPatcher : BasePatcher
     /// After the player confirms to use the bus, we intercept the commands. If the bus isn't present, we put the
     /// player's controller away, fade to black and return the controller after the fade
     /// </summary>
-    private static void After_answerDialogue(BusStop instance, Response answer, ref bool result)
+    private static void After_answerDialogue(BusStop __instance, Response answer, ref bool __result)
     {
-        if (result == true && Game1.player.controller != null)
+        if (__result == true && Game1.player.controller != null)
         {
             if (Math.Abs(Bm.BusPosition.X - 704f) < 0.001)
             {
@@ -143,11 +145,11 @@ internal class BusStopPatcher : BasePatcher
     /// <summary>
     /// Called when player enters the bus stop location. We reset state and put bus out of frame if it shouldn't be there
     /// </summary>
-    private static void After_resetLocalState(BusStop instance)
+    private static void After_resetLocalState(BusStop __instance)
     {
         if (!Context.IsMainPlayer)
         {
-            Mod.Instance.UpdateBusLocation(instance);
+            Mod.Instance.UpdateBusLocation(__instance);
         }
         if (Bm.BusLeaving || Bm.BusGone)
         {
@@ -159,9 +161,9 @@ internal class BusStopPatcher : BasePatcher
     /// <summary>
     /// Called when all players leave the bus stop
     /// </summary>
-    private static void After_cleanupForVacancy(GameLocation instance)
+    private static void After_cleanupForVacancy(GameLocation __instance)
     {
-        if (instance is BusStop)
+        if (__instance is BusStop)
         {
             if (Bm.BusLeaving || Bm.BusGone)
             {
@@ -178,7 +180,7 @@ internal class BusStopPatcher : BasePatcher
     /// <summary>
     /// When the player is in BusStop and the bus is moving, update the busMotion every tick
     /// </summary>
-    private static void After_UpdateWhenCurrentLocation(BusStop instance, GameTime time)
+    private static void After_UpdateWhenCurrentLocation(BusStop __instance, GameTime time)
     {
         if (Bm.BusLeaving)
         {
@@ -211,9 +213,9 @@ internal class BusStopPatcher : BasePatcher
     /// <summary>
     /// Prevent the game from stopping you from boarding the bus when Pam isn't there
     /// </summary>
-    private static void After_draw(BusStop instance, SpriteBatch spriteBatch)
+    private static void After_draw(BusStop __instance, SpriteBatch spriteBatch)
     {
-        if ((Bm.BusLeaving || Bm.BusReturning) && instance.characters.Any(x => x.Name == "Pam"))
+        if ((Bm.BusLeaving || Bm.BusReturning) && __instance.characters.Any(x => x.Name == "Pam"))
             spriteBatch.Draw(Game1.mouseCursors, 
                 Game1.GlobalToLocal(Game1.viewport, new Vector2((int)Bm.BusPosition.X, (int)Bm.BusPosition.Y) + new Vector2(0f, 29f) * 4f), 
                 new Rectangle(384, 1311, 15, 19), Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, (Bm.BusPosition.Y + 192f + 4f) / 10000f);

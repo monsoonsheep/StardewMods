@@ -1,4 +1,5 @@
-﻿using System.Linq;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common.Patching;
@@ -9,6 +10,7 @@ using StardewValley.Objects;
 
 namespace MyCafe.Patching;
 
+[SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony patching requirement")]
 internal class FurniturePatcher : BasePatcher
 {
     public override void Apply(Harmony harmony, IMonitor monitor)
@@ -35,20 +37,20 @@ internal class FurniturePatcher : BasePatcher
         );
     }
 
-    private static void After_GetAdditionalFurniturePlacementStatus(Furniture instance, GameLocation location, int x, int y, Farmer who, ref int result)
+    private static void After_GetAdditionalFurniturePlacementStatus(Furniture __instance, GameLocation location, int x, int y, Farmer who, ref int __result)
     {
-        if (Utility.IsTable(instance))
+        if (Utility.IsTable(__instance))
         {
             Furniture table = location.GetFurnitureAt(new Vector2(x, y));
             if (Utility.IsTableTracked(table, location, out FurnitureTable trackedTable) && trackedTable.IsReserved)
-                result = 2;
+                __result = 2;
         }
     }
-    private static bool Before_AddSittingFarmer(Furniture instance, Farmer who, ref Vector2? result)
+    private static bool Before_AddSittingFarmer(Furniture __instance, Farmer who, ref Vector2? __result)
     {
-        if (Utility.IsChair(instance) && Mod.Cafe.Tables.Any(t => t.Seats.OfType<FurnitureSeat>().Any(s => s.IsReserved && s.ActualChair.Value.Equals(instance))))
+        if (Utility.IsChair(__instance) && Mod.Cafe.Tables.Any(t => t.Seats.OfType<FurnitureSeat>().Any(s => s.IsReserved && s.ActualChair.Value.Equals(__instance))))
         {
-            result = null;
+            __result = null;
             return false;
         }
 
@@ -56,13 +58,13 @@ internal class FurniturePatcher : BasePatcher
     }
 
 
-    private static bool Before_PerformObjectDropInAction(Furniture instance, Item dropInItem, bool probe, Farmer who, ref bool result)
+    private static bool Before_PerformObjectDropInAction(Furniture __instance, Item dropInItem, bool probe, Farmer who, ref bool __result)
     {
-        if (Utility.IsTable(instance))
+        if (Utility.IsTable(__instance))
         {
-            if (Utility.IsTableTracked(instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable.IsReserved)
+            if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable.IsReserved)
             {
-                result = false;
+                __result = false;
                 return false;
             }
         }
@@ -70,24 +72,24 @@ internal class FurniturePatcher : BasePatcher
         return true;
     }
 
-    private static void After_CanBeRemoved(Furniture instance, Farmer who, ref bool result)
+    private static void After_CanBeRemoved(Furniture __instance, Farmer who, ref bool __result)
     {
-        if (result is false)
+        if (__result is false)
             return;
 
-        if (Utility.IsTable(instance))
+        if (Utility.IsTable(__instance))
         {
-            if (Utility.IsTableTracked(instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable.IsReserved)
+            if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable.IsReserved)
             {
                 Game1.addHUDMessage(new HUDMessage("Can't remove this furniture", 1000, fadeIn: false));
-                result = false;
+                __result = false;
             }
         }
     }
 
-    private static bool Before_Clicked(Furniture instance, Farmer who, ref bool result)
+    private static bool Before_Clicked(Furniture __instance, Farmer who, ref bool __result)
     {
-        if (!Utility.IsTable(instance))
+        if (!Utility.IsTable(__instance))
             return true;
 
         //if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable.IsReserved)

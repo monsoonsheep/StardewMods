@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -64,10 +64,10 @@ public class Mod : StardewModdingAPI.Mod
 
         // Harmony patches
         if (HarmonyPatcher.TryApply(this,
-                new LocationPatcher(),
+                new NetFieldPatcher(),
                 new CharacterPatcher(),
                 new FurniturePatcher(),
-                new BuildingPatcher()
+                new SignboardPatcher()
             ) is false)
             return;
 

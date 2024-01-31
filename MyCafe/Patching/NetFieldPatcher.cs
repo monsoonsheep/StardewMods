@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+using System.Diagnostics.CodeAnalysis;
+using HarmonyLib;
 using MonsoonSheep.Stardew.Common.Patching;
 using MyCafe.Locations.Objects;
 using StardewModdingAPI;
@@ -7,7 +8,8 @@ using xTile.Dimensions;
 
 namespace MyCafe.Patching;
 
-internal class LocationPatcher : BasePatcher
+[SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony patching requirement")]
+internal class NetFieldPatcher : BasePatcher
 {
     public override void Apply(Harmony harmony, IMonitor monitor)
     {
@@ -21,15 +23,15 @@ internal class LocationPatcher : BasePatcher
             );
     }
 
-    private static void After_InitNetFields(Farm instance)
+    private static void After_InitNetFields(Farm __instance)
     {
-        instance.NetFields.AddField(instance.get_Cafe(), $"{Mod.UniqueId}.Cafe");
-        Mod.Instance.NetCafe = instance.get_Cafe();
+        __instance.NetFields.AddField(__instance.get_Cafe(), $"{Mod.UniqueId}.Cafe");
+        Mod.Instance.NetCafe = __instance.get_Cafe();
     }
 
-    private static void After_CheckAction(Farm instance, Location tileLocation, Rectangle viewport, Farmer who, ref bool result)
+    private static void After_CheckAction(GameLocation __instance, Location tileLocation, Rectangle viewport, Farmer who, ref bool __result)
     {
-        if (result == true || (!instance.Equals(Mod.Cafe.Indoor) && !instance.Equals(Mod.Cafe.Outdoor)))
+        if (__result == true || (!__instance.Equals(Mod.Cafe.Indoor) && !__instance.Equals(Mod.Cafe.Outdoor)))
             return;
 
         foreach (Table table in Mod.Cafe.Tables)
@@ -37,7 +39,7 @@ internal class LocationPatcher : BasePatcher
             if (table.BoundingBox.Value.Contains(tileLocation.X * 64, tileLocation.Y * 64)
                 && Mod.Cafe.InteractWithTable(table, who))
             {
-                result = true;
+                __result = true;
                 return;
             }
         }

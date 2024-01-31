@@ -1,4 +1,4 @@
-﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 
@@ -74,11 +74,5 @@ internal class MenuCategoryEntry : MenuEntry
             new Vector2(this.XPositionForCentering - 32, 1),
             SpriteEffects.None,
             1f);
-
-
-        if (this.EditMode)
-        {
-
-        }
     }
 }

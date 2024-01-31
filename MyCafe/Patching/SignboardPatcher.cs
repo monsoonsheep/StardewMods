@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+using System.Diagnostics.CodeAnalysis;
+using HarmonyLib;
 using MonsoonSheep.Stardew.Common.Patching;
 using StardewModdingAPI;
 using StardewValley;
@@ -6,7 +7,9 @@ using StardewValley.Buildings;
 using StardewValley.Menus;
 
 namespace MyCafe.Patching;
-internal class BuildingPatcher : BasePatcher
+
+[SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony patching requirement")]
+internal class SignboardPatcher : BasePatcher
 {
     public override void Apply(Harmony harmony, IMonitor monitor)
     {
@@ -20,9 +23,9 @@ internal class BuildingPatcher : BasePatcher
         );
     }
 
-    private static void After_SetUpForBuildingPlacement(CarpenterMenu instance)
+    private static void After_SetUpForBuildingPlacement(CarpenterMenu __instance)
     {
-        Building? building = (Building?)AccessTools.Field(typeof(CarpenterMenu), "currentBuilding")?.GetValue(instance);
+        Building? building = (Building?)AccessTools.Field(typeof(CarpenterMenu), "currentBuilding")?.GetValue(__instance);
         if (building != null && building.GetData()?.CustomFields.TryGetValue(ModKeys.CAFE_SIGNBOARD_CUSTOMFIELD, out string? value) is true && value == "true")
             Mod.IsPlacingSignBoard = true;
     }
