@@ -155,6 +155,7 @@ internal class BusManager
 
     internal void MoveBusOutOfMap()
     {
+        Log.Debug("Bus is out of map");
         this.BusGone = true;
         this.BusReturning = false;
         this.BusLeaving = false;

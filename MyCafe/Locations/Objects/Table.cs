@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using Microsoft.Xna.Framework;
@@ -45,6 +45,7 @@ public class Table : INetObject<NetFields>
     public Table()
     {
         this.NetFields = new NetFields(NetFields.GetNameForInstance(this));
+        // ReSharper disable once VirtualMemberCallInConstructor
         this.InitNetFields();
     }
 

@@ -16,10 +16,6 @@ internal class FurniturePatcher : BasePatcher
     public override void Apply(Harmony harmony, IMonitor monitor)
     {
         harmony.Patch(
-            original: this.RequireMethod<Furniture>("clicked"),
-            prefix: this.GetHarmonyMethod(nameof(Before_Clicked))
-        );
-        harmony.Patch(
             original: this.RequireMethod<Furniture>(nameof(Furniture.GetAdditionalFurniturePlacementStatus)),
             postfix: this.GetHarmonyMethod(nameof(After_GetAdditionalFurniturePlacementStatus))
         );
@@ -37,6 +33,9 @@ internal class FurniturePatcher : BasePatcher
         );
     }
 
+    /// <summary>
+    /// To avoid putting furniture on top of tables that are registered (probably? I forgor)
+    /// </summary>
     private static void After_GetAdditionalFurniturePlacementStatus(Furniture __instance, GameLocation location, int x, int y, Farmer who, ref int __result)
     {
         if (Utility.IsTable(__instance))
@@ -46,10 +45,23 @@ internal class FurniturePatcher : BasePatcher
                 __result = 2;
         }
     }
+
+    /// <summary>
+    /// Prevent farmers from sitting in chairs that are reserved for customers
+    /// </summary>
+    /// <param name="__instance"></param>
+    /// <param name="who"></param>
+    /// <param name="__result"></param>
+    /// <returns></returns>
     private static bool Before_AddSittingFarmer(Furniture __instance, Farmer who, ref Vector2? __result)
     {
-        if (Utility.IsChair(__instance) && Mod.Cafe.Tables.Any(t => t.Seats.OfType<FurnitureSeat>().Any(s => s.IsReserved && s.ActualChair.Value.Equals(__instance))))
+        if (Utility.IsChair(__instance)
+            && Mod.Cafe.Tables
+                .Any(t => t.Seats
+                    .OfType<FurnitureSeat>()
+                    .Any(s => s.IsReserved && s.ActualChair.Value.Equals(__instance))))
         {
+            Log.Debug("Can't sit in this chair, it's reserved");
             __result = null;
             return false;
         }
@@ -57,13 +69,14 @@ internal class FurniturePatcher : BasePatcher
         return true;
     }
 
-
     private static bool Before_PerformObjectDropInAction(Furniture __instance, Item dropInItem, bool probe, Farmer who, ref bool __result)
     {
         if (Utility.IsTable(__instance))
         {
-            if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable.IsReserved)
+            if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable)
+                && trackedTable.IsReserved)
             {
+                Log.Debug("Can't drop in this object onto this table. It's reserved");
                 __result = false;
                 return false;
             }
@@ -86,22 +99,4 @@ internal class FurniturePatcher : BasePatcher
             }
         }
     }
-
-    private static bool Before_Clicked(Furniture __instance, Farmer who, ref bool __result)
-    {
-        if (!Utility.IsTable(__instance))
-            return true;
-
-        //if (Utility.IsTableTracked(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable.IsReserved)
-        //{
-        //    if (Mod.Cafe.ClickTable(trackedTable, who))
-        //    {
-        //        __result = true;
-        //        return false;
-        //    }
-        //}
-
-        return true;
-    }
-
 }

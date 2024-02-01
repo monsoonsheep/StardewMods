@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common.Patching;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Internal;
 using StardewValley.Locations;
 using StardewValley.Pathfinding;
 
@@ -40,7 +41,7 @@ internal class SchedulePatcher : BasePatcher
     /// Before TryLoadSchedule is called, change the NPC's DefaultMap and DefaultPosition to the bus location and position, storing
     /// the original in a state variable. Only if the NPC is a bus visitor
     /// </summary>
-    private static bool Before_TryLoadSchedule(NPC __instance, string key, ref bool result, out (string, Vector2)? __state)
+    private static bool Before_TryLoadSchedule(NPC __instance, string key, ref bool __result, out (string, Vector2)? __state)
     {
         if (Mod.Instance.VisitorsData.ContainsKey(__instance.Name))
         {
@@ -58,7 +59,7 @@ internal class SchedulePatcher : BasePatcher
     /// <summary>
     /// Restore the original DefaultMap and DefaultPosition after loading schedule
     /// </summary>
-    private static void After_TryLoadSchedule(NPC __instance, string key, ref bool result, ref (string, Vector2)? __state)
+    private static void After_TryLoadSchedule(NPC __instance, string key, ref bool __result, ref (string, Vector2)? __state)
     {
         if (__state != null)
         {
@@ -84,4 +85,5 @@ internal class SchedulePatcher : BasePatcher
         if (__result == null && Mod.Instance.VisitorsData.ContainsKey(__instance.Name) && __instance.Schedule != null && behaviorName == "BoardBus")
             __result = Mod.VisitorReachBusEndBehavior;
     }
+
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -64,6 +64,7 @@ public class Mod : StardewModdingAPI.Mod
 
         // Harmony patches
         if (HarmonyPatcher.TryApply(this,
+                new ActionPatcher(),
                 new NetFieldPatcher(),
                 new CharacterPatcher(),
                 new FurniturePatcher(),
@@ -459,7 +460,7 @@ public static class CafeState
 
     public static void set_Cafe(this Farm farm, NetRef<Cafe> value)
     {
-        Log.Warn("Setting Cafe field for Farm. Should this be happening?");
+        Log.Error("Setting Cafe field for Farm. Should this be happening?");
         var holder = Values.GetOrCreateValue(farm);
         holder!.Value = value;
     }

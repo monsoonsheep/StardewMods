@@ -29,7 +29,6 @@ internal sealed class Mod : StardewModdingAPI.Mod
 
     internal byte BusArrivalsToday;
     internal int[] BusArrivalTimes = [630, 1200, 1500, 1800, 2400];
-    internal List<int> BusLeaveTimes = [];
     internal static Point BusDoorTile = new Point(12, 9);
 
     internal int NextArrivalTime 
@@ -44,15 +43,10 @@ internal sealed class Mod : StardewModdingAPI.Mod
     internal int TimeSinceLastArrival 
         => Utility.CalculateMinutesBetweenTimes(this.LastArrivalTime, Game1.timeOfDay);
 
-    public Mod()
-    {
-        Instance = this;
-        this.BusManager = new BusManager();
-    }
-
     /// <inheritdoc />
     public override void Entry(IModHelper helper)
     {
+        Instance = this;
         Log.Monitor = this.Monitor;
         UniqueId = this.ModManifest.UniqueID;
 
@@ -69,15 +63,6 @@ internal sealed class Mod : StardewModdingAPI.Mod
         events.Multiplayer.ModMessageReceived += this.OnModMessageReceived;
         events.Content.AssetRequested += this.OnAssetRequested;
 
-        // Populate bus departure times
-        for (int i = 0; i < this.BusArrivalTimes.Length; i++)
-        {
-            if (i == 0)
-                this.BusLeaveTimes.Add(Utility.ModifyTime(this.BusArrivalTimes[1], -70));
-            else
-                this.BusLeaveTimes.Add(this.BusArrivalTimes[i] + 20);
-        }
-
 #if DEBUG
         helper.Events.Input.ButtonPressed += Debug.ButtonPress;
 #endif
@@ -85,10 +70,12 @@ internal sealed class Mod : StardewModdingAPI.Mod
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
     {
+        this.BusManager = new BusManager();
         this.UpdateBusLocation((BusStop) Game1.getLocationFromName("BusStop"));
 
         if (this.BusEnabled == false && Game1.MasterPlayer.mailReceived.Contains("ccVault"))
         {
+            Log.Debug("Enabling bus");
             this.BusEnabled = true;
             this.HookEvents();
         }
@@ -149,6 +136,7 @@ internal sealed class Mod : StardewModdingAPI.Mod
     {
         if (this.BusEnabled == false && Game1.MasterPlayer.mailReceived.Contains("ccVault"))
         {
+            Log.Debug("Enabling bus");
             this.BusEnabled = true;
             this.HookEvents();
         }
@@ -173,16 +161,19 @@ internal sealed class Mod : StardewModdingAPI.Mod
             if (npc.GetData().Home is { Count: > 0 } &&
                 npc.GetData().Home[0].Location == "BusStop")
             {
+                Log.Debug($"Setting character {pair.Key} to their bus stop home out of map");
                 Game1.warpCharacter(npc, this.BusManager.BusLocation, new Vector2(-10000f / 64, -10000f / 64));
             }
 
             // If NPC will arrive by bus today, warp them to a hidden place in bus stop
             if (pair.Value.ScheduleKeysForBusArrival.ContainsKey(npc.ScheduleKey))
             {
+                Log.Debug($"Setting character {pair.Key} to the bus stop");
                 Game1.warpCharacter(npc, this.BusManager.BusLocation, new Vector2(-10000f / 64, -10000f / 64));
             }
             else
             {
+                Log.Debug($"Letting the game warp character {pair.Key} to their home");
                 // Otherwise let the game warp them to their home
                 npc.dayUpdate(Game1.dayOfMonth);
             }
@@ -205,9 +196,6 @@ internal sealed class Mod : StardewModdingAPI.Mod
     {
         if (Utility.CalculateMinutesBetweenTimes(e.NewTime, this.NextArrivalTime) == 10)
         {
-            this.BusArrivalsToday++;
-            this.BusManager.DriveBack();
-            
             foreach (var pair in this.VisitorsData)
             {
                 var npc = Game1.getCharacterFromName(pair.Key);
@@ -222,9 +210,13 @@ internal sealed class Mod : StardewModdingAPI.Mod
                 }
             }
 
+            this.BusArrivalsToday++;
+            this.BusManager.DriveBack();
         }
         // Bus leaves based on leaving times
-        else if (this.BusLeaveTimes.Contains(e.NewTime))
+        else if (this.BusManager is { BusGone: false, BusLeaving: false, BusReturning: false }
+                 && ((this.BusArrivalsToday == 1 && e.NewTime == this.NextArrivalTime - 70)
+                     || this.BusArrivalsToday != 1 && e.NewTime == this.LastArrivalTime + 20))
         {
             this.BusManager.BusLeave();
         }
@@ -382,7 +374,6 @@ internal sealed class Mod : StardewModdingAPI.Mod
             npc.followSchedule = false;
         }
     }
-
 
     public override object GetApi()
     {

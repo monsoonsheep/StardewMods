@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
@@ -144,12 +144,12 @@ internal class MenuBoard : MenuPageBase
                 int index = i;
                 if (this.ParentMenu.HeldItem is SObject held)
                 {
-                    while (i >= 0 && this._entries[i] is not MenuCategoryEntry)
+                    while (i >= 0 && this._entries[this._currentItemIndex + i] is not MenuCategoryEntry)
                     {
                         i--;
                     }
 
-                    if (this._entries[i] is MenuCategoryEntry entry)
+                    if (this._entries[this._currentItemIndex + i] is MenuCategoryEntry entry)
                     {
                         if (this.AddItem(held, entry.Name, index - i)) this.ParentMenu.HeldItem = null;
                         break;
