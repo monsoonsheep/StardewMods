@@ -17,12 +17,12 @@ internal class OptionStatusSet : OptionsElementBase
     private readonly string UnsetText;
     private readonly string SetText;
     private bool IsSet;
-    private readonly Func<Task<bool>> SetFunction;
-    private Func<bool> CheckFunction;
-    private Task<bool> RunTask = null!;
-    private readonly CancellationTokenSource Cancellation = new CancellationTokenSource();
+    private readonly Action SetFunction;
+    private readonly Func<bool> CheckFunction;
+    private int checkIterations = 0;
+    private Task checkTask;
 
-    public OptionStatusSet(string label, string buttonText, string unsetText, string setText, Func<Task<bool>> setFunction, Func<bool> checkFunction, Rectangle rec, int optionNumber) : base(label, new Rectangle(rec.X, rec.Y, rec.Width, rec.Height))
+    public OptionStatusSet(string label, string buttonText, string unsetText, string setText, Action setFunction, Func<bool> checkFunction, Rectangle rec, int optionNumber) : base(label, new Rectangle(rec.X, rec.Y, rec.Width, rec.Height))
     {
         this.SetText = setText;
         this.UnsetText = unsetText;
@@ -35,6 +35,7 @@ internal class OptionStatusSet : OptionsElementBase
             upNeighborID = -99998,
             downNeighborID = -99998
         };
+
         this.style = Style.OptionLabel;
 
         this.SetFunction = setFunction;
@@ -43,6 +44,15 @@ internal class OptionStatusSet : OptionsElementBase
         {
             this.IsSet = true;
         }
+
+        this.checkTask = new Task(() =>
+        {
+            while (this.IsSet == false && this.checkIterations < 500)
+            {
+                this.IsSet = this.CheckFunction.Invoke();
+                Task.Delay(500);
+            }
+        });
     }
 
     internal override Vector2 Snap(int direction)
@@ -57,17 +67,17 @@ internal class OptionStatusSet : OptionsElementBase
             if (!this.IsSet)
             {
                 Log.Debug("Task starting");
-                this.RunTask?.Dispose();
-                this.RunTask = this.SetFunction();
-                this.RunTask.ContinueWith((task) =>
+                if (this.CheckFunction() == true)
+                    this.IsSet = true;
+                else
                 {
-                    Log.Debug($"Setting the result, it's {task.Result}");
-                    this.IsSet = task.Result;
-                });
+                    this.SetFunction.Invoke();
+                    this.checkTask.Start();
+                }
             }
             else
             {
-                Log.Debug("Already trying to connect");
+                Log.Debug("Already connected/trying to connect");
             }
         }
     }

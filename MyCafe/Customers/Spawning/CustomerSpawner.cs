@@ -33,7 +33,10 @@ internal abstract class CustomerSpawner
 
     internal abstract void DayUpdate();
 
-    internal abstract Task<bool> Initialize(IModHelper helper);
+    internal virtual void Initialize(IModHelper helper)
+    {
+        this.State = SpawnerState.Enabled;
+    }
 
     internal virtual void RemoveAll()
     {

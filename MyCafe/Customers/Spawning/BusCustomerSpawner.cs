@@ -27,10 +27,10 @@ internal class BusCustomerSpawner : CustomerSpawner
         this.CustomersData = customersData;
     }
 
-    internal override Task<bool> Initialize(IModHelper helper)
+    internal override void Initialize(IModHelper helper)
     {
+        base.Initialize(helper);
         this.BusSchedulesApi = helper.ModRegistry.GetApi<IBusSchedulesApi>("MonsoonSheep.BusSchedules");
-        return Task.FromResult(true);
     }
 
     internal List<BusCustomerData> GetRandomCustomerData(int members)

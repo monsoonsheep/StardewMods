@@ -2,41 +2,34 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MyCafe;
-using MyCafe.Customers;
 using MyCafe.LiveChatIntegration;
-using MyCafe.Locations;
-using MyCafe.Customers.Spawning;
 using MyCafe.Enums;
 using MyCafe.Locations.Objects;
 using MyCafe.UI.Options;
 using StardewModdingAPI;
 using StardewValley;
-using StardewValley.Menus;
 using Color = Microsoft.Xna.Framework.Color;
 using Point = Microsoft.Xna.Framework.Point;
-using LogLevel = StreamingClient.Base.Util.LogLevel;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
-
 
 #if TWITCH
 using Twitch.Base;
 using Twitch.Base.Clients;
 using Twitch.Base.Models.Clients.Chat;
 using Twitch.Base.Models.NewAPI.Users;
+
 #elif YOUTUBE
 using YouTube.Base.Clients;
 using YouTube.Base;
 using Google.Apis.YouTube.v3.Data;
 #endif
+
 #if YOUTUBE || TWITCH
 using StreamingClient.Base.Util;
 #endif
-
 
 // ReSharper disable once CheckNamespace
 
@@ -50,32 +43,32 @@ namespace MyCafe.LiveChatIntegration
 
     public class ChatMessageReceivedEventArgs : EventArgs
     {
-        public string Username { get; set; }
-        public string Message { get; set; }
+        public string? Username { get; set; }
+        public string? Message { get; set; }
         public Color Color { get; set; } = Color.White;
+    }
+
+    internal enum ConnectionStatus
+    {
+        Disconnected,
+        Disconnecting,
+        Connecting,
+        Connected
     }
 
     #if TWITCH
     internal class TwitchManager : IStreamManager
     {
-        private string _clientId;
-        private string _clientSecret;
+        private string _clientId = null!;
+        private string _clientSecret = null!;
 
-        private enum ConnectionStatus
-        {
-            Disconnected,
-            Disconnecting,
-            Connecting,
-            Connected
-        }
-
-        private TwitchConnection _connection;
-        private static UserModel user;
-        private static ChatClient chat;
+        private TwitchConnection? _connection;
+        private static UserModel? user;
+        private static ChatClient? chat;
         private ConnectionStatus _connectionState = ConnectionStatus.Disconnected;
 
-        public event EventHandler<ChatMessageReceivedEventArgs> ChatMessageReceived;
-        private ColorConverter colorConverter = new ColorConverter();
+        public event EventHandler<ChatMessageReceivedEventArgs>? ChatMessageReceived;
+        private readonly ColorConverter colorConverter = new ();
 
         public async Task<bool> Connect()
         {
@@ -94,7 +87,7 @@ namespace MyCafe.LiveChatIntegration
                     OAuthClientScopeEnum.whispers__read,
                 ];
 
-                this._connection = await TwitchConnection.ConnectViaLocalhostOAuthBrowser(this._clientId, this._clientSecret, scopes, forceApprovalPrompt: false);
+                this._connection = await TwitchConnection.ConnectViaLocalhostOAuthBrowser(this._clientId, this._clientSecret, scopes, forceApprovalPrompt: true);
 
                 if (this._connection != null)
                 {
@@ -126,7 +119,7 @@ namespace MyCafe.LiveChatIntegration
             return true;
         }
 
-        private void Chat_OnMessageReceived(object sender, ChatMessagePacketModel e)
+        private void Chat_OnMessageReceived(object? sender, ChatMessagePacketModel e)
         {
             var color = (System.Drawing.Color)(this.colorConverter.ConvertFromInvariantString(e.Color) ?? System.Drawing.Color.White);
             Color resultColor = new Color(color.R, color.G, color.B);
@@ -254,14 +247,14 @@ namespace MyCafe.UI
                 new OptionStatusSet("Status", "Connect", "Not connected.", "Connected!", this.ConnectChat, this.IsConnected, this.OptionSlotSize, 43490));
         }
 
-        internal async Task<bool> ConnectChat()
+        internal void ConnectChat()
         {
             if (this.IsConnected())
-                return true;
+                return;
             if (this.IsConnecting())
-                return false;
+                return;
 
-            return await Mod.Cafe.Customers.ChatCustomers.Initialize(Mod.Instance.Helper);
+            Mod.Cafe.Customers.ChatCustomers?.Initialize(Mod.Instance.Helper);
         }
 
         internal bool IsConnected()
@@ -284,6 +277,7 @@ namespace MyCafe.Customers.Spawning
 
         private readonly List<string> _users = [];
         private readonly List<string> _spawnedUsers = [];
+        private Task<bool> connectTask = null!;
 
         public ChatCustomerSpawner() : base()
         {
@@ -294,23 +288,23 @@ namespace MyCafe.Customers.Spawning
 #endif
         }
 
-        internal override async Task<bool> Initialize(IModHelper helper)
+        internal override void Initialize(IModHelper helper)
         {
             this.State = SpawnerState.Initializing;
 
-            bool result = await this._streamManager.Connect();
-            if (result)
+            this.connectTask = this._streamManager.Connect();
+            this.connectTask.ContinueWith((task) =>
             {
-                this.State = SpawnerState.Enabled;
-                this._streamManager.ChatMessageReceived += this.OnChatMessageReceived;
-                Game1.chatBox.addMessage("Live chat connected!", Color.White);
-                return true;
-            }
-            
-            return false;
+                if (task.Result)
+                {
+                    this.State = SpawnerState.Enabled;
+                    this._streamManager.ChatMessageReceived += this.OnChatMessageReceived;
+                    Game1.chatBox.addMessage("Live chat connected!", Color.White);
+                }
+            });
         }
 
-        internal void OnChatMessageReceived(object sender, ChatMessageReceivedEventArgs e)
+        internal void OnChatMessageReceived(object? sender, ChatMessageReceivedEventArgs e)
         {
             Log.Info("Man " + e.Username + ": " + e.Message);
             this._users.Add(e.Username);

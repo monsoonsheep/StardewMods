@@ -15,7 +15,7 @@ internal sealed class CustomerManager
 
     internal CustomerSpawner BusCustomers;
     internal CustomerSpawner VillagerCustomers;
-    internal CustomerSpawner? ChatCustomers = null!;
+    internal CustomerSpawner? ChatCustomers = null;
 
     internal IEnumerable<CustomerGroup> CurrentGroups
     {
@@ -28,12 +28,13 @@ internal sealed class CustomerManager
 
     internal CustomerManager(IModHelper helper, Dictionary<string, BusCustomerData> customersData, Cafe cafe)
     {
+        this.Cafe = cafe;
+
         this.BusCustomers = new BusCustomerSpawner(customersData);
         this.VillagerCustomers = new VillagerCustomerSpawner();
 
         this.BusCustomers.Initialize(helper);
         this.VillagerCustomers.Initialize(helper);
-        this.Cafe = cafe;
 
 #if YOUTUBE || TWITCH
         this.ChatCustomers = new ChatCustomerSpawner();
@@ -64,9 +65,12 @@ internal sealed class CustomerManager
             }
         }
 
-        if (this.BusCustomers.Spawn(table, out _) is true)
+        if (this.BusCustomers is { State: SpawnerState.Enabled })
         {
-            return;
+            if (this.BusCustomers.Spawn(table, out _) is true)
+            {
+                return;
+            }
         }
     }
 
