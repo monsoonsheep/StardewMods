@@ -134,33 +134,31 @@ internal class MenuBoard : MenuPageBase
             }
         }
 
-        for (int i = 0; i < this._slots.Count; i++)
+        for (int slotIndex = 0; slotIndex < this._slots.Count; slotIndex++)
         {
-            if (this._slots[i].containsPoint(x, y))
+            if (this._slots[slotIndex].containsPoint(x, y))
             {
                 // if not held, remove or edit
                 // if held, add
 
-                int index = i;
+                int itemIndex = this._currentItemIndex + slotIndex;
                 if (this.ParentMenu.HeldItem is SObject held)
                 {
-                    while (i >= 0 && this._entries[this._currentItemIndex + i] is not MenuCategoryEntry)
+                    while (itemIndex >= 0 && this._entries[itemIndex] is not MenuCategoryEntry)
+                        itemIndex--;
+                    
+                    if (this._entries[itemIndex] is MenuCategoryEntry entry)
                     {
-                        i--;
-                    }
-
-                    if (this._entries[this._currentItemIndex + i] is MenuCategoryEntry entry)
-                    {
-                        if (this.AddItem(held, entry.Name, index - i)) this.ParentMenu.HeldItem = null;
+                        if (this.AddItem(held, entry.Name, this._currentItemIndex + slotIndex - itemIndex)) this.ParentMenu.HeldItem = null;
                         break;
                     }
                 }
                 else
                 {
-                    Item? item = (this._entries[this._currentItemIndex + i] as MenuItemEntry)?.Item;
+                    Item? item = (this._entries[this._currentItemIndex + slotIndex] as MenuItemEntry)?.Item;
                     if (item != null)
                     {
-                        this.RemoveItem(this._currentItemIndex + i);
+                        this.RemoveItem(this._currentItemIndex + slotIndex);
                         this.ParentMenu.HeldItem = item;
                     }
                 }

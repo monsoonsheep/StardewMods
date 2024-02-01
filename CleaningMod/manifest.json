@@ -1,0 +1,10 @@
+﻿{
+  "Name": "Cleaning Mod",
+  "Author": "MonsoonSheep",
+  "Version": "0.1.0",
+  "Description": "Clean dust off of things",
+  "UniqueID": "MonsoonSheep.CleaningMod",
+  "EntryDll": "CleaningMod.dll",
+  "MinimumApiVersion": "3.0.0",
+  "UpdateKeys": []
+}

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace MonsoonSheep.Stardew.Common.Utilities
+namespace MonsoonSheep.Stardew.Common
 {
     /// <summary>Provides extension methods for <see cref="ISet{T}"/>.</summary>
     internal static class SetExtensions

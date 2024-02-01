@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MonsoonSheep.Stardew.Common.Utilities
+namespace MonsoonSheep.Stardew.Common
 {
     /// <summary>Provides extension methods for collection types.</summary>
     internal static class CollectionExtensions

@@ -149,7 +149,7 @@ namespace MonsoonSheep.Stardew.Common.UI
         public void Draw(SpriteBatch sprites, float opacity = 1)
         {
             // draw tab
-            CommonHelper.DrawTab(sprites, this.bounds.X, this.bounds.Y, this.List.MaxLabelWidth, this.List.MaxLabelHeight, out Vector2 textPos, drawShadow: this.IsAndroid);
+            DrawHelper.DrawTab(sprites, this.bounds.X, this.bounds.Y, this.List.MaxLabelWidth, this.List.MaxLabelHeight, out Vector2 textPos, drawShadow: this.IsAndroid);
             sprites.DrawString(this.Font, this.List.SelectedLabel, textPos, Color.Black * opacity);
 
             // draw dropdown

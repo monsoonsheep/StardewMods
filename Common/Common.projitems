@@ -9,7 +9,7 @@
     <Import_RootNamespace>Common</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\CollectionExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CollectionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MapExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ObjectExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IInvariantSet.cs" />
@@ -32,6 +32,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\InvariantDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\InvariantSet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ObjectReferenceComparer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\SetExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SetExtensions.cs" />
   </ItemGroup>
 </Project>

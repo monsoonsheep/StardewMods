@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <ModFolderName>CleaningMod</ModFolderName>
+	  <TargetFramework>net6.0</TargetFramework>
+	  <GamePath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley</GamePath>
+	  <GameModsPath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley\Mods\My Mods</GameModsPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Lib.Harmony" Version="2.2.2" />
+  </ItemGroup>
+
+  <Import Project="..\Common.Patching\Common.Patching.projitems" Label="Shared" />
+</Project>
