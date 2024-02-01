@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -22,7 +22,7 @@ internal abstract class OptionsPageBase : MenuPageBase
     private readonly Rectangle ScrollBarRunner;
     protected int CurrentItemIndex = 0;
 
-    protected OptionsPageBase(string name, Rectangle bounds, CafeMenu parentMenu, Texture2D sprites) : base(name, bounds, parentMenu, sprites)
+    protected OptionsPageBase(string name, Rectangle bounds, CafeMenu parentMenu) : base(name, bounds, parentMenu)
     {
         this.UpArrow = new ClickableTextureComponent(
             new Rectangle(bounds.Right - 30, bounds.Y + 101, 44, 48),

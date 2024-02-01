@@ -35,7 +35,7 @@ internal class MenuBoard : MenuPageBase
     private readonly Rectangle _scrollBarRunner;
     private int _currentItemIndex;
 
-    public MenuBoard(CafeMenu parent, Rectangle bounds, Texture2D sprites) : base("Menu", bounds, parent, sprites)
+    public MenuBoard(CafeMenu parent, Rectangle bounds) : base("Menu", bounds, parent)
     {
         this.target_board = this.Bounds;
 
@@ -94,11 +94,11 @@ internal class MenuBoard : MenuPageBase
             if (!this._categories.Contains(pair.Key))
             {
                 this._categories.Add(pair.Key);
-                this._entries.Add(new MenuCategoryEntry(pair.Key, this.Sprites));
+                this._entries.Add(new MenuCategoryEntry(pair.Key, Mod.Sprites));
             }
             foreach (var item in pair.Value)
             {
-                this._entries.Add(new MenuItemEntry(item, pair.Key, this.Sprites));
+                this._entries.Add(new MenuItemEntry(item, pair.Key, Mod.Sprites));
             }
         }
 
@@ -270,7 +270,7 @@ internal class MenuBoard : MenuPageBase
     public override void draw(SpriteBatch b)
     {
         // Background
-        b.Draw(this.Sprites, this.target_board,
+        b.Draw(Mod.Sprites, this.target_board,
             source_Board,
             Color.White,
             0f,
@@ -279,7 +279,7 @@ internal class MenuBoard : MenuPageBase
             0.1f);
 
         // Logo
-        b.Draw(this.Sprites, this.target_Logo,
+        b.Draw(Mod.Sprites, this.target_Logo,
             source_Logo,
             Color.White,
             0f,

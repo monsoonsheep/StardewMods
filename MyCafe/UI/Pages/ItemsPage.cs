@@ -45,7 +45,7 @@ internal class ItemsPage : MenuPageBase
         }
     }
 
-    public ItemsPage(CafeMenu parent, Rectangle bounds, Texture2D sprites) : base("Edit Menu", bounds, parent, sprites)
+    public ItemsPage(CafeMenu parent, Rectangle bounds) : base("Edit Menu", bounds, parent)
     {
         this.SearchBarTextBoxBounds = new Rectangle(this.Bounds.X + this.Bounds.Width / 4, this.Bounds.Y + Game1.tileSize / 2, this.Bounds.Width / 2,
             Game1.tileSize
@@ -77,7 +77,7 @@ internal class ItemsPage : MenuPageBase
 
         this.LoadButton = new ClickableTextureComponent(
             new Rectangle(this.Bounds.Right - SourceLoadButton.Width - 64, this.Bounds.Center.Y - SourceLoadButton.Height,
-                SourceLoadButton.Width, SourceLoadButton.Height), this.Sprites,
+                SourceLoadButton.Width, SourceLoadButton.Height), Mod.Sprites,
             SourceLoadButton,
             2f)
         {
@@ -92,7 +92,7 @@ internal class ItemsPage : MenuPageBase
 
         this.SaveButton = new ClickableTextureComponent(
             new Rectangle(this.Bounds.Right - SourceLoadButton.Width - 64, this.Bounds.Center.Y + SourceLoadButton.Height * 2,
-                SourceLoadButton.Width, SourceLoadButton.Height), this.Sprites,
+                SourceLoadButton.Width, SourceLoadButton.Height), Mod.Sprites,
             SourceSaveButton,
             2f)
         {

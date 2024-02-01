@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MyCafe;
 using MyCafe.Customers;
 using MyCafe.Customers.Data;
 using MyCafe.Locations.Objects;
@@ -10,16 +11,12 @@ using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Pathfinding;
 using SUtility = StardewValley.Utility;
-namespace MyCafe.CustomerFactory;
+
+namespace MyCafe.Customers.Spawning;
 
 internal class VillagerCustomerSpawner : CustomerSpawner
 {
     internal readonly Dictionary<string, VillagerCustomerData> VillagerData = new();
-
-    internal VillagerCustomerSpawner(Texture2D sprites) : base(sprites)
-    {
-
-    }
 
     internal override Task<bool> Initialize(IModHelper helper)
     {

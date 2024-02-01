@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework.Graphics;
-using MyCafe.CustomerFactory;
+using MyCafe.Customers.Spawning;
 using MyCafe.Customers.Data;
 using MyCafe.Locations.Objects;
 using MyCafe.Enums;
@@ -26,17 +26,17 @@ internal sealed class CustomerManager
         }
     }
 
-    internal CustomerManager(IModHelper helper, Dictionary<string, BusCustomerData> customersData, Texture2D sprites, Cafe cafe)
+    internal CustomerManager(IModHelper helper, Dictionary<string, BusCustomerData> customersData, Cafe cafe)
     {
-        this.BusCustomers = new BusCustomerSpawner(customersData, sprites);
-        this.VillagerCustomers = new VillagerCustomerSpawner(sprites);
+        this.BusCustomers = new BusCustomerSpawner(customersData);
+        this.VillagerCustomers = new VillagerCustomerSpawner();
 
         this.BusCustomers.Initialize(helper);
         this.VillagerCustomers.Initialize(helper);
         this.Cafe = cafe;
 
 #if YOUTUBE || TWITCH
-        ChatCustomers = new ChatCustomerSpawner();
+        this.ChatCustomers = new ChatCustomerSpawner();
 #endif
     }
 

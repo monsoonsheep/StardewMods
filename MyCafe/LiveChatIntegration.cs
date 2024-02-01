@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -6,10 +6,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MyCafe;
 using MyCafe.Customers;
 using MyCafe.LiveChatIntegration;
 using MyCafe.Locations;
-using MyCafe.CustomerFactory;
+using MyCafe.Customers.Spawning;
+using MyCafe.Enums;
+using MyCafe.Locations.Objects;
 using MyCafe.UI.Options;
 using StardewModdingAPI;
 using StardewValley;
@@ -17,6 +20,8 @@ using StardewValley.Menus;
 using Color = Microsoft.Xna.Framework.Color;
 using Point = Microsoft.Xna.Framework.Point;
 using LogLevel = StreamingClient.Base.Util.LogLevel;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
+
 
 #if TWITCH
 using Twitch.Base;
@@ -74,13 +79,13 @@ namespace MyCafe.LiveChatIntegration
 
         public async Task<bool> Connect()
         {
-            _clientId = ModConfig.LoadedConfig.TwitchClientId;
-            _clientSecret = ModConfig.LoadedConfig.TwitchClientSecret;
+            this._clientId = Mod.Instance.Config.TwitchClientId;
+            this._clientSecret = Mod.Instance.Config.TwitchClientSecret;
 
             try
             {
                 Log.Info($"Twitch - Connecting...");
-                _connectionState = ConnectionStatus.Connecting;
+                this._connectionState = ConnectionStatus.Connecting;
 
                 List<OAuthClientScopeEnum> scopes =
                 [
@@ -89,16 +94,16 @@ namespace MyCafe.LiveChatIntegration
                     OAuthClientScopeEnum.whispers__read,
                 ];
 
-                _connection = await TwitchConnection.ConnectViaLocalhostOAuthBrowser(_clientId, _clientSecret, scopes, forceApprovalPrompt: false);
+                this._connection = await TwitchConnection.ConnectViaLocalhostOAuthBrowser(this._clientId, this._clientSecret, scopes, forceApprovalPrompt: false);
 
-                if (_connection != null)
+                if (this._connection != null)
                 {
                     Log.Info($"Twitch - Connection successful");
-                    user = await _connection.NewAPI.Users.GetCurrentUser();
+                    user = await this._connection.NewAPI.Users.GetCurrentUser();
                     if (user != null)
                     {
-                        chat = new ChatClient(_connection);
-                        chat.OnMessageReceived += Chat_OnMessageReceived;
+                        chat = new ChatClient(this._connection);
+                        chat.OnMessageReceived += this.Chat_OnMessageReceived;
 
                         await chat.Connect();
                         await Task.Delay(1000);
@@ -117,15 +122,15 @@ namespace MyCafe.LiveChatIntegration
                 return false;
             }
 
-            _connectionState = ConnectionStatus.Connected;
+            this._connectionState = ConnectionStatus.Connected;
             return true;
         }
 
         private void Chat_OnMessageReceived(object sender, ChatMessagePacketModel e)
         {
-            var color = (System.Drawing.Color)(colorConverter.ConvertFromInvariantString(e.Color) ?? System.Drawing.Color.White);
+            var color = (System.Drawing.Color)(this.colorConverter.ConvertFromInvariantString(e.Color) ?? System.Drawing.Color.White);
             Color resultColor = new Color(color.R, color.G, color.B);
-            ChatMessageReceived?.Invoke(this, new ChatMessageReceivedEventArgs()
+            this.ChatMessageReceived?.Invoke(this, new ChatMessageReceivedEventArgs()
             {
                 Username = e.UserDisplayName,
                 Message = e.Message,
@@ -243,20 +248,20 @@ namespace MyCafe.UI
 {
     internal class ChatIntegrationPage : OptionsPageBase
     {
-        public ChatIntegrationPage(CafeMenu parentMenu, Rectangle bounds) : base("Chat Integration", bounds, parentMenu)
+        public ChatIntegrationPage(CafeMenu parentMenu, Rectangle bounds, Texture2D sprites) : base("Chat Integration", bounds, parentMenu)
         {
-            Options.Add(
-                new OptionStatusSet("Status", "Connect", "Not connected.", "Connected!", ConnectChat, IsConnected, OptionSlotSize, 43490));
+            this.Options.Add(
+                new OptionStatusSet("Status", "Connect", "Not connected.", "Connected!", this.ConnectChat, this.IsConnected, this.OptionSlotSize, 43490));
         }
 
         internal async Task<bool> ConnectChat()
         {
-            if (IsConnected())
+            if (this.IsConnected())
                 return true;
-            if (IsConnecting())
+            if (this.IsConnecting())
                 return false;
 
-            return await Mod.Cafe.Customers.ChatCustomers.Initialize(Mod.ModHelper);
+            return await Mod.Cafe.Customers.ChatCustomers.Initialize(Mod.Instance.Helper);
         }
 
         internal bool IsConnected()
@@ -271,56 +276,56 @@ namespace MyCafe.UI
     }
 }
 
-namespace MyCafe.CustomerFactory
+namespace MyCafe.Customers.Spawning
 {
     internal class ChatCustomerSpawner : CustomerSpawner
     {
-        private IStreamManager _streamManager;
+        private readonly IStreamManager _streamManager;
 
         private readonly List<string> _users = [];
         private readonly List<string> _spawnedUsers = [];
 
-        internal override async Task<bool> Initialize(IModHelper helper)
+        public ChatCustomerSpawner() : base()
         {
 #if YOUTUBE
             _streamManager = new YoutubeManager();
 #elif TWITCH
-            _streamManager = new TwitchManager();
+            this._streamManager = new TwitchManager();
 #endif
+        }
 
-            State = SpawnerState.Initializing;
+        internal override async Task<bool> Initialize(IModHelper helper)
+        {
+            this.State = SpawnerState.Initializing;
 
-            if (_streamManager != null)
+            bool result = await this._streamManager.Connect();
+            if (result)
             {
-                var result = await _streamManager.Connect();
-                if (result)
-                {
-                    State = SpawnerState.Enabled;
-                    _streamManager.ChatMessageReceived += OnChatMessageReceived;
-                    Game1.chatBox.addMessage("Live chat connected!", Color.White);
-                    return true;
-                }
+                this.State = SpawnerState.Enabled;
+                this._streamManager.ChatMessageReceived += this.OnChatMessageReceived;
+                Game1.chatBox.addMessage("Live chat connected!", Color.White);
+                return true;
             }
-
+            
             return false;
         }
 
         internal void OnChatMessageReceived(object sender, ChatMessageReceivedEventArgs e)
         {
             Log.Info("Man " + e.Username + ": " + e.Message);
-            _users.Add(e.Username);
+            this._users.Add(e.Username);
         }
 
         internal override bool Spawn(Table table, out CustomerGroup group)
         {
             group = new CustomerGroup();
-            if (_users.Count == 0)
+            if (this._users.Count == 0)
                 return false;
 
-            string name = _users[Game1.random.Next(_users.Count)];
+            string name = this._users[Game1.random.Next(this._users.Count)];
             Texture2D portrait =
-                Game1.content.Load<Texture2D>(Mod.ModHelper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", "cat.png")).Name);
-            AnimatedSprite sprite = new AnimatedSprite(Mod.ModHelper.ModContent.GetInternalAssetName(Path.Combine("assets", "Sprites", "customer1.png")).Name,
+                Game1.content.Load<Texture2D>(Mod.Instance.Helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", "cat.png")).Name);
+            AnimatedSprite sprite = new AnimatedSprite(Mod.Instance.Helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Sprites", "customer1.png")).Name,
                 0, 16, 32);
 
             Customer c = new Customer($"ChatCustomerNPC_{name}", new Vector2(10, 12), "BusStop", sprite, portrait)
@@ -340,12 +345,12 @@ namespace MyCafe.CustomerFactory
             if (group.MoveToTable() is false)
             {
                 Log.Error("Customers couldn't path to cafe");
-                LetGo(group, force: true);
+                this.LetGo(group, force: true);
                 return false;
             }
 
             Log.Info($"Chat member {name} spawned");
-            ActiveGroups.Add(group);
+            this.ActiveGroups.Add(group);
             return true;
         }
 

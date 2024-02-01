@@ -47,15 +47,15 @@ public sealed class CafeMenu : IClickableMenu
 
         this.sideBoxBounds = new Rectangle(this.xPositionOnScreen + this.menuBoardBounds.Width + Game1.tileSize, this.yPositionOnScreen + Game1.pixelZoom + Game1.tileSize * 2, this.menuBoardBounds.Width, this.menuBoardBounds.Height - Game1.tileSize * 2);
 
-        this._menuBoard = new MenuBoard(this, this.menuBoardBounds, this.Sprites);
+        this._menuBoard = new MenuBoard(this, this.menuBoardBounds);
 
         this._pages = [
-            new ItemsPage(this, this.sideBoxBounds, this.Sprites),
-            new TimingPage(this, this.sideBoxBounds, this.Sprites),
+            new ItemsPage(this, this.sideBoxBounds),
+            new TimingPage(this, this.sideBoxBounds),
         ];
 
 #if YOUTUBE || TWITCH
-        _pages.Add(new ChatIntegrationPage(this, sideBoxBounds));
+        this._pages.Add(new ChatIntegrationPage(this, this.sideBoxBounds, this.Sprites));
 #endif
         this.PopulateTabs();
         this._menuBoard.populateClickableComponentList();

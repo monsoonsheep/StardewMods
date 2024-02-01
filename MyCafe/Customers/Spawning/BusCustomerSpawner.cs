@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MyCafe;
 using MyCafe.Customers;
 using MyCafe.Customers.Data;
 using MyCafe.Enums;
@@ -13,7 +14,7 @@ using MyCafe.Locations.Objects;
 using StardewModdingAPI;
 using StardewValley;
 
-namespace MyCafe.CustomerFactory;
+namespace MyCafe.Customers.Spawning;
 
 internal class BusCustomerSpawner : CustomerSpawner
 {
@@ -21,7 +22,7 @@ internal class BusCustomerSpawner : CustomerSpawner
 
     private IBusSchedulesApi? BusSchedulesApi;
 
-    internal BusCustomerSpawner(Dictionary<string, BusCustomerData> customersData, Texture2D sprites) : base(sprites)
+    internal BusCustomerSpawner(Dictionary<string, BusCustomerData> customersData) : base()
     {
         this.CustomersData = customersData;
     }

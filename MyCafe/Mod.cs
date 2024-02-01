@@ -41,7 +41,7 @@ public class Mod : StardewModdingAPI.Mod
 
     internal static bool IsPlacingSignBoard;
 
-    internal NetRef<Cafe> NetCafe = new NetRef<Cafe>();
+    internal NetRef<Cafe> NetCafe = [];
 
     internal static Cafe Cafe
         => Instance.NetCafe.Value;
@@ -104,26 +104,34 @@ public class Mod : StardewModdingAPI.Mod
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
     {
-        if (!Context.IsMainPlayer) return;
+        if (!Context.IsMainPlayer)
+            return;
 
         this.LoadContentPacks();
 
         if (Game1.player.modData.TryGetValue(ModKeys.MODDATA_OPENCLOSETIMES, out string? openclose))
         {
-            string[] split = openclose.Split('|');
-            Cafe.OpeningTime.Set(int.Parse(split[0]));
-            Cafe.ClosingTime.Set(int.Parse(split[1]));
+            string[] split = ArgUtility.SplitBySpace(openclose);
+            if (int.TryParse(ArgUtility.Get(split, 0, defaultValue: "830", allowBlank: false), out int open)
+                && int.TryParse(ArgUtility.Get(split, 1, defaultValue: "2200", allowBlank: false), out int close))
+            {
+                Cafe.OpeningTime.Set(open);
+                Cafe.ClosingTime.Set(close);
+            }
         }
+
         if (Game1.player.modData.TryGetValue(ModKeys.MODDATA_MENUITEMSLIST, out string? menuitems))
         {
             Cafe.MenuItems.Clear();
         }
-        Cafe.Initialize(this.Helper, this.CustomersData, Sprites);
+
+        Cafe.Initialize(this.Helper, this.CustomersData);
     }
 
     internal void OnDayStarted(object? sender, DayStartedEventArgs e)
     {
-        if (!Context.IsMainPlayer) return;
+        if (!Context.IsMainPlayer)
+            return;
 
         if (Cafe.UpdateCafeLocations() is true)
         {
@@ -143,7 +151,7 @@ public class Mod : StardewModdingAPI.Mod
     {
         if (!Context.IsMainPlayer) return;
 
-        Game1.player.modData[ModKeys.MODDATA_OPENCLOSETIMES] = $"{Cafe.OpeningTime.Value}|{Cafe.ClosingTime.Value}";
+        Game1.player.modData[ModKeys.MODDATA_OPENCLOSETIMES] = $"{Cafe.OpeningTime.Value} {Cafe.ClosingTime.Value}";
         Game1.player.modData[ModKeys.MODDATA_MENUITEMSLIST] = "";
     }
 
@@ -277,7 +285,6 @@ public class Mod : StardewModdingAPI.Mod
         {
             foreach (Vector2 tile in TileHelper.GetCircularTileGrid(new Vector2((Game1.viewport.X + Game1.getOldMouseX(false)) / 64, (Game1.viewport.Y + Game1.getOldMouseY(false)) / 64), this.Config.DistanceForSignboardToRegisterTables))
             {
-
                 // get tile area in screen pixels
                 Rectangle area = new((int)(tile.X * Game1.tileSize - Game1.viewport.X), (int)(tile.Y * Game1.tileSize - Game1.viewport.Y), Game1.tileSize, Game1.tileSize);
 

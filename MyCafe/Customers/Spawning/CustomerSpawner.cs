@@ -1,22 +1,21 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Graphics;
+using MyCafe;
 using MyCafe.Customers;
 using MyCafe.Enums;
 using MyCafe.Locations.Objects;
 using StardewModdingAPI;
 
-namespace MyCafe.CustomerFactory;
+namespace MyCafe.Customers.Spawning;
 
 internal abstract class CustomerSpawner
 {
     internal List<CustomerGroup> ActiveGroups;
     internal SpawnerState State = SpawnerState.Disabled;
-    protected Texture2D Sprites;
 
-    internal CustomerSpawner(Texture2D sprites)
+    internal CustomerSpawner()
     {
-        this.Sprites = sprites;
         this.ActiveGroups = [];
     }
 

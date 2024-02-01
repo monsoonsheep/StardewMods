@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
@@ -8,7 +8,7 @@ using StardewValley.Menus;
 using SUtility = StardewValley.Utility;
 
 namespace MyCafe.UI.Options;
-internal class OptionStatusSet : OptionsElement
+internal class OptionStatusSet : OptionsElementBase
 {
     private Rectangle SetButtonBounds;
     private readonly ClickableComponent SetButton;
@@ -22,7 +22,7 @@ internal class OptionStatusSet : OptionsElement
     private Task<bool> RunTask = null!;
     private readonly CancellationTokenSource Cancellation = new CancellationTokenSource();
 
-    public OptionStatusSet(string label, string buttonText, string unsetText, string setText, Func<Task<bool>> setFunction, Func<bool> checkFunction, Rectangle rec, int optionNumber) : base(label, rec.X, rec.Y, rec.Width, rec.Height)
+    public OptionStatusSet(string label, string buttonText, string unsetText, string setText, Func<Task<bool>> setFunction, Func<bool> checkFunction, Rectangle rec, int optionNumber) : base(label, new Rectangle(rec.X, rec.Y, rec.Width, rec.Height))
     {
         this.SetText = setText;
         this.UnsetText = unsetText;
@@ -43,6 +43,11 @@ internal class OptionStatusSet : OptionsElement
         {
             this.IsSet = true;
         }
+    }
+
+    internal override Vector2 Snap(int direction)
+    {
+        return this.bounds.Center.ToVector2();
     }
 
     public override void receiveLeftClick(int x, int y)
@@ -97,4 +102,5 @@ internal class OptionStatusSet : OptionsElement
             Game1.textColor * (this.greyedOut || this.IsSet ? 0.33f : 1f),
             1f, 0.91f, -1, -1, 0f);
     }
+
 }

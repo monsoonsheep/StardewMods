@@ -6,7 +6,7 @@ using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonsoonSheep.Stardew.Common;
-using MyCafe.CustomerFactory;
+using MyCafe.Customers.Spawning;
 using MyCafe.Customers;
 using MyCafe.Customers.Data;
 using MyCafe.Enums;
@@ -73,11 +73,9 @@ public class Cafe : INetObject<NetFields>
             .AddField(this.OpeningTime).AddField(this.ClosingTime).AddField(this.NetTables).AddField(this.CafeEnabled).AddField(this.CafeIndoor.NetFields).AddField(this.CafeOutdoor.NetFields);
     }
 
-    internal void Initialize(IModHelper helper, Dictionary<string, BusCustomerData> customersData, Texture2D sprites)
+    internal void Initialize(IModHelper helper, Dictionary<string, BusCustomerData> customersData)
     {
-        this.Sprites = sprites;
-
-        this.Customers = new CustomerManager(helper, customersData, sprites, this);
+        this.Customers = new CustomerManager(helper, customersData, this);
         this.NetTables.OnValueAdded += delegate (Table table)
         {
             table.State.fieldChangeVisibleEvent += (_, oldValue, newValue) => this.OnTableStateChange(table, new TableStateChangedEventArgs()

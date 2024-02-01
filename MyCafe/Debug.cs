@@ -1,5 +1,6 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
+using MyCafe.Customers.Spawning;
 using MyCafe.Locations.Objects;
 using MyCafe.UI;
 using StardewModdingAPI;
@@ -8,6 +9,7 @@ using StardewValley;
 using StardewValley.Menus;
 
 #if YOUTUBE || TWITCH
+using System.IO;
 using MyCafe.LiveChatIntegration;
 #endif
 
@@ -78,12 +80,12 @@ internal class Debug
     public static void RefreshChat()
     {
         Mod.Cafe.Customers.ChatCustomers = new ChatCustomerSpawner();
-        Mod.Cafe.Customers.ChatCustomers.Initialize(Mod.ModHelper);
+        Mod.Cafe.Customers.ChatCustomers.Initialize(Mod.Instance.Helper);
     }
 
     public static void Test_UserJoinChat()
     {
-        var a = File.ReadAllText(Mod.ModHelper.DirectoryPath + "\\names.txt").Split('\n');
+        string[] a = File.ReadAllText(Mod.Instance.Helper.DirectoryPath + "\\names.txt").Split('\n');
         string name = a[Game1.random.Next(a.Length)].TrimEnd('\r').TrimStart();
         (Mod.Cafe.Customers.ChatCustomers as ChatCustomerSpawner)?.OnChatMessageReceived(Mod.Cafe.Customers.ChatCustomers, new ChatMessageReceivedEventArgs()
         {

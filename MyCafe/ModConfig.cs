@@ -1,4 +1,4 @@
-﻿using MyCafe.Interfaces;
+using MyCafe.Interfaces;
 using StardewModdingAPI;
 
 namespace MyCafe;

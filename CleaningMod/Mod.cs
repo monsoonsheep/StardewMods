@@ -53,6 +53,6 @@ public class Mod : StardewModdingAPI.Mod
 
     private void OnRenderedWorld(object? sender, RenderedWorldEventArgs e)
     {
-
+         // 
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
@@ -27,8 +27,8 @@ internal class OptionTimeSet : OptionsElementBase
 
     private static readonly Rectangle SourceTimeArrow = new Rectangle(16, 19, 22, 13);
 
-    public OptionTimeSet(string label, int initialValue, int minValue, int maxValue, Rectangle rec, int optionNumber, Action<int> setFunction, Texture2D sprites)
-        : base(label, rec, sprites)
+    public OptionTimeSet(string label, int initialValue, int minValue, int maxValue, Rectangle rec, int optionNumber, Action<int> setFunction)
+        : base(label, rec)
     {
         this.MinValue = minValue;
         this.MaxValue = maxValue;
@@ -60,38 +60,6 @@ internal class OptionTimeSet : OptionsElementBase
         };
 
         this.labelOffset = new Vector2(0, -40f);
-    }
-
-    public override void receiveLeftClick(int x, int y)
-    {
-        base.receiveLeftClick(x, y);
-        if (this.MinuteUpRec.Contains(x, y))
-        {
-            this.MinuteUp();
-            this.SetTime();
-        }
-        else if (this.MinuteDownRec.Contains(x, y))
-        {
-            this.MinuteDown();
-            this.SetTime();
-        }
-    }
-
-    public override void draw(SpriteBatch b, int slotX, int slotY, IClickableMenu? context = null)
-    {
-        SUtility.drawTextWithShadow(
-            b,
-            this.label,
-            Game1.dialogueFont,
-            new Vector2((slotX + this.bounds.X + this.labelOffset.X), (slotY + this.bounds.Y + this.labelOffset.Y)), Game1.textColor);
-
-        b.DrawString(
-            Game1.dialogueFont, this.FormatHours().ToString().PadLeft(2, '0') + " : " + this.Minutes.ToString().PadLeft(2, '0') + (this.Am ? " am" : " pm"),
-            new Vector2(slotX + this.bounds.X + 32, slotY + this.bounds.Y + 14),
-            Color.Black);
-
-        b.Draw(this.Sprites, new Rectangle(this.MinuteUpRec.X + slotX, this.MinuteUpRec.Y + slotY, this.MinuteUpRec.Width, this.MinuteUpRec.Height), SourceTimeArrow, Color.White, 0f, Vector2.Zero, SpriteEffects.FlipVertically, 0.9f);
-        b.Draw(this.Sprites, new Rectangle(this.MinuteDownRec.X + slotX, this.MinuteDownRec.Y + slotY, this.MinuteUpRec.Width, this.MinuteUpRec.Height), SourceTimeArrow, Color.White, 0f, Vector2.Zero, SpriteEffects.None, 0.9f);
     }
 
     internal override Vector2 Snap(int direction)
@@ -127,6 +95,38 @@ internal class OptionTimeSet : OptionsElementBase
 
         this.CurrentlySnapped = 0;
         return Vector2.Zero;
+    }
+
+    public override void receiveLeftClick(int x, int y)
+    {
+        base.receiveLeftClick(x, y);
+        if (this.MinuteUpRec.Contains(x, y))
+        {
+            this.MinuteUp();
+            this.SetTime();
+        }
+        else if (this.MinuteDownRec.Contains(x, y))
+        {
+            this.MinuteDown();
+            this.SetTime();
+        }
+    }
+
+    public override void draw(SpriteBatch b, int slotX, int slotY, IClickableMenu? context = null)
+    {
+        SUtility.drawTextWithShadow(
+            b,
+            this.label,
+            Game1.dialogueFont,
+            new Vector2((slotX + this.bounds.X + this.labelOffset.X), (slotY + this.bounds.Y + this.labelOffset.Y)), Game1.textColor);
+
+        b.DrawString(
+            Game1.dialogueFont, this.FormatHours().ToString().PadLeft(2, '0') + " : " + this.Minutes.ToString().PadLeft(2, '0') + (this.Am ? " am" : " pm"),
+            new Vector2(slotX + this.bounds.X + 32, slotY + this.bounds.Y + 14),
+            Color.Black);
+
+        b.Draw(Mod.Sprites, new Rectangle(this.MinuteUpRec.X + slotX, this.MinuteUpRec.Y + slotY, this.MinuteUpRec.Width, this.MinuteUpRec.Height), SourceTimeArrow, Color.White, 0f, Vector2.Zero, SpriteEffects.FlipVertically, 0.9f);
+        b.Draw(Mod.Sprites, new Rectangle(this.MinuteDownRec.X + slotX, this.MinuteDownRec.Y + slotY, this.MinuteUpRec.Width, this.MinuteUpRec.Height), SourceTimeArrow, Color.White, 0f, Vector2.Zero, SpriteEffects.None, 0.9f);
     }
 
     private void SetTime()

@@ -7,7 +7,7 @@ using StardewValley.Menus;
 namespace MyCafe.UI.Options;
 
 
-internal class OptionItemSlider : OptionsElement
+internal class OptionItemSlider : OptionsElementBase
 {
     private readonly string Label;
 
@@ -26,7 +26,7 @@ internal class OptionItemSlider : OptionsElement
     private readonly Func<int, string> FormatFunction;
 
     public OptionItemSlider(string label, int value, Action<int> setValue, int minValue, int maxValue, int width = 48, Func<int, string>? formatFunction = null)
-        : base(label, 32, 32, width * Game1.pixelZoom, 6 * Game1.pixelZoom)
+        : base(label, new Rectangle(32, 32, width * Game1.pixelZoom, 6 * Game1.pixelZoom))
     {
         this.Label = label;
         this.Value = value;
@@ -39,6 +39,10 @@ internal class OptionItemSlider : OptionsElement
         this.FormatFunction = formatFunction ?? ((i) => i.ToString());
     }
 
+    internal override Vector2 Snap(int direction)
+    {
+        return this.bounds.Center.ToVector2();
+    }
 
     public override void leftClickHeld(int x, int y)
     {

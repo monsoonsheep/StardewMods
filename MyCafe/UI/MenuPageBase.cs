@@ -11,8 +11,6 @@ public abstract class MenuPageBase : IClickableMenu
     internal Rectangle Bounds;
     internal string Name;
 
-    protected Texture2D Sprites;
-
     internal string? HoverTitle;
     internal string? HoverText;
 
@@ -21,10 +19,8 @@ public abstract class MenuPageBase : IClickableMenu
 
     protected CafeMenu ParentMenu;
 
-    internal MenuPageBase(string name, Rectangle bounds, CafeMenu parentMenu, Texture2D sprites) : base(bounds.X, bounds.Y, bounds.Width, bounds.Height)
+    internal MenuPageBase(string name, Rectangle bounds, CafeMenu parentMenu) : base(bounds.X, bounds.Y, bounds.Width, bounds.Height)
     {
-        this.Sprites = sprites;
-
         this.Name = name;
         this.ParentMenu = parentMenu;
         this.Bounds = bounds;
