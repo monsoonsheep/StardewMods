@@ -43,8 +43,8 @@ namespace MyCafe.LiveChatIntegration
 
     public class ChatMessageReceivedEventArgs : EventArgs
     {
-        public string? Username { get; set; }
-        public string? Message { get; set; }
+        public string Username { get; set; } = null!;
+        public string Message { get; set; } = null!;
         public Color Color { get; set; } = Color.White;
     }
 

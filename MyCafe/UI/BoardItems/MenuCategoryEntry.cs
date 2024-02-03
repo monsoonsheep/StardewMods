@@ -13,7 +13,7 @@ internal class MenuCategoryEntry : MenuEntry
     private readonly int XPositionForCentering;
     private readonly int LengthOfText;
 
-    internal MenuCategoryEntry(string name, Texture2D sprites) : base(sprites)
+    internal MenuCategoryEntry(string name) : base()
     {
         this.Name = name;
         this.LengthOfText = (int)Game1.smallFont.MeasureString(name).X;
@@ -34,7 +34,7 @@ internal class MenuCategoryEntry : MenuEntry
 
         Rectangle stretch = SourceSideLine;
 
-        b.Draw(this.Sprites,
+        b.Draw(Mod.Sprites,
             new Vector2(slotX + 16, slotY + 8),
             stretch,
             Color.White,
@@ -43,7 +43,7 @@ internal class MenuCategoryEntry : MenuEntry
             new Vector2(1, 1),
             SpriteEffects.None,
             1f);
-        b.Draw(this.Sprites,
+        b.Draw(Mod.Sprites,
             new Vector2(slotX + Bounds.Width - 16, slotY + 8),
             stretch,
             Color.White,
@@ -56,7 +56,7 @@ internal class MenuCategoryEntry : MenuEntry
         stretch.X += 4;
         stretch.Width = 1;
 
-        b.Draw(this.Sprites,
+        b.Draw(Mod.Sprites,
             new Vector2(slotX + 20, slotY + 8),
             stretch,
             Color.White,
@@ -65,7 +65,7 @@ internal class MenuCategoryEntry : MenuEntry
             new Vector2(this.XPositionForCentering - 32, 1f),
             SpriteEffects.None,
             1f);
-        b.Draw(this.Sprites,
+        b.Draw(Mod.Sprites,
             new Vector2(slotX + this.XPositionForCentering + this.LengthOfText + 18, slotY + 8),
             stretch,
             Color.White,

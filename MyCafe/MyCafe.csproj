@@ -17,7 +17,7 @@
 			  ^townInterior(_2)?\.png$,
 			  ^walls_and_floors\.png$
 		</IgnoreModFilePatterns>
-		<EnableChatIntegration>twitch</EnableChatIntegration>
+		<EnableChatIntegration>disabled</EnableChatIntegration>
 
 		<!-- SMAPI Paths -->
 		<ModFolderName>My Cafe</ModFolderName>
@@ -73,9 +73,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Mono.Cecil" Version="0.11.5.0" />
 		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
 		<PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.0.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Customers\Data\" />
 	</ItemGroup>
 
 	<Import Project="..\Common.Patching\Common.Patching.projitems" Label="Shared" />

@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MyCafe.Inventories;
 using MyCafe.UI.BoardItems;
 using StardewValley;
+using StardewValley.Inventories;
 using StardewValley.Menus;
 using SObject = StardewValley.Object;
 // ReSharper disable InconsistentNaming
@@ -82,27 +84,6 @@ internal class MenuBoard : MenuPageBase
 
         this.Bounds.Width += this._upArrow.bounds.Width;
         this.DefaultComponent = 1001;
-    }
-
-    private void PopulateMenuEntries()
-    {
-        this._categories.Clear();
-        this._entries.Clear();
-
-        foreach (var pair in Mod.Cafe.MenuItems)
-        {
-            if (!this._categories.Contains(pair.Key))
-            {
-                this._categories.Add(pair.Key);
-                this._entries.Add(new MenuCategoryEntry(pair.Key, Mod.Sprites));
-            }
-            foreach (var item in pair.Value)
-            {
-                this._entries.Add(new MenuItemEntry(item, pair.Key, Mod.Sprites));
-            }
-        }
-
-        this._scrollBar.bounds.Height = (int)(this._scrollBarRunner.Height / (float)(this._entries.Count - this.slotCount));
     }
 
     public override void receiveLeftClick(int x, int y, bool playSound = true)
@@ -354,9 +335,32 @@ internal class MenuBoard : MenuPageBase
         }
     }
 
+    private void PopulateMenuEntries()
+    {
+        this._categories.Clear();
+        this._entries.Clear();
+
+        foreach (KeyValuePair<MenuCategory, Inventory> pair in Mod.Cafe.Menu.ItemDictionary)
+        {
+            if (!this._categories.Contains(pair.Key.Name))
+            {
+                this._categories.Add(pair.Key.Name);
+                this._entries.Add(new MenuCategoryEntry(pair.Key.Name));
+            }
+
+            foreach (var item in pair.Value)
+            {
+                this._entries.Add(new MenuItemEntry(item));
+            }
+        }
+
+       
+        this._scrollBar.bounds.Height = (int)(this._scrollBarRunner.Height / (float)(this._entries.Count - this.slotCount));
+    }
+
     private bool AddItem(SObject item, string category, int index)
     {
-        if (!Mod.Cafe.AddToMenu(item, category, index))
+        if (!Mod.Cafe.Menu.AddItem(item, category, index))
         {
             Log.Warn("Can't add that");
             return false;
@@ -369,7 +373,7 @@ internal class MenuBoard : MenuPageBase
     private void RemoveItem(int entryIndex)
     {
         Item item = (this._entries[entryIndex] as MenuItemEntry)!.Item;
-        Mod.Cafe.RemoveFromMenu(item);
+        Mod.Cafe.Menu.RemoveItem(item);
         this.PopulateMenuEntries();
     }
 }

@@ -1,4 +1,7 @@
-﻿using System.Linq;
+using System.Collections.Generic;
+using System.Linq;
+using MonsoonSheep.Stardew.Common;
+using MyCafe.Inventories;
 using MyCafe.Locations.Objects;
 using StardewValley;
 using StardewValley.Objects;
@@ -21,6 +24,7 @@ internal static class Utility
     {
         FurnitureTable? t = Mod.Cafe.Tables
             .OfType<FurnitureTable>().FirstOrDefault(t => t.CurrentLocation.Equals(location.NameOrUniqueName) && t.Position == table.TileLocation);
+
         if (t != null)
         {
             outTable = t;
@@ -31,5 +35,20 @@ internal static class Utility
             outTable = null!;
             return false;
         }
+    }
+
+    internal static List<Item> ParseMenuItems(string[] ids)
+    {
+        List<Item> items = [];
+        foreach (string id in ids)
+        {
+            Item? item = ItemRegistry.Create(id);
+            if (item != null)
+            {
+                items.Add(item);
+            }
+        }
+
+        return items;
     }
 }

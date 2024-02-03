@@ -20,7 +20,7 @@ internal class OptionStatusSet : OptionsElementBase
     private readonly Action SetFunction;
     private readonly Func<bool> CheckFunction;
     private int checkIterations = 0;
-    private Task checkTask;
+    private readonly Task checkTask;
 
     public OptionStatusSet(string label, string buttonText, string unsetText, string setText, Action setFunction, Func<bool> checkFunction, Rectangle rec, int optionNumber) : base(label, new Rectangle(rec.X, rec.Y, rec.Width, rec.Height))
     {
@@ -49,8 +49,10 @@ internal class OptionStatusSet : OptionsElementBase
         {
             while (this.IsSet == false && this.checkIterations < 500)
             {
-                this.IsSet = this.CheckFunction.Invoke();
+                Log.Debug("Checking again");
                 Task.Delay(500);
+                this.IsSet = this.CheckFunction.Invoke();
+                this.checkIterations++;
             }
         });
     }

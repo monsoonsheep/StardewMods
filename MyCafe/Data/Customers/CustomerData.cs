@@ -1,6 +1,6 @@
 ﻿using StardewValley;
 
-namespace MyCafe.Customers.Data;
+namespace MyCafe.Data.Customers;
 
 public abstract class CustomerData
 {

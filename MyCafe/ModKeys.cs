@@ -1,4 +1,4 @@
-﻿// ReSharper disable InconsistentNaming
+// ReSharper disable InconsistentNaming
 
 namespace MyCafe;
 
@@ -14,6 +14,7 @@ internal static class ModKeys
     internal const string CAFE_MAP_NAME = "MonsoonSheep.MyCafe_CafeMap";
 
     internal const string MODDATA_MENUITEMSLIST = "MonsoonSheep.MyCafe_MenuItems";
+    internal const string MODDATA_MENUITEMCATEGORY = "MonsoonSheep.MyCafe_MenuItemCategory";
     internal const string MODDATA_OPENCLOSETIMES = "MonsoonSheep.MyCafe_OpenCloseTimes";
     internal const string MODDATA_NPCSLASTVISITEDDATES = "MonsoonSheep.MyCafe_NpcLastVisitedDates";
 

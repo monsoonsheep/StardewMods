@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework.Graphics;
 using MyCafe.Customers.Spawning;
-using MyCafe.Customers.Data;
 using MyCafe.Locations.Objects;
 using MyCafe.Enums;
 using StardewModdingAPI;
+using MyCafe.Data.Customers;
 
 namespace MyCafe.Customers;
 

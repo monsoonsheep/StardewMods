@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MyCafe;
 using MyCafe.Customers;
-using MyCafe.Customers.Data;
+using MyCafe.Data.Customers;
 using MyCafe.Enums;
 using MyCafe.Interfaces;
 using MyCafe.Locations.Objects;

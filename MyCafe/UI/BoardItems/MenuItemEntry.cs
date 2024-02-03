@@ -1,4 +1,4 @@
-﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 
@@ -7,13 +7,11 @@ namespace MyCafe.UI.BoardItems;
 internal class MenuItemEntry : MenuEntry
 {
     internal Item Item;
-    internal string Category;
     internal float Scale = 1f;
 
-    internal MenuItemEntry(Item item, string category, Texture2D sprites) : base(sprites)
+    internal MenuItemEntry(Item item) : base()
     {
         this.Item = item;
-        this.Category = category;
     }
 
     internal override void Draw(SpriteBatch b, int slotX, int slotY)

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using MyCafe.Customers.Spawning;
@@ -53,21 +54,17 @@ internal class Debug
                 }
                 break;
             case SButton.NumPad5:
-
                 break;
             case SButton.NumPad6:
-                Log.LogWithHudMessage($"Cafe time: {Mod.Cafe.ClosingTime.Value}");
                 break;
             case SButton.NumPad7:
                 SetMenuItems();
                 break;
             case SButton.NumPad8:
-                Mod.Cafe.MenuItems["Test"].Add(ItemRegistry.Create("(O)201"));
                 break;
             case SButton.NumPad9:
                 break;
             case SButton.U:
-                //Mod.Sprites = Mod.ModHelper.ModContent.Load<Texture2D>("assets/sprites.png");
                 Game1.activeClickableMenu = new CafeMenu(Mod.Sprites);
                 break;
             default:
@@ -97,14 +94,31 @@ internal class Debug
 
     public static void SetMenuItems()
     {
-        Mod.Cafe.MenuItems.Clear();
-        Mod.Cafe.MenuItems["Soups"] = [ItemRegistry.Create("(O)218"), ItemRegistry.Create("(O)199"), ItemRegistry.Create("(O)727"), ItemRegistry.Create("(O)730")];
-        Mod.Cafe.MenuItems["Dessert"] = [ItemRegistry.Create("(O)211"), ItemRegistry.Create("(O)222"), ItemRegistry.Create("(O)232"), ItemRegistry.Create("(O)234")];
-        Mod.Cafe.MenuItems["Beverages"] = [
-            ItemRegistry.GetObjectTypeDefinition().CreateFlavoredJuice(ItemRegistry.Create<Object>("(O)613")),
-            ItemRegistry.GetObjectTypeDefinition().CreateFlavoredJuice(ItemRegistry.Create<Object>("(O)635")),
-            ItemRegistry.GetObjectTypeDefinition().CreateFlavoredJuice(ItemRegistry.Create<Object>("(O)637"))
-        ];
+        Mod.Cafe.Menu.AddCategory("Soups");
+        Mod.Cafe.Menu.AddCategory("Dessert");
+
+        List<Item> soups = [ItemRegistry.Create("(O)218"), ItemRegistry.Create("(O)199"), ItemRegistry.Create("(O)727"), ItemRegistry.Create("(O)730")];
+        List<Item> dessert = [ItemRegistry.Create("(O)211"), ItemRegistry.Create("(O)222"), ItemRegistry.Create("(O)232"), ItemRegistry.Create("(O)234")];
+
+        foreach (Item s in soups)
+        {
+            Mod.Cafe.Menu.AddItem(s, "Soups");
+        }
+        foreach (Item d in dessert)
+        {
+            Mod.Cafe.Menu.AddItem(d, "Dessert");
+        }
+
+        //Mod.Cafe.Items.Value.NetItems.Value.Add(ItemRegistry.Create("(O)219"));
+        //Mod.Cafe.Items.Value.NetItems.Value.Add(ItemRegistry.Create("(O)129"));
+        //Mod.Cafe.MenuItems.Clear();
+        //Mod.Cafe.MenuItems["Soups"] = [ItemRegistry.Create("(O)218"), ItemRegistry.Create("(O)199"), ItemRegistry.Create("(O)727"), ItemRegistry.Create("(O)730")];
+        //Mod.Cafe.MenuItems["Dessert"] = [ItemRegistry.Create("(O)211"), ItemRegistry.Create("(O)222"), ItemRegistry.Create("(O)232"), ItemRegistry.Create("(O)234")];
+        //Mod.Cafe.MenuItems["Beverages"] = [
+        //    ItemRegistry.GetObjectTypeDefinition().CreateFlavoredJuice(ItemRegistry.Create<Object>("(O)613")),
+        //    ItemRegistry.GetObjectTypeDefinition().CreateFlavoredJuice(ItemRegistry.Create<Object>("(O)635")),
+        //    ItemRegistry.GetObjectTypeDefinition().CreateFlavoredJuice(ItemRegistry.Create<Object>("(O)637"))
+        //];
     }
 
     public static bool Wait10Seconds()
