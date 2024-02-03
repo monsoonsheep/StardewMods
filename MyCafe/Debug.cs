@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
-using MyCafe.Customers.Spawning;
+using MyCafe.Characters.Spawning;
 using MyCafe.Locations.Objects;
 using MyCafe.UI;
 using StardewModdingAPI;

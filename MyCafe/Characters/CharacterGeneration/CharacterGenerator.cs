@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewValley;
 
-namespace MyCafe.Customers.CharacterGeneration;
+namespace MyCafe.Characters.CharacterGeneration;
 internal class CharacterGenerator
 {
     internal void LoadTextures(IModContentHelper modContent)

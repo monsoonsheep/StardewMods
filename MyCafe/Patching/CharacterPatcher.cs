@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection.Emit;
 using HarmonyLib;
 using MonsoonSheep.Stardew.Common.Patching;
-using MyCafe.Customers;
+using MyCafe.Characters;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Pathfinding;

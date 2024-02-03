@@ -6,7 +6,7 @@ using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MyCafe;
-using MyCafe.Customers;
+using MyCafe.Characters;
 using MyCafe.Data.Customers;
 using MyCafe.Enums;
 using MyCafe.Interfaces;
@@ -14,7 +14,7 @@ using MyCafe.Locations.Objects;
 using StardewModdingAPI;
 using StardewValley;
 
-namespace MyCafe.Customers.Spawning;
+namespace MyCafe.Characters.Spawning;
 
 internal class BusCustomerSpawner : CustomerSpawner
 {

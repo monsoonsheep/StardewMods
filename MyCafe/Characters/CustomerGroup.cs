@@ -6,7 +6,7 @@ using MyCafe.Locations.Objects;
 using StardewValley;
 using StardewValley.Pathfinding;
 
-namespace MyCafe.Customers;
+namespace MyCafe.Characters;
 
 public class CustomerGroup
 {

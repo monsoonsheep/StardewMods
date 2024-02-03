@@ -10,7 +10,7 @@ using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Pathfinding;
 
-namespace MyCafe.Customers;
+namespace MyCafe.Characters;
 
 public class Customer : NPC
 {
@@ -92,7 +92,7 @@ public class Customer : NPC
         b.Draw(this.Sprite.Texture,
             localPosition + new Vector2((float)this.GetSpriteWidthForPositioning() * 4 / 2, (float)this.GetBoundingBox().Height / 2) + (this.shakeTimer > 0 ? new Vector2(Game1.random.Next(-1, 2), Game1.random.Next(-1, 2)) : Vector2.Zero), this.Sprite.SourceRect,
             Color.White * alpha, this.rotation,
-            new Vector2((float)this.Sprite.SpriteWidth / 2, (float)this.Sprite.SpriteHeight * 3f / 4f),
+            new Vector2(this.Sprite.SpriteWidth / 2f, this.Sprite.SpriteHeight * 3f / 4f),
             Math.Max(0.2f, this.Scale) * 4f,
             (this.flip || (this.Sprite.CurrentAnimation != null && this.Sprite.CurrentAnimation[this.Sprite.currentAnimationIndex].flip)) ? SpriteEffects.FlipHorizontally : SpriteEffects.None,
             mainLayerDepth
@@ -164,18 +164,18 @@ public class Customer : NPC
         this.LerpDuration = duration;
     }
 
-    public static PathFindController.endBehavior SitDownBehavior = delegate (Character c, GameLocation loc)
+    public static PathFindController.endBehavior SitDownBehavior = delegate (Character c, GameLocation _)
     {
-        if (c is Customer customer)
+        if (c is Customer { ReservedSeat: not null } customer)
         {
-            int direction = CommonHelper.DirectionIntFromVectors(customer.Tile, customer.ReservedSeat!.Position.ToVector2());
+            int direction = CommonHelper.DirectionIntFromVectors(customer.Tile, customer.ReservedSeat.Position.ToVector2());
             customer.SitDown(direction);
             customer.faceDirection(customer.ReservedSeat.SittingDirection);
 
             customer.IsSittingDown = true;
             if (customer.Group.Members.Any(other => !other.IsSittingDown))
                 return;
-            customer.ReservedSeat!.Table!.State.Set(TableState.CustomersThinkingOfOrder);
+            customer.ReservedSeat.Table.State.Set(TableState.CustomersThinkingOfOrder);
         }
     };
 }

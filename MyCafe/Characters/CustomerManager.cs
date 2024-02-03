@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework.Graphics;
-using MyCafe.Customers.Spawning;
+using MyCafe;
+using MyCafe.Characters.Spawning;
 using MyCafe.Locations.Objects;
 using MyCafe.Enums;
 using StardewModdingAPI;
 using MyCafe.Data.Customers;
 
-namespace MyCafe.Customers;
+namespace MyCafe.Characters;
 
 internal sealed class CustomerManager
 {

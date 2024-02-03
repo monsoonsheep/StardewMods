@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MyCafe;
-using MyCafe.Customers;
+using MyCafe.Characters;
 using MyCafe.Data.Customers;
 using MyCafe.Locations.Objects;
 using StardewModdingAPI;
@@ -12,7 +12,7 @@ using StardewValley;
 using StardewValley.Pathfinding;
 using SUtility = StardewValley.Utility;
 
-namespace MyCafe.Customers.Spawning;
+namespace MyCafe.Characters.Spawning;
 
 internal class VillagerCustomerSpawner : CustomerSpawner
 {

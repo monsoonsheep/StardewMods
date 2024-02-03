@@ -78,7 +78,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Customers\Data\" />
+	  <Folder Include="Characters\Data\" />
 	</ItemGroup>
 
 	<Import Project="..\Common.Patching\Common.Patching.projitems" Label="Shared" />

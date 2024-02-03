@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common;
+using MyCafe;
 using StardewValley;
 using StardewValley.Objects;
 using StardewValley.Pathfinding;
 using xTile.Dimensions;
 
-namespace MyCafe.Customers;
+namespace MyCafe.Characters;
 
 public static class PathfindingExtensions
 {

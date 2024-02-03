@@ -5,6 +5,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MyCafe;
 using MyCafe.LiveChatIntegration;
 using MyCafe.Enums;
 using MyCafe.Locations.Objects;
@@ -12,6 +13,7 @@ using MyCafe.UI.Options;
 using StardewModdingAPI;
 using StardewValley;
 using Color = Microsoft.Xna.Framework.Color;
+using Mod = StardewModdingAPI.Mod;
 using Point = Microsoft.Xna.Framework.Point;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
@@ -269,7 +271,7 @@ namespace MyCafe.UI
     }
 }
 
-namespace MyCafe.Customers.Spawning
+namespace MyCafe.Characters.Spawning
 {
     internal class ChatCustomerSpawner : CustomerSpawner
     {
@@ -318,8 +320,8 @@ namespace MyCafe.Customers.Spawning
 
             string name = this._users[Game1.random.Next(this._users.Count)];
             Texture2D portrait =
-                Game1.content.Load<Texture2D>(Mod.Instance.Helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", "cat.png")).Name);
-            AnimatedSprite sprite = new AnimatedSprite(Mod.Instance.Helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Sprites", "customer1.png")).Name,
+                Game1.content.Load<Texture2D>(MyCafe.Mod.Instance.Helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", "cat.png")).Name);
+            AnimatedSprite sprite = new AnimatedSprite(MyCafe.Mod.Instance.Helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Sprites", "customer1.png")).Name,
                 0, 16, 32);
 
             Customer c = new Customer($"ChatCustomerNPC_{name}", new Vector2(10, 12), "BusStop", sprite, portrait)

@@ -2,12 +2,12 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Graphics;
 using MyCafe;
-using MyCafe.Customers;
+using MyCafe.Characters;
 using MyCafe.Enums;
 using MyCafe.Locations.Objects;
 using StardewModdingAPI;
 
-namespace MyCafe.Customers.Spawning;
+namespace MyCafe.Characters.Spawning;
 
 internal abstract class CustomerSpawner
 {

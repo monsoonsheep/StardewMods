@@ -2,7 +2,7 @@ using System.Linq;
 using System.Xml.Serialization;
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common;
-using MyCafe.Customers;
+using MyCafe.Characters;
 using StardewValley;
 
 namespace MyCafe.Locations.Objects;
