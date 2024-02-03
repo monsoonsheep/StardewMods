@@ -42,7 +42,7 @@ public class Mod : StardewModdingAPI.Mod
 
     internal ISpaceCoreApi SpaceCore = null!;
 
-    internal ConfigModel Config = null!;
+    internal ConfigModel LoadedConfig = null!;
     internal static Texture2D Sprites = null!;
     internal Dictionary<string, BusCustomerData> CustomersData = [];
 
@@ -66,7 +66,7 @@ public class Mod : StardewModdingAPI.Mod
     {
         Log.Monitor = this.Monitor;
         I18n.Init(helper.Translation);
-        this.Config = helper.ReadConfig<ConfigModel>();
+        this.LoadedConfig = helper.ReadConfig<ConfigModel>();
         UniqueId = this.ModManifest.UniqueID;
 
         // Harmony patches
@@ -100,11 +100,10 @@ public class Mod : StardewModdingAPI.Mod
 
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
     {
+        this.InitializeGmcm(this.Helper, this.ModManifest);
         this.SpaceCore = this.Helper.ModRegistry.GetApi<ISpaceCoreApi>("spacechase0.SpaceCore")!;
         this.SpaceCore.RegisterSerializerType(typeof(CafeLocation));
         CafeState.Register();
-
-        ModConfig.InitializeGmcm(this.Helper, this.ModManifest);
         GameLocation.RegisterTileAction(ModKeys.SIGNBOARD_BUILDING_CLICK_EVENT_KEY, CafeMenu.Action_OpenCafeMenu);
     }
 
@@ -154,9 +153,9 @@ public class Mod : StardewModdingAPI.Mod
         if (e.Name.IsDirectlyUnderPath(ModKeys.ASSETS_NPCSCHEDULE_PREFIX))
         {
             string npcname = e.Name.Name.Split('/').Last();
-            var file = this.Helper.Data.ReadJsonFile<VillagerCustomerData>(Path.Combine("assets", "Schedules", npcname + ".json"));
-            if (file != null)
-                e.LoadFrom(() => file, AssetLoadPriority.Low);
+            VillagerCustomerData? data = this.Helper.Data.ReadJsonFile<VillagerCustomerData>(Path.Combine("assets", "Schedules", npcname + ".json"));
+            if (data != null)
+                e.LoadFrom(() => data, AssetLoadPriority.Low);
         }
 
         // Buildings data (Cafe and signboard)
@@ -164,11 +163,13 @@ public class Mod : StardewModdingAPI.Mod
         {
             e.Edit(asset =>
             {
-                var data = asset.AsDictionary<string, BuildingData>();
+                IAssetDataForDictionary<string, BuildingData> data = asset.AsDictionary<string, BuildingData>();
+
                 data.Data[ModKeys.CAFE_BUILDING_BUILDING_ID] = this.Helper.ModContent.Load<BuildingData>(Path.Combine("assets", "Buildings", "Cafe", "cafebuilding.json"));
                 data.Data[ModKeys.CAFE_SIGNBOARD_BUILDING_ID] = this.Helper.ModContent.Load<BuildingData>(Path.Combine("assets", "Buildings", "Signboard", "signboard.json"));
             }, AssetEditPriority.Early);
         }
+
         // Cafe building texture
         else if (e.Name.IsEquivalentTo(ModKeys.CAFE_BUILDING_TEXTURE_NAME))
         {
@@ -182,7 +183,7 @@ public class Mod : StardewModdingAPI.Mod
         // Signboard building texture
         else if (e.Name.IsEquivalentTo(ModKeys.CAFE_SIGNBOARD_TEXTURE_NAME))
         {
-            e.LoadFromModFile<Texture2D>("assets/Cafe/signboard.png", AssetLoadPriority.Low);
+            e.LoadFromModFile<Texture2D>(Path.Combine("assets", "Buildings", "Signboard", "signboard.png"), AssetLoadPriority.Low);
         }
     }
 
@@ -262,7 +263,7 @@ public class Mod : StardewModdingAPI.Mod
 
         if (IsPlacingSignBoard)
         {
-            foreach (Vector2 tile in TileHelper.GetCircularTileGrid(new Vector2((Game1.viewport.X + Game1.getOldMouseX(false)) / 64, (Game1.viewport.Y + Game1.getOldMouseY(false)) / 64), this.Config.DistanceForSignboardToRegisterTables))
+            foreach (Vector2 tile in TileHelper.GetCircularTileGrid(new Vector2((Game1.viewport.X + Game1.getOldMouseX(false)) / 64, (Game1.viewport.Y + Game1.getOldMouseY(false)) / 64), this.LoadedConfig.DistanceForSignboardToRegisterTables))
             {
                 // get tile area in screen pixels
                 Rectangle area = new((int)(tile.X * Game1.tileSize - Game1.viewport.X), (int)(tile.Y * Game1.tileSize - Game1.viewport.Y), Game1.tileSize, Game1.tileSize);
@@ -306,10 +307,10 @@ public class Mod : StardewModdingAPI.Mod
         {
             try
             {
-                var (key, emote) = e.ReadAs<KeyValuePair<string, int>>();
+                (string key, int emote) = e.ReadAs<(string, int)>();
                 Game1.getCharacterFromName(key)?.doEmote(emote);
             }
-            catch
+            catch (InvalidOperationException ex)
             {
                 Log.Debug("Invalid message from host", LogLevel.Error);
             }
@@ -416,6 +417,19 @@ public class Mod : StardewModdingAPI.Mod
             Log.Error("Couldn't read Cafe Data from external save folder");
         }
     }
+
+    internal void InitializeGmcm(IModHelper helper, IManifest manifest)
+    {
+        // get Generic Mod Config Menu's API (if it's installed)
+        IGenericModConfigMenuApi? configMenu = helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
+
+        // register mod
+        configMenu?.Register(
+            mod: manifest,
+            reset: () => this.LoadedConfig = new ConfigModel(),
+            save: () => helper.WriteConfig(this.LoadedConfig)
+        );
+    }
 }
 
 public static class CafeState
@@ -439,14 +453,14 @@ public static class CafeState
 
     public static NetRef<Cafe> get_Cafe(this Farm farm)
     {
-        var holder = Values.GetOrCreateValue(farm);
-        return holder!.Value;
+        Holder holder = Values.GetOrCreateValue(farm);
+        return holder.Value;
     }
 
     public static void set_Cafe(this Farm farm, NetRef<Cafe> value)
     {
         Log.Error("Setting Cafe field for Farm. Should this be happening?");
-        var holder = Values.GetOrCreateValue(farm);
-        holder!.Value = value;
+        Holder holder = Values.GetOrCreateValue(farm);
+        holder.Value = value;
     }
 }

@@ -11,8 +11,7 @@ namespace MyCafe.Customers;
 
 internal sealed class CustomerManager
 {
-    internal Cafe Cafe;
-
+    private IList<Table> _tables;
     internal CustomerSpawner BusCustomers;
     internal CustomerSpawner VillagerCustomers;
     internal CustomerSpawner? ChatCustomers = null;
@@ -26,9 +25,9 @@ internal sealed class CustomerManager
         }
     }
 
-    internal CustomerManager(IModHelper helper, Dictionary<string, BusCustomerData> customersData, Cafe cafe)
+    internal CustomerManager(IModHelper helper, Dictionary<string, BusCustomerData> customersData, IList<Table> tables)
     {
-        this.Cafe = cafe;
+        this._tables = tables;
 
         this.BusCustomers = new BusCustomerSpawner(customersData);
         this.VillagerCustomers = new VillagerCustomerSpawner();
@@ -50,7 +49,7 @@ internal sealed class CustomerManager
 
     internal void SpawnCustomers()
     {
-        Table? table = this.Cafe.Tables.Where(t => !t.IsReserved).MinBy(t => t.Seats.Count);
+        Table? table = this._tables.Where(t => !t.IsReserved).MinBy(t => t.Seats.Count);
         if (table == null)
         {
             Log.Debug("No tables available");
@@ -95,8 +94,6 @@ internal sealed class CustomerManager
         else if (this.ChatCustomers?.ActiveGroups.Contains(group) ?? false)
             this.ChatCustomers.LetGo(group, force);
         else
-        {
             Log.Error("Group not found, couldn't be deleted. This is a bug.");
-        }
     }
 }

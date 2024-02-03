@@ -88,7 +88,7 @@ internal class MenuBoard : MenuPageBase
 
     public override void receiveLeftClick(int x, int y, bool playSound = true)
     {
-        if (Mod.Instance.Config.EnableScrollbarInMenuBoard)
+        if (Mod.Instance.LoadedConfig.EnableScrollbarInMenuBoard)
         {
             if (this._entries.Count > this.slotCount)
             {
@@ -302,7 +302,7 @@ internal class MenuBoard : MenuPageBase
         }
 
         // Scroll bar
-        if (Mod.Instance.Config.EnableScrollbarInMenuBoard && this._entries.Count > this.slotCount)
+        if (Mod.Instance.LoadedConfig.EnableScrollbarInMenuBoard && this._entries.Count > this.slotCount)
         {
             this._upArrow.draw(b);
             this._downArrow.draw(b);

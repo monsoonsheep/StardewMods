@@ -1,25 +1,10 @@
-using MyCafe.Interfaces;
-using StardewModdingAPI;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace MyCafe;
-
-internal static class ModConfig
-{
-    internal static void InitializeGmcm(IModHelper helper, IManifest manifest)
-    {
-        // get Generic Mod Config Menu's API (if it's installed)
-        var configMenu = helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
-        if (configMenu is null)
-            return;
-
-        // register mod
-        configMenu.Register(
-            mod: manifest,
-            reset: () => Mod.Instance.Config = new ConfigModel(),
-            save: () => helper.WriteConfig(Mod.Instance.Config)
-        );
-    }
-}
+namespace MyCafe.Data.Models;
 
 internal class ConfigModel
 {

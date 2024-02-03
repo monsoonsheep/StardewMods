@@ -77,7 +77,7 @@ public class Cafe : INetObject<NetFields>
 
     internal void Initialize(IModHelper helper, Dictionary<string, BusCustomerData> customersData)
     {
-        this.Customers = new CustomerManager(helper, customersData, this);
+        this.Customers = new CustomerManager(helper, customersData, this.Tables);
         this.NetTables.OnValueAdded += delegate (Table table)
         {
             table.State.fieldChangeVisibleEvent += (_, oldValue, newValue) => this.OnTableStateChange(table, new TableStateChangedEventArgs()
