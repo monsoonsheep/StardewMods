@@ -144,7 +144,6 @@ public class Cafe : INetObject<NetFields>
         // Populate Map tables for cafe indoors
         if (this.Indoor != null)
         {
-            this.Indoor.PopulateMapTables();
             foreach (var pair in this.Indoor.GetMapTables())
             {
                 Rectangle newRectangle = new Rectangle(pair.Key.X * 64, pair.Key.Y * 64, pair.Key.Width * 64, pair.Key.Height * 64);
@@ -250,7 +249,7 @@ public class Cafe : INetObject<NetFields>
 
         if (t != null)
         {
-            outTable = (FurnitureTable) t;
+            outTable = t;
             return true;
         }
         
@@ -296,7 +295,7 @@ public class Cafe : INetObject<NetFields>
         {
             case TableState.CustomersThinkingOfOrder:
                 Log.Debug("Table started");
-                Game1.delayedActions.Add(new DelayedAction(2000, delegate ()
+                Game1.delayedActions.Add(new DelayedAction(2000, delegate
                 {
                     table.State.Set(TableState.CustomersDecidedOnOrder);
                 }));
@@ -317,7 +316,7 @@ public class Cafe : INetObject<NetFields>
                     c?.DrawItemOrder.Set(false);
                 }
                 Log.Debug("Table eating");
-                Game1.delayedActions.Add(new DelayedAction(2000, delegate ()
+                Game1.delayedActions.Add(new DelayedAction(2000, delegate
                 {
                     table.State.Set(TableState.CustomersFinishedEating);
                 }));

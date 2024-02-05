@@ -1,8 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Xml.Serialization;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
+using xTile;
 using xTile.Layers;
 using xTile.Tiles;
 
@@ -16,10 +18,7 @@ public class CafeLocation : GameLocation
 
     private const string TableMapProperty = "MonsoonSheep.MyCafe_Table";
 
-    public CafeLocation()
-    {
-
-    }
+    public CafeLocation() { }
 
     public CafeLocation(string mapPath, string name) : base(mapPath, name) { }
 
@@ -28,11 +27,15 @@ public class CafeLocation : GameLocation
         return this.MapTables;
     }
 
-    public void PopulateMapTables()
+    [SuppressMessage("ReSharper", "ParameterHidesMember", Justification = "Game method")]
+    public override void OnMapLoad(Map map)
     {
-        //if (_mapTables is { Count: > 0 })
-        //    return;
+        base.OnMapLoad(map);
+        this.PopulateMapTables();
+    }
 
+    private void PopulateMapTables()
+    {
         this.MapTables.Clear();
         Layer layer = this.Map.GetLayer("Back");
 
