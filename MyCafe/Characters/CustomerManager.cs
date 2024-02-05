@@ -13,9 +13,9 @@ namespace MyCafe.Characters;
 internal sealed class CustomerManager
 {
     private IList<Table> _tables;
-    internal CustomerSpawner BusCustomers;
-    internal CustomerSpawner VillagerCustomers;
-    internal CustomerSpawner? ChatCustomers = null;
+    internal CustomerSpawnerBase BusCustomers;
+    internal CustomerSpawnerBase VillagerCustomers;
+    internal CustomerSpawnerBase? ChatCustomers = null;
 
     internal IEnumerable<CustomerGroup> CurrentGroups
     {

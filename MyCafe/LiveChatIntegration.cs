@@ -273,7 +273,7 @@ namespace MyCafe.UI
 
 namespace MyCafe.Characters.Spawning
 {
-    internal class ChatCustomerSpawner : CustomerSpawner
+    internal class ChatCustomerSpawner : CustomerSpawnerBase
     {
         private readonly IStreamManager _streamManager;
 

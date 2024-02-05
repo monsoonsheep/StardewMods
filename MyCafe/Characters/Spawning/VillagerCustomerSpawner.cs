@@ -14,7 +14,7 @@ using SUtility = StardewValley.Utility;
 
 namespace MyCafe.Characters.Spawning;
 
-internal class VillagerCustomerSpawner : CustomerSpawner
+internal class VillagerCustomerSpawner : CustomerSpawnerBase
 {
     internal readonly Dictionary<string, VillagerCustomerData> VillagerData = new();
 

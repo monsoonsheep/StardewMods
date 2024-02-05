@@ -16,7 +16,7 @@ using StardewValley;
 
 namespace MyCafe.Characters.Spawning;
 
-internal class BusCustomerSpawner : CustomerSpawner
+internal class BusCustomerSpawner : CustomerSpawnerBase
 {
     internal Dictionary<string, BusCustomerData> CustomersData;
 

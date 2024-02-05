@@ -9,12 +9,12 @@ using StardewModdingAPI;
 
 namespace MyCafe.Characters.Spawning;
 
-internal abstract class CustomerSpawner
+internal abstract class CustomerSpawnerBase
 {
     internal List<CustomerGroup> ActiveGroups;
     internal SpawnerState State = SpawnerState.Disabled;
 
-    internal CustomerSpawner()
+    internal CustomerSpawnerBase()
     {
         this.ActiveGroups = [];
     }
@@ -26,8 +26,8 @@ internal abstract class CustomerSpawner
         if (!this.ActiveGroups.Contains(group))
             return false;
         Log.Debug("Removing group");
-        this.ActiveGroups.Remove(group);
         group.ReservedTable?.Free();
+        this.ActiveGroups.Remove(group);
         return true;
     }
 
