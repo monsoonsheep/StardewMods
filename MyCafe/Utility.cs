@@ -20,23 +20,6 @@ internal static class Utility
         return furniture.furniture_type.Value == 11;
     }
 
-    internal static bool IsTableTracked(Furniture table, GameLocation location, out FurnitureTable outTable)
-    {
-        FurnitureTable? t = Mod.Cafe.Tables
-            .OfType<FurnitureTable>().FirstOrDefault(t => t.CurrentLocation.Equals(location.NameOrUniqueName) && t.Position == table.TileLocation);
-
-        if (t != null)
-        {
-            outTable = t;
-            return true;
-        }
-        else
-        {
-            outTable = null!;
-            return false;
-        }
-    }
-
     internal static List<Item> ParseMenuItems(string[] ids)
     {
         List<Item> items = [];

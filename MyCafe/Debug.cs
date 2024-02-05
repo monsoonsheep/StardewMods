@@ -65,7 +65,7 @@ internal class Debug
             case SButton.NumPad9:
                 break;
             case SButton.U:
-                Game1.activeClickableMenu = new CafeMenu(Mod.Sprites);
+                Game1.activeClickableMenu = new CafeMenu();
                 break;
             default:
                 return;

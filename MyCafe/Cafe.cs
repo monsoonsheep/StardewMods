@@ -33,15 +33,14 @@ public class Cafe : INetObject<NetFields>
 
     internal CustomerManager Customers = null!;
 
-    public readonly NetInt OpeningTime = new(630);
-    public readonly NetInt ClosingTime = new(2200);
-
     private readonly NetCollection<Table> NetTables = [];
     private readonly NetBool CafeEnabled = [];
     private readonly NetLocationRef CafeIndoor = new();
     private readonly NetLocationRef CafeOutdoor = new();
 
-    public NetRef<MenuInventory> NetMenu = new(new MenuInventory());
+    public readonly NetInt OpeningTime = new(630);
+    public readonly NetInt ClosingTime = new(2200);
+    public readonly NetRef<MenuInventory> NetMenu = new(new MenuInventory());
 
     internal MenuInventory Menu => this.NetMenu.Value;
 
@@ -105,6 +104,9 @@ public class Cafe : INetObject<NetFields>
             this.Enabled = false;
             this.Tables.Clear();
         }
+
+        if (!this.Menu.Inventories.Any())
+            this.Menu.AddCategory("Menu");
     }
 
     internal void PopulateTables()
@@ -133,7 +135,7 @@ public class Cafe : INetObject<NetFields>
 
         if (count > 0)
         {
-            Log.Debug($"{count} new furniture tables found in cafe locations.");
+            Log.Debug($"{count} furniture tables found in cafe locations.");
             count = 0;
         }
 
@@ -153,7 +155,7 @@ public class Cafe : INetObject<NetFields>
                     count++;
                 }
             }
-            Log.Debug($"{count} new map-based tables found in cafe locations.");
+            Log.Debug($"{count} map-based tables found in cafe locations.");
         }
     }
 
@@ -207,7 +209,6 @@ public class Cafe : INetObject<NetFields>
 
     internal void OnFurniturePlaced(Furniture f, GameLocation location)
     {
-        
         if (Utility.IsChair(f))
         {
             // Get position of table in front of the chair
@@ -224,7 +225,7 @@ public class Cafe : INetObject<NetFields>
                 return;
             
             FurnitureTable table =
-                Utility.IsTableTracked(facingFurniture, location, out FurnitureTable existing)
+                this.TryGetFurnitureTable(facingFurniture, location, out FurnitureTable existing)
                     ? existing
                     : new FurnitureTable(facingFurniture, location.Name);
 
@@ -233,13 +234,28 @@ public class Cafe : INetObject<NetFields>
         }
         else if (Utility.IsTable(f))
         {
-            if (!Utility.IsTableTracked(f, location, out _))
+            if (!this.TryGetFurnitureTable(f, location, out _))
             {
                 FurnitureTable table = new(f, location.Name);
                 if (table.Seats.Count > 0)
                     this.TryAddTable(table);
             }
         }
+    }
+
+    internal bool TryGetFurnitureTable(Furniture table, GameLocation location, out FurnitureTable outTable)
+    {
+        FurnitureTable? t = Mod.Cafe.Tables
+            .OfType<FurnitureTable>().FirstOrDefault(t => t.ActualTable.Value == table);
+
+        if (t != null)
+        {
+            outTable = (FurnitureTable) t;
+            return true;
+        }
+        
+        outTable = null!;
+        return false;
     }
 
     internal void OnFurnitureRemoved(Furniture f, GameLocation location)
@@ -262,7 +278,7 @@ public class Cafe : INetObject<NetFields>
         }
         else if (Utility.IsTable(f))
         {
-            if (Utility.IsTableTracked(f, location, out FurnitureTable trackedTable))
+            if (this.TryGetFurnitureTable(f, location, out FurnitureTable trackedTable))
             {
                 this.RemoveTable(trackedTable);
             }

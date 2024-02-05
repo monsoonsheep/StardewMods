@@ -119,7 +119,7 @@ internal class MenuBoard : MenuPageBase
         {
             if (this._slots[slotIndex].containsPoint(x, y))
             {
-                // if not held, remove or edit
+                // if not held, remove
                 // if held, add
 
                 int itemIndex = this._currentItemIndex + slotIndex;
@@ -130,13 +130,14 @@ internal class MenuBoard : MenuPageBase
                     
                     if (this._entries[itemIndex] is MenuCategoryEntry entry)
                     {
-                        if (this.AddItem(held, entry.Name, this._currentItemIndex + slotIndex - itemIndex)) this.ParentMenu.HeldItem = null;
+                        if (this.AddItem(held, entry.Name, this._currentItemIndex + slotIndex - itemIndex))
+                            this.ParentMenu.HeldItem = null;
                         break;
                     }
                 }
                 else
                 {
-                    Item? item = (this._entries[this._currentItemIndex + slotIndex] as MenuItemEntry)?.Item;
+                    Item? item = ( this._entries[this._currentItemIndex + slotIndex] as MenuItemEntry)?.Item;
                     if (item != null)
                     {
                         this.RemoveItem(this._currentItemIndex + slotIndex);

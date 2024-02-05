@@ -12,8 +12,6 @@ namespace MyCafe.UI;
 
 public sealed class CafeMenu : IClickableMenu
 {
-    internal Texture2D Sprites;
-
     internal Item? HeldItem;
 
     private string? _hoverText;
@@ -31,7 +29,7 @@ public sealed class CafeMenu : IClickableMenu
     private readonly List<MenuPageBase> _pages;
     private int _currentTab;
 
-    public CafeMenu(Texture2D sprites)
+    public CafeMenu()
         : base(
             Game1.uiViewport.Width / 2 - (800 + borderWidth * 2) / 2,
             Game1.uiViewport.Height / 2 - (600 + borderWidth * 2) / 2,
@@ -39,8 +37,6 @@ public sealed class CafeMenu : IClickableMenu
             Game1.uiViewport.Height,
             showUpperRightCloseButton: true)
     {
-        this.Sprites = sprites;
-
         this.menuBoardBounds = new Rectangle(this.xPositionOnScreen, this.yPositionOnScreen + Game1.pixelZoom + Game1.tileSize,
             MenuBoard.source_Board.Width,
             MenuBoard.source_Board.Height);
@@ -69,7 +65,7 @@ public sealed class CafeMenu : IClickableMenu
         {
             this._tabs.Add(
                 new ClickableTextureComponent(
-                    new Rectangle(this.sideBoxBounds.X + 64 * i, this.sideBoxBounds.Y - Game1.tileSize - 12, 64, 64), this.Sprites,
+                    new Rectangle(this.sideBoxBounds.X + 64 * i, this.sideBoxBounds.Y - Game1.tileSize - 12, 64, 64), Mod.Sprites,
                     new Rectangle(0 + 16 * i, 0, 16, 16),
                     4f)
                 {
@@ -302,7 +298,7 @@ public sealed class CafeMenu : IClickableMenu
         if (Game1.activeClickableMenu == null && Context.IsPlayerFree)
         {
             Log.Debug("Opened cafe menu menu!");
-            Game1.activeClickableMenu = new CafeMenu(Mod.Sprites);
+            Game1.activeClickableMenu = new CafeMenu();
         }
 
         return true;
