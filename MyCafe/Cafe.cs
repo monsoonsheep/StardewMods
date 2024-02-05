@@ -109,6 +109,7 @@ public class Cafe : INetObject<NetFields>
 
     internal void PopulateTables()
     {
+        this.Tables.Clear();
         int count = 0;
         var locations = new List<GameLocation>();
 
@@ -121,15 +122,11 @@ public class Cafe : INetObject<NetFields>
         {
             foreach (Furniture furniture in location.furniture.Where(t => Utility.IsTable((t))))
             {
-                // If we already have this table object registered, skip
-                if (!this.Tables.OfType<FurnitureTable>().Any(t => t.ActualTable.Value.Equals(furniture)))
+                FurnitureTable newTable = new FurnitureTable(furniture, location.Name);
+                if (newTable.Seats.Count > 0)
                 {
-                    FurnitureTable newTable = new FurnitureTable(furniture, location.Name);
-                    if (newTable.Seats.Count > 0)
-                    {
-                        this.TryAddTable(newTable);
-                        count++;
-                    }
+                    this.TryAddTable(newTable);
+                    count++;
                 }
             }
         }
@@ -140,8 +137,7 @@ public class Cafe : INetObject<NetFields>
             count = 0;
         }
 
-        // Remove duplicate tables
-        // Do?
+        // Remove duplicate tables ?
 
         // Populate Map tables for cafe indoors
         if (this.Indoor != null)

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Xml.Serialization;
 using Microsoft.Xna.Framework;
@@ -51,18 +52,41 @@ public sealed class LocationSeat : Seat
         if (location == null)
             return false;
 
-        MapSeat? mapSeat = location.mapSeats.FirstOrDefault(s => s.tilePosition.Value.Equals(this.Position.ToVector2()));
-        mapSeat?.sittingFarmers.Add(Game1.MasterPlayer.UniqueMultiplayerID, 0);
+        try
+        {
+            MapSeat? mapSeat = location.mapSeats.FirstOrDefault(s => s.tilePosition.Value.Equals(this.Position.ToVector2()));
+            mapSeat?.sittingFarmers.Add(Game1.MasterPlayer.UniqueMultiplayerID, 0);
+        }
+        catch (ArgumentException ex)
+        {
+            Log.Warn("Couldn't add farmer to map seat");
+            return false;
+        }
 
         return true;
     }
 
     internal override void Free()
     {
+        Log.Debug("Freeing seat");
         base.Free();
         GameLocation? location = CommonHelper.GetLocation(this.Table.CurrentLocation);
         MapSeat? mapSeat = location?.mapSeats?.ToList().FirstOrDefault(s => s.tilePosition.Value.Equals(this.Position.ToVector2()));
-        mapSeat?.RemoveSittingFarmer(Game1.MasterPlayer);
+        if (mapSeat != null)
+        {
+            try
+            {
+                mapSeat.RemoveSittingFarmer(Game1.MasterPlayer);
+            }
+            catch (Exception ex)
+            {
+                Log.Warn("Couldn't remove farmer map seat");
+            }
+        }
+        else
+        {
+            Log.Warn("Couldn'tfind map seat");
+        }
     }
 
 }

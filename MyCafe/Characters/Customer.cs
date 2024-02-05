@@ -33,6 +33,7 @@ public class Customer : NPC
     private Vector2 LerpEndPosition;
     private float LerpPosition = -1f;
     private float LerpDuration = -1f;
+    internal Action<Customer>? AfterLerp;
 
     public Customer()
     {
@@ -46,6 +47,16 @@ public class Customer : NPC
     {
         base.initNetFields();
         this.NetFields.AddField(this.ItemToOrder).AddField(this.DrawName).AddField(this.DrawItemOrder);
+    }
+
+    internal void Freeze()
+    {
+        base.freezeMotion = true;
+    }
+
+    internal void Unfreeze()
+    {
+        base.freezeMotion = false;
     }
 
     public override void update(GameTime gameTime, GameLocation location)
@@ -78,6 +89,7 @@ public class Customer : NPC
             this.Position = new Vector2(StardewValley.Utility.Lerp(this.LerpStartPosition.X, this.LerpEndPosition.X, this.LerpPosition / this.LerpDuration), StardewValley.Utility.Lerp(this.LerpStartPosition.Y, this.LerpEndPosition.Y, this.LerpPosition / this.LerpDuration));
             if (this.LerpPosition >= this.LerpDuration)
             {
+                this.AfterLerp?.Invoke(this);
                 this.LerpPosition = -1f;
             }
         }

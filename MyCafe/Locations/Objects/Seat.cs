@@ -20,6 +20,8 @@ public abstract class Seat : INetObject<NetFields>
 
     private Table? TableField;
 
+    internal int OptimalDirectionToGetUp;
+
     internal Table Table
     {
         get => this.TableField ??= Mod.Cafe.GetTableOfSeat(this);
@@ -51,18 +53,24 @@ public abstract class Seat : INetObject<NetFields>
     internal virtual int SittingDirection { get; set; }
 
     internal bool IsReserved
-        =>
-            this.ReservingCustomer != null;
+        => this.ReservingCustomer != null;
 
     public Seat()
     {
         this.NetFields = new NetFields(NetFields.GetNameForInstance(this));
+        // ReSharper disable once VirtualMemberCallInConstructor
         this.InitNetFields();
     }
 
     public Seat(Table table) : this()
     {
         this.Table = table;
+        GameLocation? location = this.Location;
+        if (location == null)
+        {
+            Log.Error("Cannot find location for seat");
+            return;
+        }
     }
 
     protected virtual void InitNetFields()
@@ -82,6 +90,8 @@ public abstract class Seat : INetObject<NetFields>
     }
 
     internal virtual void Free()
-        =>
-            this.ReservingCustomer = null;
+    {
+        Log.Debug("Freeing base seat");
+        this.ReservingCustomer = null;
+    }
 }

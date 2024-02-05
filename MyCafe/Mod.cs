@@ -145,6 +145,8 @@ public class Mod : StardewModdingAPI.Mod
                     loc.characters.RemoveAt(i);
             return true;
         });
+
+        Cafe.Customers.RemoveAllCustomers();
     }
 
     internal void OnAssetRequested(object? sender, AssetRequestedEventArgs e)

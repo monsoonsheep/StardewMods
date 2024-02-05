@@ -52,9 +52,31 @@ public class CustomerGroup
     {
         for (int i = 0; i < this.Members.Count; i++)
         {
-            if (!this.Members[i].PathTo(location, tilePositions[i], 3, endBehavior))
+            Customer member = this.Members[i];
+            if (!member.PathTo(location, tilePositions[i], 3, endBehavior))
             {
                 return false;
+            }
+
+            if (member.IsSittingDown)
+            {
+                
+                member.IsSittingDown = false;
+                int direction = CommonHelper.DirectionIntFromVectors(member.Tile, member.controller.pathToEndPoint.First().ToVector2());
+                if (direction == -1)
+                {
+                    Log.Error("Can't find direction to stand up from chair");
+                }
+                else
+                {
+                    Log.Info("Lerping out of chair");
+                    member.SitDown(direction);
+                    member.Freeze();
+                    member.AfterLerp = c =>
+                    {
+                        c.Unfreeze();
+                    };
+                }
             }
         }
 

@@ -37,7 +37,7 @@ internal class Debug
                 break;
             case SButton.NumPad3:
                 Mod.Cafe.Customers.RemoveAllCustomers();
-                Mod.Cafe.PopulateTables();
+                //Mod.Cafe.PopulateTables();
                 break;
             case SButton.NumPad4:
                 foreach (var table in Mod.Cafe.Tables)
