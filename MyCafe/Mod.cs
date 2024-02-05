@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -72,6 +73,7 @@ public class Mod : StardewModdingAPI.Mod
         // Harmony patches
         if (HarmonyPatcher.TryApply(this,
                 new ActionPatcher(),
+                new LocationPatcher(),
                 new NetFieldPatcher(),
                 new CharacterPatcher(),
                 new FurniturePatcher(),
@@ -232,6 +234,8 @@ public class Mod : StardewModdingAPI.Mod
         // slight chance to spawn if last hour of open time
         if (minutesTillCloses <= 60)
             prob += Game1.random.Next(20 + Math.Max(0, minutesTillCloses / 3)) >= 28 ? 0.2f : -0.5f;
+
+        Log.Info(prob.ToString(CultureInfo.CurrentCulture));
     }
 
     [SuppressMessage("ReSharper", "PossibleLossOfFraction", Justification = "Deliberate in order to get the tile")]
@@ -314,7 +318,7 @@ public class Mod : StardewModdingAPI.Mod
             }
             catch (InvalidOperationException ex)
             {
-                Log.Debug("Invalid message from host", LogLevel.Error);
+                Log.Debug($"Invalid message from host\n{ex}", LogLevel.Error);
             }
         }
     }

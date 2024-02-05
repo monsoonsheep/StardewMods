@@ -1,4 +1,4 @@
-﻿using StardewModdingAPI;
+using StardewModdingAPI;
 using StardewValley;
 
 namespace MyCafe;
@@ -33,11 +33,5 @@ internal static class Log
     {
         Monitor.Log(message, LogLevel.Info);
 
-    }
-
-    public static void LogWithHudMessage(string message)
-    {
-        Game1.addHUDMessage(new HUDMessage(message, 2000));
-        Monitor.Log(message, LogLevel.Debug);
     }
 }

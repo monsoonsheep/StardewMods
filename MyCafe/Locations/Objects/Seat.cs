@@ -20,8 +20,6 @@ public abstract class Seat : INetObject<NetFields>
 
     private Table? TableField;
 
-    internal int OptimalDirectionToGetUp;
-
     internal Table Table
     {
         get => this.TableField ??= Mod.Cafe.GetTableOfSeat(this);

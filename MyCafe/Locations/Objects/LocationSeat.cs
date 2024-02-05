@@ -13,7 +13,6 @@ public sealed class LocationSeat : Seat
 {
     public LocationSeat() : base()
     {
-
     }
 
     public LocationSeat(Point position, Table table) : base(table)
@@ -59,7 +58,9 @@ public sealed class LocationSeat : Seat
         }
         catch (ArgumentException ex)
         {
-            Log.Warn("Couldn't add farmer to map seat");
+            Log.Debug("Couldn't add fake farmer to map seat");
+            Log.Trace($"{ex.Message}");
+            Log.Trace($"{ex.StackTrace}");
             return false;
         }
 
@@ -80,12 +81,13 @@ public sealed class LocationSeat : Seat
             }
             catch (Exception ex)
             {
-                Log.Warn("Couldn't remove farmer map seat");
+                Log.Debug("Couldn't remove farmer map seat");
+                Log.Trace($"{ex.Message}\n{ex.StackTrace}");
             }
         }
         else
         {
-            Log.Warn("Couldn'tfind map seat");
+            Log.Debug("Couldn't find map seat for freeing location seat");
         }
     }
 

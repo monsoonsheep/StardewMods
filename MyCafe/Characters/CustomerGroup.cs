@@ -64,18 +64,12 @@ public class CustomerGroup
                 member.IsSittingDown = false;
                 int direction = CommonHelper.DirectionIntFromVectors(member.Tile, member.controller.pathToEndPoint.First().ToVector2());
                 if (direction == -1)
-                {
                     Log.Error("Can't find direction to stand up from chair");
-                }
                 else
                 {
-                    Log.Info("Lerping out of chair");
                     member.SitDown(direction);
                     member.Freeze();
-                    member.AfterLerp = c =>
-                    {
-                        c.Unfreeze();
-                    };
+                    member.AfterLerp = c => c.Unfreeze();
                 }
             }
         }

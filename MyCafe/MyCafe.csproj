@@ -62,6 +62,7 @@
 	<ItemGroup>
 	  <None Remove="**\*.ase" />
 	  <None Remove="**\*.aseprite" />
+	  <None Remove="assets\.names.txt" />
 	  <None Remove="assets\Buildings\Cafe\townInterior.png" />
 	  <None Remove="assets\Buildings\Cafe\townInterior_2.png" />
 	  <None Remove="assets\Buildings\Cafe\walls_and_floors.png" />

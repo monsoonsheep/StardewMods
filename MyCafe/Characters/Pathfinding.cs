@@ -1,17 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.Xna.Framework;
-using MonsoonSheep.Stardew.Common;
-using MyCafe;
 using StardewValley;
-using StardewValley.Locations;
-using StardewValley.Objects;
 using StardewValley.Pathfinding;
 using StardewValley.TerrainFeatures;
-using xTile.Dimensions;
-using static StardewValley.Minigames.TargetGame;
 using Location = xTile.Dimensions.Location;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
@@ -19,7 +12,7 @@ namespace MyCafe.Characters;
 
 public static class PathfindingExtensions
 {
-    internal static readonly sbyte[,] Directions = new sbyte[4, 2]
+    private static readonly sbyte[,] Directions = new sbyte[4, 2]
     {
         { 0, -1 },
         { 1, 0 },
@@ -37,12 +30,12 @@ public static class PathfindingExtensions
         {
             path = PathfindFromLocationToLocation(me.currentLocation, me.TilePoint, targetLocation, targetTile, me);
 
-            if (path?.Count == 0)
+            if (path == null || path.Count == 0)
                 throw new PathNotFoundException("Character couldn't find path.", me.TilePoint, targetTile, me.currentLocation.Name, targetLocation.Name, me);
         }
         catch (PathNotFoundException e)
         {
-            Log.Error("Error in PathTo:\n" + e);
+            //Log.Error("Error in PathTo:\n" + e);
             return false;
         }
 
@@ -54,7 +47,7 @@ public static class PathfindingExtensions
             finalFacingDirection = finalFacingDirection
         };
 
-        Log.Debug($"Pathing from {me.TilePoint} to {targetTile}");
+        //Log.Debug($"Pathing from {me.TilePoint} to {targetTile}");
         return true;
     }
 
@@ -75,16 +68,13 @@ public static class PathfindingExtensions
 
         for (int i = 0; i < locationsRoute.Length; i++)
         {
-            GameLocation? current = CommonHelper.GetLocation(locationsRoute[i]);
+            GameLocation? current = Game1.getLocationFromName(locationsRoute[i]);
             if (current == null)
                 return null;
             
             if (i < locationsRoute.Length - 1)
             {
-                Point target =
-                    (locationsRoute[i + 1] == Mod.CafeIndoor?.Name)
-                    ? current.getWarpPointTo(Mod.CafeIndoor.uniqueName.Value)
-                    : current.getWarpPointTo(locationsRoute[i + 1]);
+                Point target = current.getWarpPointTo(locationsRoute[i + 1]);
 
                 if (target.Equals(Point.Zero))
                     throw new PathNotFoundException($"Error finding route to cafe. Couldn't find warp point for {character.Name}", startTile, targetTile, startingLocation.Name, targetLocation.Name, character);
@@ -137,7 +127,7 @@ public static class PathfindingExtensions
             return FindShortestPathFromChair(location, startTile, targetTile, character);
         }
 
-        if (location is Farm or CafeLocation || location.GetContainingBuilding() != null)
+        if (location is Farm || location.GetContainingBuilding() != null)
         {
             // Experimental
             return PathfindingExtensions.PathfindImpl(location, startTile, targetTile, character, iterations);
