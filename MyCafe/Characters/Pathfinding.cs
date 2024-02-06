@@ -13,7 +13,7 @@ using static StardewValley.Minigames.TargetGame;
 
 namespace MyCafe.Characters;
 
-public static class PathfindingExtensions
+public static class Pathfinding
 {
     private static readonly sbyte[,] Directions = new sbyte[4, 2]
     {
@@ -133,7 +133,7 @@ public static class PathfindingExtensions
         if (location is Farm || location.GetContainingBuilding() != null)
         {
             // Experimental
-            return PathfindingExtensions.PathfindImpl(location, startTile, targetTile, character, iterations);
+            return Pathfinding.PathfindImpl(location, startTile, targetTile, character, iterations);
 
             // findPath checks for collisions with location.isCollidingPosition, passing in glider = false, pathfinding = true.
             // We do this on the farm because a. We put furniture there and b. Buildings on the farm aren't on the "Buildings" layer in the map for some reason,
@@ -163,7 +163,7 @@ public static class PathfindingExtensions
         int layerWidth = location.map.Layers[0].LayerWidth;
         int layerHeight = location.map.Layers[0].LayerHeight;
 
-        while (!frontier.IsEmpty())
+        while (!frontier.IsEmpty() && count < limit)
         {
             PathNode currentNode = frontier.Dequeue();
             if (currentNode.x == endPoint.X && currentNode.y == endPoint.Y)
@@ -180,17 +180,16 @@ public static class PathfindingExtensions
                 if (visited.Contains(neighborHash))
                     continue;
 
-                PathNode neighbor = new PathNode(neighborX, neighborY, currentNode);
+                PathNode neighbor = new(neighborX, neighborY, currentNode);
                 neighbor.g = (byte) (currentNode.g + 1);
 
                 if (((neighborX == endPoint.X && neighborY == endPoint.Y) || (neighborX >= 0 && neighborY >= 0 && neighborX < layerWidth && neighborY < layerHeight))
                     && !location.isCollidingPosition(new Rectangle(neighbor.x * 64 + 1, neighbor.y * 64 + 1, 62, 62), Game1.viewport, false, 0, glider: false, character, pathfinding: true))
                 {
-                    //visited.Add(hash);
-                    int neighborScore = neighbor.g + PathfindingExtensions.GetPreferenceValueForTerrainType(location, neighbor.x, neighbor.y) +
+                    int neighborScore = neighbor.g + GetPreferenceValueForTerrainType(location, neighbor.x, neighbor.y) +
                                         (Math.Abs(endPoint.X - neighborX) + Math.Abs(endPoint.Y - neighborY))
-                                        + (((neighbor.x == currentNode.x && neighbor.x == previousNode.x) || (neighbor.y == currentNode.y && neighbor.y == previousNode.y)) ? (-2) : 0);
-                    //visited.Add(hash);
+                                        + ((neighbor.x == currentNode.x && neighbor.x == previousNode.x) || (neighbor.y == currentNode.y && neighbor.y == previousNode.y) ? -2 : 0);
+
                     if (!frontier.Contains(neighbor, neighborScore))
                         frontier.Enqueue(neighbor, neighborScore);
                 }
@@ -198,8 +197,6 @@ public static class PathfindingExtensions
 
             previousNode = currentNode;
             count++;
-            if (count >= limit)
-                return null;
         }
 
         return null;

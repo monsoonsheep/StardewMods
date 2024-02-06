@@ -352,7 +352,7 @@ public class Cafe : INetObject<NetFields>
                     foundIndoor = true;
                     this.Indoor = indoor;
                     this.Outdoor = loc;
-                    PathfindingExtensions.AddRoutesToTarget(this.Indoor);
+                    Pathfinding.AddRoutesToTarget(this.Indoor);
                     Game1._locationLookup.TryAdd(indoor.Name, indoor);
                     Game1._locationLookup.TryAdd(loc.Name, loc);
                     return false;

@@ -136,7 +136,7 @@ internal class VillagerCustomerSpawner : CustomerSpawnerBase
             GameLocation targetLocation = Game1.getLocationFromName(originalPathDescription.targetLocationName);
             if (targetLocation != null)
             {
-                Stack<Point>? routeToScheduleItem = PathfindingExtensions.PathfindFromLocationToLocation(
+                Stack<Point>? routeToScheduleItem = Pathfinding.PathfindFromLocationToLocation(
                     original.currentLocation,
                     original.TilePoint,
                     targetLocation,

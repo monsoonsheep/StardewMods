@@ -117,7 +117,7 @@ public class Mod : StardewModdingAPI.Mod
         this.LoadContentPacks();
         this.LoadCafeData();
         Cafe.Initialize(this.Helper, this.CustomersData);
-        PathfindingExtensions.AddRoutesToFarm();
+        Pathfinding.AddRoutesToFarm();
     }
 
     internal void OnDayStarted(object? sender, DayStartedEventArgs e)
