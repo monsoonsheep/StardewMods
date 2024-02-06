@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HarmonyLib;
+using System.Reflection;
 using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.Pathfinding;
 using StardewValley.TerrainFeatures;
 using Location = xTile.Dimensions.Location;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
+using static StardewValley.Minigames.TargetGame;
 
 namespace MyCafe.Characters;
 
@@ -290,6 +293,59 @@ public static class PathfindingExtensions
         
 
         return value;
+    }
+
+    internal static void AddRoutesToFarm()
+    {
+        MethodInfo addRouteMethod = AccessTools.Method(typeof(WarpPathfindingCache), "AddRoute", [typeof(List<string>), typeof(Gender?)]);
+        if (addRouteMethod == null)
+        {
+            Log.Error("Couldn't populate routes to cafe");
+            return;
+        }
+        foreach (GameLocation gameLocation in Game1.locations)
+        {
+            List<string>? route = gameLocation.Name.Equals("BusStop")
+                ? ["BusStop", "Farm"]
+                : WarpPathfindingCache.GetLocationRoute(gameLocation.Name, "BusStop", Gender.Undefined)?.Concat(["Farm"]).ToList();
+
+            if (route is not { Count: > 1 })
+                continue;
+
+            var reverseRoute = new List<string>(route);
+            reverseRoute.Reverse();
+
+            addRouteMethod.Invoke(null, [route, null]);
+            addRouteMethod.Invoke(null, [reverseRoute, null]);
+        }
+    }
+
+    internal static void AddRoutesToTarget(GameLocation target)
+    {
+        MethodInfo addRouteMethod = AccessTools.Method(typeof(WarpPathfindingCache), "AddRoute", [typeof(List<string>), typeof(Gender?)]);
+        if (addRouteMethod == null)
+        {
+            Log.Error("Couldn't populate routes to cafe");
+            return;
+        }
+
+        foreach (GameLocation gameLocation in Game1.locations)
+        {
+            List<string>? route = WarpPathfindingCache.GetLocationRoute(gameLocation.Name, "Farm", Gender.Undefined)?.ToList();
+
+            if (route is not { Count: > 1 })
+            {
+                Log.Warn($"Couldn't add route to farm from {gameLocation.Name}");
+                continue;
+            }
+            route.Add(target.Name);
+
+            var reverseRoute = new List<string>(route);
+            reverseRoute.Reverse();
+
+            addRouteMethod.Invoke(null, [route, null]);
+            addRouteMethod.Invoke(null, [reverseRoute, null]);
+        }
     }
 }
 

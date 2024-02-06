@@ -95,7 +95,6 @@ public class Cafe : INetObject<NetFields>
         if (this.UpdateCafeLocations() is true)
         {
             this.Enabled = true;
-            this.PopulateRoutesToCafe();
             this.PopulateTables();
             this.Customers.DayUpdate();
         }
@@ -206,6 +205,21 @@ public class Cafe : INetObject<NetFields>
         }
     }
 
+    internal bool TryGetFurnitureTable(Furniture table, GameLocation location, out FurnitureTable outTable)
+    {
+        FurnitureTable? t = Mod.Cafe.Tables
+            .OfType<FurnitureTable>().FirstOrDefault(t => t.ActualTable.Value == table);
+
+        if (t != null)
+        {
+            outTable = t;
+            return true;
+        }
+        
+        outTable = null!;
+        return false;
+    }
+
     internal void OnFurniturePlaced(Furniture f, GameLocation location)
     {
         if (Utility.IsChair(f))
@@ -242,21 +256,6 @@ public class Cafe : INetObject<NetFields>
         }
     }
 
-    internal bool TryGetFurnitureTable(Furniture table, GameLocation location, out FurnitureTable outTable)
-    {
-        FurnitureTable? t = Mod.Cafe.Tables
-            .OfType<FurnitureTable>().FirstOrDefault(t => t.ActualTable.Value == table);
-
-        if (t != null)
-        {
-            outTable = t;
-            return true;
-        }
-        
-        outTable = null!;
-        return false;
-    }
-
     internal void OnFurnitureRemoved(Furniture f, GameLocation location)
     {
         if (Utility.IsChair(f))
@@ -286,7 +285,7 @@ public class Cafe : INetObject<NetFields>
 
     internal void OnTableStateChange(object sender, TableStateChangedEventArgs e)
     {
-        Table table = (Table)sender;
+        Table table = (Table) sender;
 
         if (e.OldValue == e.NewValue)
             return;
@@ -340,6 +339,9 @@ public class Cafe : INetObject<NetFields>
 
     internal bool UpdateCafeLocations()
     {
+        if (this.Outdoor != null && this.Indoor != null && this.Outdoor.buildings.Contains(this.Indoor.GetContainingBuilding()))
+            return true;
+        
         bool foundIndoor = false, foundSignboard = false;
         SUtility.ForEachLocation(delegate (GameLocation loc)
         {
@@ -350,6 +352,7 @@ public class Cafe : INetObject<NetFields>
                     foundIndoor = true;
                     this.Indoor = indoor;
                     this.Outdoor = loc;
+                    PathfindingExtensions.AddRoutesToTarget(this.Indoor);
                     Game1._locationLookup.TryAdd(indoor.Name, indoor);
                     Game1._locationLookup.TryAdd(loc.Name, loc);
                     return false;
@@ -363,15 +366,12 @@ public class Cafe : INetObject<NetFields>
         {
             SUtility.ForEachLocation(delegate (GameLocation loc)
             {
-                foreach (Building b in loc.buildings)
+                if (loc.buildings.Any(b => b.GetData() is { DefaultAction: ModKeys.SIGNBOARD_BUILDING_CLICK_EVENT_KEY }))
                 {
-                    if (b.GetData() is { DefaultAction: ModKeys.SIGNBOARD_BUILDING_CLICK_EVENT_KEY })
-                    {
-                        foundSignboard = true;
-                        this.Outdoor = loc;
-                        Game1._locationLookup.TryAdd(loc.Name, loc);
-                        return false;
-                    }
+                    foundSignboard = true;
+                    this.Outdoor = loc;
+                    Game1._locationLookup.TryAdd(loc.Name, loc);
+                    return false;
                 }
 
                 return true;
@@ -379,54 +379,6 @@ public class Cafe : INetObject<NetFields>
         }
 
         return foundSignboard || foundIndoor;
-    }
-
-
-    internal void PopulateRoutesToCafe()
-    {
-        MethodInfo addRouteMethod = AccessTools.Method(typeof(WarpPathfindingCache), "AddRoute", [typeof(List<string>), typeof(Gender?)]);
-        if (addRouteMethod == null || this.Outdoor == null)
-        {
-            Log.Error("Couldn't populate routes to cafe");
-            return;
-        }
-
-        foreach (var location in Game1.locations)
-        {
-            List<string>? route = WarpPathfindingCache.GetLocationRoute(location.Name, this.Outdoor.Name, Gender.Undefined)?.ToList();
-
-            if (route == null && this.Outdoor.Equals(Game1.getFarm()))
-            {
-                if (location.Name.Equals("BusStop"))
-                {
-                    route = ["BusStop"];
-                }
-                else
-                {
-                    route = WarpPathfindingCache.GetLocationRoute(location.Name, "BusStop", Gender.Undefined)?.ToList();
-                }
-
-                route?.Add("Farm");
-            }
-
-            if (route is not { Count: > 1 })
-                continue;
-
-            var reverseRoute = new List<string>(route);
-            reverseRoute.Reverse();
-
-            addRouteMethod.Invoke(null, [route, null]);
-            addRouteMethod.Invoke(null, [reverseRoute, null]);
-
-            if (this.Indoor != null)
-            {
-                route.Add(this.Indoor.Name);
-                reverseRoute.Insert(0, this.Indoor.Name);
-
-                addRouteMethod.Invoke(null, [route, null]);
-                addRouteMethod.Invoke(null, [reverseRoute, null]);
-            }
-        }
     }
 }
 

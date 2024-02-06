@@ -15,23 +15,19 @@ internal static class Log
     public static void Error(string message)
     {
         Monitor.Log(message, LogLevel.Error);
-
     }
     public static void Warn(string message)
     {
         Monitor.Log(message, LogLevel.Warn);
-
     }
 
     public static void Trace(string message)
     {
         Monitor.Log(message, LogLevel.Trace);
-
     }
 
     public static void Info(string message)
     {
         Monitor.Log(message, LogLevel.Info);
-
     }
 }
