@@ -10,6 +10,7 @@ using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.GameData.Characters;
 using StardewValley.Locations;
+using StardewValley.Pathfinding;
 using BusSchedules.Interfaces;
 using MonsoonSheep.Stardew.Common.Patching;
 
@@ -180,7 +181,7 @@ internal sealed class Mod : StardewModdingAPI.Mod
         if (this.BusEnabled)
         {
             // Early morning bus departure
-            this.BusManager.BusLeave();
+            this.BusLeave();
 
         }
     }
@@ -216,7 +217,7 @@ internal sealed class Mod : StardewModdingAPI.Mod
                  && ((this.BusArrivalsToday == 1 && e.NewTime == this.NextArrivalTime - 70)
                      || this.BusArrivalsToday != 1 && e.NewTime == this.LastArrivalTime + 20))
         {
-            this.BusManager.BusLeave();
+            this.BusLeave();
         }
     }
 
@@ -296,9 +297,7 @@ internal sealed class Mod : StardewModdingAPI.Mod
                     }
 
                     if (keysEdited.Count > 0)
-                    {
                         Log.Info($"Edited schedule for {npcName} in keys [{string.Join(',', keysEdited)}]");
-                    }
                 },
                 AssetEditPriority.Late
             );
@@ -318,7 +317,7 @@ internal sealed class Mod : StardewModdingAPI.Mod
             {
                 case "BusDoorClose":
                     Log.Debug("Received message to close door and drive away");
-                    this.BusManager.CloseDoorAndDriveOut();
+                    this.BusManager.DriveOut();
                     break;
                 case "BusDriveBack":
                     Log.Debug("Received message to drive bus in");
@@ -331,6 +330,25 @@ internal sealed class Mod : StardewModdingAPI.Mod
     internal static void SendMessageToClient(string message)
     {
         Instance.Helper.Multiplayer.SendMessage(message, "BusSchedules", new [] { UniqueId });
+    }
+
+    /// <summary>
+    ///     Call when all visitors have entered the bus and Pam is standing in position. This will make Pam get in and drive
+    ///     away
+    /// </summary>
+    internal void BusLeave()
+    {
+        NPC pam = Game1.getCharacterFromName("Pam");
+        if (!this.BusManager.BusLocation.characters.Contains(pam) || pam.TilePoint is not { X: 11, Y: 10 })
+            this.BusManager.DriveOut();
+        else
+            pam.temporaryController = new PathFindController(pam, this.BusManager.BusLocation, Mod.BusDoorTile, 3, delegate(Character c, GameLocation _)
+            {
+                if (c is NPC p)
+                    p.Position = new Vector2(-1000f, -1000f);
+
+                this.BusManager.DriveOut();
+            });
     }
 
     private void SpawnVisitors(object? sender, EventArgs e)
@@ -379,7 +397,6 @@ internal sealed class Mod : StardewModdingAPI.Mod
         return new Api();
     }
 }
-
 
 public class BusEvents
 {

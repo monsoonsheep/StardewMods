@@ -58,7 +58,7 @@ internal class BusStopPatcher : BasePatcher
         if (Bm.State == BusState.Gone)
         {
             Bm.BusMotion = Vector2.Zero;
-            Bm.MoveBusOutOfMap();
+            Bm.MoveOutOfMap();
             Bm.ResetDoor();
         }
     }
@@ -153,7 +153,7 @@ internal class BusStopPatcher : BasePatcher
         }
         if (Bm.State is BusState.DrivingOut or BusState.Gone)
         {
-            Bm.MoveBusOutOfMap();
+            Bm.MoveOutOfMap();
             Bm.ResetDoor(closed: true);
         }
     }
@@ -167,7 +167,7 @@ internal class BusStopPatcher : BasePatcher
         {
             if (Bm.State is BusState.DrivingOut or BusState.Gone)
             {
-                Bm.MoveBusOutOfMap();
+                Bm.MoveOutOfMap();
                 Bm.BusMotion = Vector2.Zero;
             }
             else if (Bm.State is BusState.DrivingIn)
@@ -190,7 +190,7 @@ internal class BusStopPatcher : BasePatcher
             // Stop moving the bus once it's off screen
             if (Bm.BusPosition.X < -512f)
             {
-                Bm.MoveBusOutOfMap();
+                Bm.MoveOutOfMap();
                 Bm.BusMotion = Vector2.Zero;
             }
         }
