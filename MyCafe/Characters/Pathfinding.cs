@@ -9,13 +9,12 @@ using StardewValley.Pathfinding;
 using StardewValley.TerrainFeatures;
 using Location = xTile.Dimensions.Location;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
-using static StardewValley.Minigames.TargetGame;
 
 namespace MyCafe.Characters;
 
 public static class Pathfinding
 {
-    private static readonly sbyte[,] Directions = new sbyte[4, 2]
+    private static readonly sbyte[,] Directions = new sbyte[4 ,2]
     {
         { 0, -1 },
         { 1, 0 },
@@ -36,9 +35,9 @@ public static class Pathfinding
             if (path == null || path.Count == 0)
                 throw new PathNotFoundException("Character couldn't find path.", me.TilePoint, targetTile, me.currentLocation.Name, targetLocation.Name, me);
         }
-        catch (PathNotFoundException e)
+        catch (PathNotFoundException ex)
         {
-            //Log.Error("Error in PathTo:\n" + e);
+            Log.Error("Error in PathTo:\n" + ex);
             return false;
         }
 

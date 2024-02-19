@@ -55,7 +55,7 @@ internal class BusStopPatcher : BasePatcher
     /// </summary>
     private static void After_doorOpenAfterReturn(BusStop __instance)
     {
-        if (Bm.BusGone)
+        if (Bm.State == BusState.Gone)
         {
             Bm.BusMotion = Vector2.Zero;
             Bm.MoveBusOutOfMap();
@@ -69,7 +69,7 @@ internal class BusStopPatcher : BasePatcher
     private static bool Before_answerDialogue(BusStop __instance, Response answer, ref bool __result)
     {
         // If bus is currently moving in the location or it's about to arrive in 20 minutes or it's only been 20 minutes since it left
-        if (Bm.BusLeaving || Bm.BusReturning || (Bm.BusGone && (Mod.Instance.TimeUntilNextArrival <= 20 || Mod.Instance.TimeSinceLastArrival <= 20)))
+        if (Bm.IsBusMoving || (Bm.State is BusState.Gone && (Mod.Instance.TimeUntilNextArrival <= 20 || Mod.Instance.TimeSinceLastArrival <= 20)))
         {
             Game1.chatBox.addMessage("The bus will arrive shortly.", Color.White);
             __result = false;
@@ -151,7 +151,7 @@ internal class BusStopPatcher : BasePatcher
         {
             Mod.Instance.UpdateBusLocation(__instance);
         }
-        if (Bm.BusLeaving || Bm.BusGone)
+        if (Bm.State is BusState.DrivingOut or BusState.Gone)
         {
             Bm.MoveBusOutOfMap();
             Bm.ResetDoor(closed: true);
@@ -165,12 +165,12 @@ internal class BusStopPatcher : BasePatcher
     {
         if (__instance is BusStop)
         {
-            if (Bm.BusLeaving || Bm.BusGone)
+            if (Bm.State is BusState.DrivingOut or BusState.Gone)
             {
                 Bm.MoveBusOutOfMap();
                 Bm.BusMotion = Vector2.Zero;
             }
-            else if (Bm.BusReturning)
+            else if (Bm.State is BusState.DrivingIn)
             {
                 Bm.AfterDriveBack(animate: false);
             }
@@ -182,7 +182,7 @@ internal class BusStopPatcher : BasePatcher
     /// </summary>
     private static void After_UpdateWhenCurrentLocation(BusStop __instance, GameTime time)
     {
-        if (Bm.BusLeaving)
+        if (Bm.State == BusState.DrivingOut)
         {
             // Accelerate toward left
             Bm.BusMotion = new Vector2(Bm.BusMotion.X - 0.075f, Bm.BusMotion.Y);
@@ -195,7 +195,7 @@ internal class BusStopPatcher : BasePatcher
             }
         }
 
-        if (Bm.BusReturning)
+        if (Bm.State is BusState.DrivingIn)
         {
             // Decelerate after getting to X=15 from the right
             if (Bm.BusPosition.X - 704f < 256f)
@@ -215,7 +215,7 @@ internal class BusStopPatcher : BasePatcher
     /// </summary>
     private static void After_draw(BusStop __instance, SpriteBatch spriteBatch)
     {
-        if ((Bm.BusLeaving || Bm.BusReturning) && __instance.characters.Any(x => x.Name == "Pam"))
+        if ((Bm.IsBusMoving) && __instance.characters.Any(x => x.Name == "Pam"))
             spriteBatch.Draw(Game1.mouseCursors, 
                 Game1.GlobalToLocal(Game1.viewport, new Vector2((int)Bm.BusPosition.X, (int)Bm.BusPosition.Y) + new Vector2(0f, 29f) * 4f), 
                 new Rectangle(384, 1311, 15, 19), Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, (Bm.BusPosition.Y + 192f + 4f) / 10000f);

@@ -33,7 +33,7 @@ internal class SchedulePatcher : BasePatcher
         );
         harmony.Patch(
             original: this.RequireMethod<NPC>("getRouteEndBehaviorFunction"),
-            prefix: this.GetHarmonyMethod(nameof(Before_getRouteEndBehaviorFunction))
+            postfix: this.GetHarmonyMethod(nameof(After_getRouteEndBehaviorFunction))
         );
     }
 
@@ -80,10 +80,12 @@ internal class SchedulePatcher : BasePatcher
         }
     }
 
-    private static void Before_getRouteEndBehaviorFunction(NPC __instance, string behaviorName, string endMessage, ref PathFindController.endBehavior? __result)
+    private static void After_getRouteEndBehaviorFunction(NPC __instance, string behaviorName, string endMessage, ref PathFindController.endBehavior? __result)
     {
         if (__result == null && Mod.Instance.VisitorsData.ContainsKey(__instance.Name) && __instance.Schedule != null && behaviorName == "BoardBus")
+        {
             __result = Mod.VisitorReachBusEndBehavior;
+        }
     }
 
 }

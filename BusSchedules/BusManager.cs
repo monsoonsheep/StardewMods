@@ -29,9 +29,7 @@ internal class BusManager
     }
     internal Point BusDoorPosition = Mod.BusDoorTile;
 
-    internal bool BusLeaving;
-    internal bool BusGone;
-    internal bool BusReturning;
+    internal BusState State;
 
     internal IReflectedField<TemporaryAnimatedSprite> BusDoorField = null!;
     internal IReflectedField<Vector2> BusMotionField = null!;
@@ -57,6 +55,9 @@ internal class BusManager
         set => this.BusDoorField.SetValue(value);
     }
 
+    internal bool IsBusMoving
+        => this.State is BusState.DrivingIn or BusState.DrivingOut;
+
     internal void UpdateLocation(IModHelper helper, BusStop location)
     {
         this.BusLocationRef.SetTarget(location);
@@ -79,18 +80,18 @@ internal class BusManager
     {
         NPC pam = Game1.getCharacterFromName("Pam");
         if (!this.BusLocation.characters.Contains(pam) || pam.TilePoint is not { X: 11, Y: 10 })
-            this.CloseDoorAndDriveAway();
+            this.CloseDoorAndDriveOut();
         else
             pam.temporaryController = new PathFindController(pam, this.BusLocation, Mod.BusDoorTile, 3, delegate(Character c, GameLocation _)
             {
                 if (c is NPC p)
                     p.Position = new Vector2(-1000f, -1000f);
 
-                this.CloseDoorAndDriveAway();
+                this.CloseDoorAndDriveOut();
             });
     }
 
-    internal void CloseDoorAndDriveAway()
+    internal void CloseDoorAndDriveOut()
     {
         if (Context.IsMainPlayer)
             Mod.SendMessageToClient("BusDoorClose");
@@ -99,14 +100,12 @@ internal class BusManager
         {
             Log.Debug("Bus is leaving");
 
-            this.BusReturning = false;
-            this.BusLeaving = true;
+            this.State = BusState.DrivingOut;
 
             // Instantly leave if no farmer is in bus stop
             if (!animate)
             {
-                this.BusGone = true;
-                this.BusLeaving = false;
+                this.State = BusState.Gone;
                 this.BusMotion = Vector2.Zero;
                 this.MoveBusOutOfMap();
             }
@@ -145,10 +144,7 @@ internal class BusManager
     internal void ParkBus()
     {
         this.BusMotion = Vector2.Zero;
-
-        this.BusReturning = false;
-        this.BusLeaving = false;
-        this.BusGone = false;
+        this.State = BusState.Parked;
 
         this.BusPosition = new Vector2(704f, this.BusPosition.Y);
     }
@@ -156,33 +152,28 @@ internal class BusManager
     internal void MoveBusOutOfMap()
     {
         Log.Debug("Bus is out of map");
-        this.BusGone = true;
-        this.BusReturning = false;
-        this.BusLeaving = false;
-
+        this.State = BusState.Gone;
         this.BusPosition = new Vector2(this.BusLocation.map.RequireLayer("Back").DisplayWidth, this.BusPosition.Y);
     }
 
-    internal void DriveBack()
+    internal void DriveIn()
     {
         if (Context.IsMainPlayer)
             Mod.SendMessageToClient("BusDriveBack");
 
         Log.Debug("Bus is returning");
 
-        this.BusLeaving = false;
-        this.BusGone = false;
-
         if (Game1.player.currentLocation.Equals(this.BusLocation))
         {
             this.MoveBusOutOfMap();
             this.BusLocation.localSound("busDriveOff");
             // The UpdateWhenCurrentLocation postfix will handle the movement and call AfterDriveBack
-            this.BusReturning = true;
+            this.State = BusState.DrivingIn;
             this.BusMotion = new Vector2(-6f, 0f);
         }
         else
         {
+            this.State = BusState.Parked;
             this.AfterDriveBack(animate: false);
         }
 
@@ -192,10 +183,7 @@ internal class BusManager
     internal void AfterDriveBack(bool animate = true)
     {
         this.ResetBus();
-
-        this.BusReturning = false;
-        this.BusGone = false;
-        this.BusLeaving = false;
+        this.State = BusState.Parked;
 
         // Animate bus door to open
         if (animate)

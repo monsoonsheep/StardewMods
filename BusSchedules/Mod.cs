@@ -21,7 +21,7 @@ internal sealed class Mod : StardewModdingAPI.Mod
     internal static Mod Instance = null!;
     internal static string UniqueId = null!;
 
-    internal BusManager BusManager;
+    internal BusManager BusManager = null!;
 
     internal bool BusEnabled;
     internal readonly Dictionary<string, VisitorData> VisitorsData = [];
@@ -97,9 +97,7 @@ internal sealed class Mod : StardewModdingAPI.Mod
         this.UnhookEvents();
         this.BusEnabled = false;
         this.BusArrivalsToday = 0;
-        this.BusManager.BusGone = false;
-        this.BusManager.BusLeaving = false;
-        this.BusManager.BusReturning = false;
+        this.BusManager.State = BusState.Parked;
     }
 
     private void HookEvents()
@@ -211,10 +209,10 @@ internal sealed class Mod : StardewModdingAPI.Mod
             }
 
             this.BusArrivalsToday++;
-            this.BusManager.DriveBack();
+            this.BusManager.DriveIn();
         }
         // Bus leaves based on leaving times
-        else if (this.BusManager is { BusGone: false, BusLeaving: false, BusReturning: false }
+        else if (this.BusManager.State == BusState.Parked
                  && ((this.BusArrivalsToday == 1 && e.NewTime == this.NextArrivalTime - 70)
                      || this.BusArrivalsToday != 1 && e.NewTime == this.LastArrivalTime + 20))
         {
@@ -259,7 +257,6 @@ internal sealed class Mod : StardewModdingAPI.Mod
                         }
                         else
                         {
-                            Log.Error("Visitor data entry already exists? How?");
                             visitorData = this.VisitorsData[npcName];
                         }
 
@@ -320,10 +317,12 @@ internal sealed class Mod : StardewModdingAPI.Mod
             switch (data)
             {
                 case "BusDoorClose":
-                    this.BusManager.CloseDoorAndDriveAway();
+                    Log.Debug("Received message to close door and drive away");
+                    this.BusManager.CloseDoorAndDriveOut();
                     break;
                 case "BusDriveBack":
-                    this.BusManager.CloseDoorAndDriveAway();
+                    Log.Debug("Received message to drive bus in");
+                    this.BusManager.DriveIn();
                     break;
             }
         }
@@ -341,7 +340,7 @@ internal sealed class Mod : StardewModdingAPI.Mod
         {
             Game1.delayedActions.Add(new DelayedAction(count * 800 + Game1.random.Next(0, 100), delegate
             {
-                visitor.Position = new Vector2(12 * 64, 9 * 64);
+                visitor.Position = BusDoorTile.ToVector2() * 64f;
 
                 if (visitor.IsReturningToEndPoint())
                 {
