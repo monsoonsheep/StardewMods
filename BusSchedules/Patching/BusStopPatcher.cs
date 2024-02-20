@@ -18,7 +18,7 @@ namespace BusSchedules.Patching;
 [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony patching requirement")]
 internal class BusStopPatcher : BasePatcher
 {
-    private static BusManager Bm => Mod.Instance.BusManager;
+    private static BusManager Bus => Mod.Instance.BusManager;
 
     public override void Apply(Harmony harmony, IMonitor monitor)
     {
@@ -55,11 +55,11 @@ internal class BusStopPatcher : BasePatcher
     /// </summary>
     private static void After_doorOpenAfterReturn(BusStop __instance)
     {
-        if (Bm.State == BusState.Gone)
+        if (Bus.State == BusState.Gone)
         {
-            Bm.BusMotion = Vector2.Zero;
-            Bm.MoveOutOfMap();
-            Bm.ResetDoor();
+            __instance.busMotion = Vector2.Zero;
+            Bus.MoveOutOfMap();
+            Bus.ResetDoor();
         }
     }
 
@@ -69,7 +69,7 @@ internal class BusStopPatcher : BasePatcher
     private static bool Before_answerDialogue(BusStop __instance, Response answer, ref bool __result)
     {
         // If bus is currently moving in the location or it's about to arrive in 20 minutes or it's only been 20 minutes since it left
-        if (Bm.IsBusMoving || (Bm.State is BusState.Gone && (Mod.Instance.TimeUntilNextArrival <= 20 || Mod.Instance.TimeSinceLastArrival <= 20)))
+        if (Bus.IsMoving || (Bus.State is BusState.Gone && (Mod.Instance.TimeUntilNextArrival <= 20 || Mod.Instance.TimeSinceLastArrival <= 20)))
         {
             Game1.chatBox.addMessage("The bus will arrive shortly.", Color.White);
             __result = false;
@@ -87,9 +87,9 @@ internal class BusStopPatcher : BasePatcher
     {
         if (__result == true && Game1.player.controller != null)
         {
-            if (Math.Abs(Bm.BusPosition.X - 704f) < 0.001)
+            if (Math.Abs(__instance.busPosition.X - 704f) < 0.001)
             {
-                Bm.BusMotion = Vector2.Zero;
+                __instance.busMotion = Vector2.Zero;
             }
             else
             {
@@ -102,8 +102,8 @@ internal class BusStopPatcher : BasePatcher
                 {
                     Game1.player.controller = controller;
                     Game1.globalFadeToClear();
-                    Bm.ResetDoor();
-                    Bm.BusPosition = new Vector2(11f, 6f) * 64f;
+                    Bus.ResetDoor();
+                    __instance.busPosition = new Vector2(11f, 6f) * 64f;
                 });
             }
         }
@@ -151,10 +151,10 @@ internal class BusStopPatcher : BasePatcher
         {
             Mod.Instance.UpdateBusLocation(__instance);
         }
-        if (Bm.State is BusState.DrivingOut or BusState.Gone)
+        if (Bus.State is BusState.DrivingOut or BusState.Gone)
         {
-            Bm.MoveOutOfMap();
-            Bm.ResetDoor(closed: true);
+            Bus.MoveOutOfMap();
+            Bus.ResetDoor(closed: true);
         }
     }
 
@@ -163,16 +163,16 @@ internal class BusStopPatcher : BasePatcher
     /// </summary>
     private static void After_cleanupForVacancy(GameLocation __instance)
     {
-        if (__instance is BusStop)
+        if (__instance is BusStop busStop)
         {
-            if (Bm.State is BusState.DrivingOut or BusState.Gone)
+            if (Bus.State is BusState.DrivingOut or BusState.Gone)
             {
-                Bm.MoveOutOfMap();
-                Bm.BusMotion = Vector2.Zero;
+                Bus.MoveOutOfMap();
+                busStop.busMotion = Vector2.Zero;
             }
-            else if (Bm.State is BusState.DrivingIn)
+            else if (Bus.State is BusState.DrivingIn)
             {
-                Bm.AfterDriveBack(animate: false);
+                Bus.AfterDriveBack(animate: false);
             }
         }
     }
@@ -182,30 +182,30 @@ internal class BusStopPatcher : BasePatcher
     /// </summary>
     private static void After_UpdateWhenCurrentLocation(BusStop __instance, GameTime time)
     {
-        if (Bm.State == BusState.DrivingOut)
+        if (Bus.State == BusState.DrivingOut)
         {
             // Accelerate toward left
-            Bm.BusMotion = new Vector2(Bm.BusMotion.X - 0.075f, Bm.BusMotion.Y);
+            __instance.busMotion = new Vector2(__instance.busMotion.X - 0.075f, __instance.busMotion.Y);
 
             // Stop moving the bus once it's off screen
-            if (Bm.BusPosition.X < -512f)
+            if (__instance.busPosition.X < -512f)
             {
-                Bm.MoveOutOfMap();
-                Bm.BusMotion = Vector2.Zero;
+                Bus.MoveOutOfMap();
+                __instance.busMotion = Vector2.Zero;
             }
         }
 
-        if (Bm.State is BusState.DrivingIn)
+        if (Bus.State is BusState.DrivingIn)
         {
             // Decelerate after getting to X=15 from the right
-            if (Bm.BusPosition.X - 704f < 256f)
-                Bm.BusMotion = new Vector2(Math.Min(-1f, Bm.BusMotion.X * 0.98f),
-                    Bm.BusMotion.Y);
+            if (__instance.busPosition.X - 704f < 256f)
+                __instance.busMotion = new Vector2(Math.Min(-1f, __instance.busMotion.X * 0.98f),
+                    __instance.busMotion.Y);
 
             // Teleport to position bus reached the stop
-            if (Math.Abs(Bm.BusPosition.X - 704f) <= Math.Abs(Bm.BusMotion.X * 1.5f))
+            if (Math.Abs(__instance.busPosition.X - 704f) <= Math.Abs(__instance.busMotion.X * 1.5f))
             {
-                Bm.AfterDriveBack(animate: true);
+                Bus.AfterDriveBack(animate: true);
             }
         }
     }
@@ -215,9 +215,9 @@ internal class BusStopPatcher : BasePatcher
     /// </summary>
     private static void After_draw(BusStop __instance, SpriteBatch spriteBatch)
     {
-        if ((Bm.IsBusMoving) && __instance.characters.Any(x => x.Name == "Pam"))
+        if ((Bus.IsMoving) && __instance.characters.Any(x => x.Name == "Pam"))
             spriteBatch.Draw(Game1.mouseCursors, 
-                Game1.GlobalToLocal(Game1.viewport, new Vector2((int)Bm.BusPosition.X, (int)Bm.BusPosition.Y) + new Vector2(0f, 29f) * 4f), 
-                new Rectangle(384, 1311, 15, 19), Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, (Bm.BusPosition.Y + 192f + 4f) / 10000f);
+                Game1.GlobalToLocal(Game1.viewport, new Vector2((int)__instance.busPosition.X, (int)__instance.busPosition.Y) + new Vector2(0f, 29f) * 4f), 
+                new Rectangle(384, 1311, 15, 19), Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, (__instance.busPosition.Y + 192f + 4f) / 10000f);
     }
 }

@@ -18,8 +18,6 @@ namespace BusSchedules.Patching;
 [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony patching requirement")]
 internal class SchedulePatcher : BasePatcher
 {
-    private static BusManager Bm => Mod.Instance.BusManager;
-
     public override void Apply(Harmony harmony, IMonitor monitor)
     {
         harmony.Patch(
@@ -71,7 +69,7 @@ internal class SchedulePatcher : BasePatcher
     {
         if (__instance.Name.Equals("Pam"))
         {
-            if (__instance.currentLocation.Equals(Bm.BusLocation) && __instance.controller != null &&
+            if (__instance.currentLocation.Equals(Mod.BusLocation) && __instance.controller != null &&
                 __instance.controller.pathToEndPoint.TryPeek(out Point result) && result is { X: 12, Y: 9 } &&
                 timeOfDay == __instance.DirectionsToNewLocation.time)
             {

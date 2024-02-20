@@ -13,6 +13,7 @@ using StardewValley.Locations;
 using StardewValley.Pathfinding;
 using BusSchedules.Interfaces;
 using MonsoonSheep.Stardew.Common.Patching;
+using xTile.Tiles;
 
 namespace BusSchedules;
 
@@ -31,6 +32,27 @@ internal sealed class Mod : StardewModdingAPI.Mod
     internal byte BusArrivalsToday;
     internal int[] BusArrivalTimes = [630, 1200, 1500, 1800, 2400];
     internal static Point BusDoorTile = new Point(12, 9);
+
+    private static Tile RoadTile = null!;
+    private static Tile LineTile = null!;
+    private static Tile ShadowTile = null!;
+
+    private readonly WeakReference<BusStop?> BusLocationRef = new WeakReference<BusStop?>(null);
+
+    internal static BusStop BusLocation
+    {
+        get
+        {
+            if (Instance.BusLocationRef.TryGetTarget(out BusStop? b))
+                return b;
+
+            Log.Trace("Bus Location updating");
+            BusStop busStop = (BusStop) Game1.getLocationFromName("BusStop");
+            Instance.UpdateBusLocation(busStop);
+            return busStop;
+        }
+        set => Instance.BusLocationRef.SetTarget(value);
+    }
 
     internal int NextArrivalTime 
         => this.BusArrivalsToday < this.BusArrivalTimes.Length ? this.BusArrivalTimes[this.BusArrivalsToday] : 99999;
@@ -161,14 +183,14 @@ internal sealed class Mod : StardewModdingAPI.Mod
                 npc.GetData().Home[0].Location == "BusStop")
             {
                 Log.Debug($"Setting character {pair.Key} to their bus stop home out of map");
-                Game1.warpCharacter(npc, this.BusManager.BusLocation, new Vector2(-10000f / 64, -10000f / 64));
+                Game1.warpCharacter(npc, BusLocation, new Vector2(-10000f / 64, -10000f / 64));
             }
 
             // If NPC will arrive by bus today, warp them to a hidden place in bus stop
             if (pair.Value.ScheduleKeysForBusArrival.ContainsKey(npc.ScheduleKey))
             {
                 Log.Debug($"Setting character {pair.Key} to the bus stop");
-                Game1.warpCharacter(npc, this.BusManager.BusLocation, new Vector2(-10000f / 64, -10000f / 64));
+                Game1.warpCharacter(npc, BusLocation, new Vector2(-10000f / 64, -10000f / 64));
             }
             else
             {
@@ -188,7 +210,8 @@ internal sealed class Mod : StardewModdingAPI.Mod
 
     private void OnSaving(object? sender, SavingEventArgs e)
     {
-        if (Context.IsMainPlayer) this.BusManager.ResetBus();
+        if (Context.IsMainPlayer)
+            this.BusManager.ParkBus();
     }
 
     private void OnTimeChanged(object? sender, TimeChangedEventArgs e)
@@ -311,7 +334,7 @@ internal sealed class Mod : StardewModdingAPI.Mod
 
         if (!Context.IsMainPlayer && e.FromModID.Equals(this.ModManifest.UniqueID) && e.Type.Equals("BusSchedules"))
         {
-            this.BusManager.UpdateLocation(this.Helper, (BusStop) Game1.getLocationFromName("BusStop"));
+            this.UpdateBusLocation((BusStop) Game1.getLocationFromName("BusStop"));
             string? data = e.ReadAs<string>();
             switch (data)
             {
@@ -339,10 +362,10 @@ internal sealed class Mod : StardewModdingAPI.Mod
     internal void BusLeave()
     {
         NPC pam = Game1.getCharacterFromName("Pam");
-        if (!this.BusManager.BusLocation.characters.Contains(pam) || pam.TilePoint is not { X: 11, Y: 10 })
+        if (!BusLocation.characters.Contains(pam) || pam.TilePoint is not { X: 11, Y: 10 })
             this.BusManager.DriveOut();
         else
-            pam.temporaryController = new PathFindController(pam, this.BusManager.BusLocation, Mod.BusDoorTile, 3, delegate(Character c, GameLocation _)
+            pam.temporaryController = new PathFindController(pam, BusLocation, Mod.BusDoorTile, 3, delegate(Character c, GameLocation _)
             {
                 if (c is NPC p)
                     p.Position = new Vector2(-1000f, -1000f);
@@ -378,7 +401,13 @@ internal sealed class Mod : StardewModdingAPI.Mod
 
     internal void UpdateBusLocation(BusStop location)
     {
-        this.BusManager.UpdateLocation(Instance.Helper, location);
+        BusLocation = location;
+        this.BusManager.BusDoorField = this.Helper.Reflection.GetField<TemporaryAnimatedSprite>(location, "busDoor");
+
+        TileArray tiles = location.Map.GetLayer("Buildings").Tiles;
+        RoadTile = tiles[12, 7];
+        LineTile = tiles[12, 8];
+        ShadowTile = tiles[13, 8];
     }
 
     public static void VisitorReachBusEndBehavior(Character c, GameLocation location)
@@ -396,20 +425,34 @@ internal sealed class Mod : StardewModdingAPI.Mod
     {
         return new Api();
     }
-}
 
-public class BusEvents
-{
-    public static EventHandler? BusArrive;
-
-    internal static void Invoke_BusArrive()
+    internal static void RemoveTiles()
     {
-        BusArrive?.Invoke(null, EventArgs.Empty);
+        TileArray tiles = BusLocation.Map.GetLayer("Buildings").Tiles;
+        for (int i = 11; i <= 18; i++)
+        {
+            for (int j = 7; j <= 9; j++)
+            {
+                tiles[i, j] = null;
+            }
+        }
     }
-}
 
-
-internal class VisitorData
-{
-    internal Dictionary<string, (int, int)> ScheduleKeysForBusArrival = new();
+    internal static void ResetTiles()
+    {
+        TileArray tiles = BusLocation.Map.GetLayer("Buildings").Tiles;
+        for (int i = 11; i <= 18; i++)
+        {
+            for (int j = 7; j <= 9; j++)
+            {
+                if (j == 7 || j == 9)
+                    tiles[i, j] = RoadTile;
+                else if (j == 8)
+                    tiles[i, j] = LineTile;
+            }
+        }
+        tiles[13, 8] = ShadowTile;
+        tiles[16, 8] = ShadowTile;
+        tiles[12, 9] = null;
+    }
 }
