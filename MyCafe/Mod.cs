@@ -13,6 +13,7 @@ using Microsoft.Xna.Framework.Graphics;
 using MonsoonSheep.Stardew.Common;
 using MonsoonSheep.Stardew.Common.Patching;
 using MyCafe.Characters;
+using MyCafe.Characters.CharacterGeneration;
 using MyCafe.Data;
 using MyCafe.Data.Customers;
 using MyCafe.Data.Models;
@@ -39,9 +40,8 @@ namespace MyCafe;
 public class Mod : StardewModdingAPI.Mod
 {
     internal static Mod Instance = null!;
+    internal AssetManager AssetManager = null!;
     internal static string UniqueId = null!;
-
-    internal ISpaceCoreApi SpaceCore = null!;
 
     internal ConfigModel LoadedConfig = null!;
     internal static Texture2D Sprites = null!;
@@ -69,6 +69,7 @@ public class Mod : StardewModdingAPI.Mod
         I18n.Init(helper.Translation);
         this.LoadedConfig = helper.ReadConfig<ConfigModel>();
         UniqueId = this.ModManifest.UniqueID;
+        this.AssetManager = new AssetManager(this.Helper);
 
         // Harmony patches
         if (HarmonyPatcher.TryApply(this,
@@ -90,9 +91,9 @@ public class Mod : StardewModdingAPI.Mod
         events.GameLoop.DayEnding += this.OnDayEnding;
         events.GameLoop.Saving += this.OnSaving;
 
+        events.Content.AssetRequested += this.AssetManager.OnAssetRequested;
+        events.Content.AssetReady += this.AssetManager.OnAssetReady;
         events.Multiplayer.ModMessageReceived += this.OnModMessageReceived;
-        events.Content.AssetRequested += this.OnAssetRequested;
-        events.Content.AssetReady += OnAssetReady;
         events.Display.RenderedWorld += this.OnRenderedWorld;
         events.World.FurnitureListChanged += this.OnFurnitureListChanged;
         events.Input.ButtonPressed += Debug.ButtonPress;
@@ -103,10 +104,25 @@ public class Mod : StardewModdingAPI.Mod
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
     {
         this.InitializeGmcm(this.Helper, this.ModManifest);
-        this.SpaceCore = this.Helper.ModRegistry.GetApi<ISpaceCoreApi>("spacechase0.SpaceCore")!;
-        this.SpaceCore.RegisterSerializerType(typeof(CafeLocation));
-        CafeState.Register();
+
         GameLocation.RegisterTileAction(ModKeys.SIGNBOARD_BUILDING_CLICK_EVENT_KEY, CafeMenu.Action_OpenCafeMenu);
+
+        ISpaceCoreApi spaceCore = this.Helper.ModRegistry.GetApi<ISpaceCoreApi>("spacechase0.SpaceCore")!;
+        spaceCore.RegisterSerializerType(typeof(CafeLocation));
+        CafeState.Register(spaceCore);
+
+        foreach (IContentPack contentPack in this.Helper.ContentPacks.GetOwned())
+            this.AssetManager.LoadContentPack(contentPack);
+        
+        IContentPack defaultPack = this.Helper.ContentPacks.CreateTemporary(
+            Path.Combine(this.Helper.DirectoryPath, "assets", "DefaultContent"),
+            $"{this.ModManifest.Author}.DefaultContent",
+            "MyCafe Fake Content Pack",
+            "Default content for MyCafe",
+            this.ModManifest.Author,
+            this.ModManifest.Version);
+
+        this.AssetManager.LoadContentPack(defaultPack);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
@@ -114,7 +130,6 @@ public class Mod : StardewModdingAPI.Mod
         if (!Context.IsMainPlayer)
             return;
 
-        this.LoadContentPacks();
         this.LoadCafeData();
         Cafe.Initialize(this.Helper, this.CustomersData);
         Pathfinding.AddRoutesToFarm();
@@ -150,54 +165,6 @@ public class Mod : StardewModdingAPI.Mod
         });
 
         Cafe.Customers.RemoveAllCustomers();
-    }
-
-    internal void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
-    {
-        // NPC Schedules
-        if (e.Name.IsDirectlyUnderPath(ModKeys.ASSETS_NPCSCHEDULE_PREFIX))
-        {
-            string npcname = e.Name.Name.Split('/').Last();
-            VillagerCustomerData? data = this.Helper.Data.ReadJsonFile<VillagerCustomerData>(Path.Combine("assets", "Schedules", npcname + ".json"));
-            if (data != null)
-                e.LoadFrom(() => data, AssetLoadPriority.Low);
-        }
-
-        // Buildings data (Cafe and signboard)
-        else if (e.Name.IsEquivalentTo("Data/Buildings"))
-        {
-            e.Edit(asset =>
-            {
-                IAssetDataForDictionary<string, BuildingData> data = asset.AsDictionary<string, BuildingData>();
-
-                data.Data[ModKeys.CAFE_BUILDING_BUILDING_ID] = this.Helper.ModContent.Load<BuildingData>(Path.Combine("assets", "Buildings", "Cafe", "cafebuilding.json"));
-                data.Data[ModKeys.CAFE_SIGNBOARD_BUILDING_ID] = this.Helper.ModContent.Load<BuildingData>(Path.Combine("assets", "Buildings", "Signboard", "signboard.json"));
-            }, AssetEditPriority.Early);
-        }
-
-        // Cafe building texture
-        else if (e.Name.IsEquivalentTo(ModKeys.CAFE_BUILDING_TEXTURE_NAME))
-        {
-            e.LoadFromModFile<Texture2D>(Path.Combine("assets", "Buildings", "Cafe", "cafebuilding.png"), AssetLoadPriority.Low);
-        }
-        // Cafe map tmx
-        else if (e.Name.IsEquivalentTo($"Maps/{ModKeys.CAFE_MAP_NAME}"))
-        {
-            e.LoadFromModFile<Map>(Path.Combine("assets", "Buildings", "Cafe", "cafemap.tmx"), AssetLoadPriority.Low);
-        }
-        // Signboard building texture
-        else if (e.Name.IsEquivalentTo(ModKeys.CAFE_SIGNBOARD_TEXTURE_NAME))
-        {
-            e.LoadFromModFile<Texture2D>(Path.Combine("assets", "Buildings", "Signboard", "signboard.png"), AssetLoadPriority.Low);
-        }
-    }
-
-    internal static void OnAssetReady(object? sender, AssetReadyEventArgs e)
-    {
-        if (e.Name.IsDirectlyUnderPath(ModKeys.ASSETS_NPCSCHEDULE_PREFIX))
-        {
-            string npcname = e.Name.Name.Split('/').Last();
-        }
     }
 
     internal void OnTimeChanged(object? sender, TimeChangedEventArgs e)
@@ -324,44 +291,6 @@ public class Mod : StardewModdingAPI.Mod
         }
     }
 
-    internal void LoadContentPacks()
-    {
-        this.CustomersData = [];
-
-        foreach (IContentPack contentPack in this.Helper.ContentPacks.GetOwned())
-        {
-            Log.Debug($"Loading content pack {contentPack.Manifest.Name} by {contentPack.Manifest.Author}");
-            var modelsInPack = new DirectoryInfo(Path.Combine(contentPack.DirectoryPath, "Customers")).GetDirectories();
-            foreach (var modelFolder in modelsInPack)
-            {
-                CustomerModel? model = contentPack.ReadJsonFile<CustomerModel>(Path.Combine("Customers", modelFolder.Name, "customer.json"));
-                if (model == null)
-                {
-                    Log.Debug("Couldn't read json for content pack");
-                    continue;
-                }
-
-                model.Name = model.Name.Replace(" ", "");
-                model.Spritesheet = contentPack.ModContent.GetInternalAssetName(Path.Combine("Customers", modelFolder.Name, "sprite.png")).Name;
-
-                if (contentPack.HasFile(Path.Combine("Customers", modelFolder.Name, "portrait.png")))
-                {
-                    model.PortraitName = contentPack.ModContent.GetInternalAssetName(Path.Combine("Customers", modelFolder.Name, "portrait.png")).Name;
-                }
-                else
-                {
-                    string portraitName = string.IsNullOrEmpty(model.PortraitName) ? "cat" : model.PortraitName;
-                    model.PortraitName = this.Helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", portraitName + ".png")).Name;
-                }
-
-                this.CustomersData[model.Name] = new BusCustomerData()
-                {
-                    Model = model
-                };
-            }
-        }
-    }
-
     internal static bool PlayerInteractWithTable(Table table, Farmer who)
     {
         return Cafe.InteractWithTable(table, who);
@@ -436,38 +365,5 @@ public class Mod : StardewModdingAPI.Mod
             reset: () => this.LoadedConfig = new ConfigModel(),
             save: () => helper.WriteConfig(this.LoadedConfig)
         );
-    }
-}
-
-public static class CafeState
-{
-    internal class Holder
-    {
-        public NetRef<Cafe> Value = new(new Cafe());
-    }
-
-    internal static ConditionalWeakTable<Farm, Holder> Values = new();
-
-    internal static void Register()
-    {
-        Mod.Instance.SpaceCore.RegisterCustomProperty(
-            typeof(Farm),
-            "Cafe",
-            typeof(NetRef<Cafe>),
-            AccessTools.Method(typeof(CafeState), nameof(get_Cafe)),
-            AccessTools.Method(typeof(CafeState), nameof(set_Cafe)));
-    }
-
-    public static NetRef<Cafe> get_Cafe(this Farm farm)
-    {
-        Holder holder = Values.GetOrCreateValue(farm);
-        return holder.Value;
-    }
-
-    public static void set_Cafe(this Farm farm, NetRef<Cafe> value)
-    {
-        Log.Error("Setting Cafe field for Farm. Should this be happening?");
-        Holder holder = Values.GetOrCreateValue(farm);
-        holder.Value = value;
     }
 }

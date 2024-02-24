@@ -8,6 +8,7 @@ internal class CharacterGenerator
 {
     internal void LoadTextures(IModContentHelper modContent)
     {
+
     }
 
     private Texture2D GetCharacterSpriteFromParts(Texture2D body, Texture2D hair, Texture2D pants, Texture2D shirt)

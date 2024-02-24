@@ -40,7 +40,7 @@ internal class BusCustomerSpawner : CustomerSpawnerBase
 
     internal static Customer GetCustomerFromData(BusCustomerData data)
     {
-        Texture2D portrait = Game1.content.Load<Texture2D>(data.Model.PortraitName);
+        Texture2D portrait = Game1.content.Load<Texture2D>(data.Model.Portrait);
         AnimatedSprite sprite = new AnimatedSprite(data.Model.Spritesheet, 0, 16, 32);
         Customer c = new Customer($"CustomerNPC_{data.Model.Name}", new Vector2(10, 12) * 64f, "BusStop", sprite, portrait);
         return c;
