@@ -26,6 +26,6 @@ internal class NetFieldPatcher : BasePatcher
     {
         // Should it be "Cafe"?
         __instance.NetFields.AddField(__instance.get_Cafe(), $"{Mod.UniqueId}.Cafe");
-        Mod.Instance.NetCafe = __instance.get_Cafe();
+        Mod.Instance.CafeField = __instance.get_Cafe();
     }
 }

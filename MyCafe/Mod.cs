@@ -43,19 +43,20 @@ public class Mod : StardewModdingAPI.Mod
     internal AssetManager AssetManager = null!;
     internal static string UniqueId = null!;
 
-    internal ConfigModel LoadedConfig = null!;
+    private ConfigModel LoadedConfig = null!;
     internal static Texture2D Sprites = null!;
+
+    internal NetRef<Cafe> CafeField = [];
+
     internal Dictionary<string, BusCustomerData> CustomersData = [];
 
     internal static bool IsPlacingSignBoard;
 
-    internal NetRef<Cafe> NetCafe = [];
-
     internal static Cafe Cafe
-        => Instance.NetCafe.Value;
+        => Instance.CafeField.Value;
 
-    internal static GameLocation? CafeIndoor => Cafe.Indoor;
-    internal static GameLocation? CafeOutdoor => Cafe.Outdoor;
+    internal static ConfigModel Config
+        => Instance.LoadedConfig;
 
     public Mod()
     {
@@ -111,18 +112,20 @@ public class Mod : StardewModdingAPI.Mod
         spaceCore.RegisterSerializerType(typeof(CafeLocation));
         CafeState.Register(spaceCore);
 
+        // Load content packs
         foreach (IContentPack contentPack in this.Helper.ContentPacks.GetOwned())
             this.AssetManager.LoadContentPack(contentPack);
-        
-        IContentPack defaultPack = this.Helper.ContentPacks.CreateTemporary(
-            Path.Combine(this.Helper.DirectoryPath, "assets", "DefaultContent"),
-            $"{this.ModManifest.Author}.DefaultContent",
-            "MyCafe Fake Content Pack",
-            "Default content for MyCafe",
-            this.ModManifest.Author,
-            this.ModManifest.Version);
 
-        this.AssetManager.LoadContentPack(defaultPack);
+        // Load default content pack included in assets folder
+        this.AssetManager.LoadContentPack(
+            this.Helper.ContentPacks.CreateTemporary(
+                Path.Combine(this.Helper.DirectoryPath, "assets", "DefaultContent"),
+                $"{this.ModManifest.Author}.DefaultContent",
+                "MyCafe Fake Content Pack",
+                "Default content for MyCafe",
+                this.ModManifest.Author,
+                this.ModManifest.Version)
+        );
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
