@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
-using MyCafe.Characters.Spawning;
 using MyCafe.Locations.Objects;
 using MyCafe.UI;
 using StardewModdingAPI;
@@ -32,8 +31,6 @@ internal class Debug
                 WarpToBus();
                 break;
             case SButton.NumPad2:
-                if (Context.IsMainPlayer)
-                    Mod.Cafe.Customers.SpawnCustomers();
                 break;
             case SButton.NumPad3:
                 Mod.Cafe.Customers.RemoveAllCustomers();

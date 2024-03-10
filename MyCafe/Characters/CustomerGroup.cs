@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common;
+using MyCafe.Enums;
 using MyCafe.Locations.Objects;
 using StardewValley;
 using StardewValley.Pathfinding;
@@ -10,22 +12,19 @@ namespace MyCafe.Characters;
 
 public class CustomerGroup
 {
-    internal List<Customer> Members = [];
-    internal Table? ReservedTable;
+    internal GroupType Type;
+    internal List<NPC> Members = [];
+    internal Table? ReservedTable { get; set; }
 
-    internal CustomerGroup(List<Customer> members)
+    internal CustomerGroup(List<NPC> members)
     {
-        foreach (var m in members) this.Members.Add(m);
+        foreach (var m in members) this.AddMember(m);
     }
 
-    internal CustomerGroup()
+    internal void AddMember(NPC member)
     {
-    }
-
-    internal void Add(Customer customer)
-    {
-        customer.Group = this;
-        this.Members.Add(customer);
+        member.set_Group(this);
+        this.Members.Add(member);
     }
 
     internal bool ReserveTable(Table table)
@@ -35,41 +34,47 @@ public class CustomerGroup
             this.ReservedTable = table;
             return true;
         }
-
         return false;
+    }
+
+    internal List<Seat>? GetSeats()
+    {
+        return this.Members.Any(m => m.get_Seat() == null) ? null : this.Members.Select(m => m.get_Seat()!).ToList();
     }
 
     internal bool MoveToTable()
     {
-        List<Point> tiles = this.Members.Select(m => m.ReservedSeat!.Position).ToList();
-        if (this.ReservedTable == null)
+        List<Seat>? seats = this.GetSeats();
+        if (seats == null || this.ReservedTable == null)
             return false;
 
-        return this.MoveTo(CommonHelper.GetLocation(this.ReservedTable.CurrentLocation)!, tiles, Customer.SitDownBehavior);
+        List<Point> tiles = seats.Select(s => s!.Position).ToList();
+        return this.MoveTo(CommonHelper.GetLocation(this.ReservedTable.CurrentLocation)!, tiles, NpcExtensions.SitDownBehavior);
+    }
+
+    internal bool MoveTo(GameLocation location, Point tile, PathFindController.endBehavior endBehavior)
+    {
+        List<Point> tiles = this.Members.Select(_ => tile).ToList();
+        return this.MoveTo(location, tiles, endBehavior);
     }
 
     internal bool MoveTo(GameLocation location, List<Point> tilePositions, PathFindController.endBehavior endBehavior)
     {
         for (int i = 0; i < this.Members.Count; i++)
         {
-            Customer member = this.Members[i];
+            NPC member = this.Members[i];
             if (!member.PathTo(location, tilePositions[i], 3, endBehavior))
-            {
                 return false;
-            }
 
-            if (member.IsSittingDown)
+            if (member.get_IsSittingDown())
             {
-                
-                member.IsSittingDown = false;
+                member.set_IsSittingDown(false);
                 int direction = CommonHelper.DirectionIntFromVectors(member.Tile, member.controller.pathToEndPoint.First().ToVector2());
-                if (direction == -1)
-                    Log.Error("Can't find direction to stand up from chair");
-                else
+                if (direction != -1)
                 {
-                    member.SitDown(direction);
+                    member.Jump(direction);
                     member.Freeze();
-                    member.AfterLerp = c => c.Unfreeze();
+                    member.set_AfterLerp(c => c.Unfreeze());
                 }
             }
         }
@@ -77,10 +82,9 @@ public class CustomerGroup
         return true;
     }
 
-    internal bool MoveTo(GameLocation location, Point tile, PathFindController.endBehavior endBehavior)
+    internal void StartEating()
     {
-        List<Point> tiles = this.Members.Select(_ => tile).ToList();
-        return this.MoveTo(location, tiles, endBehavior);
+
     }
 
     internal void Delete()

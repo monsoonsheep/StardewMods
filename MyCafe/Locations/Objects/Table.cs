@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using MyCafe.Characters;
 using MyCafe.Enums;
 using Netcode;
+using StardewValley;
 
 
 namespace MyCafe.Locations.Objects;
@@ -68,18 +69,18 @@ public class Table : INetObject<NetFields>
             s.Free();
     }
 
-    internal virtual bool Reserve(List<Customer> customers)
+    internal virtual bool Reserve(List<NPC> customers)
     {
         if (this.IsReserved || this.Seats.Count < customers.Count)
             return false;
 
         for (int i = 0; i < customers.Count; i++)
         {
-            customers[i].ReservedSeat = this.Seats[i];
+            customers[i].set_Seat(this.Seats[i]);
             this.Seats[i].Reserve(customers[i]);
         }
 
-        this.State.Set(TableState.WaitingForCustomers);
+        this.State.Set(TableState.CustomersComing);
         return true;
     }
 }

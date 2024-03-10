@@ -40,15 +40,13 @@ namespace MyCafe;
 public class Mod : StardewModdingAPI.Mod
 {
     internal static Mod Instance = null!;
-    internal AssetManager AssetManager = null!;
+    internal AssetManager Assets = null!;
     internal static string UniqueId = null!;
 
     private ConfigModel LoadedConfig = null!;
     internal static Texture2D Sprites = null!;
 
     internal NetRef<Cafe> CafeField = [];
-
-    internal Dictionary<string, BusCustomerData> CustomersData = [];
 
     internal static bool IsPlacingSignBoard;
 
@@ -70,7 +68,7 @@ public class Mod : StardewModdingAPI.Mod
         I18n.Init(helper.Translation);
         this.LoadedConfig = helper.ReadConfig<ConfigModel>();
         UniqueId = this.ModManifest.UniqueID;
-        this.AssetManager = new AssetManager(this.Helper);
+        this.Assets = new AssetManager(this.Helper);
 
         // Harmony patches
         if (HarmonyPatcher.TryApply(this,
@@ -92,8 +90,7 @@ public class Mod : StardewModdingAPI.Mod
         events.GameLoop.DayEnding += this.OnDayEnding;
         events.GameLoop.Saving += this.OnSaving;
 
-        events.Content.AssetRequested += this.AssetManager.OnAssetRequested;
-        events.Content.AssetReady += this.AssetManager.OnAssetReady;
+        events.Content.AssetRequested += this.Assets.OnAssetRequested;
         events.Multiplayer.ModMessageReceived += this.OnModMessageReceived;
         events.Display.RenderedWorld += this.OnRenderedWorld;
         events.World.FurnitureListChanged += this.OnFurnitureListChanged;
@@ -114,10 +111,10 @@ public class Mod : StardewModdingAPI.Mod
 
         // Load content packs
         foreach (IContentPack contentPack in this.Helper.ContentPacks.GetOwned())
-            this.AssetManager.LoadContentPack(contentPack);
+            this.Assets.LoadContentPack(contentPack);
 
         // Load default content pack included in assets folder
-        this.AssetManager.LoadContentPack(
+        this.Assets.LoadContentPack(
             this.Helper.ContentPacks.CreateTemporary(
                 Path.Combine(this.Helper.DirectoryPath, "assets", "DefaultContent"),
                 $"{this.ModManifest.Author}.DefaultContent",
@@ -134,8 +131,21 @@ public class Mod : StardewModdingAPI.Mod
             return;
 
         this.LoadCafeData();
-        Cafe.Initialize(this.Helper, this.CustomersData);
+        Cafe.Initialize(this.Helper);
         Pathfinding.AddRoutesToFarm();
+        SUtility.ForEachVillager((npc) =>
+        {
+            try
+            {
+                this.Assets.VillagerVisitors = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(ModKeys.ASSETS_NPCSCHEDULE);
+            }
+            catch
+            {
+                // ignored
+            }
+
+            return true;
+        });
     }
 
     internal void OnDayStarted(object? sender, DayStartedEventArgs e)
@@ -159,54 +169,21 @@ public class Mod : StardewModdingAPI.Mod
         if (!Context.IsMainPlayer)
             return;
 
+        // Delete customers
         SUtility.ForEachLocation(delegate (GameLocation loc)
         {
             for (int i = loc.characters.Count - 1; i >= 0; i--)
-                if (loc.characters[i] is Customer)
-                    loc.characters.RemoveAt(i);
+                if (loc.characters[i].Name.StartsWith("CustomerNPC"))
+                    loc.characters.RemoveAt(i); // TODO if it's a villager, convert them
             return true;
         });
-
         Cafe.Customers.RemoveAllCustomers();
     }
 
     internal void OnTimeChanged(object? sender, TimeChangedEventArgs e)
     {
         if (!Context.IsMainPlayer) return;
-
-        int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, Cafe.ClosingTime.Value);
-        int minutesTillOpens = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, Cafe.OpeningTime.Value);
-        int minutesSinceLastVisitors = SUtility.CalculateMinutesBetweenTimes(Cafe.LastTimeCustomersArrived, Game1.timeOfDay);
-        float percentageOfTablesFree = (float)Cafe.Tables.Count(t => !t.IsReserved) / Cafe.Tables.Count;
-
-        if (minutesTillCloses <= 20)
-            return;
-
-        float prob = 0f;
-
-        // more chance if it's been a while since last Visitors
-        prob += minutesSinceLastVisitors switch
-        {
-            <= 20 => 0f,
-            <= 30 => Game1.random.Next(5) == 0 ? 0.05f : -0.1f,
-            <= 60 => Game1.random.Next(2) == 0 ? 0.1f : 0f,
-            _ => 0.25f
-        };
-
-        // more chance if a higher percent of tables are free
-        prob += percentageOfTablesFree switch
-        {
-            <= 0.2f => 0.0f,
-            <= 0.5f => 0.1f,
-            <= 0.8f => 0.15f,
-            _ => 0.2f
-        };
-
-        // slight chance to spawn if last hour of open time
-        if (minutesTillCloses <= 60)
-            prob += Game1.random.Next(20 + Math.Max(0, minutesTillCloses / 3)) >= 28 ? 0.2f : -0.5f;
-
-        Log.Info(prob.ToString(CultureInfo.CurrentCulture));
+        Cafe.TenMinuteUpdate();
     }
 
     [SuppressMessage("ReSharper", "PossibleLossOfFraction", Justification = "Deliberate in order to get the tile")]
@@ -263,7 +240,8 @@ public class Mod : StardewModdingAPI.Mod
 
     internal void OnFurnitureListChanged(object? sender, FurnitureListChangedEventArgs e)
     {
-        if (!Context.IsMainPlayer) return;
+        if (!Context.IsMainPlayer)
+            return;
 
         if (e.Location.Equals(Cafe.Indoor) || e.Location.Equals(Cafe.Outdoor))
         {
@@ -368,5 +346,10 @@ public class Mod : StardewModdingAPI.Mod
             reset: () => this.LoadedConfig = new ConfigModel(),
             save: () => helper.WriteConfig(this.LoadedConfig)
         );
+    }
+
+    internal static IBusSchedulesApi? GetBusSchedulesApi()
+    {
+        return Instance.Helper.ModRegistry.GetApi<IBusSchedulesApi>("MonsoonSheep.BusSchedules");
     }
 }

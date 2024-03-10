@@ -42,7 +42,7 @@ public sealed class LocationSeat : Seat
         }
     }
 
-    internal override bool Reserve(Customer customer)
+    internal override bool Reserve(NPC customer)
     {
         if (!base.Reserve(customer))
             return false;

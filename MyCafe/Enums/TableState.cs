@@ -1,9 +1,9 @@
-﻿namespace MyCafe.Enums;
+namespace MyCafe.Enums;
 
 public enum TableState
 {
     Free,
-    WaitingForCustomers,
+    CustomersComing,
     CustomersThinkingOfOrder,
     CustomersDecidedOnOrder,
     CustomersWaitingForFood,

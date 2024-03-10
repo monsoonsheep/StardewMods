@@ -1,5 +1,5 @@
 {
-        "Frequency": 2,
+        "VisitFrequency": 2,
         "BusyTimes": {
             "Tue": [
                 {

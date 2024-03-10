@@ -8,6 +8,7 @@ using MyCafe.Locations.Objects;
 using Netcode;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Network;
 using StardewValley.Pathfinding;
 
 namespace MyCafe.Characters;
@@ -33,6 +34,7 @@ public class Customer : NPC
     private Vector2 LerpEndPosition;
     private float LerpPosition = -1f;
     private float LerpDuration = -1f;
+
     internal Action<Customer>? AfterLerp;
 
     public Customer()
@@ -90,6 +92,7 @@ public class Customer : NPC
             if (this.LerpPosition >= this.LerpDuration)
             {
                 this.AfterLerp?.Invoke(this);
+                this.AfterLerp = null;
                 this.LerpPosition = -1f;
             }
         }
@@ -97,17 +100,18 @@ public class Customer : NPC
 
     public override void draw(SpriteBatch b, float alpha = 1)
     {
-        float mainLayerDepth = Math.Max(0f, this.StandingPixel.Y / 10000f);
+        float layerDepth = Math.Max(0f, this.StandingPixel.Y / 10000f);
 
         Vector2 localPosition = this.getLocalPosition(Game1.viewport);
 
-        b.Draw(this.Sprite.Texture,
+        b.Draw(
+            this.Sprite.Texture,
             localPosition + new Vector2((float)this.GetSpriteWidthForPositioning() * 4 / 2, (float)this.GetBoundingBox().Height / 2) + (this.shakeTimer > 0 ? new Vector2(Game1.random.Next(-1, 2), Game1.random.Next(-1, 2)) : Vector2.Zero), this.Sprite.SourceRect,
             Color.White * alpha, this.rotation,
             new Vector2(this.Sprite.SpriteWidth / 2f, this.Sprite.SpriteHeight * 3f / 4f),
             Math.Max(0.2f, this.Scale) * 4f,
             (this.flip || (this.Sprite.CurrentAnimation != null && this.Sprite.CurrentAnimation[this.Sprite.currentAnimationIndex].flip)) ? SpriteEffects.FlipHorizontally : SpriteEffects.None,
-            mainLayerDepth
+            layerDepth
             );
 
         if (this.DrawName.Value)
@@ -122,7 +126,7 @@ public class Customer : NPC
                 Vector2.Zero,
                 new Vector2(0.3f, 0.3f),
                 SpriteEffects.None,
-                mainLayerDepth + 0.001f
+                layerDepth + 0.001f
                 );
         }
 
@@ -162,18 +166,13 @@ public class Customer : NPC
         return base.tryToReceiveActiveObject(who, probe);
     }
 
-    internal void SitDown(int direction)
+    internal void LerpInDirection(int direction)
     {
         Vector2 sitPosition = this.Position + CommonHelper.DirectionIntToDirectionVector(direction) * 64f;
-        this.LerpMove(this.Position, sitPosition, 0.2f);
-    }
-
-    private void LerpMove(Vector2 startPosition, Vector2 endPosition, float duration)
-    {
-        this.LerpStartPosition = startPosition;
-        this.LerpEndPosition = endPosition;
+        this.LerpStartPosition = this.Position;
+        this.LerpEndPosition = sitPosition;
         this.LerpPosition = 0f;
-        this.LerpDuration = duration;
+        this.LerpDuration = 0.2f;
     }
 
     public static PathFindController.endBehavior SitDownBehavior = delegate (Character c, GameLocation _)
@@ -181,11 +180,11 @@ public class Customer : NPC
         if (c is Customer { ReservedSeat: not null } customer)
         {
             int direction = CommonHelper.DirectionIntFromVectors(customer.Tile, customer.ReservedSeat.Position.ToVector2());
-            customer.SitDown(direction);
+            customer.LerpInDirection(direction);
             customer.faceDirection(customer.ReservedSeat.SittingDirection);
 
             customer.IsSittingDown = true;
-            if (customer.Group.Members.Any(other => !other.IsSittingDown))
+            if (customer.Group.Members.Any(other => !other.get_IsSittingDown()))
                 return;
             customer.ReservedSeat.Table.State.Set(TableState.CustomersThinkingOfOrder);
         }

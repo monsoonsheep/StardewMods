@@ -41,7 +41,7 @@ internal class FurniturePatcher : BasePatcher
         if (Utility.IsTable(__instance))
         {
             Furniture table = location.GetFurnitureAt(new Vector2(x, y));
-            if (Mod.Cafe.TryGetFurnitureTable(table, location, out FurnitureTable trackedTable) && trackedTable.IsReserved)
+            if (Mod.Cafe.TryGetFurnitureTable(table, out FurnitureTable trackedTable) && trackedTable.IsReserved)
                 __result = 2;
         }
     }
@@ -73,7 +73,7 @@ internal class FurniturePatcher : BasePatcher
     {
         if (Utility.IsTable(__instance))
         {
-            if (Mod.Cafe.TryGetFurnitureTable(__instance, who.currentLocation, out FurnitureTable trackedTable)
+            if (Mod.Cafe.TryGetFurnitureTable(__instance, out FurnitureTable trackedTable)
                 && trackedTable.IsReserved)
             {
                 Log.Debug("Can't drop in this object onto this table. It's reserved");
@@ -92,7 +92,7 @@ internal class FurniturePatcher : BasePatcher
 
         if (Utility.IsTable(__instance))
         {
-            if (Mod.Cafe.TryGetFurnitureTable(__instance, who.currentLocation, out FurnitureTable trackedTable) && trackedTable.IsReserved)
+            if (Mod.Cafe.TryGetFurnitureTable(__instance, out FurnitureTable trackedTable) && trackedTable.IsReserved)
             {
                 Game1.addHUDMessage(new HUDMessage("Can't remove this furniture", 1000, fadeIn: false));
                 __result = false;

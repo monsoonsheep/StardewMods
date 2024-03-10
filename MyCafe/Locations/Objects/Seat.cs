@@ -16,7 +16,7 @@ public abstract class Seat : INetObject<NetFields>
 
     private readonly NetPoint NetPosition = [];
 
-    private readonly NetRef<Customer?> NetReservingCustomer = [];
+    private readonly NetRef<NPC?> NetReservingCustomer = [];
 
     private Table? TableField;
 
@@ -26,7 +26,7 @@ public abstract class Seat : INetObject<NetFields>
         set => this.TableField = value;
     }
 
-    internal Customer? ReservingCustomer
+    internal NPC? ReservingCustomer
     {
         get => this.NetReservingCustomer.Value;
         set => this.NetReservingCustomer.Set(value);
@@ -77,12 +77,13 @@ public abstract class Seat : INetObject<NetFields>
             .AddField(this.NetPosition).AddField(this.NetReservingCustomer);
     }
 
-    internal virtual bool Reserve(Customer customer)
+    internal virtual bool Reserve(NPC customer)
     {
         if (this.ReservingCustomer != null)
             return false;
 
-        customer.ReservedSeat = this;
+        NpcExtensions.CustomerData state = NpcExtensions.Values.GetOrCreateValue(customer);
+        state.Seat = this;
         this.ReservingCustomer = customer;
         return true;
     }

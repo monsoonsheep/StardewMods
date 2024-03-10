@@ -1,5 +1,5 @@
 {
-        "Frequency": 1,
+        "VisitFrequency": 1,
         "BusyTimes": {
             "rain|fall_9": [
                 {

@@ -10,6 +10,7 @@ using MyCafe.Data.Models;
 using MyCafe.Data.Models.Appearances;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
+using StardewValley;
 using StardewValley.GameData.Buildings;
 using xTile;
 
@@ -17,6 +18,8 @@ namespace MyCafe;
 internal class AssetManager
 {
     private readonly IModHelper _modHelper;
+
+    internal Dictionary<string, VillagerCustomerModel> VillagerVisitors = [];
 
     internal Dictionary<string, CustomerModel> Customers = [];
     internal Dictionary<string, HairModel> Hairstyles = [];
@@ -35,13 +38,13 @@ internal class AssetManager
     {
         Log.Info($"Loading content pack {contentPack.Manifest.Name} by {contentPack.Manifest.Author}");
 
-        DirectoryInfo customersFolder = new DirectoryInfo(Path.Combine(contentPack.DirectoryPath, "Customers"));
-        DirectoryInfo hairsFolder = new DirectoryInfo(Path.Combine(contentPack.DirectoryPath, "Hairstyles"));
-        DirectoryInfo shirtsFolder = new DirectoryInfo(Path.Combine(contentPack.DirectoryPath, "Shirts"));
-        DirectoryInfo pantsFolder = new DirectoryInfo(Path.Combine(contentPack.DirectoryPath, "Pants"));
-        DirectoryInfo shoesFolder = new DirectoryInfo(Path.Combine(contentPack.DirectoryPath, "Shoes"));
-        DirectoryInfo accessoriesFolder = new DirectoryInfo(Path.Combine(contentPack.DirectoryPath, "Accessories"));
-        DirectoryInfo outfitsFolder = new DirectoryInfo(Path.Combine(contentPack.DirectoryPath, "Outfits"));
+        DirectoryInfo customersFolder = new(Path.Combine(contentPack.DirectoryPath, "Customers"));
+        DirectoryInfo hairsFolder = new(Path.Combine(contentPack.DirectoryPath, "Hairstyles"));
+        DirectoryInfo shirtsFolder = new(Path.Combine(contentPack.DirectoryPath, "Shirts"));
+        DirectoryInfo pantsFolder = new(Path.Combine(contentPack.DirectoryPath, "Pants"));
+        DirectoryInfo shoesFolder = new(Path.Combine(contentPack.DirectoryPath, "Shoes"));
+        DirectoryInfo accessoriesFolder = new(Path.Combine(contentPack.DirectoryPath, "Accessories"));
+        DirectoryInfo outfitsFolder = new(Path.Combine(contentPack.DirectoryPath, "Outfits"));
 
         if (customersFolder.Exists)
         {
@@ -50,18 +53,23 @@ internal class AssetManager
             // Load customer models
             foreach (DirectoryInfo modelFolder in customerModels)
             {
-                CustomerModel? model = contentPack.ReadJsonFile<CustomerModel>(Path.Combine("Customers", modelFolder.Name, "customer.json"));
+                string relativePathOfModel = Path.Combine("Customers", modelFolder.Name);
+                CustomerModel? model = contentPack.ReadJsonFile<CustomerModel>(Path.Combine(relativePathOfModel, "customer.json"));
                 if (model == null)
                 {
                     Log.Debug("Couldn't read customer.json for content pack");
                     continue;
                 }
                 model.Name = modelFolder.Name;
-                model.Spritesheet = contentPack.ModContent.GetInternalAssetName(Path.Combine("Customers", modelFolder.Name, "sprite.png")).Name;
-                model.Portrait = contentPack.HasFile(Path.Combine("Customers", modelFolder.Name, "portrait.png"))
-                    ? contentPack.ModContent.GetInternalAssetName(Path.Combine("Customers", modelFolder.Name, "portrait.png")).Name
+                model.Spritesheet = contentPack.ModContent.GetInternalAssetName(Path.Combine(relativePathOfModel, "customer.png")).Name;
+
+                string portraitPath = Path.Combine(relativePathOfModel, "portrait.png");
+
+                model.Portrait = contentPack.HasFile(portraitPath)
+                    ? contentPack.ModContent.GetInternalAssetName(portraitPath).Name
                     : this._modHelper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", string.IsNullOrEmpty(model.Portrait) ? "cat" : model.Portrait + ".png")).Name;
 
+                Log.Trace($"Customer model added: {model.Name}");
                 this.Customers[$"{contentPack.Manifest.UniqueID}/{model.Name}"] = model;
             }
         }
@@ -73,7 +81,8 @@ internal class AssetManager
             // Load hairstyles
             foreach (DirectoryInfo modelFolder in hairModels)
             {
-                HairModel? model = contentPack.ReadJsonFile<HairModel>(Path.Combine("Hairstyles", modelFolder.Name, "hair.json"));
+                string relativePathOfModel = Path.Combine("Hairstyles", modelFolder.Name);
+                HairModel? model = contentPack.ReadJsonFile<HairModel>(Path.Combine(relativePathOfModel, "hair.json"));
                 if (model == null)
                 {
                     Log.Debug("Couldn't read hair.json for content pack");
@@ -81,7 +90,9 @@ internal class AssetManager
                 }
 
                 model.Id = $"{contentPack.Manifest.UniqueID}/{modelFolder.Name}";
+                model.TexturePath = Path.Combine(contentPack.DirectoryPath, relativePathOfModel, "hair.png");
 
+                Log.Trace($"Hair model added: {model.Id}");
                 this.Hairstyles[model.Id] = model;
             }
         }
@@ -93,7 +104,8 @@ internal class AssetManager
             // Load shirts
             foreach (DirectoryInfo modelFolder in shirtModels)
             {
-                ShirtModel? model = contentPack.ReadJsonFile<ShirtModel>(Path.Combine("Shirts", modelFolder.Name, "shirt.json"));
+                string relativePathOfModel = Path.Combine("Shirts", modelFolder.Name);
+                ShirtModel? model = contentPack.ReadJsonFile<ShirtModel>(Path.Combine(relativePathOfModel, "shirt.json"));
                 if (model == null)
                 {
                     Log.Debug("Couldn't read shirt.json for content pack");
@@ -101,7 +113,9 @@ internal class AssetManager
                 }
 
                 model.Id = $"{contentPack.Manifest.UniqueID}/{modelFolder.Name}";
+                model.TexturePath = Path.Combine(contentPack.DirectoryPath, relativePathOfModel, "shirt.png");
 
+                Log.Trace($"Shirt model added: {model.Id}");
                 this.Shirts[model.Id] = model;
             }
         }
@@ -113,7 +127,8 @@ internal class AssetManager
             // Load pants
             foreach (DirectoryInfo modelFolder in pantsModels)
             {
-                PantsModel? model = contentPack.ReadJsonFile<PantsModel>(Path.Combine("Pants", modelFolder.Name, "pants.json"));
+                string relativePathOfModel = Path.Combine("Pants", modelFolder.Name);
+                PantsModel? model = contentPack.ReadJsonFile<PantsModel>(Path.Combine(relativePathOfModel, "pants.json"));
                 if (model == null)
                 {
                     Log.Debug("Couldn't read pants.json for content pack");
@@ -121,7 +136,9 @@ internal class AssetManager
                 }
 
                 model.Id = $"{contentPack.Manifest.UniqueID}/{modelFolder.Name}";
+                model.TexturePath = Path.Combine(contentPack.DirectoryPath, relativePathOfModel, "pants.png");
 
+                Log.Trace($"Pants model added: {model.Id}");
                 this.Pants[model.Id] = model;
             }
         }
@@ -133,7 +150,8 @@ internal class AssetManager
             // Load shoes
             foreach (DirectoryInfo modelFolder in shoesModels)
             {
-                ShoesModel? model = contentPack.ReadJsonFile<ShoesModel>(Path.Combine("Shoes", modelFolder.Name, "shoes.json"));
+                string relativePathOfModel = Path.Combine("Shoes", modelFolder.Name);
+                ShoesModel? model = contentPack.ReadJsonFile<ShoesModel>(Path.Combine(relativePathOfModel, "shoes.json"));
                 if (model == null)
                 {
                     Log.Debug("Couldn't read shoes.json for content pack");
@@ -141,7 +159,9 @@ internal class AssetManager
                 }
 
                 model.Id = $"{contentPack.Manifest.UniqueID}/{modelFolder.Name}";
+                model.TexturePath = Path.Combine(contentPack.DirectoryPath, relativePathOfModel, "shoes.png");
 
+                Log.Trace($"Shoes model added: {model.Id}");
                 this.Shoes[model.Id] = model;
             }
         }
@@ -153,7 +173,8 @@ internal class AssetManager
             // Load accessories
             foreach (DirectoryInfo modelFolder in accessoryModels)
             {
-                AccessoryModel? model = contentPack.ReadJsonFile<AccessoryModel>(Path.Combine("Accessories", modelFolder.Name, "accessory.json"));
+                string relativePathOfModel = Path.Combine("Accessories", modelFolder.Name);
+                AccessoryModel? model = contentPack.ReadJsonFile<AccessoryModel>(Path.Combine(relativePathOfModel, "accessory.json"));
                 if (model == null)
                 {
                     Log.Debug("Couldn't read accessory.json for content pack");
@@ -161,7 +182,9 @@ internal class AssetManager
                 }
 
                 model.Id = $"{contentPack.Manifest.UniqueID}/{modelFolder.Name}";
+                model.TexturePath = Path.Combine(contentPack.DirectoryPath, relativePathOfModel, "accessory.png");
 
+                Log.Trace($"Accessory model added: {model.Id}");
                 this.Accessories[model.Id] = model;
             }
         }
@@ -173,7 +196,8 @@ internal class AssetManager
             // Load outfits
             foreach (DirectoryInfo modelFolder in outfitModels)
             {
-                OutfitModel? model = contentPack.ReadJsonFile<OutfitModel>(Path.Combine("Outfits", modelFolder.Name, "outfit.json"));
+                string relativePathOfModel = Path.Combine("Outfits", modelFolder.Name);
+                OutfitModel? model = contentPack.ReadJsonFile<OutfitModel>(Path.Combine(relativePathOfModel, "outfit.json"));
                 if (model == null)
                 {
                     Log.Debug("Couldn't read outfit.json for content pack");
@@ -181,7 +205,9 @@ internal class AssetManager
                 }
 
                 model.Id = $"{contentPack.Manifest.UniqueID}/{modelFolder.Name}";
+                model.TexturePath = Path.Combine(contentPack.DirectoryPath, relativePathOfModel, "outfit.png");
 
+                Log.Trace($"Outfit model added: {model.Id}");
                 this.Outfits[model.Id] = model;
             }
         }
@@ -190,12 +216,19 @@ internal class AssetManager
     internal void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
     {
         // NPC Schedules
-        if (e.Name.IsDirectlyUnderPath(ModKeys.ASSETS_NPCSCHEDULE_PREFIX))
+        if (e.Name.IsEquivalentTo(ModKeys.ASSETS_NPCSCHEDULE))
         {
-            string npcname = e.Name.Name.Split('/').Last();
-            VillagerCustomerData? data = this._modHelper.Data.ReadJsonFile<VillagerCustomerData>(Path.Combine("assets", "Schedules", npcname + ".json"));
-            if (data != null)
-                e.LoadFrom(() => data, AssetLoadPriority.Low);
+            Dictionary<string, VillagerCustomerModel> data = [];
+
+            DirectoryInfo folder = new DirectoryInfo(Path.Combine(this._modHelper.DirectoryPath, "assets", "VillagerSchedules"));
+            foreach (FileInfo f in folder.GetFiles())
+            {
+                string name = f.Name.Replace(".json", "");
+                VillagerCustomerModel model = this._modHelper.ModContent.Load<VillagerCustomerModel>(f.FullName);
+                data[name] = model;
+            }
+
+            e.LoadFrom(() => data, AssetLoadPriority.Medium);
         }
 
         // Buildings data (Cafe and signboard)
@@ -203,8 +236,7 @@ internal class AssetManager
         {
             e.Edit(asset =>
             {
-                IAssetDataForDictionary<string, BuildingData> data = asset.AsDictionary<string, BuildingData>();
-
+                var data = asset.AsDictionary<string, BuildingData>();
                 data.Data[ModKeys.CAFE_BUILDING_BUILDING_ID] = this._modHelper.ModContent.Load<BuildingData>(Path.Combine("assets", "Buildings", "Cafe", "cafebuilding.json"));
                 data.Data[ModKeys.CAFE_SIGNBOARD_BUILDING_ID] = this._modHelper.ModContent.Load<BuildingData>(Path.Combine("assets", "Buildings", "Signboard", "signboard.json"));
             }, AssetEditPriority.Early);
@@ -229,9 +261,10 @@ internal class AssetManager
 
     internal void OnAssetReady(object? sender, AssetReadyEventArgs e)
     {
-        if (e.Name.IsDirectlyUnderPath(ModKeys.ASSETS_NPCSCHEDULE_PREFIX))
+        // NPC Schedules
+        if (e.Name.IsEquivalentTo(ModKeys.ASSETS_NPCSCHEDULE))
         {
-            string npcname = e.Name.Name.Split('/').Last();
+            this.VillagerVisitors = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(ModKeys.ASSETS_NPCSCHEDULE);
         }
     }
 }

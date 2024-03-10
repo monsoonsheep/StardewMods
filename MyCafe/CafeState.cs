@@ -12,12 +12,9 @@ using StardewValley;
 namespace MyCafe;
 public static class CafeState
 {
-    internal class Holder
-    {
-        public NetRef<Cafe> Value = new(new Cafe());
-    }
+    internal class Holder { public readonly NetRef<Cafe> Value = [new Cafe()]; }
 
-    internal static ConditionalWeakTable<Farm, Holder> Values = new();
+    internal static ConditionalWeakTable<Farm, Holder> Values = [];
 
     internal static void Register(ISpaceCoreApi spaceCore)
     {
@@ -37,8 +34,8 @@ public static class CafeState
 
     public static void set_Cafe(this Farm farm, NetRef<Cafe> value)
     {
-        Log.Error("Setting Cafe field for Farm. Should this be happening?");
-        Holder holder = Values.GetOrCreateValue(farm);
-        holder.Value = value;
+        //Log.Error("Setting Cafe field for Farm. Should this be happening?");
+        //Holder holder = Values.GetOrCreateValue(farm);
+        //holder.Value = value;
     }
 }

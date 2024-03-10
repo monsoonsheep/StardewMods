@@ -7,6 +7,7 @@ namespace MyCafe.Data.Models.Appearances;
 public class AppearanceModel
 {
     public string Id { get; set; } = null!;
+    public string TexturePath { get; set; } = null!;
     public string Gender { get; set; } = "any";
     public List<int[]> ColorMasks { get; set; } = [];
     public bool ConstantColor { get; set; } = false;

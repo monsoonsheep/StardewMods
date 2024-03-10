@@ -331,7 +331,7 @@ namespace MyCafe.Characters.Spawning
             };
             c.DrawName.Set(true);
 
-            group.Add(c);
+            group.AddMember(c);
             group.ReserveTable(table);
             c.ItemToOrder.Set(ItemRegistry.Create<StardewValley.Object>("(O)128"));
             GameLocation busStop = Game1.getLocationFromName("BusStop");

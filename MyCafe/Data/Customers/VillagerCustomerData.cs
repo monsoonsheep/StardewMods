@@ -1,18 +1,15 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using MyCafe.Data.Models;
 using StardewValley;
 
 namespace MyCafe.Data.Customers;
 
-public class VillagerCustomerData : CustomerData
+/// <summary>
+/// This keeps track of the villager as a customer. 
+/// </summary>
+public class VillagerCustomerData
 {
-    public Dictionary<string, List<BusyPeriod>> BusyTimes = null!;
-
-    internal NPC RealNpc = null!;
+    internal VillagerCustomerModel Model { get; set; } = null!;
+    internal WorldDate LastVisitedDate = new(1, Season.Spring, 1);
 }
 
-public class BusyPeriod
-{
-    public int From = 600;
-    public int To = 2600;
-    public int Priority = 4;
-}
