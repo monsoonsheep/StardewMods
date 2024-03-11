@@ -38,7 +38,7 @@ internal class CharacterPatcher : BasePatcher
         );
         harmony.Patch(
             original: this.RequireMethod<NPC>(nameof(NPC.draw), [typeof(SpriteBatch), typeof(float)]),
-            postfix: this.GetHarmonyMethod(nameof(After_update))
+            postfix: this.GetHarmonyMethod(nameof(After_draw))
         );
     }
 

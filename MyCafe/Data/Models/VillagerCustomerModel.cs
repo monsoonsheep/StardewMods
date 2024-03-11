@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace MyCafe.Data.Models;
-internal class VillagerCustomerModel
+public class VillagerCustomerModel
 {
-    internal string NpcName { get; set; } = null!;
+    public string NpcName { get; set; } = null!;
 
     public Dictionary<string, List<BusyPeriod>> BusyTimes = null!;
 

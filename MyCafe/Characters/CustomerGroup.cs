@@ -27,6 +27,17 @@ public class CustomerGroup
         this.Members.Add(member);
     }
 
+    internal void AddToBusStop()
+    {
+        GameLocation busStop = Game1.getLocationFromName("BusStop");
+        foreach (NPC c in this.Members)
+        {
+            busStop.addCharacter(c);
+            c.Position = new Vector2(33, 9) * 64;
+        }
+    }
+
+
     internal bool ReserveTable(Table table)
     {
         if (table.Reserve(this.Members))
@@ -37,34 +48,31 @@ public class CustomerGroup
         return false;
     }
 
-    internal List<Seat>? GetSeats()
+    internal List<Seat> GetSeats()
     {
-        return this.Members.Any(m => m.get_Seat() == null) ? null : this.Members.Select(m => m.get_Seat()!).ToList();
+        return this.Members.Select(m => m.get_Seat()!).ToList();
     }
 
-    internal bool MoveToTable()
+    internal void GoToTable()
     {
-        List<Seat>? seats = this.GetSeats();
-        if (seats == null || this.ReservedTable == null)
-            return false;
-
+        List<Seat> seats = this.GetSeats();
         List<Point> tiles = seats.Select(s => s!.Position).ToList();
-        return this.MoveTo(CommonHelper.GetLocation(this.ReservedTable.CurrentLocation)!, tiles, NpcExtensions.SitDownBehavior);
+        this.MoveTo(CommonHelper.GetLocation(this.ReservedTable!.CurrentLocation)!, tiles, NpcExtensions.SitDownBehavior);
     }
 
-    internal bool MoveTo(GameLocation location, Point tile, PathFindController.endBehavior endBehavior)
+    internal void MoveTo(GameLocation location, Point tile, PathFindController.endBehavior endBehavior)
     {
         List<Point> tiles = this.Members.Select(_ => tile).ToList();
-        return this.MoveTo(location, tiles, endBehavior);
+        this.MoveTo(location, tiles, endBehavior);
     }
 
-    internal bool MoveTo(GameLocation location, List<Point> tilePositions, PathFindController.endBehavior endBehavior)
+    internal void MoveTo(GameLocation location, List<Point> tilePositions, PathFindController.endBehavior endBehavior)
     {
         for (int i = 0; i < this.Members.Count; i++)
         {
             NPC member = this.Members[i];
             if (!member.PathTo(location, tilePositions[i], 3, endBehavior))
-                return false;
+                return;
 
             if (member.get_IsSittingDown())
             {
@@ -79,19 +87,16 @@ public class CustomerGroup
             }
         }
 
-        return true;
+        return;
     }
 
     internal void StartEating()
     {
-
+        this.ReservedTable!.State.Set(TableState.CustomersEating);
     }
 
-    internal void Delete()
+    internal void TakeOrder()
     {
-        foreach (var c in this.Members)
-        {
-            c.currentLocation.characters.Remove(c);
-        }
+        this.ReservedTable!.State.Set(TableState.CustomersWaitingForFood);
     }
 }

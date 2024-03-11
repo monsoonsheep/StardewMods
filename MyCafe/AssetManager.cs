@@ -29,6 +29,8 @@ internal class AssetManager
     internal Dictionary<string, AccessoryModel> Accessories = [];
     internal Dictionary<string, OutfitModel> Outfits = [];
 
+    internal Dictionary<string, Texture2D> GeneratedTexturesInUse = [];
+
     internal AssetManager(IModHelper helper)
     {
         this._modHelper = helper;
@@ -220,11 +222,11 @@ internal class AssetManager
         {
             Dictionary<string, VillagerCustomerModel> data = [];
 
-            DirectoryInfo folder = new DirectoryInfo(Path.Combine(this._modHelper.DirectoryPath, "assets", "VillagerSchedules"));
-            foreach (FileInfo f in folder.GetFiles())
+            DirectoryInfo schedulesFolder = new DirectoryInfo(Path.Combine(this._modHelper.DirectoryPath, "assets", "VillagerSchedules"));
+            foreach (FileInfo file in schedulesFolder.GetFiles())
             {
-                string name = f.Name.Replace(".json", "");
-                VillagerCustomerModel model = this._modHelper.ModContent.Load<VillagerCustomerModel>(f.FullName);
+                string name = file.Name.Replace(".json", "");
+                VillagerCustomerModel model = this._modHelper.ModContent.Load<VillagerCustomerModel>(file.FullName);
                 data[name] = model;
             }
 
@@ -247,11 +249,13 @@ internal class AssetManager
         {
             e.LoadFromModFile<Texture2D>(Path.Combine("assets", "Buildings", "Cafe", "cafebuilding.png"), AssetLoadPriority.Low);
         }
+
         // Cafe map tmx
         else if (e.Name.IsEquivalentTo($"Maps/{ModKeys.CAFE_MAP_NAME}"))
         {
             e.LoadFromModFile<Map>(Path.Combine("assets", "Buildings", "Cafe", "cafemap.tmx"), AssetLoadPriority.Low);
         }
+
         // Signboard building texture
         else if (e.Name.IsEquivalentTo(ModKeys.CAFE_SIGNBOARD_TEXTURE_NAME))
         {
@@ -266,5 +270,10 @@ internal class AssetManager
         {
             this.VillagerVisitors = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(ModKeys.ASSETS_NPCSCHEDULE);
         }
+    }
+
+    internal List<CustomerModel> GetRandomCustomerModels(int count = 1)
+    {
+        return this.Customers.Values.OrderBy(_ => Game1.random.Next()).Take(count).ToList();
     }
 }

@@ -63,7 +63,7 @@ public class Table : INetObject<NetFields>
 
     internal virtual void Free()
     {
-        Log.Debug($"Freeing {(this is LocationTable ? "Location" : "Furniture")} table");
+        // Log.Debug($"Freeing {(this is LocationTable ? "Location" : "Furniture")} table");
         this.State.Set(TableState.Free);
         foreach (Seat s in this.Seats)
             s.Free();

@@ -338,7 +338,7 @@ namespace MyCafe.Characters.Spawning
             busStop.addCharacter(c);
             c.Position = new Vector2(33, 9) * 64;
 
-            if (group.MoveToTable() is false)
+            if (group.GoToTable() is false)
             {
                 Log.Error("Customers couldn't path to cafe");
                 this.LetGo(group, force: true);

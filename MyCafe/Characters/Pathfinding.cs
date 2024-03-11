@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HarmonyLib;
 using System.Reflection;
+using HarmonyLib;
 using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.Pathfinding;
@@ -14,6 +14,15 @@ namespace MyCafe.Characters;
 
 public static class Pathfinding
 {
+    private static readonly Action<List<string>> AddRoute;
+
+    static Pathfinding()
+    {
+        AddRoute = route =>
+            AccessTools.Method(typeof(WarpPathfindingCache), "AddRoute", [typeof(List<string>), typeof(Gender?)])
+                .Invoke(null, [route, null]);
+    }
+
     private static readonly sbyte[,] Directions = new sbyte[4 ,2]
     {
         { 0, -1 },
@@ -27,19 +36,9 @@ public static class Pathfinding
     {
         me.controller = null;
 
-        Stack<Point>? path;
-        try
-        {
-            path = PathfindFromLocationToLocation(me.currentLocation, me.TilePoint, targetLocation, targetTile, me);
-
-            if (path == null || path.Count == 0)
-                throw new PathNotFoundException("Character couldn't find path.", me.TilePoint, targetTile, me.currentLocation.Name, targetLocation.Name, me);
-        }
-        catch (PathNotFoundException ex)
-        {
-            Log.Error("Error in PathTo:\n" + ex);
+        Stack<Point>? path = PathfindFromLocationToLocation(me.currentLocation, me.TilePoint, targetLocation, targetTile, me);
+        if (path == null || path.Count == 0)
             return false;
-        }
 
         me.controller = new PathFindController(path, me.currentLocation, me, path.Last())
         {
@@ -112,6 +111,9 @@ public static class Pathfinding
             return toAdd;
         }
 
+        if (path.Count == 0)
+            throw new PathNotFoundException("Character couldn't find path.", startTile, targetTile, startingLocation.Name, targetLocation.Name, character);
+        
         return path;
     }
 
@@ -259,6 +261,9 @@ public static class Pathfinding
         return shortestPath;
     }
 
+    /// <summary>
+    /// This works on the farm to prefer flooring tiles over ground, and dirt over grass.
+    /// </summary>
     internal static int GetPreferenceValueForTerrainType(GameLocation location, int x, int y)
     {
         int value = 0;
@@ -283,22 +288,16 @@ public static class Pathfinding
         }
 
         if (location.terrainFeatures.TryGetValue(new Vector2(x, y), out var terrainFeature) && terrainFeature is Flooring)
-        {
             value -= 7;
-        }
         
-
         return value;
     }
 
+    /// <summary>
+    /// Use <see cref="WarpPathfindingCache"/>.AddRoute to add routes from all locations to the farm and vice versa
+    /// </summary>
     internal static void AddRoutesToFarm()
     {
-        MethodInfo addRouteMethod = AccessTools.Method(typeof(WarpPathfindingCache), "AddRoute", [typeof(List<string>), typeof(Gender?)]);
-        if (addRouteMethod == null)
-        {
-            Log.Error("Couldn't populate routes to cafe");
-            return;
-        }
         foreach (GameLocation gameLocation in Game1.locations)
         {
             List<string>? route = gameLocation.Name.Equals("BusStop")
@@ -311,36 +310,32 @@ public static class Pathfinding
             var reverseRoute = new List<string>(route);
             reverseRoute.Reverse();
 
-            addRouteMethod.Invoke(null, [route, null]);
-            addRouteMethod.Invoke(null, [reverseRoute, null]);
+            AddRoute(route);
+            AddRoute(reverseRoute);
         }
     }
 
-    internal static void AddRoutesToTarget(GameLocation target)
+    /// <summary>
+    /// Use <see cref="WarpPathfindingCache"/>.AddRoute to add routes from all locations to the given location and vice versa
+    /// </summary>
+    internal static void AddRoutesToBuildingInFarm(GameLocation building)
     {
-        MethodInfo addRouteMethod = AccessTools.Method(typeof(WarpPathfindingCache), "AddRoute", [typeof(List<string>), typeof(Gender?)]);
-        if (addRouteMethod == null)
+        foreach (GameLocation location in Game1.locations)
         {
-            Log.Error("Couldn't populate routes to cafe");
-            return;
-        }
-
-        foreach (GameLocation gameLocation in Game1.locations)
-        {
-            List<string>? route = WarpPathfindingCache.GetLocationRoute(gameLocation.Name, "Farm", Gender.Undefined)?.ToList();
-
-            if (route is not { Count: > 1 })
+            List<string>? toFarm = WarpPathfindingCache.GetLocationRoute(location.Name, "Farm", Gender.Undefined)?.ToList();
+            if (toFarm is not { Count: > 1 })
             {
-                Log.Warn($"Couldn't add route to farm from {gameLocation.Name}");
+                Log.Warn($"Can't add route from {location.Name} to farm building {building.Name}");
                 continue;
             }
-            route.Add(target.Name);
+
+            List<string>? route = toFarm.Concat([building.Name]).ToList();
 
             var reverseRoute = new List<string>(route);
             reverseRoute.Reverse();
 
-            addRouteMethod.Invoke(null, [route, null]);
-            addRouteMethod.Invoke(null, [reverseRoute, null]);
+            AddRoute(route);
+            AddRoute(reverseRoute);
         }
     }
 }

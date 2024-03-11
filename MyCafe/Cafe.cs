@@ -200,15 +200,21 @@ public class Cafe : INetObject<NetFields>
         }
     }
 
-    internal static bool InteractWithTable(Table table, Farmer who)
+    internal bool InteractWithTable(Table table, Farmer who)
     {
+        CustomerGroup? group = this.Customers.ActiveGroups.FirstOrDefault(g => g.ReservedTable == table);
+        if (table.State.Value != TableState.Free && group == null)
+        {
+            Log.Error("Interacting with active table but the reserving group is not in ActiveGroups");
+            return false;
+        }
+
         switch (table.State.Value)
         {
             case TableState.CustomersDecidedOnOrder:
-                table.State.Set(TableState.CustomersWaitingForFood);
+                group!.TakeOrder();
                 return true;
             case TableState.CustomersWaitingForFood:
-                {
                     List<string?> itemsNeeded = table.Seats
                         .Where(s => s.ReservingCustomer != null)
                         .Select(c => c.ReservingCustomer!.get_OrderItem().Value?.ItemId)
@@ -220,9 +226,8 @@ public class Cafe : INetObject<NetFields>
                     foreach (string? item in itemsNeeded)
                         who.removeFirstOfThisItemFromInventory(item);
 
-                    table.State.Set(TableState.CustomersEating);
+                    group!.StartEating();
                     return true;
-                }
             default:
                 return false;
         }
@@ -286,6 +291,12 @@ public class Cafe : INetObject<NetFields>
         Table table = (Table) sender;
         CustomerGroup? group = this.Customers.ActiveGroups.FirstOrDefault(g => g.ReservedTable == table);
 
+        if ((e.NewValue != TableState.Free && e.NewValue != TableState.CustomersComing) && group == null)
+        {
+            Log.Error("Table state changed, but the group reserving the table isn't in ActiveGroups");
+            return;
+        }
+
         switch (e.NewValue)
         {
             case TableState.CustomersThinkingOfOrder:
@@ -294,16 +305,19 @@ public class Cafe : INetObject<NetFields>
                 Game1.delayedActions.Add(new DelayedAction(2000, () =>
                     table.State.Set(TableState.CustomersDecidedOnOrder)));
                 break;
+
             case TableState.CustomersDecidedOnOrder:
                 Log.Debug("Table decided");
 
                 break;
+
             case TableState.CustomersWaitingForFood:
                 Log.Debug("Table waiting for order");
 
                 foreach (NPC member in group!.Members)
                     member.get_DrawOrderItem().Set(true);
                 break;
+
             case TableState.CustomersEating:
                 Log.Debug("Table eating");
 
@@ -313,17 +327,23 @@ public class Cafe : INetObject<NetFields>
                 Game1.delayedActions.Add(new DelayedAction(2000, () => 
                     table.State.Set(TableState.CustomersFinishedEating)));
                 break;
+
             case TableState.CustomersFinishedEating:
                 Log.Debug("Table finished meal");
-                if (group != null)
-                    this.Customers.LetGo(group);
+
+                this.Customers.EndCustomers(group!);
                 break;
         }
     }
 
+    internal Table? GetFreeTable(int minSeats = 1)
+    {
+        return this.Tables.Where(t => !t.IsReserved && t.Seats.Count >= minSeats).MinBy(_ => Game1.random.Next());
+    }
+
     internal Table GetTableOfSeat(Seat seat)
     {
-        Log.Error("Should remove this method");
+        Log.Warn("Should refactor this method away");
         return this.Tables.FirstOrDefault(t => t.Seats.Contains(seat))!;
     }
 
@@ -342,9 +362,10 @@ public class Cafe : INetObject<NetFields>
                     foundIndoor = true;
                     this.Indoor = indoor;
                     this.Outdoor = loc;
-                    Pathfinding.AddRoutesToTarget(this.Indoor);
                     Game1._locationLookup.TryAdd(indoor.Name, indoor);
                     Game1._locationLookup.TryAdd(loc.Name, loc);
+                    if (b.parentLocationName.Value == "Farm")
+                        Pathfinding.AddRoutesToBuildingInFarm(this.Indoor);
                     return false;
                 }
             }

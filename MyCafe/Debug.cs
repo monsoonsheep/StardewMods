@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
+using MyCafe.Enums;
 using MyCafe.Locations.Objects;
 using MyCafe.UI;
 using StardewModdingAPI;
@@ -31,24 +32,15 @@ internal class Debug
                 WarpToBus();
                 break;
             case SButton.NumPad2:
+                Table? table = Mod.Cafe.GetFreeTable();
+                if (table != null)
+                    Mod.Cafe.Customers.TrySpawnGrouop(table, GroupType.Random);
                 break;
             case SButton.NumPad3:
                 Mod.Cafe.Customers.RemoveAllCustomers();
                 //Mod.Cafe.PopulateTables();
                 break;
             case SButton.NumPad4:
-                foreach (var table in Mod.Cafe.Tables)
-                {
-                    foreach (Seat seat in table.Seats)
-                    {
-                        if (seat.ReservingCustomer is { ItemToOrder.Value: not null } customer)
-                        {
-                            Vector2 pos = customer.getLocalPosition(Game1.viewport);
-                            pos.Y -= 32 + customer.Sprite.SpriteHeight * 3;
-                            Log.Debug($"pos {pos}, Position: {customer.Position}, viewport: {Game1.viewport}");
-                        }
-                    }
-                }
                 break;
             case SButton.NumPad5:
                 break;

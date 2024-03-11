@@ -34,7 +34,7 @@ internal class ActionPatcher : BasePatcher
         {
             if (table.BoundingBox.Value.Contains(tileLocation.X * 64, tileLocation.Y * 64)
                 && table.CurrentLocation == __instance.Name
-                && Cafe.InteractWithTable(table, who))
+                && Mod.Cafe.InteractWithTable(table, who))
             {
                 __result = true;
                 return;

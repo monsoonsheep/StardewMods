@@ -40,11 +40,11 @@ namespace MyCafe;
 public class Mod : StardewModdingAPI.Mod
 {
     internal static Mod Instance = null!;
-    internal AssetManager Assets = null!;
     internal static string UniqueId = null!;
+    internal static Texture2D Sprites = null!;
 
     private ConfigModel LoadedConfig = null!;
-    internal static Texture2D Sprites = null!;
+    internal AssetManager Assets = null!;
 
     internal NetRef<Cafe> CafeField = [];
 
@@ -91,6 +91,7 @@ public class Mod : StardewModdingAPI.Mod
         events.GameLoop.Saving += this.OnSaving;
 
         events.Content.AssetRequested += this.Assets.OnAssetRequested;
+        events.Content.AssetReady += this.Assets.OnAssetReady;
         events.Multiplayer.ModMessageReceived += this.OnModMessageReceived;
         events.Display.RenderedWorld += this.OnRenderedWorld;
         events.World.FurnitureListChanged += this.OnFurnitureListChanged;
@@ -133,19 +134,7 @@ public class Mod : StardewModdingAPI.Mod
         this.LoadCafeData();
         Cafe.Initialize(this.Helper);
         Pathfinding.AddRoutesToFarm();
-        SUtility.ForEachVillager((npc) =>
-        {
-            try
-            {
-                this.Assets.VillagerVisitors = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(ModKeys.ASSETS_NPCSCHEDULE);
-            }
-            catch
-            {
-                // ignored
-            }
-
-            return true;
-        });
+        this.Assets.VillagerVisitors = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(ModKeys.ASSETS_NPCSCHEDULE);
     }
 
     internal void OnDayStarted(object? sender, DayStartedEventArgs e)
@@ -174,7 +163,7 @@ public class Mod : StardewModdingAPI.Mod
         {
             for (int i = loc.characters.Count - 1; i >= 0; i--)
                 if (loc.characters[i].Name.StartsWith("CustomerNPC"))
-                    loc.characters.RemoveAt(i); // TODO if it's a villager, convert them
+                    loc.characters.RemoveAt(i); // TODO if it's a villager customer, convert them (is it needed or will the game warp them anyway?)
             return true;
         });
         Cafe.Customers.RemoveAllCustomers();
@@ -270,11 +259,6 @@ public class Mod : StardewModdingAPI.Mod
                 Log.Debug($"Invalid message from host\n{ex}", LogLevel.Error);
             }
         }
-    }
-
-    internal static bool PlayerInteractWithTable(Table table, Farmer who)
-    {
-        return Cafe.InteractWithTable(table, who);
     }
 
     internal void LoadCafeData()

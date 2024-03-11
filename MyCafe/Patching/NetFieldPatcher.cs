@@ -30,7 +30,7 @@ internal class NetFieldPatcher : BasePatcher
     private static void After_FarmInitNetFields(Farm __instance)
     {
         // Should it be "Cafe"?
-        __instance.NetFields.AddField(__instance.get_Cafe(), $"{Mod.UniqueId}.Cafe");
+        __instance.NetFields.AddField(__instance.get_Cafe(), $"Cafe");
         Mod.Instance.CafeField = __instance.get_Cafe();
     }
 
