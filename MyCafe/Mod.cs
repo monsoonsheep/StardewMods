@@ -9,14 +9,15 @@ using System.Runtime.Serialization;
 using System.Xml.Serialization;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using MonsoonSheep.Stardew.Common;
 using MonsoonSheep.Stardew.Common.Patching;
 using MyCafe.Characters;
-using MyCafe.Characters.CharacterGeneration;
 using MyCafe.Data;
 using MyCafe.Data.Customers;
 using MyCafe.Data.Models;
+using MyCafe.Data.Models.Appearances;
 using MyCafe.Enums;
 using MyCafe.Interfaces;
 using MyCafe.Inventories;
@@ -40,21 +41,34 @@ namespace MyCafe;
 public class Mod : StardewModdingAPI.Mod
 {
     internal static Mod Instance = null!;
-    internal static string UniqueId = null!;
-    internal static Texture2D Sprites = null!;
 
-    private ConfigModel LoadedConfig = null!;
-    internal AssetManager Assets = null!;
+    private Texture2D _sprites = null!;
+    private ConfigModel _loadedConfig = null!;
+
+    private AssetManager _assetManager = null!;
+    private CharacterFactory _characterFactory = null!;
 
     internal NetRef<Cafe> CafeField = [];
 
     internal static bool IsPlacingSignBoard;
 
+    internal static Texture2D Sprites
+        => Instance._sprites;
+
+    internal static string UniqueId
+        => Instance.ModManifest.UniqueID;
+
     internal static Cafe Cafe
         => Instance.CafeField.Value;
 
     internal static ConfigModel Config
-        => Instance.LoadedConfig;
+        => Instance._loadedConfig;
+
+    internal static CharacterFactory CharacterFactory
+        => Instance._characterFactory;
+
+    internal static AssetManager Assets
+        => Instance._assetManager;
 
     public Mod()
     {
@@ -66,9 +80,10 @@ public class Mod : StardewModdingAPI.Mod
     {
         Log.Monitor = this.Monitor;
         I18n.Init(helper.Translation);
-        this.LoadedConfig = helper.ReadConfig<ConfigModel>();
-        UniqueId = this.ModManifest.UniqueID;
-        this.Assets = new AssetManager(this.Helper);
+        this._loadedConfig = helper.ReadConfig<ConfigModel>();
+        this._assetManager = new AssetManager(helper);
+        this._characterFactory = new CharacterFactory(helper);
+        this._sprites = helper.ModContent.Load<Texture2D>(Path.Combine("assets", "sprites.png"));
 
         // Harmony patches
         if (HarmonyPatcher.TryApply(this,
@@ -90,14 +105,14 @@ public class Mod : StardewModdingAPI.Mod
         events.GameLoop.DayEnding += this.OnDayEnding;
         events.GameLoop.Saving += this.OnSaving;
 
-        events.Content.AssetRequested += this.Assets.OnAssetRequested;
-        events.Content.AssetReady += this.Assets.OnAssetReady;
+        events.Content.AssetRequested += this._assetManager.OnAssetRequested;
+        events.Content.AssetReady += this._assetManager.OnAssetReady;
         events.Multiplayer.ModMessageReceived += this.OnModMessageReceived;
         events.Display.RenderedWorld += this.OnRenderedWorld;
         events.World.FurnitureListChanged += this.OnFurnitureListChanged;
         events.Input.ButtonPressed += Debug.ButtonPress;
 
-        Sprites = helper.ModContent.Load<Texture2D>(Path.Combine("assets", "sprites.png"));
+        
     }
 
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
@@ -110,20 +125,16 @@ public class Mod : StardewModdingAPI.Mod
         spaceCore.RegisterSerializerType(typeof(CafeLocation));
         CafeState.Register(spaceCore);
 
-        // Load content packs
-        foreach (IContentPack contentPack in this.Helper.ContentPacks.GetOwned())
-            this.Assets.LoadContentPack(contentPack);
-
-        // Load default content pack included in assets folder
-        this.Assets.LoadContentPack(
-            this.Helper.ContentPacks.CreateTemporary(
-                Path.Combine(this.Helper.DirectoryPath, "assets", "DefaultContent"),
-                $"{this.ModManifest.Author}.DefaultContent",
-                "MyCafe Fake Content Pack",
-                "Default content for MyCafe",
-                this.ModManifest.Author,
-                this.ModManifest.Version)
+        this._assetManager.LoadContent(this.Helper.ContentPacks.CreateTemporary(
+            Path.Combine(this.Helper.DirectoryPath, "assets", "DefaultContent"),
+            $"{this.ModManifest.Author}.DefaultContent",
+            "MyCafe Fake Content Pack",
+            "Default content for MyCafe",
+            this.ModManifest.Author,
+            this.ModManifest.Version)
         );
+
+        this._characterFactory.Initialize();
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
@@ -132,9 +143,8 @@ public class Mod : StardewModdingAPI.Mod
             return;
 
         this.LoadCafeData();
-        Cafe.Initialize(this.Helper);
+        Cafe.InitializeForHost(this.Helper);
         Pathfinding.AddRoutesToFarm();
-        this.Assets.VillagerVisitors = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(ModKeys.ASSETS_NPCSCHEDULE);
     }
 
     internal void OnDayStarted(object? sender, DayStartedEventArgs e)
@@ -162,7 +172,7 @@ public class Mod : StardewModdingAPI.Mod
         SUtility.ForEachLocation(delegate (GameLocation loc)
         {
             for (int i = loc.characters.Count - 1; i >= 0; i--)
-                if (loc.characters[i].Name.StartsWith("CustomerNPC"))
+                if (loc.characters[i].Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX))
                     loc.characters.RemoveAt(i); // TODO if it's a villager customer, convert them (is it needed or will the game warp them anyway?)
             return true;
         });
@@ -206,7 +216,7 @@ public class Mod : StardewModdingAPI.Mod
 
         if (IsPlacingSignBoard)
         {
-            foreach (Vector2 tile in TileHelper.GetCircularTileGrid(new Vector2((Game1.viewport.X + Game1.getOldMouseX(false)) / 64, (Game1.viewport.Y + Game1.getOldMouseY(false)) / 64), this.LoadedConfig.DistanceForSignboardToRegisterTables))
+            foreach (Vector2 tile in TileHelper.GetCircularTileGrid(new Vector2((Game1.viewport.X + Game1.getOldMouseX(false)) / 64, (Game1.viewport.Y + Game1.getOldMouseY(false)) / 64), this._loadedConfig.DistanceForSignboardToRegisterTables))
             {
                 // get tile area in screen pixels
                 Rectangle area = new((int)(tile.X * Game1.tileSize - Game1.viewport.X), (int)(tile.Y * Game1.tileSize - Game1.viewport.Y), Game1.tileSize, Game1.tileSize);
@@ -261,6 +271,8 @@ public class Mod : StardewModdingAPI.Mod
         }
     }
 
+    
+    
     internal void LoadCafeData()
     {
         // Load cafe data
@@ -327,8 +339,8 @@ public class Mod : StardewModdingAPI.Mod
         // register mod
         configMenu?.Register(
             mod: manifest,
-            reset: () => this.LoadedConfig = new ConfigModel(),
-            save: () => helper.WriteConfig(this.LoadedConfig)
+            reset: () => this._loadedConfig = new ConfigModel(),
+            save: () => helper.WriteConfig(this._loadedConfig)
         );
     }
 

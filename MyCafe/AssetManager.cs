@@ -4,10 +4,14 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using MonsoonSheep.Stardew.Common;
 using MyCafe.Data.Customers;
 using MyCafe.Data.Models;
 using MyCafe.Data.Models.Appearances;
+using MyCafe.Enums;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -20,16 +24,6 @@ internal class AssetManager
     private readonly IModHelper _modHelper;
 
     internal Dictionary<string, VillagerCustomerModel> VillagerVisitors = [];
-
-    internal Dictionary<string, CustomerModel> Customers = [];
-    internal Dictionary<string, HairModel> Hairstyles = [];
-    internal Dictionary<string, ShirtModel> Shirts = [];
-    internal Dictionary<string, PantsModel> Pants = [];
-    internal Dictionary<string, ShoesModel> Shoes = [];
-    internal Dictionary<string, AccessoryModel> Accessories = [];
-    internal Dictionary<string, OutfitModel> Outfits = [];
-
-    internal Dictionary<string, Texture2D> GeneratedTexturesInUse = [];
 
     internal AssetManager(IModHelper helper)
     {
@@ -72,147 +66,117 @@ internal class AssetManager
                     : this._modHelper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", string.IsNullOrEmpty(model.Portrait) ? "cat" : model.Portrait + ".png")).Name;
 
                 Log.Trace($"Customer model added: {model.Name}");
-                this.Customers[$"{contentPack.Manifest.UniqueID}/{model.Name}"] = model;
+                Mod.CharacterFactory.Customers[$"{contentPack.Manifest.UniqueID}/{model.Name}"] = model;
             }
         }
 
         if (hairsFolder.Exists)
         {
             DirectoryInfo[] hairModels = hairsFolder.GetDirectories("*", SearchOption.TopDirectoryOnly);
-            
-            // Load hairstyles
             foreach (DirectoryInfo modelFolder in hairModels)
             {
-                string relativePathOfModel = Path.Combine("Hairstyles", modelFolder.Name);
-                HairModel? model = contentPack.ReadJsonFile<HairModel>(Path.Combine(relativePathOfModel, "hair.json"));
-                if (model == null)
-                {
-                    Log.Debug("Couldn't read hair.json for content pack");
-                    continue;
-                }
-
-                model.Id = $"{contentPack.Manifest.UniqueID}/{modelFolder.Name}";
-                model.TexturePath = Path.Combine(contentPack.DirectoryPath, relativePathOfModel, "hair.png");
-
-                Log.Trace($"Hair model added: {model.Id}");
-                this.Hairstyles[model.Id] = model;
+                HairModel? model = this.LoadAppearanceModel<HairModel>(contentPack, modelFolder.Name);
+                if (model != null) 
+                    Mod.CharacterFactory.Hairstyles[model.Id] = model;
             }
         }
 
         if (shirtsFolder.Exists)
         {
             DirectoryInfo[] shirtModels = shirtsFolder.GetDirectories("*", SearchOption.TopDirectoryOnly);
-
-            // Load shirts
             foreach (DirectoryInfo modelFolder in shirtModels)
             {
-                string relativePathOfModel = Path.Combine("Shirts", modelFolder.Name);
-                ShirtModel? model = contentPack.ReadJsonFile<ShirtModel>(Path.Combine(relativePathOfModel, "shirt.json"));
-                if (model == null)
-                {
-                    Log.Debug("Couldn't read shirt.json for content pack");
-                    continue;
-                }
-
-                model.Id = $"{contentPack.Manifest.UniqueID}/{modelFolder.Name}";
-                model.TexturePath = Path.Combine(contentPack.DirectoryPath, relativePathOfModel, "shirt.png");
-
-                Log.Trace($"Shirt model added: {model.Id}");
-                this.Shirts[model.Id] = model;
+                ShirtModel? model = this.LoadAppearanceModel<ShirtModel>(contentPack, modelFolder.Name);
+                if (model != null) 
+                    Mod.CharacterFactory.Shirts[model.Id] = model;
             }
         }
 
         if (pantsFolder.Exists)
         {
             DirectoryInfo[] pantsModels = pantsFolder.GetDirectories("*", SearchOption.TopDirectoryOnly);
-
-            // Load pants
             foreach (DirectoryInfo modelFolder in pantsModels)
             {
-                string relativePathOfModel = Path.Combine("Pants", modelFolder.Name);
-                PantsModel? model = contentPack.ReadJsonFile<PantsModel>(Path.Combine(relativePathOfModel, "pants.json"));
-                if (model == null)
-                {
-                    Log.Debug("Couldn't read pants.json for content pack");
-                    continue;
-                }
-
-                model.Id = $"{contentPack.Manifest.UniqueID}/{modelFolder.Name}";
-                model.TexturePath = Path.Combine(contentPack.DirectoryPath, relativePathOfModel, "pants.png");
-
-                Log.Trace($"Pants model added: {model.Id}");
-                this.Pants[model.Id] = model;
+                PantsModel? model = this.LoadAppearanceModel<PantsModel>(contentPack, modelFolder.Name);
+                if (model != null) 
+                    Mod.CharacterFactory.Pants[model.Id] = model;
             }
         }
 
         if (shoesFolder.Exists)
         {
             DirectoryInfo[] shoesModels = shoesFolder.GetDirectories("*", SearchOption.TopDirectoryOnly);
-
-            // Load shoes
             foreach (DirectoryInfo modelFolder in shoesModels)
             {
-                string relativePathOfModel = Path.Combine("Shoes", modelFolder.Name);
-                ShoesModel? model = contentPack.ReadJsonFile<ShoesModel>(Path.Combine(relativePathOfModel, "shoes.json"));
-                if (model == null)
-                {
-                    Log.Debug("Couldn't read shoes.json for content pack");
-                    continue;
-                }
-
-                model.Id = $"{contentPack.Manifest.UniqueID}/{modelFolder.Name}";
-                model.TexturePath = Path.Combine(contentPack.DirectoryPath, relativePathOfModel, "shoes.png");
-
-                Log.Trace($"Shoes model added: {model.Id}");
-                this.Shoes[model.Id] = model;
+                ShoesModel? model = this.LoadAppearanceModel<ShoesModel>(contentPack, modelFolder.Name);
+                if (model != null) 
+                    Mod.CharacterFactory.Shoes[model.Id] = model;
             }
         }
 
         if (accessoriesFolder.Exists)
         {
             DirectoryInfo[] accessoryModels = accessoriesFolder.GetDirectories("*", SearchOption.TopDirectoryOnly);
-
-            // Load accessories
             foreach (DirectoryInfo modelFolder in accessoryModels)
             {
-                string relativePathOfModel = Path.Combine("Accessories", modelFolder.Name);
-                AccessoryModel? model = contentPack.ReadJsonFile<AccessoryModel>(Path.Combine(relativePathOfModel, "accessory.json"));
-                if (model == null)
-                {
-                    Log.Debug("Couldn't read accessory.json for content pack");
-                    continue;
-                }
-
-                model.Id = $"{contentPack.Manifest.UniqueID}/{modelFolder.Name}";
-                model.TexturePath = Path.Combine(contentPack.DirectoryPath, relativePathOfModel, "accessory.png");
-
-                Log.Trace($"Accessory model added: {model.Id}");
-                this.Accessories[model.Id] = model;
+                AccessoryModel? model = this.LoadAppearanceModel<AccessoryModel>(contentPack, modelFolder.Name);
+                if (model != null) 
+                    Mod.CharacterFactory.Accessories[model.Id] = model;
             }
         }
 
+        // Load outfits
         if (outfitsFolder.Exists)
         {
             DirectoryInfo[] outfitModels = outfitsFolder.GetDirectories("*", SearchOption.TopDirectoryOnly);
-
-            // Load outfits
             foreach (DirectoryInfo modelFolder in outfitModels)
             {
-                string relativePathOfModel = Path.Combine("Outfits", modelFolder.Name);
-                OutfitModel? model = contentPack.ReadJsonFile<OutfitModel>(Path.Combine(relativePathOfModel, "outfit.json"));
-                if (model == null)
-                {
-                    Log.Debug("Couldn't read outfit.json for content pack");
-                    continue;
-                }
-
-                model.Id = $"{contentPack.Manifest.UniqueID}/{modelFolder.Name}";
-                model.TexturePath = Path.Combine(contentPack.DirectoryPath, relativePathOfModel, "outfit.png");
-
-                Log.Trace($"Outfit model added: {model.Id}");
-                this.Outfits[model.Id] = model;
+                OutfitModel? model = this.LoadAppearanceModel<OutfitModel>(contentPack, modelFolder.Name);
+                if (model != null) 
+                    Mod.CharacterFactory.Outfits[model.Id] = model;
             }
         }
+    }
+
+    internal T? LoadAppearanceModel<T>(IContentPack contentPack, string modelName) where T : AppearanceModel
+    {
+        string folderName = typeof(T).Name switch
+        {
+            nameof(HairModel) => "Hairstyles",
+            nameof(ShirtModel) => "Shirts",
+            nameof(PantsModel) => "Pants",
+            nameof(OutfitModel) => "Outfits",
+            nameof(ShoesModel) => "Shoes",
+            nameof(AccessoryModel) => "Accessories",
+            _ => throw new ArgumentOutOfRangeException()
+        };
+
+        string filename = typeof(T).Name switch
+        {
+            nameof(HairModel) => "hair",
+            nameof(ShirtModel) => "shirt",
+            nameof(PantsModel) => "pants",
+            nameof(OutfitModel) => "outfit",
+            nameof(ShoesModel) => "shoes",
+            nameof(AccessoryModel) => "accessory",
+            _ => throw new ArgumentOutOfRangeException()
+        };
+
+        string relativePathOfModel = Path.Combine(folderName, modelName);
+        T? model = contentPack.ReadJsonFile<T>(Path.Combine(relativePathOfModel, $"{filename}.json"));
+        if (model == null)
+        {
+            Log.Debug($"Couldn't read {filename}.json for content pack {contentPack.Manifest.UniqueID}");
+            return null;
+        }
+
+        model.Id = $"{contentPack.Manifest.UniqueID}/{modelName}";
+        model.TexturePath = contentPack.ModContent.GetInternalAssetName(Path.Combine(relativePathOfModel, $"{filename}.png")).Name;
+        model.ContentPack = contentPack;
+
+        Log.Trace($"{folderName} model added: {model.Id}");
+
+        return model;
     }
 
     internal void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
@@ -225,9 +189,9 @@ internal class AssetManager
             DirectoryInfo schedulesFolder = new DirectoryInfo(Path.Combine(this._modHelper.DirectoryPath, "assets", "VillagerSchedules"));
             foreach (FileInfo file in schedulesFolder.GetFiles())
             {
-                string name = file.Name.Replace(".json", "");
                 VillagerCustomerModel model = this._modHelper.ModContent.Load<VillagerCustomerModel>(file.FullName);
-                data[name] = model;
+                string npcName = file.Name.Replace(".json", "");
+                data[npcName] = model;
             }
 
             e.LoadFrom(() => data, AssetLoadPriority.Medium);
@@ -261,6 +225,27 @@ internal class AssetManager
         {
             e.LoadFromModFile<Texture2D>(Path.Combine("assets", "Buildings", "Signboard", "signboard.png"), AssetLoadPriority.Low);
         }
+
+        else if (e.Name.StartsWith(ModKeys.GENERATED_SPRITE_PREFIX))
+        {
+            string id = e.Name.Name.Substring(ModKeys.GENERATED_SPRITE_PREFIX.Length + 1);
+            if (Mod.Cafe.GeneratedSprites.ContainsKey(id))
+            {
+                Texture2D? sprite = Mod.Cafe.GeneratedSprites[id].Sprite;
+                if (sprite == null)
+                {
+                    Log.Error("Couldn't load texture from generated sprite data!");
+                }
+                else
+                {
+                    e.LoadFrom(() => sprite, AssetLoadPriority.Exclusive);
+                }
+            }
+            else
+            {
+                Log.Error($"Couldn't find generate sprite data for guid {id}");
+            }
+        }
     }
 
     internal void OnAssetReady(object? sender, AssetReadyEventArgs e)
@@ -272,8 +257,15 @@ internal class AssetManager
         }
     }
 
-    internal List<CustomerModel> GetRandomCustomerModels(int count = 1)
+    internal void LoadContent(IContentPack defaultContent)
     {
-        return this.Customers.Values.OrderBy(_ => Game1.random.Next()).Take(count).ToList();
+        this.VillagerVisitors = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(ModKeys.ASSETS_NPCSCHEDULE);
+
+        // Load default content pack included in assets folder
+        this.LoadContentPack(defaultContent);
+
+        // Load content packs
+        foreach (IContentPack contentPack in this._modHelper.ContentPacks.GetOwned())
+            this.LoadContentPack(contentPack);
     }
 }

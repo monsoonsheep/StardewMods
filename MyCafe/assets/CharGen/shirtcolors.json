@@ -1,0 +1,21 @@
+[
+	// Green main, multiply variations
+	{
+		"Main": [96, 188, 68],
+		"Multipliers": [
+			[188, 143, 135],
+			[213, 30, 70],
+			[72, 60, 213],
+		]
+	},
+
+	// Brown variations
+	{
+		"Main": [136, 105, 67],
+		"Multipliers": [
+			[188, 143, 135],
+			[136, 78, 67],
+			[182, 100, 104]
+		]
+	},
+]

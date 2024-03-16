@@ -36,7 +36,8 @@ public class Cafe : INetObject<NetFields>
     public readonly NetInt ClosingTime = new(2200);
     public readonly NetRef<MenuInventory> NetMenu = new(new MenuInventory());
 
-    internal AssetManager Assets;
+    public readonly NetStringDictionary<GeneratedSpriteData, NetRef<GeneratedSpriteData>> GeneratedSprites = new();
+
     internal CustomerManager Customers = null!;
 
     internal MenuInventory Menu => this.NetMenu.Value;
@@ -68,19 +69,19 @@ public class Cafe : INetObject<NetFields>
     {
         this.NetFields.SetOwner(this)
             .AddField(this.OpeningTime).AddField(this.ClosingTime).AddField(this.NetTables).AddField(this.CafeEnabled).AddField(this.CafeIndoor.NetFields)
-            .AddField(this.CafeOutdoor.NetFields).AddField(this.NetMenu);
-        this.Assets = Mod.Instance.Assets;
-    }
-
-    internal void Initialize(IModHelper helper)
-    {
-        this.Customers = new CustomerManager(this.Assets);
+            .AddField(this.CafeOutdoor.NetFields).AddField(this.NetMenu).AddField(this.GeneratedSprites);
+        this.GeneratedSprites.OnValueRemoved += (id, data) => data.Dispose();
         this.NetTables.OnValueAdded += table =>
             table.State.fieldChangeVisibleEvent += (_, oldValue, newValue) => this.OnTableStateChange(table, new TableStateChangedEventArgs()
             {
                 OldValue = oldValue,
                 NewValue = newValue
             });
+    }
+
+    internal void InitializeForHost(IModHelper helper)
+    {
+        this.Customers = new CustomerManager();
     }
 
     internal void DayUpdate()
@@ -285,7 +286,7 @@ public class Cafe : INetObject<NetFields>
 
     internal void OnTableStateChange(object sender, TableStateChangedEventArgs e)
     {
-        if (e.OldValue == e.NewValue)
+        if (!Context.IsMainPlayer || e.OldValue == e.NewValue)
             return;
 
         Table table = (Table) sender;
@@ -338,7 +339,7 @@ public class Cafe : INetObject<NetFields>
 
     internal Table? GetFreeTable(int minSeats = 1)
     {
-        return this.Tables.Where(t => !t.IsReserved && t.Seats.Count >= minSeats).MinBy(_ => Game1.random.Next());
+        return this.Tables.PickRandomWhere(t => !t.IsReserved && t.Seats.Count >= minSeats);
     }
 
     internal Table GetTableOfSeat(Seat seat)

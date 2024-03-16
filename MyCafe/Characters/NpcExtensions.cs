@@ -221,7 +221,7 @@ public static class NpcExtensions
 
     internal static void ReturnToSchedule(this NPC npc)
     {
-        var activityTimes = npc.Schedule.Keys.OrderBy(i => i).ToList();
+        List<int> activityTimes = npc.Schedule.Keys.OrderBy(i => i).ToList();
         int timeOfCurrent = activityTimes.LastOrDefault(t => t <= Game1.timeOfDay);
         int timeOfNext = activityTimes.FirstOrDefault(t => t > Game1.timeOfDay);
         int minutesSinceCurrentStarted = SUtility.CalculateMinutesBetweenTimes(timeOfCurrent, Game1.timeOfDay);

@@ -44,7 +44,7 @@ internal class CharacterPatcher : BasePatcher
 
     private static bool Before_ChooseAppearance(NPC __instance, LocalizedContentManager content)
     {
-        if (__instance.Name.StartsWith("CustomerNPC"))
+        if (__instance.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX))
             return false;
 
         return true;

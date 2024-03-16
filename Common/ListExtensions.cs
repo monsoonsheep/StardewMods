@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace MonsoonSheep.Stardew.Common
 {
@@ -36,6 +38,21 @@ namespace MonsoonSheep.Stardew.Common
 
             value = list[index]!;
             return true;
+        }
+
+        public static List<T> PickRandom<T>(this IList<T> list, int count)
+        {
+            return list.OrderBy(_ => new Random().Next(0, list.Count)).Take(count).ToList();
+        }
+
+        public static T? PickRandom<T>(this IList<T> list)
+        {
+            return list.MinBy(_ => new Random().Next(0, list.Count));
+        }
+
+        public static T? PickRandomWhere<T>(this IList<T> list, Func<T, bool> predicate)
+        {
+            return list.Where(predicate).MinBy(_ => new Random().Next(0, list.Count));
         }
     }
 }

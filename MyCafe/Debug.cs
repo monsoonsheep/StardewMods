@@ -16,7 +16,7 @@ using MyCafe.LiveChatIntegration;
 
 namespace MyCafe;
 
-internal class Debug
+internal static class Debug
 {
     public static void ButtonPress(object? sender, ButtonPressedEventArgs e)
     {
@@ -80,6 +80,12 @@ internal class Debug
         });
     }
 #endif
+
+    
+    internal static Item SetTestItemForOrder(NPC customer)
+    {
+        return ItemRegistry.Create<StardewValley.Object>("(O)128");
+    }
 
     public static void SetMenuItems()
     {

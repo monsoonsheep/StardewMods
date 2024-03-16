@@ -15,7 +15,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IInvariantSet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\MutableInvariantSet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CommonHelper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Enums\TreeType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DrawHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GameI18n.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Items\SearchableItem.cs" />
@@ -33,5 +32,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\InvariantSet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ObjectReferenceComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SetExtensions.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)Enums\" />
   </ItemGroup>
 </Project>

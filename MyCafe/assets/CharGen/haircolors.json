@@ -1,0 +1,51 @@
+[
+	// Orange + dark + slightly more brown version
+	{
+		"Main": [255, 147, 0],
+		"Secondary": [112, 4, 0],
+		"Multipliers": [
+			[171, 101, 68],
+			[178, 162, 146]
+		]
+	},
+	
+	// Light brown (less saturated)
+	{
+		"Main": [153, 78, 26],
+		"Secondary": [81, 33, 31]
+	},
+
+	// Ghibli tree greens
+	{
+		"Main": [16, 145, 52],
+		"Secondary": [16, 94, 77],
+		"Multipliers": [
+			[103, 171, 171]
+		]
+	},
+
+	// Painter's white
+	{
+		"Main": [238, 217, 219],
+		"Secondary": [107, 96, 99]
+	},
+
+	// Brownish blonde
+	{
+		"Main": [255, 199, 79],
+		"Secondary": [86, 37, 32]
+	},
+
+	// Dark collection
+	{
+		"Main": [59, 14, 60],
+		"Secondary": [49, 0, 37],
+		"Multipliers": [
+			[64, 54, 87],
+			[87, 50, 57],
+			[171, 152, 74],
+			[171, 101, 68],
+			[103, 171, 171]
+		]
+	}
+]

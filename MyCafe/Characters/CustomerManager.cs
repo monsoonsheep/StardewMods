@@ -13,6 +13,7 @@ using MyCafe.Interfaces;
 using SUtility = StardewValley.Utility;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
+using MonsoonSheep.Stardew.Common;
 using MyCafe.Data.Models;
 using StardewValley.Pathfinding;
 
@@ -21,14 +22,12 @@ namespace MyCafe.Characters;
 internal sealed class CustomerManager
 {
     internal List<CustomerGroup> ActiveGroups = [];
-    private readonly AssetManager _assetManager;
 
     internal readonly Dictionary<string, VillagerCustomerData> VillagerData = new();
 
-    internal CustomerManager(AssetManager assets)
+    internal CustomerManager()
     {
-        this._assetManager = assets;
-        foreach (var model in this._assetManager.VillagerVisitors)
+        foreach (var model in Mod.Assets.VillagerVisitors)
         {
             this.VillagerData[model.Key] = new VillagerCustomerData(model.Value);
             // TODO Load from save (pass in thru constructor)
@@ -78,7 +77,7 @@ internal sealed class CustomerManager
         }
         
         foreach (NPC c in group.Members)
-            c.get_OrderItem().Set(this.SetTestItemForOrder(c));
+            c.get_OrderItem().Set(Debug.SetTestItemForOrder(c));
 
         group.AddToBusStop();
 
@@ -106,18 +105,7 @@ internal sealed class CustomerManager
             return null;
         }
 
-        List<NPC> npcs = [];
-        foreach (VillagerCustomerData d in data)
-        {
-            NPC? n = d.Npc;
-            if (n == null)
-            {
-                Log.Error($"Villager data can't get real NPC for {d.Model.NpcName}");
-                return null;
-            }
-
-            npcs.Add(n);
-        }
+        List<NPC> npcs = data.Select(d => d.Npc).ToList();
 
         CustomerGroup group = new CustomerGroup(npcs);
 
@@ -125,7 +113,7 @@ internal sealed class CustomerManager
             return null;
 
         foreach (NPC c in group.Members)
-            c.get_OrderItem().Set(this.SetTestItemForOrder(c));
+            c.get_OrderItem().Set(Debug.SetTestItemForOrder(c));
 
         try
         {
@@ -150,12 +138,8 @@ internal sealed class CustomerManager
 
         for (int i = 0; i < count; i++)
         {
-            CustomerModel? model;
-
-            if (Game1.random.Next(4) == 1)
-                model = this._assetManager.Customers.Values.Where(m => !models.Contains(m)).MinBy(_ => Game1.random.Next());
-            else
-                model = null;
+            CustomerModel model = Mod.CharacterFactory.CreateRandomCustomer(); // Generate from CharGen
+            models.Add(model);
         }
 
         if (!models.Any())
@@ -168,7 +152,10 @@ internal sealed class CustomerManager
             {
                 Texture2D portrait = Game1.content.Load<Texture2D>(model.Portrait);
                 AnimatedSprite sprite = new AnimatedSprite(model.Spritesheet, 0, 16, 32);
-                NPC c = new NPC(sprite, new Vector2(10, 12) * 64f, "BusStop", 2, $"CustomerNPC_{model.Name}", false, portrait);
+                NPC c = new NPC(sprite, new Vector2(10, 12) * 64f, "BusStop", 2, $"{ModKeys.CUSTOMER_NPC_NAME_PREFIX}{model.Name}", false, portrait)
+                {
+                    Gender = Utility.CustomGenderToGameGender(model.Gender)
+                };
                 customers.Add(c);
             }
             catch (Exception e)
@@ -181,15 +168,9 @@ internal sealed class CustomerManager
         return customers;
     }
 
-    internal Item SetTestItemForOrder(NPC customer)
-    {
-        return ItemRegistry.Create<StardewValley.Object>("(O)128");
-    }
-
-    
     internal VillagerCustomerData[] GetAvailableVillagerCustomers(int count)
     {
-        foreach (var data in this.VillagerData.OrderBy(_ => Game1.random.Next()))
+        foreach (KeyValuePair<string, VillagerCustomerData> data in this.VillagerData.OrderBy(_ => Game1.random.Next()))
         {
             NPC npc = data.Value.Npc;
 
@@ -245,7 +226,6 @@ internal sealed class CustomerManager
         return true;
     }
 
-    
     internal void EndCustomers(CustomerGroup group, bool force = false)
     {
         Log.Debug($"Removing customers{(force ? " By force" : "")}");
@@ -269,9 +249,8 @@ internal sealed class CustomerManager
             }
             catch (PathNotFoundException e)
             {
-                Log.Error("Couldn't return customers to bus stop");
-                foreach (NPC c in group.Members)
-                    c.currentLocation.characters.Remove(c);
+                Log.Error($"Couldn't return customers to bus stop\n{e.Message}\n{e.StackTrace}");
+                this.EndCustomers(group, force: true);
             }
         }
     }
@@ -279,8 +258,6 @@ internal sealed class CustomerManager
     internal void RemoveAllCustomers()
     {
         for (int i = this.ActiveGroups.Count - 1; i >= 0; i--)
-        {
-            this.EndCustomers(this.ActiveGroups[i]);
-        }
+            this.EndCustomers(this.ActiveGroups[i], force: true);
     }
 }
