@@ -154,6 +154,7 @@ public class GeneratedSpriteData : INetObject<NetFields>, IDisposable
 
         if (pants != null)
             layers.Add(pants.Data);
+
         if (shirt != null)
             layers.Add(shirt.Data);
 

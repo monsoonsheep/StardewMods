@@ -19,7 +19,7 @@ namespace MyCafe.Characters;
 internal class CharacterFactory
 {
     private readonly IModHelper _modHelper;
-    internal static int LUMINOSITY_THRESHOLD_FOR_SECONDARY_COLOR = 100;
+    internal static int LUMINOSITY_THRESHOLD_FOR_SECONDARY_COLOR = 50;
 
     internal Dictionary<string, CustomerModel> Customers = [];
     internal Dictionary<string, HairModel> Hairstyles = [];
@@ -35,8 +35,6 @@ internal class CharacterFactory
     internal List<AppearancePaint> HairColors = [];
     internal List<AppearancePaint> ShirtColors = [];
     internal List<AppearancePaint> PantsColors = [];
-
-    private readonly Dictionary<Color, int> _luminosityCache = new Dictionary<Color, int>();
 
     internal CharacterFactory(IModHelper helper)
     {

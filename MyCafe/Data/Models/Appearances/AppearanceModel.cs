@@ -61,63 +61,53 @@ public class AppearanceModel
     {
         IRawTextureData texData = this.ContentPack.ModContent.Load<IRawTextureData>(this.TexturePath);
 
-        if (this.ConstantColor || colors?.Count != 3)
+        if (this.ConstantColor || colors?.Count != 3 || colors[0] == Color.Transparent)
             return texData;
 
         Log.Trace($"Painting {this.GetType().Name} with color {colors[0]}, secondary {colors[1]}, multiplier {colors[2]}");
-        this.Paint(texData.Data, colors[0], colors[1], colors[2]);
-        return texData;
-    }
 
-    internal void Paint(Color[] texture, Color color, Color secondary, Color multiplier)
-    {
-        if (color == Color.Transparent)
-            return;
+        Color color = colors[0];
+        Color secondary = colors[1];
+        Color multiplier = colors[2];
 
-        Dictionary<Color, double> luminosities = [];
-        double colorLum = Utility.GetLuminosityBasicAlternative(color);
-        double secondaryLum = Utility.GetLuminosityBasicAlternative(secondary);
+        Dictionary<Color, float> luminosities = [];
+        float colorLum = Utility.GetLuminosityBasicAlternative(color);
+        float secondaryLum = Utility.GetLuminosityBasicAlternative(secondary);
 
         bool hasSecondary = secondary != Color.Transparent;
-        bool hasMultiplier = multiplier != Color.Transparent;
+        if (multiplier == Color.Transparent)
+            multiplier = Color.White;
 
-        for (int i = 0; i < texture.Length; i++)
+        float[] multiply = [multiplier.R / 255f, multiplier.G / 255f, multiplier.B / 255f];
+
+        for (int i = 0; i < texData.Data.Length; i++)
         {
-            Color pixel = texture[i];
+            Color pixel = texData.Data[i];
 
             if (pixel == Color.Transparent || this.IsMaskedColor(pixel))
                 continue;
 
-            if (!luminosities.TryGetValue(pixel, out double backLum))
+            if (!luminosities.TryGetValue(pixel, out float backLum))
             {
                 backLum = Utility.GetLuminosityBasicAlternative(pixel);
                 luminosities[pixel] = backLum;
             }
 
-            int delta = (int) ((backLum - (hasSecondary ? secondaryLum : colorLum)) * 255);
-            Color newColor = hasMultiplier ? this.CalculateNewColor(color, multiplier, delta) : this.CalculateNewColor(color, delta);
-            texture[i] = newColor;
+            int delta = (int) ((backLum - ((hasSecondary && backLum < CharacterFactory.LUMINOSITY_THRESHOLD_FOR_SECONDARY_COLOR) ? secondaryLum : colorLum)) * 255);
+            Color newColor = CalculateNewColor(color, multiply, delta);
+            texData.Data[i] = newColor;
         }
-    }
 
-    private Color CalculateNewColor(Color color, Color m, int delta)
-    {
-        float[] multiply = [m.R / 255f, m.G / 255f, m.B / 255f];
+        return texData;
 
-        return new Color(
-            r: (int) ((color.R + delta) * multiply[0]),
-            g: (int) ((color.G + delta) * multiply[1]),
-            b: (int) ((color.B + delta) * multiply[2]),
-            alpha: color.A
+        Color CalculateNewColor(Color c, float[] m, int delta)
+        {
+            return new Color(
+                r: (int) ((c.R + delta) * m[0]),
+                g: (int) ((c.G + delta) * m[1]),
+                b: (int) ((c.B + delta) * m[2]),
+                alpha: c.A
             );
-    }
-
-    private Color CalculateNewColor(Color color, int delta)
-    {
-        return new Color(
-            r: color.R + delta,
-            g: color.G + delta,
-            b: color.B + delta,
-            alpha: color.A);
+        }
     }
 }

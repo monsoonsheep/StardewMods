@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
@@ -275,6 +276,12 @@ public static class NpcExtensions
         npc.queuedSchedulePaths.Clear();
         npc.Schedule[Game1.timeOfDay] = toInsert;
         npc.checkSchedule(Game1.timeOfDay);
+    }
+
+    public static void Delete(this NPC me)
+    {
+        me.currentLocation?.characters.Remove(me);
+        Mod.Cafe.Customers.TryRemoveRandomNpcData(me.Name);
     }
 
 }

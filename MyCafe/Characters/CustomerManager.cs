@@ -16,6 +16,7 @@ using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common;
 using MyCafe.Data.Models;
 using StardewValley.Pathfinding;
+using System.Text.RegularExpressions;
 
 namespace MyCafe.Characters;
 
@@ -61,7 +62,7 @@ internal sealed class CustomerManager
 
     internal CustomerGroup? SpawnRandomCustomers(Table table)
     {
-        List<NPC>? npcs = this.CreateRandomCustomerGroup(1);
+        List<NPC>? npcs = this.CreateRandomCustomerGroup(Game1.random.Next(1, table.Seats.Count + 1));
         if (npcs == null)
         {
             Log.Debug("No random customers can be created.");
@@ -73,14 +74,20 @@ internal sealed class CustomerManager
         if (group.ReserveTable(table) == false)
         {
             Log.Debug("Couldn't reserve table for random customers");
+            this.EndCustomers(group, force: true);
             return null;
         }
         
         foreach (NPC c in group.Members)
             c.get_OrderItem().Set(Debug.SetTestItemForOrder(c));
 
-        group.AddToBusStop();
-
+        GameLocation busStop = Game1.getLocationFromName("BusStop");
+        foreach (NPC c in group.Members)
+        {
+            busStop.addCharacter(c);
+            c.Position = new Vector2(33, 9) * 64;
+        }
+        
         try
         {
             group.GoToTable();
@@ -130,42 +137,6 @@ internal sealed class CustomerManager
         }
         
         return group;
-    }
-
-    internal List<NPC>? CreateRandomCustomerGroup(int count)
-    {
-        List<CustomerModel> models = [];
-
-        for (int i = 0; i < count; i++)
-        {
-            CustomerModel model = Mod.CharacterFactory.CreateRandomCustomer(); // Generate from CharGen
-            models.Add(model);
-        }
-
-        if (!models.Any())
-            return null;
-
-        List<NPC> customers = [];
-        foreach (CustomerModel model in models)
-        {
-            try
-            {
-                Texture2D portrait = Game1.content.Load<Texture2D>(model.Portrait);
-                AnimatedSprite sprite = new AnimatedSprite(model.Spritesheet, 0, 16, 32);
-                NPC c = new NPC(sprite, new Vector2(10, 12) * 64f, "BusStop", 2, $"{ModKeys.CUSTOMER_NPC_NAME_PREFIX}{model.Name}", false, portrait)
-                {
-                    Gender = Utility.CustomGenderToGameGender(model.Gender)
-                };
-                customers.Add(c);
-            }
-            catch (Exception e)
-            {
-                Log.Error($"Error creating character {model.Name}: {e.Message}\n{e.StackTrace}");
-                return null;
-            }
-        }
-
-        return customers;
     }
 
     internal VillagerCustomerData[] GetAvailableVillagerCustomers(int count)
@@ -226,6 +197,31 @@ internal sealed class CustomerManager
         return true;
     }
 
+    internal List<NPC>? CreateRandomCustomerGroup(int count)
+    {
+        List<CustomerModel> models = [];
+
+        for (int i = 0; i < count; i++)
+        {
+            CustomerModel model = Mod.CharacterFactory.CreateRandomCustomer(); // Generate from CharGen
+            models.Add(model);
+        }
+
+        if (!models.Any())
+            return null;
+
+        List<NPC> customers = [];
+        foreach (CustomerModel model in models)
+        {
+            Texture2D portrait = Game1.content.Load<Texture2D>(model.Portrait);
+            AnimatedSprite sprite = new AnimatedSprite(model.Spritesheet, 0, 16, 32);
+            NPC c = new NPC(sprite, new Vector2(10, 12) * 64f, "BusStop", 2, model.Name, false, portrait);
+            customers.Add(c);
+        }
+
+        return customers;
+    }
+
     internal void EndCustomers(CustomerGroup group, bool force = false)
     {
         Log.Debug($"Removing customers{(force ? " By force" : "")}");
@@ -236,7 +232,7 @@ internal sealed class CustomerManager
         if (force)
         {
             foreach (NPC c in group.Members)
-                c.currentLocation.characters.Remove(c);
+                c.Delete();
         }
         else
         {
@@ -245,7 +241,7 @@ internal sealed class CustomerManager
                 group.MoveTo(
                     Game1.getLocationFromName("BusStop"),
                     new Point(33, 9),
-                    (c, loc) => loc.characters.Remove(c as NPC));
+                    (c, loc) => (c as NPC)!.Delete());
             }
             catch (PathNotFoundException e)
             {
@@ -259,5 +255,17 @@ internal sealed class CustomerManager
     {
         for (int i = this.ActiveGroups.Count - 1; i >= 0; i--)
             this.EndCustomers(this.ActiveGroups[i], force: true);
+    }
+
+    internal void TryRemoveRandomNpcData(string name)
+    {
+        Match findRandomGuid = new Regex($@"{ModKeys.CUSTOMER_NPC_NAME_PREFIX}Random(.*)").Match(name);
+        if (findRandomGuid.Success)
+        {
+            Log.Trace("Deleting random customer and its generated sprite");
+            string guid = findRandomGuid.Groups[1].Value;
+            if (Mod.Cafe.GeneratedSprites.Remove(guid) == false)
+                Log.Trace("Tried to remove GUID for random customer but it wasn't registered.");
+        }
     }
 }

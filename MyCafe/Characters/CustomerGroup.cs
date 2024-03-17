@@ -18,7 +18,8 @@ public class CustomerGroup
 
     internal CustomerGroup(List<NPC> members)
     {
-        foreach (var m in members) this.AddMember(m);
+        foreach (var m in members)
+            this.AddMember(m);
     }
 
     internal void AddMember(NPC member)
@@ -27,17 +28,7 @@ public class CustomerGroup
         this.Members.Add(member);
     }
 
-    internal void AddToBusStop()
-    {
-        GameLocation busStop = Game1.getLocationFromName("BusStop");
-        foreach (NPC c in this.Members)
-        {
-            busStop.addCharacter(c);
-            c.Position = new Vector2(33, 9) * 64;
-        }
-    }
-
-
+    
     internal bool ReserveTable(Table table)
     {
         if (table.Reserve(this.Members))
@@ -86,8 +77,6 @@ public class CustomerGroup
                 }
             }
         }
-
-        return;
     }
 
     internal void StartEating()

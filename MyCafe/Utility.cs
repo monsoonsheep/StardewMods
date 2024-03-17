@@ -72,7 +72,7 @@ internal static class Utility
 
     internal static float GetLuminosityBasic(Color color)
     {
-        return color.R * 0.3f + color.G * 0.59f + color.B * 0.11f;
+        return (color.R / 255f) * 0.3f + (color.G / 255f) * 0.59f + (color.B / 255f) * 0.11f;
     }
 
     internal static float GetLuminosityBasicAlternative(Color color)
@@ -89,4 +89,6 @@ internal static class Utility
         
         return (0.2126f * channels[0]) + (0.7152f * channels[1]) + (0.0722f * channels[2]);
     }
+
+    
 }

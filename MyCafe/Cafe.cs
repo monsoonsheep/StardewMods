@@ -68,8 +68,8 @@ public class Cafe : INetObject<NetFields>
     public Cafe()
     {
         this.NetFields.SetOwner(this)
-            .AddField(this.OpeningTime).AddField(this.ClosingTime).AddField(this.NetTables).AddField(this.CafeEnabled).AddField(this.CafeIndoor.NetFields)
-            .AddField(this.CafeOutdoor.NetFields).AddField(this.NetMenu).AddField(this.GeneratedSprites);
+            .AddField(this.OpeningTime, "OpeningTime").AddField(this.ClosingTime, "ClosingTime").AddField(this.NetTables, "NetTables").AddField(this.CafeEnabled, "CafeEnabled").AddField(this.CafeIndoor.NetFields, "CafeIndoor.NetFields")
+            .AddField(this.CafeOutdoor.NetFields, "CafeOutdoor.NetFields").AddField(this.NetMenu, "NetMenu").AddField(this.GeneratedSprites, "GeneratedSprites");
         this.GeneratedSprites.OnValueRemoved += (id, data) => data.Dispose();
         this.NetTables.OnValueAdded += table =>
             table.State.fieldChangeVisibleEvent += (_, oldValue, newValue) => this.OnTableStateChange(table, new TableStateChangedEventArgs()
@@ -236,7 +236,8 @@ public class Cafe : INetObject<NetFields>
 
     internal bool TryGetFurnitureTable(Furniture table, out FurnitureTable result)
     {
-        return (result = Mod.Cafe.Tables.OfType<FurnitureTable>().FirstOrDefault(t => t.ActualTable.Value == table)!
+        return (result =
+                Mod.Cafe.Tables.OfType<FurnitureTable>().FirstOrDefault(t => t.ActualTable.Value == table)!
             ) != null;
     }
 
@@ -374,7 +375,7 @@ public class Cafe : INetObject<NetFields>
             return true;
         });
 
-        if (!foundIndoor)
+        if (foundIndoor == false)
         {
             SUtility.ForEachLocation(delegate (GameLocation loc)
             {

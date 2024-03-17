@@ -228,23 +228,17 @@ internal class AssetManager
 
         else if (e.Name.StartsWith(ModKeys.GENERATED_SPRITE_PREFIX))
         {
-            string id = e.Name.Name.Substring(ModKeys.GENERATED_SPRITE_PREFIX.Length + 1);
+            string id = e.Name.Name[(ModKeys.GENERATED_SPRITE_PREFIX.Length + 1)..];
             if (Mod.Cafe.GeneratedSprites.ContainsKey(id))
             {
                 Texture2D? sprite = Mod.Cafe.GeneratedSprites[id].Sprite;
                 if (sprite == null)
-                {
                     Log.Error("Couldn't load texture from generated sprite data!");
-                }
                 else
-                {
                     e.LoadFrom(() => sprite, AssetLoadPriority.Exclusive);
-                }
             }
             else
-            {
                 Log.Error($"Couldn't find generate sprite data for guid {id}");
-            }
         }
     }
 
