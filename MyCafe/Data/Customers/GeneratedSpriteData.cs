@@ -46,94 +46,45 @@ public class GeneratedSpriteData : INetObject<NetFields>, IDisposable
             .AddField(this.ShoesId).AddField(this.AccessoryId).AddField(this.OutfitId).AddField(this.OutfitColors);
     }
 
-    internal GeneratedSpriteData(string guid) : this()
+    public GeneratedSpriteData(string guid) : this()
     {
         this.Guid.Set(guid);
     }
 
-    internal void SetAppearance<T>(AppearanceModel model, Color[]? colors = null) where T: AppearanceModel
+    /// <summary>
+    /// Set the appearance of the given type to the given model and set the corresponding color data in this object
+    /// </summary>
+    /// <typeparam name="T">The type of model inheriting from <see cref="AppearanceModel"/></typeparam>
+    /// <param name="id">The <see cref="AppearanceModel.Id"/> for the model</param>
+    /// <param name="colors">An array of 3 colors: The main color, the secondary darker color, and the multiplier, in that order</param>
+    internal void SetAppearance<T>(string id, Color[]? colors = null) where T: AppearanceModel
     {
-        NetString field = this.GetModelId<T>();
-        field.Set(model.Id);
+        NetString modelField = this.GetModelIdField<T>();
+        modelField.Set(id);
+
         if (colors != null)
-            this.GetColors<T>()?.Set(colors);
-    }
-
-    private NetString GetModelId<T>() where T : AppearanceModel
-    {
-        NetString field = (typeof(T).Name switch
         {
-            nameof(HairModel) => this.HairId,
-            nameof(ShirtModel) => this.ShirtId,
-            nameof(PantsModel) => this.PantsId,
-            nameof(OutfitModel) => this.OutfitId,
-            nameof(ShoesModel) => this.ShoesId,
-            nameof(AccessoryModel) => this.AccessoryId,
-            _ => throw new ArgumentOutOfRangeException(nameof(T), "Bad type given. How has this occurred?")
-        })!;
-        return field;
-    }
-
-    internal NetArray<Color, NetColor>? GetColors<T>() where T : AppearanceModel
-    {
-        return typeof(T).Name switch
-        {
-            nameof(HairModel) => this.HairColors,
-            nameof(ShirtModel) => this.ShirtColors,
-            nameof(PantsModel) => this.PantsColors,
-            nameof(OutfitModel) => this.OutfitColors,
-            _ => null
-        };
-    }
-
-    internal IRawTextureData? GetTexture<T>() where T : AppearanceModel
-    {
-        return this.GetModel<T>()?.GetTexture(this.GetColors<T>());
-    }
-
-    internal T? GetModel<T>() where T : AppearanceModel
-    {
-        string id = this.GetModelId<T>().Value;
-        return Mod.CharacterFactory.GetModel<T>(id);
-    }
-
-    internal IRawTextureData GetBody()
-    {
-        IRawTextureData BodyBase = Mod.CharacterFactory.BodyBase;
-        Color[] data = new Color[BodyBase.Width * BodyBase.Height];
-
-        float[] skinColor = [
-            this.SkinTone.Value.R / 255f,
-            this.SkinTone.Value.G / 255f,
-            this.SkinTone.Value.B / 255f
-        ];
-        
-        for (int i = 0; i < BodyBase.Data.Length; i++)
-        {
-            Color baseColor = BodyBase.Data[i];
-            if (baseColor == Color.Transparent)
-                continue;
-
-            data[i] = new Color((int) (baseColor.R * skinColor[0]), (int) (baseColor.G * skinColor[1]), (int) (baseColor.B * skinColor[2]), baseColor.A);
+            NetArray<Color, NetColor>? colorsField = this.GetColorsField<T>();
+            colorsField?.Set(colors);
         }
-
-        RawTextureData tex = new RawTextureData(data, BodyBase.Width, BodyBase.Height);
-        return tex;
     }
 
+    /// <summary>
+    /// This is called by both the host and clients. Composites the appearance model textures available in this object (synced by net fields) into a <see cref="Texture2D"/>
+    /// </summary>
     internal Texture2D? GenerateTexture()
     {
         IRawTextureData body = this.GetBody();
 
-        IRawTextureData? hair = this.GetTexture<HairModel>();
+        IRawTextureData? hair = this.GetTextureForPart<HairModel>();
 
-        IRawTextureData? shirt = this.GetTexture<ShirtModel>();
-        IRawTextureData? pants = this.GetTexture<PantsModel>();
+        IRawTextureData? shirt = this.GetTextureForPart<ShirtModel>();
+        IRawTextureData? pants = this.GetTextureForPart<PantsModel>();
 
-        IRawTextureData? outfit = this.GetTexture<OutfitModel>();
+        IRawTextureData? outfit = this.GetTextureForPart<OutfitModel>();
 
-        IRawTextureData? shoes = this.GetTexture<ShoesModel>();
-        IRawTextureData? accessory = this.GetTexture<AccessoryModel>();
+        IRawTextureData? shoes = this.GetTextureForPart<ShoesModel>();
+        IRawTextureData? accessory = this.GetTextureForPart<AccessoryModel>();
 
         // Verify not null
         if (!string.IsNullOrEmpty(this.OutfitId.Value) && outfit == null)
@@ -167,42 +118,79 @@ public class GeneratedSpriteData : INetObject<NetFields>, IDisposable
         if (accessory != null)
             layers.Add(accessory.Data);
 
-        Color[] finalData = CompositeTextures(layers);
+        Color[] finalData = Utility.CompositeTextures(layers);
 
         Texture2D finalTexture = new Texture2D(Game1.graphics.GraphicsDevice, body.Width, body.Height);
         finalTexture.SetData(finalData);
         return finalTexture;
     }
 
-    internal static Color[] CompositeTextures(List<Color[]> textures)
+    /// <summary>
+    /// Paint the body base texture with the skin tone set in this object and return it as raw texture data
+    /// </summary>
+    private IRawTextureData GetBody()
     {
-        Color[] finalData = new Color[textures[0].Length];
+        IRawTextureData BodyBase = Mod.CharacterFactory.BodyBase;
+        Color[] data = new Color[BodyBase.Width * BodyBase.Height];
 
-        for (int i = 0; i < textures[0].Length; i++)
+        float[] skinColor = [
+            this.SkinTone.Value.R / 255f,
+            this.SkinTone.Value.G / 255f,
+            this.SkinTone.Value.B / 255f
+        ];
+        
+        for (int i = 0; i < BodyBase.Data.Length; i++)
         {
-            Color below = textures[0][i];
+            Color baseColor = BodyBase.Data[i];
+            if (baseColor == Color.Transparent)
+                continue;
 
-            int r = below.R;
-            int g = below.G;
-            int b = below.B;
-            int a = below.A;
-
-            foreach (Color[] layer in textures)
-            {
-                Color above = layer[i];
-
-                float alphaBelow = 1 - (above.A / 255f);
-
-                r = (int) (above.R + (r * alphaBelow));
-                g = (int) (above.G + (g * alphaBelow));
-                b = (int) (above.B + (b * alphaBelow));
-                a = Math.Max(a, above.A);
-            }
-
-            finalData[i] = new Color(r, g, b, a);
+            data[i] = new Color((int) (baseColor.R * skinColor[0]), (int) (baseColor.G * skinColor[1]), (int) (baseColor.B * skinColor[2]), baseColor.A);
         }
 
-        return finalData;
+        RawTextureData tex = new RawTextureData(data, BodyBase.Width, BodyBase.Height);
+        return tex;
+    }
+
+    /// <summary>
+    /// Returns the texture data set in this object for the given type of appearance model. For example, Calling with HairModel will return the hair texture for this object
+    /// </summary>
+    /// <typeparam name="T">The type of model inheriting from <see cref="AppearanceModel"/></typeparam>
+    private IRawTextureData? GetTextureForPart<T>() where T : AppearanceModel
+    {
+        string id = this.GetModelIdField<T>().Value;
+        AppearanceModel? model = Mod.CharacterFactory.GetModel<T>(id);
+
+        IList<Color>? colors = this.GetColorsField<T>();
+
+        return model?.GetTexture(colors);
+    }
+
+    private NetString GetModelIdField<T>() where T : AppearanceModel
+    {
+        NetString field = (typeof(T).Name switch
+        {
+            nameof(HairModel) => this.HairId,
+            nameof(ShirtModel) => this.ShirtId,
+            nameof(PantsModel) => this.PantsId,
+            nameof(OutfitModel) => this.OutfitId,
+            nameof(ShoesModel) => this.ShoesId,
+            nameof(AccessoryModel) => this.AccessoryId,
+            _ => throw new ArgumentOutOfRangeException(nameof(T), "Bad type given. How has this occurred?")
+        })!;
+        return field;
+    }
+
+    private NetArray<Color, NetColor>? GetColorsField<T>() where T : AppearanceModel
+    {
+        return typeof(T).Name switch
+        {
+            nameof(HairModel) => this.HairColors,
+            nameof(ShirtModel) => this.ShirtColors,
+            nameof(PantsModel) => this.PantsColors,
+            nameof(OutfitModel) => this.OutfitColors,
+            _ => null
+        };
     }
 
     public void Dispose()

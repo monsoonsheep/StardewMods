@@ -16,10 +16,10 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewValley.GameData.Pets;
 
 namespace MyCafe.Characters;
-internal class CharacterFactory
+internal sealed class CharacterFactory
 {
+
     private readonly IModHelper _modHelper;
-    internal static int LUMINOSITY_THRESHOLD_FOR_SECONDARY_COLOR = 50;
 
     internal Dictionary<string, CustomerModel> Customers = [];
     internal Dictionary<string, HairModel> Hairstyles = [];
@@ -28,7 +28,6 @@ internal class CharacterFactory
     internal Dictionary<string, ShoesModel> Shoes = [];
     internal Dictionary<string, AccessoryModel> Accessories = [];
     internal Dictionary<string, OutfitModel> Outfits = [];
-
 
     internal IRawTextureData BodyBase = null!;
     internal List<int[]> SkinTones = [];
@@ -50,21 +49,6 @@ internal class CharacterFactory
         this.PantsColors = this._modHelper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "pantscolors.json"));
     }
 
-    internal ICollection<T> GetCollection<T>() where T : AppearanceModel
-    {
-        ICollection<T> collection = (typeof(T).Name switch
-        {
-            nameof(HairModel) => Mod.CharacterFactory.Hairstyles.Values as ICollection<T>,
-            nameof(ShirtModel) => Mod.CharacterFactory.Shirts.Values as ICollection<T>,
-            nameof(PantsModel) => Mod.CharacterFactory.Pants.Values as ICollection<T>,
-            nameof(OutfitModel) => Mod.CharacterFactory.Outfits.Values as ICollection<T>,
-            nameof(ShoesModel) => Mod.CharacterFactory.Shoes.Values as ICollection<T>,
-            nameof(AccessoryModel) => Mod.CharacterFactory.Accessories.Values as ICollection<T>,
-            _ => throw new ArgumentOutOfRangeException(nameof(T), "Bad type given. How has this occurred?")
-        })!;
-        return collection;
-    }
-
     internal CustomerModel CreateRandomCustomer()
     {
         string guid = Guid.NewGuid().ToString();
@@ -83,9 +67,9 @@ internal class CharacterFactory
         GeneratedSpriteData spriteData = new GeneratedSpriteData(guid);
 
         spriteData.SkinTone.Set(skinTone);
-        spriteData.SetAppearance<HairModel>(hair, hairPaint?.GetRandomPermutation());
-        spriteData.SetAppearance<ShirtModel>(shirt, shirtPaint?.GetRandomPermutation());
-        spriteData.SetAppearance<PantsModel>(pants, pantsPaint?.GetRandomPermutation());
+        spriteData.SetAppearance<HairModel>(hair.Id, hairPaint?.GetRandomPermutation());
+        spriteData.SetAppearance<ShirtModel>(shirt.Id, shirtPaint?.GetRandomPermutation());
+        spriteData.SetAppearance<PantsModel>(pants.Id, pantsPaint?.GetRandomPermutation());
 
         Mod.Cafe.GeneratedSprites[guid] = spriteData;
 
@@ -100,15 +84,29 @@ internal class CharacterFactory
         return model;
     }
 
-    internal T GetRandomAppearance<T>(Gender gender = Gender.Undefined) where T : AppearanceModel
-    {
-        ICollection<T> collection = this.GetCollection<T>();
-        return collection.Where(m => m.MatchesGender(gender)).MinBy(_ => Game1.random.Next())!;
-    }
-
     internal T? GetModel<T>(string id) where T : AppearanceModel
     {
         return this.GetCollection<T>().FirstOrDefault(c => c.Id == id);
     }
 
+    private ICollection<T> GetCollection<T>() where T : AppearanceModel
+    {
+        ICollection<T> collection = (typeof(T).Name switch
+        {
+            nameof(HairModel) => Mod.CharacterFactory.Hairstyles.Values as ICollection<T>,
+            nameof(ShirtModel) => Mod.CharacterFactory.Shirts.Values as ICollection<T>,
+            nameof(PantsModel) => Mod.CharacterFactory.Pants.Values as ICollection<T>,
+            nameof(OutfitModel) => Mod.CharacterFactory.Outfits.Values as ICollection<T>,
+            nameof(ShoesModel) => Mod.CharacterFactory.Shoes.Values as ICollection<T>,
+            nameof(AccessoryModel) => Mod.CharacterFactory.Accessories.Values as ICollection<T>,
+            _ => throw new ArgumentOutOfRangeException(nameof(T), "Bad type given. How has this occurred?")
+        })!;
+        return collection;
+    }
+
+    private T GetRandomAppearance<T>(Gender gender = Gender.Undefined) where T : AppearanceModel
+    {
+        ICollection<T> collection = this.GetCollection<T>();
+        return collection.Where(m => m.MatchesGender(gender)).MinBy(_ => Game1.random.Next())!;
+    }
 }

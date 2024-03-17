@@ -19,6 +19,12 @@ public class AppearanceModel
     public List<int[]> ColorMasks { get; set; } = [];
     public bool ConstantColor { get; set; } = false;
 
+    private const int LUMINOSITY_THRESHOLD_FOR_SECONDARY_COLOR = 74;
+
+    /// <summary>
+    /// Get the <see cref="StardewValley.Gender"/> of the model
+    /// </summary>
+    /// <returns></returns>
     internal Gender GetGender()
     {
         return Utility.CustomGenderToGameGender(this.Gender);
@@ -51,12 +57,19 @@ public class AppearanceModel
         return false;
     }
 
+    /// <summary>
+    /// Returns true if the given gender should be used with this model
+    /// </summary>
     internal bool MatchesGender(Gender gender)
     {
         Gender myGender = Utility.CustomGenderToGameGender(this.Gender);
         return (myGender == gender) || (gender == StardewValley.Gender.Undefined) || (myGender == StardewValley.Gender.Undefined);
     }
-    
+
+    /// <summary>
+    /// Load the model's texture and color it with the given colors
+    /// </summary>
+    /// <param name="colors">An array of 3 colors: The main color, the secondary darker color, and the multiplier, in that order</param>
     internal IRawTextureData GetTexture(IList<Color>? colors)
     {
         IRawTextureData texData = this.ContentPack.ModContent.Load<IRawTextureData>(this.TexturePath);
@@ -93,14 +106,14 @@ public class AppearanceModel
                 luminosities[pixel] = backLum;
             }
 
-            int delta = (int) ((backLum - ((hasSecondary && backLum < CharacterFactory.LUMINOSITY_THRESHOLD_FOR_SECONDARY_COLOR) ? secondaryLum : colorLum)) * 255);
-            Color newColor = CalculateNewColor(color, multiply, delta);
+            int delta = (int) ((backLum - ((hasSecondary && backLum < LUMINOSITY_THRESHOLD_FOR_SECONDARY_COLOR) ? secondaryLum : colorLum)) * 255);
+            Color newColor = calculateNewColor(color, multiply, delta);
             texData.Data[i] = newColor;
         }
 
         return texData;
 
-        Color CalculateNewColor(Color c, float[] m, int delta)
+        static Color calculateNewColor(Color c, float[] m, int delta)
         {
             return new Color(
                 r: (int) ((c.R + delta) * m[0]),

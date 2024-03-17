@@ -19,7 +19,7 @@ using StardewValley.GameData.Buildings;
 using xTile;
 
 namespace MyCafe;
-internal class AssetManager
+internal sealed class AssetManager
 {
     private readonly IModHelper _modHelper;
 
@@ -140,27 +140,8 @@ internal class AssetManager
 
     internal T? LoadAppearanceModel<T>(IContentPack contentPack, string modelName) where T : AppearanceModel
     {
-        string folderName = typeof(T).Name switch
-        {
-            nameof(HairModel) => "Hairstyles",
-            nameof(ShirtModel) => "Shirts",
-            nameof(PantsModel) => "Pants",
-            nameof(OutfitModel) => "Outfits",
-            nameof(ShoesModel) => "Shoes",
-            nameof(AccessoryModel) => "Accessories",
-            _ => throw new ArgumentOutOfRangeException()
-        };
-
-        string filename = typeof(T).Name switch
-        {
-            nameof(HairModel) => "hair",
-            nameof(ShirtModel) => "shirt",
-            nameof(PantsModel) => "pants",
-            nameof(OutfitModel) => "outfit",
-            nameof(ShoesModel) => "shoes",
-            nameof(AccessoryModel) => "accessory",
-            _ => throw new ArgumentOutOfRangeException()
-        };
+        string filename = Utility.GetFileNameForAppearanceType<T>();
+        string folderName = Utility.GetFolderNameForAppearance<T>();
 
         string relativePathOfModel = Path.Combine(folderName, modelName);
         T? model = contentPack.ReadJsonFile<T>(Path.Combine(relativePathOfModel, $"{filename}.json"));
@@ -229,9 +210,10 @@ internal class AssetManager
         else if (e.Name.StartsWith(ModKeys.GENERATED_SPRITE_PREFIX))
         {
             string id = e.Name.Name[(ModKeys.GENERATED_SPRITE_PREFIX.Length + 1)..];
-            if (Mod.Cafe.GeneratedSprites.ContainsKey(id))
+
+            if (Mod.Cafe.GeneratedSprites.TryGetValue(id, out GeneratedSpriteData data))
             {
-                Texture2D? sprite = Mod.Cafe.GeneratedSprites[id].Sprite;
+                Texture2D? sprite = data.Sprite;
                 if (sprite == null)
                     Log.Error("Couldn't load texture from generated sprite data!");
                 else
