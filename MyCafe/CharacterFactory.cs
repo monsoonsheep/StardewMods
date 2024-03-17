@@ -15,7 +15,7 @@ using StardewValley;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley.GameData.Pets;
 
-namespace MyCafe.Characters;
+namespace MyCafe;
 internal sealed class CharacterFactory
 {
 
@@ -63,7 +63,7 @@ internal sealed class CharacterFactory
         AppearancePaint? hairPaint = this.HairColors.PickRandom();
         AppearancePaint? shirtPaint = this.ShirtColors.PickRandom();
         AppearancePaint? pantsPaint = this.PantsColors.PickRandom();
-        
+
         GeneratedSpriteData spriteData = new GeneratedSpriteData(guid);
 
         spriteData.SkinTone.Set(skinTone);

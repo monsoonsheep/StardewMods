@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework.Graphics;
-using MyCafe;
 using MyCafe.Locations.Objects;
 using MyCafe.Enums;
 using StardewModdingAPI;
@@ -17,8 +16,9 @@ using MonsoonSheep.Stardew.Common;
 using MyCafe.Data.Models;
 using StardewValley.Pathfinding;
 using System.Text.RegularExpressions;
+using MyCafe.Characters;
 
-namespace MyCafe.Characters;
+namespace MyCafe;
 
 internal sealed class CustomerManager
 {
@@ -37,7 +37,7 @@ internal sealed class CustomerManager
 
     internal void DayUpdate()
     {
-        
+
     }
 
     internal void TrySpawnGrouop(Table table, GroupType type)
@@ -77,7 +77,7 @@ internal sealed class CustomerManager
             this.EndCustomers(group, force: true);
             return null;
         }
-        
+
         foreach (NPC c in group.Members)
             c.get_OrderItem().Set(Debug.SetTestItemForOrder(c));
 
@@ -87,7 +87,7 @@ internal sealed class CustomerManager
             busStop.addCharacter(c);
             c.Position = new Vector2(33, 9) * 64;
         }
-        
+
         try
         {
             group.GoToTable();
@@ -135,7 +135,7 @@ internal sealed class CustomerManager
 
             return null;
         }
-        
+
         return group;
     }
 
@@ -147,7 +147,7 @@ internal sealed class CustomerManager
 
             if (this.CanVillagerVisit(npc, Game1.timeOfDay))
             {
-                
+
             }
         }
 
@@ -227,7 +227,7 @@ internal sealed class CustomerManager
         Log.Debug($"Removing customers{(force ? " By force" : "")}");
         group.ReservedTable?.Free();
         this.ActiveGroups.Remove(group);
-        
+
         // Random
         if (force)
         {
