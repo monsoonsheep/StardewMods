@@ -172,6 +172,7 @@ internal sealed class AssetManager
             {
                 VillagerCustomerModel model = this._modHelper.ModContent.Load<VillagerCustomerModel>(file.FullName);
                 string npcName = file.Name.Replace(".json", "");
+                model.NpcName = npcName;
                 data[npcName] = model;
             }
 

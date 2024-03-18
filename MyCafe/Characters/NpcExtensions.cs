@@ -244,7 +244,6 @@ public static class NpcExtensions
                 timeOfActivity = timeOfNext;
             else
                 timeOfActivity = timeOfCurrent;
-
         }
 
         SchedulePathDescription originalPathDescription = npc.Schedule[timeOfActivity];
@@ -255,6 +254,8 @@ public static class NpcExtensions
             targetLocation,
             originalPathDescription.targetTile,
             npc);
+
+        npc.ignoreScheduleToday = false;
 
         if (routeToScheduleItem == null)
         {
@@ -277,11 +278,4 @@ public static class NpcExtensions
         npc.Schedule[Game1.timeOfDay] = toInsert;
         npc.checkSchedule(Game1.timeOfDay);
     }
-
-    public static void Delete(this NPC me)
-    {
-        me.currentLocation?.characters.Remove(me);
-        Mod.Cafe.Customers.TryRemoveRandomNpcData(me.Name);
-    }
-
 }

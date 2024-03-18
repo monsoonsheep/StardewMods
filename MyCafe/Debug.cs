@@ -26,21 +26,18 @@ internal static class Debug
         switch (e.Button)
         {
             case SButton.NumPad0:
-                Game1.activeClickableMenu = new CarpenterMenu("Robin");
                 break;
             case SButton.NumPad1:
                 WarpToBus();
                 break;
             case SButton.NumPad2:
-                Table? table = Mod.Cafe.GetFreeTable();
-                if (table != null)
-                    Mod.Cafe.Customers.TrySpawnGrouop(table, GroupType.Random);
+                SpawnCustomers(GroupType.Random);
                 break;
             case SButton.NumPad3:
-                Mod.Cafe.Customers.RemoveAllCustomers();
-                //Mod.Cafe.PopulateTables();
+                Mod.Cafe.RemoveAllCustomers();
                 break;
             case SButton.NumPad4:
+                SpawnCustomers(GroupType.Villager);
                 break;
             case SButton.NumPad5:
                 break;
@@ -54,40 +51,39 @@ internal static class Debug
             case SButton.NumPad9:
                 break;
             case SButton.U:
-                Game1.activeClickableMenu = new CafeMenu();
+                OpenCafeMenu();
                 break;
             default:
                 return;
         }
     }
 
-
-#if YOUTUBE || TWITCH
-    public static void RefreshChat()
+    internal static void SpawnCustomers(GroupType type)
     {
-        Mod.Cafe.Customers.ChatCustomers = new ChatCustomerSpawner();
-        Mod.Cafe.Customers.ChatCustomers.Initialize(Mod.Instance.Helper);
+        Table? table = Mod.Cafe.GetFreeTable();
+        if (table != null)
+            if (type == GroupType.Villager)
+                Mod.Cafe.VillagerCustomers.Spawn(table);
+            else
+                Mod.Cafe.RandomCustomers.Spawn(table);
     }
 
-    public static void Test_UserJoinChat()
+    internal static void OpenCafeMenu()
     {
-        string[] a = File.ReadAllText(Mod.Instance.Helper.DirectoryPath + "\\names.txt").Split('\n');
-        string name = a[Game1.random.Next(a.Length)].TrimEnd('\r').TrimStart();
-        (Mod.Cafe.Customers.ChatCustomers as ChatCustomerSpawner)?.OnChatMessageReceived(Mod.Cafe.Customers.ChatCustomers, new ChatMessageReceivedEventArgs()
-        {
-            Username = name,
-            Message = "!join"
-        });
+        Game1.activeClickableMenu = new CafeMenu();
     }
-#endif
 
-    
+    internal static void OpenCarpenterMenu()
+    {
+        Game1.activeClickableMenu = new CarpenterMenu("Robin");
+    }
+
     internal static Item SetTestItemForOrder(NPC customer)
     {
-        return ItemRegistry.Create<StardewValley.Object>("(O)128");
+        return ItemRegistry.Create<Object>("(O)128");
     }
 
-    public static void SetMenuItems()
+    internal static void SetMenuItems()
     {
         Mod.Cafe.Menu.AddCategory("Soups");
         Mod.Cafe.Menu.AddCategory("Dessert");
@@ -116,15 +112,28 @@ internal static class Debug
         //];
     }
 
-    public static bool Wait10Seconds()
+    internal static bool Wait10Seconds()
     {
         Task.Delay(3000);
         Log.Info("Connected!");
         return true;
     }
 
-    public static void WarpToBus()
+    internal static void WarpToBus()
     {
         Game1.warpFarmer("BusStop", 12, 15, false);
     }
+
+#if YOUTUBE || TWITCH
+    public static void RefreshChat()
+    {
+        
+    }
+
+    public static void Test_UserJoinChat()
+    {
+        string[] a = File.ReadAllText(Mod.Instance.Helper.DirectoryPath + "\\names.txt").Split('\n');
+        string name = a[Game1.random.Next(a.Length)].TrimEnd('\r').TrimStart();
+    }
+#endif
 }

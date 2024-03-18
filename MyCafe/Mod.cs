@@ -14,6 +14,7 @@ using Microsoft.Xna.Framework.Graphics;
 using MonsoonSheep.Stardew.Common;
 using MonsoonSheep.Stardew.Common.Patching;
 using MyCafe.Characters;
+using MyCafe.Characters.Spawning;
 using MyCafe.Data;
 using MyCafe.Data.Customers;
 using MyCafe.Data.Models;
@@ -111,8 +112,6 @@ public class Mod : StardewModdingAPI.Mod
         events.Display.RenderedWorld += this.OnRenderedWorld;
         events.World.FurnitureListChanged += this.OnFurnitureListChanged;
         events.Input.ButtonPressed += Debug.ButtonPress;
-
-        
     }
 
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
@@ -176,7 +175,7 @@ public class Mod : StardewModdingAPI.Mod
                     loc.characters.RemoveAt(i); // TODO if it's a villager customer, convert them (is it needed or will the game warp them anyway?)
             return true;
         });
-        Cafe.Customers.RemoveAllCustomers();
+        Cafe.RemoveAllCustomers();
     }
 
     internal void OnTimeChanged(object? sender, TimeChangedEventArgs e)
@@ -188,7 +187,7 @@ public class Mod : StardewModdingAPI.Mod
     [SuppressMessage("ReSharper", "PossibleLossOfFraction", Justification = "Deliberate in order to get the tile")]
     internal void OnRenderedWorld(object? sender, RenderedWorldEventArgs e)
     {
-        // get list of reserved tables with center coords
+        // Get list of reserved tables with center coords
         foreach (var table in Cafe.Tables)
         {
             if (Game1.currentLocation.Name.Equals(table.CurrentLocation))
@@ -257,7 +256,7 @@ public class Mod : StardewModdingAPI.Mod
         if (e.FromModID != this.ModManifest.UniqueID)
             return;
 
-        if (e.Type == "VisitorDoEmote" && !Context.IsMainPlayer)
+        if (e.Type == "CustomerDoEmote" && !Context.IsMainPlayer)
         {
             try
             {
@@ -271,8 +270,6 @@ public class Mod : StardewModdingAPI.Mod
         }
     }
 
-    
-    
     internal void LoadCafeData()
     {
         // Load cafe data
@@ -348,4 +345,14 @@ public class Mod : StardewModdingAPI.Mod
     {
         return Instance.Helper.ModRegistry.GetApi<IBusSchedulesApi>("MonsoonSheep.BusSchedules");
     }
+
+#if YOUTUBE || TWITCH
+
+    internal static LiveChatManager ChatManager = new();
+
+    internal void InitializeLiveChat()
+    {
+        Cafe.ChatCustomers.Initialize(this.Helper);
+    }
+#endif
 }

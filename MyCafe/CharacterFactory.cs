@@ -64,7 +64,7 @@ internal sealed class CharacterFactory
         AppearancePaint? shirtPaint = this.ShirtColors.PickRandom();
         AppearancePaint? pantsPaint = this.PantsColors.PickRandom();
 
-        GeneratedSpriteData spriteData = new GeneratedSpriteData(guid);
+        GeneratedSpriteData spriteData = new(guid);
 
         spriteData.SkinTone.Set(skinTone);
         spriteData.SetAppearance<HairModel>(hair.Id, hairPaint?.GetRandomPermutation());
@@ -93,12 +93,12 @@ internal sealed class CharacterFactory
     {
         ICollection<T> collection = (typeof(T).Name switch
         {
-            nameof(HairModel) => Mod.CharacterFactory.Hairstyles.Values as ICollection<T>,
-            nameof(ShirtModel) => Mod.CharacterFactory.Shirts.Values as ICollection<T>,
-            nameof(PantsModel) => Mod.CharacterFactory.Pants.Values as ICollection<T>,
-            nameof(OutfitModel) => Mod.CharacterFactory.Outfits.Values as ICollection<T>,
-            nameof(ShoesModel) => Mod.CharacterFactory.Shoes.Values as ICollection<T>,
-            nameof(AccessoryModel) => Mod.CharacterFactory.Accessories.Values as ICollection<T>,
+            nameof(HairModel) => this.Hairstyles.Values as ICollection<T>,
+            nameof(ShirtModel) => this.Shirts.Values as ICollection<T>,
+            nameof(PantsModel) => this.Pants.Values as ICollection<T>,
+            nameof(OutfitModel) => this.Outfits.Values as ICollection<T>,
+            nameof(ShoesModel) => this.Shoes.Values as ICollection<T>,
+            nameof(AccessoryModel) => this.Accessories.Values as ICollection<T>,
             _ => throw new ArgumentOutOfRangeException(nameof(T), "Bad type given. How has this occurred?")
         })!;
         return collection;

@@ -17,11 +17,6 @@ public class VillagerCustomerData
     private NPC? npc;
     internal NPC Npc => this.npc ??= Game1.getCharacterFromName(this.Model.NpcName);
 
-    internal PathFindController? PreviousController;
-    internal GameLocation? PreviousLocation;
-    internal Vector2 PreviousPosition;
-    internal int PreviousFacingDirection;
-
     public VillagerCustomerData()
     {
 

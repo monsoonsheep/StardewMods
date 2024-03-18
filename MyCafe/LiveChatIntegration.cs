@@ -13,7 +13,7 @@ using MyCafe.UI.Options;
 using StardewModdingAPI;
 using StardewValley;
 using Color = Microsoft.Xna.Framework.Color;
-using Mod = StardewModdingAPI.Mod;
+using LogLevel = StreamingClient.Base.Util.LogLevel;
 using Point = Microsoft.Xna.Framework.Point;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
@@ -27,9 +27,6 @@ using Twitch.Base.Models.NewAPI.Users;
 using YouTube.Base.Clients;
 using YouTube.Base;
 using Google.Apis.YouTube.v3.Data;
-#endif
-
-#if YOUTUBE || TWITCH
 using StreamingClient.Base.Util;
 #endif
 
@@ -74,8 +71,8 @@ namespace MyCafe.LiveChatIntegration
 
         public async Task<bool> Connect()
         {
-            this._clientId = Mod.Instance.Config.TwitchClientId;
-            this._clientSecret = Mod.Instance.Config.TwitchClientSecret;
+            this._clientId = Mod.Config.TwitchClientId;
+            this._clientSecret = Mod.Config.TwitchClientSecret;
 
             try
             {
@@ -137,27 +134,27 @@ namespace MyCafe.LiveChatIntegration
     #elif YOUTUBE
     public class YoutubeManager : IStreamManager
     {
-        private string _clientId;
-        private string _clientSecret;
+        private string? _clientId;
+        private string? _clientSecret;
 
-        private YouTubeConnection _connection;
-        private ChatClient _chatClient;
+        private YouTubeConnection? _connection;
+        private ChatClient? _chatClient;
 
-        public event EventHandler<ChatMessageReceivedEventArgs> OnChatMessageReceived;
+        public event EventHandler<ChatMessageReceivedEventArgs>? ChatMessageReceived;
 
         public async Task<bool> Connect()
         {
-            _clientId = ModConfig.LoadedConfig.YoutubeClientId;
-            _clientSecret = ModConfig.LoadedConfig.YoutubeClientSecret;
+            this._clientId = Mod.Config.YoutubeClientId;
+            this._clientSecret = Mod.Config.YoutubeClientSecret;
 
-            if (string.IsNullOrWhiteSpace(_clientId) || string.IsNullOrWhiteSpace(_clientSecret))
+            if (string.IsNullOrWhiteSpace(this._clientId) || string.IsNullOrWhiteSpace(this._clientSecret))
             {
                 Log.Error("Error connecting to Youtube. Make sure to put your Client ID and Client Secret in the config.json file in the mod folder.");
                 return false;
             }
 
             Logger.SetLogLevel(LogLevel.Error);
-            Logger.LogOccurred += Logger_LogOccurred;
+            Logger.LogOccurred += this.Logger_LogOccurred;
 
             try
             {
@@ -170,20 +167,20 @@ namespace MyCafe.LiveChatIntegration
 
                 Log.Debug("Creating Youtube connection");
 
-                _connection = await YouTubeConnection.ConnectViaLocalhostOAuthBrowser(_clientId, _clientSecret, scopes, true);
+                this._connection = await YouTubeConnection.ConnectViaLocalhostOAuthBrowser(this._clientId, this._clientSecret, scopes, true);
 
-                if (_connection != null)
+                if (this._connection != null)
                 {
-                    Channel channel = await _connection.Channels.GetMyChannel();
+                    Channel channel = await this._connection.Channels.GetMyChannel();
                     if (channel != null)
                     {
                         Log.Info($"Connection successful. Logged in as: {channel.Snippet.Title}");
 
-                        var broadcast = await _connection.LiveBroadcasts.GetMyActiveBroadcast();
-                        _chatClient = new ChatClient(_connection);
-                        _chatClient.OnMessagesReceived += Client_OnMessagesReceived;
+                        var broadcast = await this._connection.LiveBroadcasts.GetMyActiveBroadcast();
+                        this._chatClient = new ChatClient(this._connection);
+                        this._chatClient.OnMessagesReceived += this.Client_OnMessagesReceived;
 
-                        if (await _chatClient.Connect(broadcast))
+                        if (await this._chatClient.Connect(broadcast))
                         {
                             Log.Info("Live chat connection successful!");
 
@@ -204,9 +201,9 @@ namespace MyCafe.LiveChatIntegration
             return false;
         }
 
-        private void Client_OnMessagesReceived(object sender, IEnumerable<LiveChatMessage> messages)
+        private void Client_OnMessagesReceived(object? sender, IEnumerable<LiveChatMessage> messages)
         {
-            if (OnChatMessageReceived == null)
+            if (this.ChatMessageReceived == null)
                 return;
 
             foreach (LiveChatMessage message in messages)
@@ -218,7 +215,7 @@ namespace MyCafe.LiveChatIntegration
                         ChatMessageReceivedEventArgs args = new ChatMessageReceivedEventArgs();
                         args.Username = message.AuthorDetails.DisplayName;
                         args.Message = message.Snippet.DisplayMessage;
-                        OnChatMessageReceived(this, args);
+                        this.ChatMessageReceived(this, args);
                     }
                 }
                 catch (Exception ex)
@@ -228,7 +225,7 @@ namespace MyCafe.LiveChatIntegration
             }
         }
 
-        private void Logger_LogOccurred(object sender, StreamingClient.Base.Util.Log log)
+        private void Logger_LogOccurred(object? sender, StreamingClient.Base.Util.Log log)
         {
             if (log.Level <= LogLevel.Error)
             {
@@ -251,29 +248,27 @@ namespace MyCafe.UI
 
         internal void ConnectChat()
         {
-            if (this.IsConnected())
+            if (this.IsConnected() || this.IsConnecting())
                 return;
-            if (this.IsConnecting())
-                return;
-
-            Mod.Cafe.Customers.ChatCustomers?.Initialize(Mod.Instance.Helper);
+            
+            Mod.Instance.InitializeLiveChat();
         }
 
         internal bool IsConnected()
         {
-            return Mod.Cafe.Customers.ChatCustomers is { State: SpawnerState.Enabled };
+            return Mod.ChatManager.State == ChatConnectionState.On;
         }
 
         internal bool IsConnecting()
         {
-            return Mod.Cafe.Customers.ChatCustomers is { State: SpawnerState.Initializing };
+            return Mod.ChatManager.State == ChatConnectionState.Connecting;
         }
     }
 }
 
-namespace MyCafe.Characters.Spawning
+namespace MyCafe
 {
-    internal class ChatCustomerSpawner : CustomerSpawnerBase
+    internal class LiveChatManager
     {
         private readonly IStreamManager _streamManager;
 
@@ -281,98 +276,50 @@ namespace MyCafe.Characters.Spawning
         private readonly List<string> _spawnedUsers = [];
         private Task<bool> connectTask = null!;
 
-        public ChatCustomerSpawner() : base()
+        internal ChatConnectionState State;
+
+        public LiveChatManager()
         {
 #if YOUTUBE
-            _streamManager = new YoutubeManager();
+            this._streamManager = new YoutubeManager();
 #elif TWITCH
             this._streamManager = new TwitchManager();
 #endif
         }
 
-        internal override void Initialize(IModHelper helper)
+        internal void Initialize(IModHelper helper)
         {
-            this.State = SpawnerState.Initializing;
+            this.State = ChatConnectionState.Connecting;
 
             this.connectTask = this._streamManager.Connect();
             this.connectTask.ContinueWith((task) =>
             {
                 if (task.Result)
                 {
-                    this.State = SpawnerState.Enabled;
-                    this._streamManager.ChatMessageReceived += this.OnChatMessageReceived;
+                    Mod.ChatManager._streamManager.ChatMessageReceived += Mod.ChatManager.OnChatMessageReceived;
                     Game1.chatBox.addMessage("Live chat connected!", Color.White);
+                    Mod.ChatManager.State = ChatConnectionState.On;
+                }
+                else
+                {
+                    Mod.ChatManager.State = ChatConnectionState.Off;
                 }
             });
         }
 
         internal void OnChatMessageReceived(object? sender, ChatMessageReceivedEventArgs e)
         {
-            Log.Info("Man " + e.Username + ": " + e.Message);
-            this._users.Add(e.Username);
+            Log.Trace("Chat message " + e.Username + ": " + e.Message);
+            if (!this._users.Contains(e.Username))
+                this._users.Add(e.Username);
         }
+    }
+}
 
-        internal override bool Spawn(Table table, out CustomerGroup group)
-        {
-            group = new CustomerGroup();
-            if (this._users.Count == 0)
-                return false;
-
-            string name = this._users[Game1.random.Next(this._users.Count)];
-            Texture2D portrait =
-                Game1.content.Load<Texture2D>(MyCafe.Mod.Instance.Helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", "cat.png")).Name);
-            AnimatedSprite sprite = new AnimatedSprite(MyCafe.Mod.Instance.Helper.ModContent.GetInternalAssetName(Path.Combine("assets", "Sprites", "customer1.png")).Name,
-                0, 16, 32);
-
-            Customer c = new Customer($"ChatCustomerNPC_{name}", new Vector2(10, 12), "BusStop", sprite, portrait)
-            {
-                portraitOverridden = true,
-                displayName = name
-            };
-            c.DrawName.Set(true);
-
-            group.AddMember(c);
-            group.ReserveTable(table);
-            c.ItemToOrder.Set(ItemRegistry.Create<StardewValley.Object>("(O)128"));
-            GameLocation busStop = Game1.getLocationFromName("BusStop");
-            busStop.addCharacter(c);
-            c.Position = new Vector2(33, 9) * 64;
-
-            if (group.GoToTable() is false)
-            {
-                Log.Error("Customers couldn't path to cafe");
-                this.LetGo(group, force: true);
-                return false;
-            }
-
-            Log.Info($"Chat member {name} spawned");
-            this.ActiveGroups.Add(group);
-            return true;
-        }
-
-        internal override bool LetGo(CustomerGroup group, bool force = false)
-        {
-            if (!base.LetGo(group))
-                return false;
-
-            if (force)
-            {
-                group.Delete();
-            }
-            else
-            {
-                group.MoveTo(
-                    Game1.getLocationFromName("BusStop"),
-                    new Point(33, 9),
-                    (c, loc) => loc.characters.Remove(c as NPC));
-            }
-
-            return true;
-        }
-
-        internal override void DayUpdate()
-        {
-            return;
-        }
+namespace MyCafe.Enums
+{
+    internal enum ChatConnectionState
+    {
+        Off, Connecting, On
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common;
+using MyCafe.Characters.Spawning;
 using MyCafe.Enums;
 using MyCafe.Locations.Objects;
 using StardewValley;
@@ -13,13 +14,16 @@ namespace MyCafe.Characters;
 public class CustomerGroup
 {
     internal GroupType Type;
+
     internal List<NPC> Members = [];
     internal Table? ReservedTable { get; set; }
 
-    internal CustomerGroup(List<NPC> members)
+    internal CustomerSpawner _spawner;
+
+    internal CustomerGroup(GroupType type, CustomerSpawner spawner)
     {
-        foreach (var m in members)
-            this.AddMember(m);
+        this._spawner = spawner;
+        this.Type = type;
     }
 
     internal void AddMember(NPC member)
@@ -28,7 +32,6 @@ public class CustomerGroup
         this.Members.Add(member);
     }
 
-    
     internal bool ReserveTable(Table table)
     {
         if (table.Reserve(this.Members))

@@ -38,7 +38,10 @@ public static class Pathfinding
 
         Stack<Point>? path = PathfindFromLocationToLocation(me.currentLocation, me.TilePoint, targetLocation, targetTile, me);
         if (path == null || path.Count == 0)
+        {
+            Log.Error("Couldn't pathfind NPC");
             return false;
+        }
 
         me.controller = new PathFindController(path, me.currentLocation, me, path.Last())
         {

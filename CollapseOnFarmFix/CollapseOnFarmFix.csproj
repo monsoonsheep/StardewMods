@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Metadata -->
+    <Authors>MonsoonSheep</Authors>
+    <RootNamespace>CollapseOnFarmFix</RootNamespace> 
+    <Version>0.1.2</Version>
+
+    <!-- Build Settings -->
+    <Configurations>Debug;Release</Configurations>
+    <TargetFramework>net6.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <EnableHarmony>true</EnableHarmony>
+    
+    <!-- SMAPI Paths -->
+    <ModFolderName>CollapseOnFarmFix</ModFolderName>
+    <GamePath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley</GamePath>
+    <GameModsPath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley\Mods\My Mods</GameModsPath>
+  </PropertyGroup>
+
+  <!-- Translations -->
+  <ItemGroup>
+    <AdditionalFiles Include="i18n/default.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Lib.Harmony" Version="2.2.2" />
+    <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.0.1" />
+  </ItemGroup>
+
+  
+  <Import Project="..\Common.Patching\Common.Patching.projitems" Label="Shared" />
+  <Import Project="..\Common\Common.projitems" Label="Shared" />
+</Project>

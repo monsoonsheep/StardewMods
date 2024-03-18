@@ -20,6 +20,7 @@ using SUtility = StardewValley.Utility;
 using MyCafe.Inventories;
 using MyCafe.Data.Customers;
 using System.Diagnostics.Metrics;
+using MyCafe.Characters.Spawning;
 
 namespace MyCafe;
 
@@ -27,18 +28,22 @@ public class Cafe : INetObject<NetFields>
 {
     public NetFields NetFields { get; } = new NetFields("Cafe");
 
-    private readonly NetCollection<Table> NetTables = [];
-    private readonly NetBool CafeEnabled = [];
-    private readonly NetLocationRef CafeIndoor = new();
-    private readonly NetLocationRef CafeOutdoor = new();
+    public NetCollection<Table> NetTables = [];
+    public NetBool CafeEnabled = [];
+    public NetLocationRef CafeIndoor = new();
+    public NetLocationRef CafeOutdoor = new();
 
-    public readonly NetInt OpeningTime = new(630);
-    public readonly NetInt ClosingTime = new(2200);
-    public readonly NetRef<MenuInventory> NetMenu = new(new MenuInventory());
+    public NetInt OpeningTime = new(630);
+    public NetInt ClosingTime = new(2200);
+    public NetRef<MenuInventory> NetMenu = new(new MenuInventory());
 
-    public readonly NetStringDictionary<GeneratedSpriteData, NetRef<GeneratedSpriteData>> GeneratedSprites = new();
+    public NetStringDictionary<GeneratedSpriteData, NetRef<GeneratedSpriteData>> GeneratedSprites = new();
 
-    internal CustomerManager Customers = null!;
+    internal RandomCustomerSpawner RandomCustomers = null!;
+    internal VillagerCustomerSpawner VillagerCustomers = null!;
+    #if YOUTUBE || TWITCH
+    internal RandomCustomerSpawner ChatCustomers = null!;
+    #endif
 
     internal MenuInventory Menu => this.NetMenu.Value;
 
@@ -81,7 +86,14 @@ public class Cafe : INetObject<NetFields>
 
     internal void InitializeForHost(IModHelper helper)
     {
-        this.Customers = new CustomerManager();
+        this.RandomCustomers = new RandomCustomerSpawner(getModelFunc: Mod.CharacterFactory.CreateRandomCustomer);
+        this.VillagerCustomers = new VillagerCustomerSpawner();
+
+        this.RandomCustomers.Initialize(helper);
+        this.VillagerCustomers.Initialize(helper);
+#if YOUTUBE || TWITCH
+        this.ChatCustomers = new RandomCustomerSpawner(Mod.CharacterFactory.CreateRandomCustomer); // From live chat TODO
+#endif
     }
 
     internal void DayUpdate()
@@ -90,7 +102,6 @@ public class Cafe : INetObject<NetFields>
         {
             this.Enabled = true;
             this.PopulateTables();
-            this.Customers.DayUpdate();
         }
         else
         {
@@ -149,6 +160,39 @@ public class Cafe : INetObject<NetFields>
         }
     }
 
+    internal IEnumerable<CustomerGroup> ActiveGroups()
+    {
+        foreach (CustomerGroup g in this.RandomCustomers._groups)
+            yield return g;
+        foreach (CustomerGroup g in this.VillagerCustomers._groups)
+            yield return g;
+
+        #if TWITCH || YOUTUBE
+        foreach (CustomerGroup g in this.ChatCustomers._groups)
+            yield return g;
+        #endif
+    }
+
+    internal void RemoveAllCustomers()
+    {
+        foreach (CustomerSpawner spawner in this.Spawners())
+        {
+            for (int i = this.RandomCustomers._groups.Count; i > 0; i--)
+            {
+                spawner.EndCustomers(spawner._groups[i]);
+            }
+        }
+    }
+
+    internal IEnumerable<CustomerSpawner> Spawners()
+    {
+        yield return this.RandomCustomers;
+        yield return this.VillagerCustomers;
+        #if TWITCH || YOUTUBE
+        yield return this.ChatCustomers;
+#endif
+    }
+
     internal void TenMinuteUpdate()
     {
         int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, this.ClosingTime.Value);
@@ -203,7 +247,7 @@ public class Cafe : INetObject<NetFields>
 
     internal bool InteractWithTable(Table table, Farmer who)
     {
-        CustomerGroup? group = this.Customers.ActiveGroups.FirstOrDefault(g => g.ReservedTable == table);
+        CustomerGroup? group = this.ActiveGroups().FirstOrDefault(g => g.ReservedTable == table);
         if (table.State.Value != TableState.Free && group == null)
         {
             Log.Error("Interacting with active table but the reserving group is not in ActiveGroups");
@@ -285,13 +329,13 @@ public class Cafe : INetObject<NetFields>
         }
     }
 
-    internal void OnTableStateChange(object sender, TableStateChangedEventArgs e)
+    private void OnTableStateChange(object sender, TableStateChangedEventArgs e)
     {
         if (!Context.IsMainPlayer || e.OldValue == e.NewValue)
             return;
 
         Table table = (Table) sender;
-        CustomerGroup? group = this.Customers.ActiveGroups.FirstOrDefault(g => g.ReservedTable == table);
+        CustomerGroup? group = this.ActiveGroups().FirstOrDefault(g => g.ReservedTable == table);
 
         if ((e.NewValue != TableState.Free && e.NewValue != TableState.CustomersComing) && group == null)
         {
@@ -333,7 +377,7 @@ public class Cafe : INetObject<NetFields>
             case TableState.CustomersFinishedEating:
                 Log.Debug("Table finished meal");
 
-                this.Customers.EndCustomers(group!);
+                group!._spawner.EndCustomers(group);
                 break;
         }
     }

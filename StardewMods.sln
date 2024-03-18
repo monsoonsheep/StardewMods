@@ -16,6 +16,8 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = ".Common", "Common\.Common.s
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CleaningMod", "CleaningMod\CleaningMod.csproj", "{42EE82F2-05A9-4D25-B35E-7796229462B0}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CollapseOnFarmFix", "CollapseOnFarmFix\CollapseOnFarmFix.csproj", "{7B8577A5-ED43-40F8-9A56-372C458D36C2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,6 +36,10 @@ Global
 		{42EE82F2-05A9-4D25-B35E-7796229462B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{42EE82F2-05A9-4D25-B35E-7796229462B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{42EE82F2-05A9-4D25-B35E-7796229462B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B8577A5-ED43-40F8-9A56-372C458D36C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B8577A5-ED43-40F8-9A56-372C458D36C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B8577A5-ED43-40F8-9A56-372C458D36C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B8577A5-ED43-40F8-9A56-372C458D36C2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -47,6 +53,8 @@ Global
 		Common.Patching\Common.Patching.projitems*{3feef67d-9d45-4650-9399-52f1c9411251}*SharedItemsImports = 5
 		Common.Patching\Common.Patching.projitems*{42ee82f2-05a9-4d25-b35e-7796229462b0}*SharedItemsImports = 5
 		Common.Patching\Common.Patching.projitems*{49c40e04-5a9f-47da-8906-fa717816e772}*SharedItemsImports = 13
+		Common.Patching\Common.Patching.projitems*{7b8577a5-ed43-40f8-9a56-372c458d36c2}*SharedItemsImports = 5
+		Common\Common.projitems*{7b8577a5-ed43-40f8-9a56-372c458d36c2}*SharedItemsImports = 5
 		Common\Common.projitems*{b9e9edfc-e98a-4370-994f-40a9f39a0284}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal
