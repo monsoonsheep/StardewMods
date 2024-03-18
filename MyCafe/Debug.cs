@@ -40,6 +40,9 @@ internal static class Debug
                 SpawnCustomers(GroupType.Villager);
                 break;
             case SButton.NumPad5:
+                Log.Trace("Breaking");
+                NPC sam = Game1.getCharacterFromName("Sam");
+                Log.Trace(sam.Schedule?.ToString() ?? "no scehdule");
                 break;
             case SButton.NumPad6:
                 break;

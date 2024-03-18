@@ -222,12 +222,17 @@ public static class NpcExtensions
 
     internal static void ReturnToSchedule(this NPC npc)
     {
+        npc.eventActor = false;
+        npc.ignoreScheduleToday = false;
+
         List<int> activityTimes = npc.Schedule.Keys.OrderBy(i => i).ToList();
         int timeOfCurrent = activityTimes.LastOrDefault(t => t <= Game1.timeOfDay);
         int timeOfNext = activityTimes.FirstOrDefault(t => t > Game1.timeOfDay);
         int minutesSinceCurrentStarted = SUtility.CalculateMinutesBetweenTimes(timeOfCurrent, Game1.timeOfDay);
         int minutesTillNextStarts = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, timeOfNext);
         int timeOfActivity;
+
+        Log.Trace($"Returning {npc.Name} to schedule. Time of current activity is {timeOfCurrent}, next activity is at {timeOfNext}.");
 
         if (timeOfCurrent == 0) // Means it's the start of the day
         {
@@ -246,6 +251,8 @@ public static class NpcExtensions
                 timeOfActivity = timeOfCurrent;
         }
 
+        Log.Trace($"Time of selected activity is {timeOfActivity}");
+
         SchedulePathDescription originalPathDescription = npc.Schedule[timeOfActivity];
         GameLocation targetLocation = Game1.getLocationFromName(originalPathDescription.targetLocationName);
         Stack<Point>? routeToScheduleItem = Pathfinding.PathfindFromLocationToLocation(
@@ -255,24 +262,25 @@ public static class NpcExtensions
             originalPathDescription.targetTile,
             npc);
 
-        npc.ignoreScheduleToday = false;
-
+        Log.Trace($"Schedule description is {targetLocation.Name}: {originalPathDescription.targetTile}, behavior: {originalPathDescription.endOfRouteBehavior}");
         if (routeToScheduleItem == null)
         {
+            Log.Trace("Can't find route back");
             // TODO: Warp them to their home
             return;
         }
 
-        SchedulePathDescription toInsert = new SchedulePathDescription(
-            routeToScheduleItem,
+        SchedulePathDescription toInsert = npc.pathfindToNextScheduleLocation(
+            npc.ScheduleKey,
+            npc.currentLocation.Name,
+            npc.TilePoint.X,
+            npc.TilePoint.Y,
+            originalPathDescription.targetLocationName,
+            originalPathDescription.targetTile.X,
+            originalPathDescription.targetTile.Y,
             originalPathDescription.facingDirection,
             originalPathDescription.endOfRouteBehavior,
-            originalPathDescription.endOfRouteMessage,
-            targetLocation.Name,
-            originalPathDescription.targetTile)
-        {
-            time = Game1.timeOfDay
-        };
+            originalPathDescription.endOfRouteMessage);
 
         npc.queuedSchedulePaths.Clear();
         npc.Schedule[Game1.timeOfDay] = toInsert;

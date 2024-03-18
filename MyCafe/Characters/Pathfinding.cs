@@ -14,14 +14,8 @@ namespace MyCafe.Characters;
 
 public static class Pathfinding
 {
-    private static readonly Action<List<string>> AddRoute;
-
-    static Pathfinding()
-    {
-        AddRoute = route =>
-            AccessTools.Method(typeof(WarpPathfindingCache), "AddRoute", [typeof(List<string>), typeof(Gender?)])
-                .Invoke(null, [route, null]);
-    }
+    private static readonly Action<List<string>> AddRoute = (route) => AddRouteMethod?.Invoke(null, [route, null]);
+    private static readonly MethodInfo AddRouteMethod = AccessTools.Method(typeof(WarpPathfindingCache), "AddRoute", [typeof(List<string>), typeof(Gender?)]);
 
     private static readonly sbyte[,] Directions = new sbyte[4 ,2]
     {
@@ -46,7 +40,6 @@ public static class Pathfinding
         me.controller = new PathFindController(path, me.currentLocation, me, path.Last())
         {
             NPCSchedule = true,
-            nonDestructivePathing = true,
             endBehaviorFunction = endBehavior,
             finalFacingDirection = finalFacingDirection
         };

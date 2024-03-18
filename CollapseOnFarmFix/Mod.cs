@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using CollapseOnFarmFix.Framework;
 using CollapseOnFarmFix.Patching;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
@@ -58,7 +57,7 @@ namespace CollapseOnFarmFix
                 && Game1.player.currentLocation is Farm && Game1.killScreen is true
                 && Game1.currentLocation.Name.Equals("Hospital"))
             {
-                NPC? partner = this.GetSpouseOrRoommate(Game1.player);
+                NPC? partner = GetSpouseOrRoommate(Game1.player);
 
                 if (partner != null && !partner.Name.Equals("Harvey"))
                 {
@@ -111,13 +110,13 @@ namespace CollapseOnFarmFix
             string putToBedDialogue = Dialogues.GetPostPassoutDialogue(spouse, giftItemId);
             int friendshipWithSpouse = Game1.player.friendshipData[spouse.Name].Points / 250;
                 
-            string[] eventString = new[]
-            {
+            string[] eventString =
+            [
                 $"junimoStarSong/-100 -100/farmer {bedCoords.X} {bedCoords.Y} 3 {spouse.Name} {bedCoords.X-1} {bedCoords.Y} 1/",
                 $"makeInvisible {bedCoords.X-2} {bedCoords.Y-2} 2 3/ignoreCollisions {spouse.Name}/",
                 $"skippable/viewport {bedCoords.X} {bedCoords.Y}/pause 400/emote {spouse.Name} 16/pause 400/",
-                $"speak {spouse.Name} \"{putToBedDialogue} [{giftItemId}]\"/pause 1000{(Game1.random.Next(friendshipWithSpouse) > 4 ? "/emote farmer 20" : "")}/end",
-            };
+                $"speak {spouse.Name} \"{putToBedDialogue} [{giftItemId}]\"/pause 1000{(Game1.random.Next(friendshipWithSpouse) > 4 ? "/emote farmer 20" : "")}/end"
+            ];
 
             Event postPassoutEvent = new(string.Join(string.Empty, eventString));
 
@@ -126,7 +125,7 @@ namespace CollapseOnFarmFix
             Game1.getLocationFromName(Game1.player.homeLocation.Value)?.startEvent(postPassoutEvent);
         }
 
-        internal NPC? GetSpouseOrRoommate(Farmer who)
+        internal static NPC? GetSpouseOrRoommate(Farmer who)
         {
             if ((who.isMarriedOrRoommates() || who.hasRoommate()) && who.spouse != null)
             {

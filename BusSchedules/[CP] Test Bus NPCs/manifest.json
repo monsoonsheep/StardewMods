@@ -1,0 +1,11 @@
+{
+    "Name": "Test bus NPCs",
+    "Author": "monsoonsheep",
+    "Version": "0.1.0",
+    "Description": "My bus npcs for testing",
+    "UniqueID": "monsoonsheep.TestBusNpcs",
+    "UpdateKeys": [],
+    "ContentPackFor": {
+        "UniqueID": "Pathoschild.ContentPatcher"
+    }
+}

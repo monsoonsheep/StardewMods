@@ -63,7 +63,7 @@ internal sealed class AssetManager
 
                 model.Portrait = contentPack.HasFile(portraitPath)
                     ? contentPack.ModContent.GetInternalAssetName(portraitPath).Name
-                    : this._modHelper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", string.IsNullOrEmpty(model.Portrait) ? "cat" : model.Portrait + ".png")).Name;
+                    : this._modHelper.ModContent.GetInternalAssetName(Path.Combine("assets", "CharGen", "Portraits", (string.IsNullOrEmpty(model.Portrait) ? "cat" : model.Portrait) + ".png")).Name;
 
                 Log.Trace($"Customer model added: {model.Name}");
                 Mod.CharacterFactory.Customers[$"{contentPack.Manifest.UniqueID}/{model.Name}"] = model;

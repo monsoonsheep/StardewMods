@@ -57,7 +57,6 @@ internal class VillagerCustomerSpawner : CustomerSpawner
             Log.Trace($"{c.Name} is coming.");
         }
 
-        
         try
         {
             group.GoToTable();

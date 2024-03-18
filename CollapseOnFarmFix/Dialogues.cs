@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using StardewModdingAPI;
 using StardewValley;
 
-namespace CollapseOnFarmFix.Framework
+namespace CollapseOnFarmFix
 {
     
     internal class Dialogues
@@ -39,10 +39,13 @@ namespace CollapseOnFarmFix.Framework
 
             if (string.IsNullOrEmpty(found) || Game1.random.Next(20) == 0)
             {
-                List<string> possibleEntries = new List<string>();
+                List<string> possibleEntries =
+                [
+                    $"neutral.{weather}.1"
+                    // add key for rude or polite
+                ];
 
                 // add key for neutral personality
-                possibleEntries.Add($"neutral.{weather}.1");
 
                 // add key for rude or polite
                 if (!string.IsNullOrEmpty(manners))
@@ -74,7 +77,7 @@ namespace CollapseOnFarmFix.Framework
             }
 
             // Get alternates for the chosen type (suffixed by .2, .3 etc.)
-            List<string> alternates = new List<string>() { };
+            List<string> alternates = [];
             if (!string.IsNullOrEmpty(found))
             {
                 for (int i = 2; i < 500; i++)

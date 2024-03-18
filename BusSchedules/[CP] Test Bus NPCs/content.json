@@ -1,0 +1,113 @@
+{
+	"Format": "2.0.0",
+	"Changes": [
+		{
+			"LogName": "Character Data Ash",
+			"Action": "EditData",
+			"Target": "Data/Characters",
+			"Entries": {
+				"Ash_MonsoonSheep": {
+					"DisplayName": "Ash",
+					"Gender": "Female",
+					"UnlockConditions": null,
+					"TextureName": null,
+					"Home": [{
+						"Id": "Default",
+						"Location": "BusStop",
+						"Tile": {
+							"X": 12,
+							"Y": 9
+						},
+					}],
+				},
+				"Tatiana_MonsoonSheep": {
+					"DisplayName": "Tatiana",
+					"Gender": "Female",
+					"UnlockConditions": null,
+					"TextureName": null,
+					"Home": [{
+						"Id": "Default",
+						"Location": "Town",
+						"Tile": {
+							"X": 16,
+							"Y": 61
+						},
+					}],
+				},
+				"Phyllis_MonsoonSheep": {
+					"DisplayName": "Phyllis",
+					"Gender": "Female",
+					"UnlockConditions": null,
+					"TextureName": null,
+					"Size": {
+						"X": 16,
+						"Y": 32
+					},
+					"Home": [{
+						"Id": "Default",
+						"Location": "BusStop",
+						"Tile": {
+							"X": 12,
+							"Y": 9
+						},
+					}],
+				}
+			}
+		},
+
+		// Ash Assets
+		{
+			"LogName": "Ash Sprite",
+			"Action": "Load",
+			"Target": "Characters/Ash_MonsoonSheep",
+			"FromFile": "Ash/sprite.png",
+		}, {
+			"LogName": "Ash Portrait",
+			"Action": "Load",
+			"Target": "Portraits/Ash_MonsoonSheep",
+			"FromFile": "Ash/portrait.png",
+		}, {
+			"LogName": "Ash Schedule",
+			"Action": "Load",
+			"Target": "Characters/schedules/Ash_MonsoonSheep",
+			"FromFile": "Ash/schedule.json"
+		},
+
+		// Tatiana Assets
+		{
+			"LogName": "Tatiana Sprite",
+			"Action": "Load",
+			"Target": "Characters/Tatiana_MonsoonSheep",
+			"FromFile": "Tatiana/sprite.png",
+		}, {
+			"LogName": "Tatiana Portrait",
+			"Action": "Load",
+			"Target": "Portraits/Tatiana_MonsoonSheep",
+			"FromFile": "Tatiana/portrait.png",
+		}, {
+			"LogName": "Tatiana Schedule",
+			"Action": "Load",
+			"Target": "Characters/schedules/Tatiana_MonsoonSheep",
+			"FromFile": "Tatiana/schedule.json"
+		},
+
+
+		// Phyllis Assets
+		{
+			"LogName": "Phyllis Sprite",
+			"Action": "Load",
+			"Target": "Characters/Phyllis_MonsoonSheep",
+			"FromFile": "Phyllis/sprite.png",
+		}, {
+			"LogName": "Phyllis Portrait",
+			"Action": "Load",
+			"Target": "Portraits/Phyllis_MonsoonSheep",
+			"FromFile": "Phyllis/portrait.png",
+		}, {
+			"LogName": "Phyllis Schedule",
+			"Action": "Load",
+			"Target": "Characters/schedules/Phyllis_MonsoonSheep",
+			"FromFile": "Phyllis/schedule.json"
+		},
+	]
+}
