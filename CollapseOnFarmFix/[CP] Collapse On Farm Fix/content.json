@@ -1,0 +1,26 @@
+{
+  "Format": "1.29.0",
+  "Changes": 
+  [
+    {
+      "Action": "EditData",
+      "Target": "Mods/monsoonsheep.CollapseOnFarmFix/PostPassoutDialogues",
+      "Entries": 
+      {
+        "neutral.sunny.1": "{{i18n: PostPassoutDialogues.neutral.sunny.1}}",
+        "rude.sunny.1": "{{i18n: PostPassoutDialogues.rude.sunny.1}}",
+        "shy.sunny.1": "{{i18n: PostPassoutDialogues.shy.sunny.1}}",
+        "Abigail.rain.1": "{{i18n: PostPassoutDialogues.Abigail.rain.1}}",
+      }
+    },
+    {
+      "Action": "EditData",
+      "Target": "Mods/monsoonsheep.CollapseOnFarmFix/HospitalKilledEvent",
+      "Entries":
+      {
+        "generic": "{{i18n: HospitalKilledEvent.generic |name={{PlayerName}} }}",
+        "Emily": "{{i18n: HospitalKilledEvent.Emily |name={{PlayerName}} }}"
+      }
+    }
+  ]
+}

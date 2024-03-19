@@ -6,6 +6,7 @@ using MonsoonSheep.Stardew.Common.Patching;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Locations;
+using StardewValley.Network;
 
 
 namespace CollapseOnFarmFix.Patching
@@ -15,11 +16,11 @@ namespace CollapseOnFarmFix.Patching
         public override void Apply(Harmony harmony, IMonitor monitor)
         {
             harmony.Patch(
-                original: this.RequireMethod<Farmer>("performPassoutWarp", [typeof(Farmer), typeof(string), typeof(Point), typeof(bool)]),
+                original: this.RequireMethod<Farmer>(nameof(Farmer.performPassoutWarp), [typeof(Farmer), typeof(string), typeof(Point), typeof(bool)]),
                 postfix: this.GetHarmonyMethod(nameof(PassingOutPatches.PerformPassoutWarpPostfix))
             );
             harmony.Patch(
-                original: this.RequireMethod<Farmer>("Warped", [typeof(GameLocation)]),
+                original: this.RequireMethod<LocationRequest>(nameof(LocationRequest.Warped), [typeof(GameLocation)]),
                 prefix: this.GetHarmonyMethod(nameof(PassingOutPatches.LocationRequestWarpedPrefix)),
                 postfix: this.GetHarmonyMethod(nameof(PassingOutPatches.LocationRequestWarpedPostfix))
             );
@@ -32,7 +33,7 @@ namespace CollapseOnFarmFix.Patching
         /// </summary>
         private static void PerformPassoutWarpPostfix(Farmer who, string bed_location_name, Point bed_point, bool has_bed)
         {
-            GameLocation? passoutLocation = (GameLocation?) AccessTools.Field(typeof(Farmer), "currentLocationRef").GetValue(who);
+            GameLocation? passoutLocation = ((NetLocationRef?) AccessTools.Field(typeof(Farmer), "currentLocationRef").GetValue(who))?.Value;
             if (passoutLocation is Farm)
             {
                 Mod.RequestForBedWarp = (who, Game1.locationRequest);

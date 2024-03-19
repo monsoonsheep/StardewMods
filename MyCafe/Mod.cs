@@ -144,8 +144,8 @@ public class Mod : StardewModdingAPI.Mod
         if (!Context.IsMainPlayer)
             return;
 
-        this.LoadCafeData();
         Cafe.InitializeForHost(this.Helper);
+        this.LoadCafeData();
         Pathfinding.AddRoutesToFarm();
     }
 
@@ -275,17 +275,18 @@ public class Mod : StardewModdingAPI.Mod
 
     internal void LoadCafeData()
     {
+        string cafeDataFile = Path.Combine(Constants.CurrentSavePath ?? "", "MyCafe", "cafedata");
+
         // Load cafe data
-        if (!Game1.IsMasterGame || string.IsNullOrEmpty(Constants.CurrentSavePath) || !File.Exists(Path.Combine(Constants.CurrentSavePath, "MyCafe", "cafedata")))
+        if (!Game1.IsMasterGame || string.IsNullOrEmpty(Constants.CurrentSavePath) || !File.Exists(cafeDataFile))
             return;
 
-        string cafeDataPath = Path.Combine(Constants.CurrentSavePath, "MyCafe", "cafedata");
         CafeArchiveData cafeData;
         XmlSerializer serializer = new XmlSerializer(typeof(CafeArchiveData));
 
         try
         {
-            using StreamReader reader = new StreamReader(cafeDataPath);
+            using StreamReader reader = new StreamReader(cafeDataFile);
             cafeData = (CafeArchiveData) serializer.Deserialize(reader)!;
         }
         catch (InvalidOperationException e)
@@ -300,11 +301,15 @@ public class Mod : StardewModdingAPI.Mod
         Cafe.Menu.Menu.Set(cafeData.MenuItemLists);
         foreach (VillagerCustomerData data in cafeData.VillagerCustomersData)
         {
-            if (Assets.VillagerVisitors.TryGetValue(data.NpcName, out VillagerCustomerModel? model))
+            if (!Assets.VillagerVisitors.TryGetValue(data.NpcName, out VillagerCustomerModel? model))
             {
-                data.Model = model;
-                Cafe.VillagerCustomers.VillagerData.Add(data.NpcName, data);
+                Log.Debug("Loading NPC customer data but not model found. Skipping...");
+                continue;
             }
+
+            data.Model = model;
+            data.NpcName = model.NpcName;
+            Cafe.VillagerCustomers.VillagerData[data.NpcName] = data;
         }
     }
 
@@ -314,7 +319,7 @@ public class Mod : StardewModdingAPI.Mod
             return;
         
         string externalSaveFolderPath = Path.Combine(Constants.CurrentSavePath, "MyCafe");
-        string cafeDataPath = Path.Combine(Constants.CurrentSavePath, "MyCafe", "cafedata");
+        string cafeDataPath = Path.Combine(externalSaveFolderPath, "cafedata");
 
         CafeArchiveData cafeData = new()
         {

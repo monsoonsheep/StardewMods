@@ -235,7 +235,7 @@ public static class NpcExtensions
         int minutesTillNextStarts = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, timeOfNext);
         int timeOfActivity;
 
-        Log.Trace($"Returning {npc.Name} to schedule. Time of current activity is {timeOfCurrent}, next activity is at {timeOfNext}.");
+        Log.Trace($"[{Game1.timeOfDay}] Returning {npc.Name} to schedule for key \"{npc.ScheduleKey}\". Time of current activity is {timeOfCurrent}, next activity is at {timeOfNext}.");
 
         if (timeOfCurrent == 0) // Means it's the start of the day
         {

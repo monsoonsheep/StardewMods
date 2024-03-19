@@ -18,12 +18,12 @@ public static class CafeState
 
     internal static void Register(ISpaceCoreApi spaceCore)
     {
-        spaceCore.RegisterCustomProperty(
-            typeof(Farm),
-            "Cafe",
-            typeof(NetRef<Cafe>),
-            AccessTools.Method(typeof(CafeState), nameof(get_Cafe)),
-            AccessTools.Method(typeof(CafeState), nameof(set_Cafe)));
+        //spaceCore.RegisterCustomProperty(
+        //    typeof(Farm),
+        //    "Cafe",
+        //    typeof(NetRef<Cafe>),
+        //    AccessTools.Method(typeof(CafeState), nameof(get_Cafe)),
+        //    AccessTools.Method(typeof(CafeState), nameof(set_Cafe)));
     }
 
     public static NetRef<Cafe> get_Cafe(this Farm farm)

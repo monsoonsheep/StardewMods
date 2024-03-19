@@ -189,7 +189,7 @@ public class Cafe : INetObject<NetFields>
         yield return this.VillagerCustomers;
         #if TWITCH || YOUTUBE
         yield return this.ChatCustomers;
-#endif
+        #endif
     }
 
     internal void TenMinuteUpdate()

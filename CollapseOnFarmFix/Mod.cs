@@ -50,31 +50,15 @@ namespace CollapseOnFarmFix
             // targeting "monsoonsheep.CollapseOnFarmFix/PutToBedDialogues"
             if (e.NameWithoutLocale.IsEquivalentTo($"Mods/{this.ModManifest.UniqueID}/PostPassoutDialogues"))
             {
-                e.LoadFrom(() => new Dictionary<string, string>(), AssetLoadPriority.Medium);
-            }
-
-            else if (e.NameWithoutLocale.IsEquivalentTo("Data/Events/Hospital") 
-                && Game1.player.currentLocation is Farm && Game1.killScreen is true
-                && Game1.currentLocation.Name.Equals("Hospital"))
-            {
-                NPC? partner = GetSpouseOrRoommate(Game1.player);
-
-                if (partner != null && !partner.Name.Equals("Harvey"))
+                
+                e.LoadFrom(() => new Dictionary<string, string>()
                 {
-                    string eventString =
-                        Game1.content.LoadStringReturnNullIfNotFound($"Mods/{this.ModManifest.UniqueID}/HospitalKilledEvent:{partner.Name}")
-                        ?? Game1.content.LoadStringReturnNullIfNotFound($"Mods/{this.ModManifest.UniqueID}/HospitalKilledEvent:generic");
-                    if (eventString == null)
-                        return;
-                    
-                    e.Edit((d) => d.AsDictionary<string, string>().Data["PlayerKilled"] = string.Format(eventString, partner.Name));
-                    Log.Debug("Replacing hospital death event");
-                }
-            }
-
-            else if (e.NameWithoutLocale.IsEquivalentTo($"Mods/{this.ModManifest.UniqueID}/HospitalKilledEvent"))
-            {
-                e.LoadFrom(() => new Dictionary<string, string>(), AssetLoadPriority.Medium);
+                    {"PostPassoutDialogues.neutral.sunny.1", I18n.PostPassoutDialogues_Neutral_Sunny_1() },
+                    {"PostPassoutDialogues.rude.sunny.1", I18n.PostPassoutDialogues_Rude_Sunny_1() },
+                    {"PostPassoutDialogues.shy.sunny.1", I18n.PostPassoutDialogues_Shy_Sunny_1() },
+                    {"PostPassoutDialogues.rude.rain.1", I18n.PostPassoutDialogues_Rude_Rain_1() },
+                    {"PostPassoutDialogues.Abigail.rain.1", I18n.PostPassoutDialogues_Abigail_Rain_1() },
+                }, AssetLoadPriority.Medium);
             }
         }
 
@@ -113,7 +97,7 @@ namespace CollapseOnFarmFix
             string[] eventString =
             [
                 $"junimoStarSong/-100 -100/farmer {bedCoords.X} {bedCoords.Y} 3 {spouse.Name} {bedCoords.X-1} {bedCoords.Y} 1/",
-                $"makeInvisible {bedCoords.X-2} {bedCoords.Y-2} 2 3/ignoreCollisions {spouse.Name}/",
+                $"makeInvisible {bedCoords.X-2} {bedCoords.Y-2} 1 3/ignoreCollisions {spouse.Name}/",
                 $"skippable/viewport {bedCoords.X} {bedCoords.Y}/pause 400/emote {spouse.Name} 16/pause 400/",
                 $"speak {spouse.Name} \"{putToBedDialogue} [{giftItemId}]\"/pause 1000{(Game1.random.Next(friendshipWithSpouse) > 4 ? "/emote farmer 20" : "")}/end"
             ];

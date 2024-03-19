@@ -14,8 +14,8 @@ namespace MyCafe.Characters;
 
 public static class Pathfinding
 {
-    private static readonly Action<List<string>> AddRoute = (route) => AddRouteMethod?.Invoke(null, [route, null]);
-    private static readonly MethodInfo AddRouteMethod = AccessTools.Method(typeof(WarpPathfindingCache), "AddRoute", [typeof(List<string>), typeof(Gender?)]);
+    private static Action<List<string>> AddRoute = (route) => AddRouteMethod?.Invoke(null, [route, null]);
+    private static MethodInfo AddRouteMethod = AccessTools.Method(typeof(WarpPathfindingCache), "AddRoute", [typeof(List<string>), typeof(Gender?)]);
 
     private static readonly sbyte[,] Directions = new sbyte[4 ,2]
     {
@@ -300,7 +300,10 @@ public static class Pathfinding
                 : WarpPathfindingCache.GetLocationRoute(gameLocation.Name, "BusStop", Gender.Undefined)?.Concat(["Farm"]).ToList();
 
             if (route is not { Count: > 1 })
+            {
+                Log.Trace($"Can't add route from {gameLocation.Name} to Farm");
                 continue;
+            }
 
             var reverseRoute = new List<string>(route);
             reverseRoute.Reverse();

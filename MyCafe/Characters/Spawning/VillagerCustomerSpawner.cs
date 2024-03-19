@@ -21,10 +21,8 @@ internal class VillagerCustomerSpawner : CustomerSpawner
     {
         foreach (var model in Mod.Assets.VillagerVisitors)
         {
-            if (this.VillagerData.ContainsKey(model.Key) == false)
-            {
-                this.VillagerData.Add(model.Key, new VillagerCustomerData(model.Value));
-            }
+            VillagerCustomerData data = new VillagerCustomerData(model.Value);
+            this.VillagerData[model.Key] = data;
         }
     }
 
@@ -124,14 +122,14 @@ internal class VillagerCustomerSpawner : CustomerSpawner
         NPC npc = data.Npc;
 
         int daysSinceLastVisit = Game1.Date.TotalDays - data.LastVisitedDate.TotalDays;
-        int daysBetweenVisits = data.Model.VisitFrequency switch
+        int daysAllowed = data.Model.VisitFrequency switch
         {
             0 => 200,
-            1 => 28,
-            2 => 15,
-            3 => 8,
-            4 => 2,
-            5 => 0,
+            1 => 27,
+            2 => 13,
+            3 => 7,
+            4 => 3,
+            5 => 1,
             _ => 9999999
         };
 
@@ -139,10 +137,9 @@ internal class VillagerCustomerSpawner : CustomerSpawner
             if (group.Members.Contains(npc))
                 return false;
 
-        if (npc.isSleeping.Value is true ||
+        if (npc.isSleeping.Value == true ||
             npc.ScheduleKey == null ||
-            daysSinceLastVisit <= daysBetweenVisits ||
-            data.LastVisitedDate == Game1.Date)
+            daysSinceLastVisit < daysAllowed)
             return false;
 
         // If no busy period for today, they're free all day
