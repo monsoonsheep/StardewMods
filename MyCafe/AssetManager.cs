@@ -23,7 +23,7 @@ internal sealed class AssetManager
 {
     private readonly IModHelper _modHelper;
 
-    internal Dictionary<string, VillagerCustomerModel> VillagerVisitors = [];
+    internal Dictionary<string, VillagerCustomerModel> VillagerCustomerModels = [];
 
     internal AssetManager(IModHelper helper)
     {
@@ -230,13 +230,13 @@ internal sealed class AssetManager
         // NPC Schedules
         if (e.Name.IsEquivalentTo(ModKeys.ASSETS_NPCSCHEDULE))
         {
-            this.VillagerVisitors = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(ModKeys.ASSETS_NPCSCHEDULE);
+            this.VillagerCustomerModels = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(ModKeys.ASSETS_NPCSCHEDULE);
         }
     }
 
     internal void LoadContent(IContentPack defaultContent)
     {
-        this.VillagerVisitors = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(ModKeys.ASSETS_NPCSCHEDULE);
+        this.VillagerCustomerModels = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(ModKeys.ASSETS_NPCSCHEDULE);
 
         // Load default content pack included in assets folder
         this.LoadContentPack(defaultContent);

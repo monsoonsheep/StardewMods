@@ -18,22 +18,22 @@ public class GeneratedSpriteData : INetObject<NetFields>, IDisposable
 {
     public NetFields NetFields { get; } = new NetFields("GeneratedSpriteData");
 
-    public NetString Guid = [];
+    private readonly NetString Guid = [];
 
-    public NetColor SkinTone = [Color.White];
+    private readonly NetColor SkinTone = [Color.White];
 
-    public NetString HairId = [];
-    public NetArray<Color, NetColor> HairColors = new(3);
-    public NetString ShirtId = [];
-    public NetArray<Color, NetColor> ShirtColors = new(3);
-    public NetString PantsId = [];
-    public NetArray<Color, NetColor> PantsColors = new(3);
+    private readonly NetString HairId = [];
+    private readonly NetArray<Color, NetColor> HairColors = new(3);
+    private readonly NetString ShirtId = [];
+    private readonly NetArray<Color, NetColor> ShirtColors = new(3);
+    private readonly NetString PantsId = [];
+    private readonly NetArray<Color, NetColor> PantsColors = new(3);
 
-    public NetString OutfitId = [];
-    public NetArray<Color, NetColor> OutfitColors = new(3);
+    private readonly NetString OutfitId = [];
+    private readonly NetArray<Color, NetColor> OutfitColors = new(3);
 
-    public NetString ShoesId = [];
-    public NetString AccessoryId = [];
+    private readonly NetString ShoesId = [];
+    private readonly NetString AccessoryId = [];
 
     private Texture2D? _cachedTexture;
 
@@ -54,19 +54,27 @@ public class GeneratedSpriteData : INetObject<NetFields>, IDisposable
     /// <summary>
     /// Set the appearance of the given type to the given model and set the corresponding color data in this object
     /// </summary>
-    /// <typeparam name="T">The type of model inheriting from <see cref="AppearanceModel"/></typeparam>
+    /// <typeparam name="TAppearance">The type of model inheriting from <see cref="AppearanceModel"/></typeparam>
     /// <param name="id">The <see cref="AppearanceModel.Id"/> for the model</param>
     /// <param name="colors">An array of 3 colors: The main color, the secondary darker color, and the multiplier, in that order</param>
-    internal void SetAppearance<T>(string id, Color[]? colors = null) where T: AppearanceModel
+    internal void SetAppearance<TAppearance>(string id, Color[]? colors = null) where TAppearance: AppearanceModel
     {
-        NetString modelField = this.GetModelIdField<T>();
+        NetString modelField = this.GetModelIdField<TAppearance>();
         modelField.Set(id);
 
         if (colors != null)
         {
-            NetArray<Color, NetColor>? colorsField = this.GetColorsField<T>();
+            NetArray<Color, NetColor>? colorsField = this.GetColorsField<TAppearance>();
             colorsField?.Set(colors);
         }
+    }
+
+    /// <summary>
+    /// Set the skin color for this sprite
+    /// </summary>
+    internal void SetSkinTone(Color color)
+    {
+        this.SkinTone.Set(color);
     }
 
     /// <summary>
@@ -155,20 +163,20 @@ public class GeneratedSpriteData : INetObject<NetFields>, IDisposable
     /// <summary>
     /// Returns the texture data set in this object for the given type of appearance model. For example, Calling with HairModel will return the hair texture for this object
     /// </summary>
-    /// <typeparam name="T">The type of model inheriting from <see cref="AppearanceModel"/></typeparam>
-    private IRawTextureData? GetTextureForPart<T>() where T : AppearanceModel
+    /// <typeparam name="TAppearance">The type of model inheriting from <see cref="AppearanceModel"/></typeparam>
+    private IRawTextureData? GetTextureForPart<TAppearance>() where TAppearance : AppearanceModel
     {
-        string id = this.GetModelIdField<T>().Value;
-        AppearanceModel? model = Mod.CharacterFactory.GetModel<T>(id);
+        string id = this.GetModelIdField<TAppearance>().Value;
+        AppearanceModel? model = Mod.CharacterFactory.GetModel<TAppearance>(id);
 
-        IList<Color>? colors = this.GetColorsField<T>();
+        IList<Color>? colors = this.GetColorsField<TAppearance>();
 
         return model?.GetTexture(colors);
     }
 
-    private NetString GetModelIdField<T>() where T : AppearanceModel
+    private NetString GetModelIdField<TAppearance>() where TAppearance : AppearanceModel
     {
-        NetString field = (typeof(T).Name switch
+        NetString field = (typeof(TAppearance).Name switch
         {
             nameof(HairModel) => this.HairId,
             nameof(ShirtModel) => this.ShirtId,
@@ -176,14 +184,14 @@ public class GeneratedSpriteData : INetObject<NetFields>, IDisposable
             nameof(OutfitModel) => this.OutfitId,
             nameof(ShoesModel) => this.ShoesId,
             nameof(AccessoryModel) => this.AccessoryId,
-            _ => throw new ArgumentOutOfRangeException(nameof(T), "Bad type given. How has this occurred?")
+            _ => throw new ArgumentOutOfRangeException(nameof(TAppearance), "Bad type given. How has this occurred?")
         })!;
         return field;
     }
 
-    private NetArray<Color, NetColor>? GetColorsField<T>() where T : AppearanceModel
+    private NetArray<Color, NetColor>? GetColorsField<TAppearance>() where TAppearance : AppearanceModel
     {
-        return typeof(T).Name switch
+        return typeof(TAppearance).Name switch
         {
             nameof(HairModel) => this.HairColors,
             nameof(ShirtModel) => this.ShirtColors,

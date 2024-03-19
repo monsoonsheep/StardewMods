@@ -19,9 +19,9 @@ internal class VillagerCustomerSpawner : CustomerSpawner
 
     internal override void Initialize(IModHelper helper)
     {
-        foreach (var model in Mod.Assets.VillagerVisitors)
+        foreach (var model in Mod.Assets.VillagerCustomerModels)
         {
-            VillagerCustomerData data = new VillagerCustomerData(model.Value);
+            VillagerCustomerData data = new VillagerCustomerData(model.Value.NpcName);
             this.VillagerData[model.Key] = data;
         }
     }
@@ -39,7 +39,7 @@ internal class VillagerCustomerSpawner : CustomerSpawner
             return false;
         }
 
-        List<NPC> npcs = data.Select(d => d.Npc).ToList();
+        List<NPC> npcs = data.Select(d => d.GetNpc()).ToList();
 
         CustomerGroup group = new CustomerGroup(GroupType.Villager, this);
         foreach (NPC npc in npcs)
@@ -119,10 +119,11 @@ internal class VillagerCustomerSpawner : CustomerSpawner
 
     private bool CanVillagerVisit(VillagerCustomerData data, int timeOfDay)
     {
-        NPC npc = data.Npc;
+        NPC npc = data.GetNpc();
+        VillagerCustomerModel model = data.GetModel();
 
         int daysSinceLastVisit = Game1.Date.TotalDays - data.LastVisitedDate.TotalDays;
-        int daysAllowed = data.Model.VisitFrequency switch
+        int daysAllowed = model.VisitFrequency switch
         {
             0 => 200,
             1 => 27,
@@ -143,7 +144,7 @@ internal class VillagerCustomerSpawner : CustomerSpawner
             return false;
 
         // If no busy period for today, they're free all day
-        if (!data.Model.BusyTimes.TryGetValue(npc.ScheduleKey, out List<BusyPeriod>? busyPeriods))
+        if (!model.BusyTimes.TryGetValue(npc.ScheduleKey, out List<BusyPeriod>? busyPeriods))
             return false;
         if (busyPeriods.Count == 0)
             return true;

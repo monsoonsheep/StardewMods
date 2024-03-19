@@ -15,23 +15,25 @@ public class VillagerCustomerData
     public string NpcName { get; set; } = null!;
     public WorldDate LastVisitedDate = new(1, Season.Spring, 1);
 
-    [XmlIgnore]
-    internal VillagerCustomerModel Model { get; set; } = null!;
-
-    private NPC? npc;
-
-    [XmlIgnore]
-    internal NPC Npc => this.npc ??= Game1.getCharacterFromName(this.Model.NpcName);
 
     public VillagerCustomerData()
     {
 
     }
 
-    public VillagerCustomerData(VillagerCustomerModel model)
+    public VillagerCustomerData(string name)
     {
-        this.NpcName = model.NpcName;
-        this.Model = model;
+        this.NpcName = name;
+    }
+
+    internal NPC GetNpc()
+    {
+        return Game1.getCharacterFromName(this.NpcName);
+    }
+
+    internal VillagerCustomerModel GetModel()
+    {
+        return Mod.Assets.VillagerCustomerModels[this.NpcName];
     }
 }
 

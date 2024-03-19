@@ -28,16 +28,16 @@ public class Cafe : INetObject<NetFields>
 {
     public NetFields NetFields { get; } = new NetFields("Cafe");
 
-    public NetCollection<Table> NetTables = [];
-    public NetBool CafeEnabled = [];
-    public NetLocationRef CafeIndoor = new();
-    public NetLocationRef CafeOutdoor = new();
+    private readonly NetCollection<Table> NetTables = [];
+    private readonly NetBool CafeEnabled = [];
+    private readonly NetLocationRef CafeIndoor = new();
+    private readonly NetLocationRef CafeOutdoor = new();
 
-    public NetInt OpeningTime = new(630);
-    public NetInt ClosingTime = new(2200);
-    public NetRef<MenuInventory> NetMenu = new(new MenuInventory());
+    internal NetInt OpeningTime = new(630);
+    internal NetInt ClosingTime = new(2200);
+    private readonly NetRef<MenuInventory> NetMenu = new(new MenuInventory());
 
-    public NetStringDictionary<GeneratedSpriteData, NetRef<GeneratedSpriteData>> GeneratedSprites = new();
+    internal NetStringDictionary<GeneratedSpriteData, NetRef<GeneratedSpriteData>> GeneratedSprites = new();
 
     internal RandomCustomerSpawner RandomCustomers = null!;
     internal VillagerCustomerSpawner VillagerCustomers = null!;
@@ -89,10 +89,6 @@ public class Cafe : INetObject<NetFields>
 
         this.RandomCustomers.Initialize(helper);
         this.VillagerCustomers.Initialize(helper);
-#if YOUTUBE || TWITCH
-        this.ChatCustomers = new RandomCustomerSpawner(Mod.CharacterFactory.CreateRandomCustomer);
-        this.ChatCustomers.Initialize(helper);
-#endif
     }
 
     internal void DayUpdate()
@@ -112,7 +108,7 @@ public class Cafe : INetObject<NetFields>
             this.Menu.AddCategory("Menu");
     }
 
-    internal void PopulateTables()
+    private void PopulateTables()
     {
         this.Tables.Clear();
         var locations = new List<GameLocation>();
@@ -159,37 +155,36 @@ public class Cafe : INetObject<NetFields>
         }
     }
 
-    internal IEnumerable<CustomerGroup> ActiveGroups()
+    private IEnumerable<CustomerGroup> ActiveGroups()
     {
         foreach (CustomerGroup g in this.RandomCustomers._groups)
             yield return g;
         foreach (CustomerGroup g in this.VillagerCustomers._groups)
             yield return g;
 
-        #if TWITCH || YOUTUBE
-        foreach (CustomerGroup g in this.ChatCustomers._groups)
-            yield return g;
-        #endif
+        if (this.ChatCustomers != null)
+            foreach (CustomerGroup g in this.ChatCustomers._groups)
+                yield return g;
     }
 
     internal void RemoveAllCustomers()
     {
         foreach (CustomerSpawner spawner in this.Spawners())
         {
-            for (int i = this.RandomCustomers._groups.Count; i > 0; i--)
+            for (int i = spawner._groups.Count; i > 0; i--)
             {
                 spawner.EndCustomers(spawner._groups[i]);
             }
         }
     }
 
-    internal IEnumerable<CustomerSpawner> Spawners()
+    private IEnumerable<CustomerSpawner> Spawners()
     {
         yield return this.RandomCustomers;
         yield return this.VillagerCustomers;
-        #if TWITCH || YOUTUBE
-        yield return this.ChatCustomers;
-        #endif
+
+        if (this.ChatCustomers != null)
+            yield return this.ChatCustomers;
     }
 
     internal void TenMinuteUpdate()

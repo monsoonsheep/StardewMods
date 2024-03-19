@@ -257,6 +257,9 @@ public static class NpcExtensions
         Log.Trace($"Time of selected activity is {timeOfActivity}");
 
         SchedulePathDescription originalPathDescription = npc.Schedule[timeOfActivity];
+
+        Log.Trace($"Schedule description is {originalPathDescription.targetLocationName}: {originalPathDescription.targetTile}, behavior: {originalPathDescription.endOfRouteBehavior}");
+
         GameLocation targetLocation = Game1.getLocationFromName(originalPathDescription.targetLocationName);
         Stack<Point>? routeToScheduleItem = Pathfinding.PathfindFromLocationToLocation(
             npc.currentLocation,
@@ -265,7 +268,6 @@ public static class NpcExtensions
             originalPathDescription.targetTile,
             npc);
 
-        Log.Trace($"Schedule description is {targetLocation.Name}: {originalPathDescription.targetTile}, behavior: {originalPathDescription.endOfRouteBehavior}");
         if (routeToScheduleItem == null)
         {
             Log.Trace("Can't find route back");
@@ -273,6 +275,7 @@ public static class NpcExtensions
             return;
         }
 
+        // Can this return null?
         SchedulePathDescription toInsert = npc.pathfindToNextScheduleLocation(
             npc.ScheduleKey,
             npc.currentLocation.Name,

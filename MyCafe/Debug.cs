@@ -9,11 +9,6 @@ using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Menus;
 
-#if YOUTUBE || TWITCH
-using System.IO;
-using MyCafe.LiveChatIntegration;
-#endif
-
 namespace MyCafe;
 
 internal static class Debug
@@ -41,8 +36,6 @@ internal static class Debug
                 break;
             case SButton.NumPad5:
                 Log.Trace("Breaking");
-                NPC sam = Game1.getCharacterFromName("Sam");
-                Log.Trace(sam.Schedule?.ToString() ?? "no scehdule");
                 break;
             case SButton.NumPad6:
                 break;
@@ -102,17 +95,6 @@ internal static class Debug
         {
             Mod.Cafe.Menu.AddItem(d, "Dessert");
         }
-
-        //Mod.Cafe.Items.Value.NetItems.Value.Add(ItemRegistry.Create("(O)219"));
-        //Mod.Cafe.Items.Value.NetItems.Value.Add(ItemRegistry.Create("(O)129"));
-        //Mod.Cafe.MenuItems.Clear();
-        //Mod.Cafe.MenuItems["Soups"] = [ItemRegistry.Create("(O)218"), ItemRegistry.Create("(O)199"), ItemRegistry.Create("(O)727"), ItemRegistry.Create("(O)730")];
-        //Mod.Cafe.MenuItems["Dessert"] = [ItemRegistry.Create("(O)211"), ItemRegistry.Create("(O)222"), ItemRegistry.Create("(O)232"), ItemRegistry.Create("(O)234")];
-        //Mod.Cafe.MenuItems["Beverages"] = [
-        //    ItemRegistry.GetObjectTypeDefinition().CreateFlavoredJuice(ItemRegistry.Create<Object>("(O)613")),
-        //    ItemRegistry.GetObjectTypeDefinition().CreateFlavoredJuice(ItemRegistry.Create<Object>("(O)635")),
-        //    ItemRegistry.GetObjectTypeDefinition().CreateFlavoredJuice(ItemRegistry.Create<Object>("(O)637"))
-        //];
     }
 
     internal static bool Wait10Seconds()
@@ -126,17 +108,4 @@ internal static class Debug
     {
         Game1.warpFarmer("BusStop", 12, 15, false);
     }
-
-#if YOUTUBE || TWITCH
-    public static void RefreshChat()
-    {
-        
-    }
-
-    public static void Test_UserJoinChat()
-    {
-        string[] a = File.ReadAllText(Mod.Instance.Helper.DirectoryPath + "\\names.txt").Split('\n');
-        string name = a[Game1.random.Next(a.Length)].TrimEnd('\r').TrimStart();
-    }
-#endif
 }

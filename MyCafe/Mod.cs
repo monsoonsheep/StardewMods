@@ -125,6 +125,8 @@ public class Mod : StardewModdingAPI.Mod
 
         ISpaceCoreApi spaceCore = this.Helper.ModRegistry.GetApi<ISpaceCoreApi>("spacechase0.SpaceCore")!;
         spaceCore.RegisterSerializerType(typeof(CafeLocation));
+
+        // Remove this? It might not be need. Test multiplayer to confirm.
         CafeState.Register(spaceCore);
 
         this._assetManager.LoadContent(this.Helper.ContentPacks.CreateTemporary(
@@ -301,13 +303,12 @@ public class Mod : StardewModdingAPI.Mod
         Cafe.Menu.Menu.Set(cafeData.MenuItemLists);
         foreach (VillagerCustomerData data in cafeData.VillagerCustomersData)
         {
-            if (!Assets.VillagerVisitors.TryGetValue(data.NpcName, out VillagerCustomerModel? model))
+            if (!Assets.VillagerCustomerModels.TryGetValue(data.NpcName, out VillagerCustomerModel? model))
             {
                 Log.Debug("Loading NPC customer data but not model found. Skipping...");
                 continue;
             }
 
-            data.Model = model;
             data.NpcName = model.NpcName;
             Cafe.VillagerCustomers.VillagerData[data.NpcName] = data;
         }
@@ -369,6 +370,7 @@ public class Mod : StardewModdingAPI.Mod
 
     internal void InitializeLiveChat()
     {
+        Cafe.ChatCustomers = new RandomCustomerSpawner(getModelFunc: CharacterFactory.CreateRandomCustomer);
         Cafe.ChatCustomers.Initialize(this.Helper);
     }
 #endif

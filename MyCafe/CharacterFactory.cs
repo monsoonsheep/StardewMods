@@ -57,7 +57,7 @@ internal sealed class CharacterFactory
         Color skinTone = new Color(skin[0], skin[1], skin[2]);
 
         GeneratedSpriteData spriteData = new(guid);
-        spriteData.SkinTone.Set(skinTone);
+        spriteData.SetSkinTone(skinTone);
 
         if (Game1.random.Next(2) == 0)
             this.SetShirtsPantsAppearance(spriteData, gender);
@@ -104,24 +104,24 @@ internal sealed class CharacterFactory
         return this.GetCollection<T>().FirstOrDefault(c => c.Id == id);
     }
 
-    private ICollection<T> GetCollection<T>() where T : AppearanceModel
+    private ICollection<TAppearance> GetCollection<TAppearance>() where TAppearance : AppearanceModel
     {
-        ICollection<T> collection = (typeof(T).Name switch
+        ICollection<TAppearance> collection = (typeof(TAppearance).Name switch
         {
-            nameof(HairModel) => this.Hairstyles.Values as ICollection<T>,
-            nameof(ShirtModel) => this.Shirts.Values as ICollection<T>,
-            nameof(PantsModel) => this.Pants.Values as ICollection<T>,
-            nameof(OutfitModel) => this.Outfits.Values as ICollection<T>,
-            nameof(ShoesModel) => this.Shoes.Values as ICollection<T>,
-            nameof(AccessoryModel) => this.Accessories.Values as ICollection<T>,
-            _ => throw new ArgumentOutOfRangeException(nameof(T), "Bad type given. How has this occurred?")
+            nameof(HairModel) => this.Hairstyles.Values as ICollection<TAppearance>,
+            nameof(ShirtModel) => this.Shirts.Values as ICollection<TAppearance>,
+            nameof(PantsModel) => this.Pants.Values as ICollection<TAppearance>,
+            nameof(OutfitModel) => this.Outfits.Values as ICollection<TAppearance>,
+            nameof(ShoesModel) => this.Shoes.Values as ICollection<TAppearance>,
+            nameof(AccessoryModel) => this.Accessories.Values as ICollection<TAppearance>,
+            _ => throw new ArgumentOutOfRangeException(nameof(TAppearance), "Bad type given. How has this occurred?")
         })!;
         return collection;
     }
 
-    private T GetRandomAppearance<T>(Gender gender = Gender.Undefined) where T : AppearanceModel
+    private TAppearance GetRandomAppearance<TAppearance>(Gender gender = Gender.Undefined) where TAppearance : AppearanceModel
     {
-        ICollection<T> collection = this.GetCollection<T>();
+        ICollection<TAppearance> collection = this.GetCollection<TAppearance>();
         return collection.Where(m => m.MatchesGender(gender)).MinBy(_ => Game1.random.Next())!;
     }
 }
