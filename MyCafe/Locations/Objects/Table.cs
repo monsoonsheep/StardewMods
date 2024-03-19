@@ -10,9 +10,6 @@ using StardewValley;
 
 namespace MyCafe.Locations.Objects;
 
-[XmlType("Mods_MonsoonSheep_MyCafe_Table")]
-[XmlInclude(typeof(FurnitureTable))]
-[XmlInclude(typeof(LocationTable))]
 public class Table : INetObject<NetFields>
 {
     public NetFields NetFields { get; }

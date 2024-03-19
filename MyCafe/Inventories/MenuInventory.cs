@@ -79,9 +79,4 @@ public class MenuInventory : INetObject<NetFields>
     {
         this.Menu.Remove(category);
     }
-
-    public void SetItems(Dictionary<MenuCategory, Inventory> items)
-    {
-        this.Menu.Set(items);
-    }
 }

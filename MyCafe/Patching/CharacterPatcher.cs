@@ -20,12 +20,8 @@ internal class CharacterPatcher : BasePatcher
 {
     public override void Apply(Harmony harmony, IMonitor monitor)
     {
-        //harmony.Patch(
-        //    original: this.RequireMethod<PathFindController>("moveCharacter"),
-        //    transpiler: this.GetHarmonyMethod(nameof(Transpile_MoveCharacter))
-        //);
         harmony.Patch(
-            original: this.RequireMethod<NPC>("ChooseAppearance"),
+            original: this.RequireMethod<NPC>(nameof(NPC.ChooseAppearance)),
             prefix: this.GetHarmonyMethod(nameof(Before_ChooseAppearance))
         );
         harmony.Patch(
@@ -50,41 +46,6 @@ internal class CharacterPatcher : BasePatcher
         return true;
     }
 
-    private static IEnumerable<CodeInstruction> Transpile_MoveCharacter(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-    {
-        var fPathfindercharacter = AccessTools.Field(typeof(PathFindController), "character");
-        var mObjectIsPassableMethod = AccessTools.Method(typeof(Object), "isPassable");
-
-        var codeList = instructions.ToList();
-        int startPos = -1;
-
-        for (int i = 0; i < codeList.Count; i++)
-        {
-            if (codeList[i].Calls(mObjectIsPassableMethod))
-            {
-                startPos = i + 1;
-                break;
-            }
-        }
-
-        //if (codeList[startPos].Branches(out var jumpLabel) && jumpLabel != null)
-        //{
-        //    var patchCodes = new List<CodeInstruction>
-        //    {
-        //        new (OpCodes.Ldarg_0), // this
-        //        new (OpCodes.Ldfld, fPathfindercharacter), // this.character
-        //        new (OpCodes.Isinst, typeof(Customer)),
-        //        new (OpCodes.Brtrue, jumpLabel) // branch to the same one found earlier
-        //    };
-
-        //    codeList.InsertRange(startPos + 1, patchCodes);
-        //}
-        //else
-        //    Log.Debug("Couldn't find the break after isPassable check", LogLevel.Error);
-
-        return codeList.AsEnumerable();
-    }
-
     private static void After_doEmote(Character __instance, int whichEmote, bool playSound, bool nextEventCommand)
     {
         // Check if emoting as a customer, then msg to clients
@@ -96,38 +57,41 @@ internal class CharacterPatcher : BasePatcher
 
     private static void After_update(NPC __instance, GameTime time, GameLocation location)
     {
-        if (__instance.controller != null
-            && !__instance.currentLocation.farmers.Any()
-            && __instance.currentLocation.Name.Equals("BusStop")
-            && (bool?) AccessTools.Field(typeof(Character), "freezeMotion").GetValue(__instance) is false)
+        if ((Mod.NpcCustomers.Contains(__instance.Name) || __instance.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX)) && !__instance.IsInvisible)
         {
-            while (__instance.currentLocation.Name.Equals("BusStop") && __instance.controller.pathToEndPoint?.Count > 2)
+            if (__instance.controller != null
+                && !__instance.currentLocation.farmers.Any()
+                && __instance.currentLocation.Name.Equals("BusStop")
+                && (bool?) AccessTools.Field(typeof(Character), "freezeMotion").GetValue(__instance) is false)
             {
-                __instance.controller.pathToEndPoint.Pop();
-                __instance.controller.handleWarps(new Rectangle(__instance.controller.pathToEndPoint.Peek().X * 64, __instance.controller.pathToEndPoint.Peek().Y * 64, 64, 64));
-                __instance.Position = new Vector2(__instance.controller.pathToEndPoint.Peek().X * 64, __instance.controller.pathToEndPoint.Peek().Y * 64 + 16);
-            }
-        }
-
-        __instance.speed = 4;
-
-        if (NpcExtensions.Values.TryGetValue(__instance, out NpcExtensions.CustomerData? _) && !__instance.IsInvisible)
-        {
-            if (__instance.get_LerpPosition() >= 0f)
-            {
-                __instance.set_LerpPosition(__instance.get_LerpPosition() + (float)time.ElapsedGameTime.TotalSeconds);
-
-                if (__instance.get_LerpPosition() >= __instance.get_LerpDuration())
+                while (__instance.currentLocation.Name.Equals("BusStop") && __instance.controller.pathToEndPoint?.Count > 2)
                 {
-                    __instance.set_LerpPosition(__instance.get_LerpDuration());
+                    __instance.controller.pathToEndPoint.Pop();
+                    __instance.controller.handleWarps(new Rectangle(__instance.controller.pathToEndPoint.Peek().X * 64, __instance.controller.pathToEndPoint.Peek().Y * 64, 64, 64));
+                    __instance.Position = new Vector2(__instance.controller.pathToEndPoint.Peek().X * 64, __instance.controller.pathToEndPoint.Peek().Y * 64 + 16);
                 }
+            }
 
-                __instance.Position = new Vector2(StardewValley.Utility.Lerp(__instance.get_LerpStartPosition().X, __instance.get_LerpEndPosition().X, __instance.get_LerpPosition() / __instance.get_LerpDuration()), StardewValley.Utility.Lerp(__instance.get_LerpStartPosition().Y, __instance.get_LerpEndPosition().Y, __instance.get_LerpPosition() / __instance.get_LerpDuration()));
-                if (__instance.get_LerpPosition() >= __instance.get_LerpDuration())
+            __instance.speed = 4;
+
+            if (!__instance.IsInvisible)
+            {
+                if (__instance.get_LerpPosition() >= 0f)
                 {
-                    __instance.get_AfterLerp()?.Invoke(__instance);
-                    __instance.set_AfterLerp(null);
-                    __instance.set_LerpPosition(-1f);
+                    __instance.set_LerpPosition(__instance.get_LerpPosition() + (float)time.ElapsedGameTime.TotalSeconds);
+
+                    if (__instance.get_LerpPosition() >= __instance.get_LerpDuration())
+                    {
+                        __instance.set_LerpPosition(__instance.get_LerpDuration());
+                    }
+
+                    __instance.Position = new Vector2(StardewValley.Utility.Lerp(__instance.get_LerpStartPosition().X, __instance.get_LerpEndPosition().X, __instance.get_LerpPosition() / __instance.get_LerpDuration()), StardewValley.Utility.Lerp(__instance.get_LerpStartPosition().Y, __instance.get_LerpEndPosition().Y, __instance.get_LerpPosition() / __instance.get_LerpDuration()));
+                    if (__instance.get_LerpPosition() >= __instance.get_LerpDuration())
+                    {
+                        __instance.get_AfterLerp()?.Invoke(__instance);
+                        __instance.set_AfterLerp(null);
+                        __instance.set_LerpPosition(-1f);
+                    }
                 }
             }
         }
@@ -135,7 +99,7 @@ internal class CharacterPatcher : BasePatcher
 
     private static void After_draw(NPC __instance, SpriteBatch b, float alpha)
     {
-        if (NpcExtensions.Values.TryGetValue(__instance, out NpcExtensions.CustomerData? _) && !__instance.IsInvisible)
+        if ((Mod.NpcCustomers.Contains(__instance.Name) || __instance.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX)) && !__instance.IsInvisible)
         {
             float layerDepth = Math.Max(0f, __instance.StandingPixel.Y / 10000f);
             Vector2 localPosition = __instance.getLocalPosition(Game1.viewport);

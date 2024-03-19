@@ -4,7 +4,6 @@ using StardewValley.Objects;
 
 namespace MyCafe.Locations.Objects;
 
-[XmlType("Mods_MonsoonSheep_MyCafe_FurnitureSeat")]
 public sealed class FurnitureSeat : Seat
 {
     internal readonly NetRef<Furniture> ActualChair = [];

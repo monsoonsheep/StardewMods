@@ -7,10 +7,7 @@ using StardewValley;
 
 namespace MyCafe.Locations.Objects;
 
-[XmlType("Mods_MonsoonSheep_MyCafe_Seat")]
-[XmlInclude(typeof(FurnitureSeat))]
-[XmlInclude(typeof(LocationSeat))]
-public abstract class Seat : INetObject<NetFields>
+public class Seat : INetObject<NetFields>
 {
     public NetFields NetFields { get; }
 
@@ -82,8 +79,7 @@ public abstract class Seat : INetObject<NetFields>
         if (this.ReservingCustomer != null)
             return false;
 
-        NpcExtensions.CustomerData state = NpcExtensions.Values.GetOrCreateValue(customer);
-        state.Seat = this;
+        customer.set_Seat(this);
         this.ReservingCustomer = customer;
         return true;
     }

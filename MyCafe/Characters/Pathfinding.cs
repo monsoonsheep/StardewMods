@@ -44,7 +44,6 @@ public static class Pathfinding
             finalFacingDirection = finalFacingDirection
         };
 
-        //Log.Debug($"Pathing from {me.TilePoint} to {targetTile}");
         return true;
     }
 
@@ -145,7 +144,7 @@ public static class Pathfinding
         return PathFindController.findPathForNPCSchedules(startTile, targetTile, location, 30000);
     }
 
-    internal static Stack<Point>? PathfindImpl(GameLocation location, Point startPoint, Point endPoint, Character? character, int limit = 5000)
+    private static Stack<Point>? PathfindImpl(GameLocation location, Point startPoint, Point endPoint, Character? character, int limit = 5000)
     {
         PriorityQueue frontier = new();
         HashSet<int> visited = new();
@@ -199,7 +198,7 @@ public static class Pathfinding
         return null;
     }
 
-    internal static Stack<Point>? FindShortestPathToChair(GameLocation location, Point startTile, Point targetTile, Character? character)
+    private static Stack<Point>? FindShortestPathToChair(GameLocation location, Point startTile, Point targetTile, Character? character)
     {
         List<sbyte[]> directions =
         [
@@ -228,7 +227,7 @@ public static class Pathfinding
         return shortestPath;
     }
 
-    internal static Stack<Point>? FindShortestPathFromChair(GameLocation location, Point startTile, Point targetTile, Character? character)
+    private static Stack<Point>? FindShortestPathFromChair(GameLocation location, Point startTile, Point targetTile, Character? character)
     {
         List<sbyte[]> directions =
         [
@@ -260,10 +259,10 @@ public static class Pathfinding
     /// <summary>
     /// This works on the farm to prefer flooring tiles over ground, and dirt over grass.
     /// </summary>
-    internal static int GetPreferenceValueForTerrainType(GameLocation location, int x, int y)
+    private static int GetPreferenceValueForTerrainType(GameLocation location, int x, int y)
     {
-        int value = 0;
         string str = location.doesTileHaveProperty(x, y, "Type", "Back");
+        int value = 0;
         if (str != null)
         {
             switch (str.ToLower())
@@ -335,7 +334,6 @@ public static class Pathfinding
         }
     }
 }
-
 
 public class PathNotFoundException : Exception
 {

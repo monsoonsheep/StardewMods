@@ -19,9 +19,12 @@ internal class VillagerCustomerSpawner : CustomerSpawner
 
     internal override void Initialize(IModHelper helper)
     {
-        foreach (var pair in Mod.Assets.VillagerVisitors)
+        foreach (var model in Mod.Assets.VillagerVisitors)
         {
-            this.VillagerData[pair.Key] = new VillagerCustomerData(pair.Value);
+            if (this.VillagerData.ContainsKey(model.Key) == false)
+            {
+                this.VillagerData.Add(model.Key, new VillagerCustomerData(model.Value));
+            }
         }
     }
 
@@ -54,6 +57,7 @@ internal class VillagerCustomerSpawner : CustomerSpawner
             c.get_OrderItem().Set(Debug.SetTestItemForOrder(c));
             c.eventActor = true;
             c.ignoreScheduleToday = true;
+            Mod.NpcCustomers.Add(c.Name);
             Log.Trace($"{c.Name} is coming.");
         }
 
@@ -82,13 +86,14 @@ internal class VillagerCustomerSpawner : CustomerSpawner
 
     internal override bool EndCustomers(CustomerGroup group, bool force = false)
     {
+        group.ReservedTable?.Free();
         try
         {
             group.MoveTo(Game1.getLocationFromName("BusStop"), new Point(1, 23), (c, loc) => (c as NPC)!.ReturnToSchedule());
         }
         catch (PathNotFoundException e)
         {
-            Log.Trace($"Villager NPCs can't find path out of cafe\n{e.Message}\n{e.StackTrace}");
+            Log.Error($"Villager NPCs can't find path out of cafe\n{e.Message}\n{e.StackTrace}");
             foreach (NPC npc in group.Members)
             {
                 // TODO warp to their home

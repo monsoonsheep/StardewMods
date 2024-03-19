@@ -18,7 +18,6 @@ using StardewValley.GameData.Pets;
 namespace MyCafe;
 internal sealed class CharacterFactory
 {
-
     private readonly IModHelper _modHelper;
 
     internal Dictionary<string, CustomerModel> Customers = [];
@@ -34,6 +33,7 @@ internal sealed class CharacterFactory
     internal List<AppearancePaint> HairColors = [];
     internal List<AppearancePaint> ShirtColors = [];
     internal List<AppearancePaint> PantsColors = [];
+    internal List<AppearancePaint> OutfitColors = [];
 
     internal CharacterFactory(IModHelper helper)
     {
@@ -56,20 +56,13 @@ internal sealed class CharacterFactory
         int[] skin = this.SkinTones.PickRandom()!;
         Color skinTone = new Color(skin[0], skin[1], skin[2]);
 
-        HairModel hair = this.GetRandomAppearance<HairModel>(gender)!;
-        ShirtModel shirt = this.GetRandomAppearance<ShirtModel>(gender);
-        PantsModel pants = this.GetRandomAppearance<PantsModel>(gender);
-
-        AppearancePaint? hairPaint = this.HairColors.PickRandom();
-        AppearancePaint? shirtPaint = this.ShirtColors.PickRandom();
-        AppearancePaint? pantsPaint = this.PantsColors.PickRandom();
-
         GeneratedSpriteData spriteData = new(guid);
-
         spriteData.SkinTone.Set(skinTone);
-        spriteData.SetAppearance<HairModel>(hair.Id, hairPaint?.GetRandomPermutation());
-        spriteData.SetAppearance<ShirtModel>(shirt.Id, shirtPaint?.GetRandomPermutation());
-        spriteData.SetAppearance<PantsModel>(pants.Id, pantsPaint?.GetRandomPermutation());
+
+        if (Game1.random.Next(2) == 0)
+            this.SetShirtsPantsAppearance(spriteData, gender);
+        else
+            this.SetOutfitAppearance(spriteData, gender);
 
         Mod.Cafe.GeneratedSprites[guid] = spriteData;
 
@@ -78,10 +71,32 @@ internal sealed class CharacterFactory
             Gender = Utility.GameGenderToCustomGender(gender),
             Name = $"{ModKeys.CUSTOMER_NPC_NAME_PREFIX}Random{guid}",
             Spritesheet = $"{ModKeys.GENERATED_SPRITE_PREFIX}/{guid}",
-            Portrait = this._modHelper.ModContent.GetInternalAssetName(Path.Combine("assets", "Portraits", "cat.png")).Name
+            Portrait = this._modHelper.ModContent.GetInternalAssetName(Path.Combine("assets", "CharGen", "Portraits", "cat.png")).Name
         };
 
         return model;
+    }
+
+    private void SetOutfitAppearance(GeneratedSpriteData spriteData, Gender gender)
+    {
+        OutfitModel outfit = this.GetRandomAppearance<OutfitModel>(gender);
+        AppearancePaint? outfitPaint = this.OutfitColors.PickRandom();
+        spriteData.SetAppearance<OutfitModel>(outfit.Id, outfitPaint?.GetRandomPermutation());
+    }
+
+    private void SetShirtsPantsAppearance(GeneratedSpriteData spriteData, Gender gender)
+    {
+        HairModel hair = this.GetRandomAppearance<HairModel>(gender)!;
+        ShirtModel shirt = this.GetRandomAppearance<ShirtModel>(gender);
+        PantsModel pants = this.GetRandomAppearance<PantsModel>(gender);
+
+        AppearancePaint? hairPaint = this.HairColors.PickRandom();
+        AppearancePaint? shirtPaint = this.ShirtColors.PickRandom();
+        AppearancePaint? pantsPaint = this.PantsColors.PickRandom();
+
+        spriteData.SetAppearance<HairModel>(hair.Id, hairPaint?.GetRandomPermutation());
+        spriteData.SetAppearance<ShirtModel>(shirt.Id, shirtPaint?.GetRandomPermutation());
+        spriteData.SetAppearance<PantsModel>(pants.Id, pantsPaint?.GetRandomPermutation());
     }
 
     internal T? GetModel<T>(string id) where T : AppearanceModel

@@ -41,9 +41,7 @@ public class Cafe : INetObject<NetFields>
 
     internal RandomCustomerSpawner RandomCustomers = null!;
     internal VillagerCustomerSpawner VillagerCustomers = null!;
-    #if YOUTUBE || TWITCH
-    internal RandomCustomerSpawner ChatCustomers = null!;
-    #endif
+    internal RandomCustomerSpawner? ChatCustomers = null;
 
     internal MenuInventory Menu => this.NetMenu.Value;
 
@@ -92,7 +90,8 @@ public class Cafe : INetObject<NetFields>
         this.RandomCustomers.Initialize(helper);
         this.VillagerCustomers.Initialize(helper);
 #if YOUTUBE || TWITCH
-        this.ChatCustomers = new RandomCustomerSpawner(Mod.CharacterFactory.CreateRandomCustomer); // From live chat TODO
+        this.ChatCustomers = new RandomCustomerSpawner(Mod.CharacterFactory.CreateRandomCustomer);
+        this.ChatCustomers.Initialize(helper);
 #endif
     }
 
@@ -131,7 +130,7 @@ public class Cafe : INetObject<NetFields>
                 FurnitureTable newTable = new FurnitureTable(furniture, location.Name);
                 if (newTable.Seats.Count > 0)
                 {
-                    this.TryAddTable(newTable);
+                    this.AddTable(newTable);
                     count++;
                 }
             }
@@ -152,7 +151,7 @@ public class Cafe : INetObject<NetFields>
                 LocationTable locationTable = new LocationTable(newRectangle, this.Indoor.Name, pair.Value);
                 if (locationTable.Seats.Count > 0)
                 {
-                    this.TryAddTable(locationTable);
+                    this.AddTable(locationTable);
                     count++;
                 }
             }
@@ -228,7 +227,7 @@ public class Cafe : INetObject<NetFields>
             prob += Game1.random.Next(20 + Math.Max(0, minutesTillCloses / 3)) >= 28 ? 0.2f : -0.5f;
     }
 
-    internal void TryAddTable(Table table)
+    internal void AddTable(Table table)
     {
         table.Free();
         this.Tables.Add(table);
@@ -236,13 +235,10 @@ public class Cafe : INetObject<NetFields>
 
     internal void RemoveTable(FurnitureTable table)
     {
-        if (!this.Tables.Contains(table))
-            Log.Warn("Trying to remove a table that isn't tracked");
-        else
-        {
+        if (this.Tables.Remove(table))
             Log.Debug($"Table removed");
-            this.Tables.Remove(table);
-        }
+        else
+            Log.Warn("Trying to remove a table that isn't registered");
     }
 
     internal bool InteractWithTable(Table table, Farmer who)
@@ -299,7 +295,7 @@ public class Cafe : INetObject<NetFields>
                     ? existing : new FurnitureTable(facingFurniture, location.Name);
 
             table.AddChair(placed);
-            this.TryAddTable(table);
+            this.AddTable(table);
         }
         else if (Utility.IsTable(placed))
         {
@@ -307,7 +303,7 @@ public class Cafe : INetObject<NetFields>
             {
                 FurnitureTable table = new(placed, location.Name);
                 if (table.Seats.Count > 0)
-                    this.TryAddTable(table);
+                    this.AddTable(table);
             }
         }
     }

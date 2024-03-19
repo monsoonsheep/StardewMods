@@ -19,27 +19,29 @@ using SUtility = StardewValley.Utility;
 #pragma warning disable IDE1006
 
 namespace MyCafe.Characters;
+
+internal class CustomerState
+{
+    public readonly NetRef<Item> OrderItem = [];
+    public readonly NetBool DrawName = [];
+    public readonly NetBool DrawOrderItem = [];
+
+    public CustomerGroup? Group;
+    public Seat? Seat;
+
+    public bool IsSittingDown;
+    public Action<Character>? AfterLerp;
+
+    public Vector2 LerpStartPosition;
+    public Vector2 LerpEndPosition;
+    public float LerpPosition = -1f;
+    public float LerpDuration = -1f; 
+}
+
+
 public static class NpcExtensions
 {
-    internal class CustomerData
-    {
-        public readonly NetRef<Item> OrderItem = [];
-        public readonly NetBool DrawName = [];
-        public readonly NetBool DrawOrderItem = [];
-
-        public CustomerGroup? Group;
-        public Seat? Seat;
-
-        public bool IsSittingDown;
-        public Action<Character>? AfterLerp;
-
-        public Vector2 LerpStartPosition;
-        public Vector2 LerpEndPosition;
-        public float LerpPosition = -1f;
-        public float LerpDuration = -1f; 
-    }
-
-    internal static ConditionalWeakTable<Character, CustomerData> Values = [];
+    internal static ConditionalWeakTable<Character, CustomerState> Values = [];
 
     internal static void RegisterProperties(ISpaceCoreApi spaceCore)
     {
@@ -66,7 +68,7 @@ public static class NpcExtensions
 
     public static NetRef<Item> get_OrderItem(this Character character)
     {
-        CustomerData holder = Values.GetOrCreateValue(character);
+        CustomerState holder = Values.GetOrCreateValue(character);
         return holder.OrderItem;
     }
 
@@ -74,7 +76,7 @@ public static class NpcExtensions
 
     public static NetBool get_DrawName(this Character character)
     {
-        CustomerData holder = Values.GetOrCreateValue(character);
+        CustomerState holder = Values.GetOrCreateValue(character);
         return holder.DrawName;
     }
 
@@ -82,7 +84,7 @@ public static class NpcExtensions
 
     public static NetBool get_DrawOrderItem(this Character character)
     {
-        CustomerData holder = Values.GetOrCreateValue(character);
+        CustomerState holder = Values.GetOrCreateValue(character);
         return holder.DrawOrderItem;
     }
 
@@ -90,97 +92,97 @@ public static class NpcExtensions
 
     public static CustomerGroup? get_Group(this Character character)
     {
-        CustomerData holder = Values.GetOrCreateValue(character);
+        CustomerState holder = Values.GetOrCreateValue(character);
         return holder.Group;
     }
 
     public static void set_Group(this Character character, CustomerGroup? value)
     {
-        CustomerData holder = Values.GetOrCreateValue(character);
+        CustomerState holder = Values.GetOrCreateValue(character);
         holder.Group = value;
     }
 
     public static Seat? get_Seat(this Character character)
     {
-        CustomerData holder = Values.GetOrCreateValue(character);
+        CustomerState holder = Values.GetOrCreateValue(character);
         return holder.Seat;
     }
 
     public static void set_Seat(this Character character, Seat? value)
     {
-        CustomerData holder = Values.GetOrCreateValue(character);
+        CustomerState holder = Values.GetOrCreateValue(character);
         holder.Seat = value;
     }
 
     public static bool get_IsSittingDown(this Character character)
     {
-        CustomerData holder = Values.GetOrCreateValue(character);
+        CustomerState holder = Values.GetOrCreateValue(character);
         return holder.IsSittingDown;
     }
 
     public static void set_IsSittingDown(this Character character, bool value)
     {
-        CustomerData holder = Values.GetOrCreateValue(character);
+        CustomerState holder = Values.GetOrCreateValue(character);
         holder.IsSittingDown = value;
     }
 
     public static Action<Character>? get_AfterLerp(this Character character)
     {
-        CustomerData holder = Values.GetOrCreateValue(character);
+        CustomerState holder = Values.GetOrCreateValue(character);
         return holder.AfterLerp;
     }
 
     public static void set_AfterLerp(this Character character, Action<Character>? value)
     {
-        CustomerData holder = Values.GetOrCreateValue(character);
+        CustomerState holder = Values.GetOrCreateValue(character);
         holder.AfterLerp = value;
     }
 
     public static Vector2 get_LerpStartPosition(this Character character)
     {
-        CustomerData holder = Values.GetOrCreateValue(character);
+        CustomerState holder = Values.GetOrCreateValue(character);
         return holder.LerpStartPosition;
     }
 
     public static void set_LerpStartPosition(this Character character, Vector2 value)
     {
-        CustomerData holder = Values.GetOrCreateValue(character);
+        CustomerState holder = Values.GetOrCreateValue(character);
         holder.LerpStartPosition = value;
     }
 
     public static Vector2 get_LerpEndPosition(this Character character)
     {
-        CustomerData holder = Values.GetOrCreateValue(character);
+        CustomerState holder = Values.GetOrCreateValue(character);
         return holder.LerpEndPosition;
     }
 
     public static void set_LerpEndPosition(this Character character, Vector2 value)
     {
-        CustomerData holder = Values.GetOrCreateValue(character);
+        CustomerState holder = Values.GetOrCreateValue(character);
         holder.LerpEndPosition = value;
     }
 
     public static float get_LerpPosition(this Character character)
     {
-        CustomerData holder = Values.GetOrCreateValue(character);
+        CustomerState holder = Values.GetOrCreateValue(character);
         return holder.LerpPosition;
     }
 
     public static void set_LerpPosition(this Character character, float value)
     {
-        CustomerData holder = Values.GetOrCreateValue(character);
+        CustomerState holder = Values.GetOrCreateValue(character);
         holder.LerpPosition = value;
     }
 
     public static float get_LerpDuration(this Character character)
     {
-        CustomerData holder = Values.GetOrCreateValue(character);
+        CustomerState holder = Values.GetOrCreateValue(character);
         return holder.LerpDuration;
     }
 
     public static void set_LerpDuration(this Character character, float value)
     {
-        CustomerData holder = Values.GetOrCreateValue(character);
+        CustomerState holder = Values.GetOrCreateValue(character);
         holder.LerpDuration = value;
     }
 
@@ -222,6 +224,7 @@ public static class NpcExtensions
 
     internal static void ReturnToSchedule(this NPC npc)
     {
+        Mod.NpcCustomers.Remove(npc.Name);
         npc.eventActor = false;
         npc.ignoreScheduleToday = false;
 

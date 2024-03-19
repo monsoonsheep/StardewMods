@@ -49,10 +49,6 @@ internal class FurniturePatcher : BasePatcher
     /// <summary>
     /// Prevent farmers from sitting in chairs that are reserved for customers
     /// </summary>
-    /// <param name="__instance"></param>
-    /// <param name="who"></param>
-    /// <param name="__result"></param>
-    /// <returns></returns>
     private static bool Before_AddSittingFarmer(Furniture __instance, Farmer who, ref Vector2? __result)
     {
         if (Utility.IsChair(__instance)
@@ -61,7 +57,7 @@ internal class FurniturePatcher : BasePatcher
                     .OfType<FurnitureSeat>()
                     .Any(s => s.IsReserved && s.ActualChair.Value.Equals(__instance))))
         {
-            Log.Debug("Can't sit in this chair, it's reserved");
+            Log.Warn("Can't sit in this chair, it's reserved");
             __result = null;
             return false;
         }
@@ -69,6 +65,9 @@ internal class FurniturePatcher : BasePatcher
         return true;
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     private static bool Before_PerformObjectDropInAction(Furniture __instance, Item dropInItem, bool probe, Farmer who, ref bool __result)
     {
         if (Utility.IsTable(__instance))
@@ -76,7 +75,7 @@ internal class FurniturePatcher : BasePatcher
             if (Mod.Cafe.TryGetFurnitureTable(__instance, out FurnitureTable trackedTable)
                 && trackedTable.IsReserved)
             {
-                Log.Debug("Can't drop in this object onto this table. It's reserved");
+                Log.Warn("Can't drop in this object onto this table. It's reserved");
                 __result = false;
                 return false;
             }

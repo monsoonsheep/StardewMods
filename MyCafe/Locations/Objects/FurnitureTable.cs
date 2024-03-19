@@ -9,7 +9,6 @@ using StardewValley.Objects;
 
 namespace MyCafe.Locations.Objects;
 
-[XmlType("Mods_MonsoonSheep_MyCafe_FurnitureTable")]
 public class FurnitureTable : Table
 {
     internal readonly NetRef<Furniture> ActualTable = [];

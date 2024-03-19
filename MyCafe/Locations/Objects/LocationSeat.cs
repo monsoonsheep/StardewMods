@@ -8,7 +8,6 @@ using StardewValley;
 
 namespace MyCafe.Locations.Objects;
 
-[XmlType("Mods_MonsoonSheep_MyCafe_LocationSeat")]
 public sealed class LocationSeat : Seat
 {
     public LocationSeat() : base()

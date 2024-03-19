@@ -53,6 +53,8 @@ public class Mod : StardewModdingAPI.Mod
 
     internal static bool IsPlacingSignBoard;
 
+    internal static HashSet<string> NpcCustomers = new();
+
     internal static Texture2D Sprites
         => Instance._sprites;
 
@@ -70,6 +72,7 @@ public class Mod : StardewModdingAPI.Mod
 
     internal static AssetManager Assets
         => Instance._assetManager;
+
 
     public Mod()
     {
@@ -294,7 +297,15 @@ public class Mod : StardewModdingAPI.Mod
 
         Cafe.OpeningTime.Set(cafeData.OpeningTime);
         Cafe.ClosingTime.Set(cafeData.ClosingTime);
-        Cafe.Menu.SetItems(cafeData.MenuItemLists);
+        Cafe.Menu.Menu.Set(cafeData.MenuItemLists);
+        foreach (VillagerCustomerData data in cafeData.VillagerCustomersData)
+        {
+            if (Assets.VillagerVisitors.TryGetValue(data.NpcName, out VillagerCustomerModel? model))
+            {
+                data.Model = model;
+                Cafe.VillagerCustomers.VillagerData.Add(data.NpcName, data);
+            }
+        }
     }
 
     internal void SaveCafeData()
@@ -309,7 +320,8 @@ public class Mod : StardewModdingAPI.Mod
         {
             OpeningTime = Cafe.OpeningTime.Value,
             ClosingTime = Cafe.ClosingTime.Value,
-            MenuItemLists = new SerializableDictionary<MenuCategory, Inventory>(Cafe.Menu.ItemDictionary)
+            MenuItemLists = new SerializableDictionary<MenuCategory, Inventory>(Cafe.Menu.ItemDictionary),
+            VillagerCustomersData = Cafe.VillagerCustomers?.VillagerData.Values.ToList() ?? []
         };
 
         XmlSerializer serializer = new(typeof(CafeArchiveData));

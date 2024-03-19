@@ -11,6 +11,7 @@ using xTile.Tiles;
 // ReSharper disable once CheckNamespace
 
 namespace StardewValley.Locations;
+
 [XmlType("Mods_MonsoonSheep_MyCafe_CafeLocation")]
 public class CafeLocation : GameLocation
 {
