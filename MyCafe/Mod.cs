@@ -23,6 +23,7 @@ using MyCafe.Enums;
 using MyCafe.Interfaces;
 using MyCafe.Inventories;
 using MyCafe.Locations.Objects;
+using MyCafe.Netcode;
 using MyCafe.Patching;
 using MyCafe.UI;
 using Netcode;
@@ -49,11 +50,7 @@ public class Mod : StardewModdingAPI.Mod
     private AssetManager _assetManager = null!;
     private CharacterFactory _characterFactory = null!;
 
-    internal NetRef<Cafe> CafeField = [];
-
-    internal static bool IsPlacingSignBoard;
-
-    internal static HashSet<string> NpcCustomers = new();
+    internal bool IsPlacingSignBoard;
 
     internal static Texture2D Sprites
         => Instance._sprites;
@@ -61,8 +58,7 @@ public class Mod : StardewModdingAPI.Mod
     internal static string UniqueId
         => Instance.ModManifest.UniqueID;
 
-    internal static Cafe Cafe
-        => Instance.CafeField.Value;
+    internal static Cafe Cafe = new Cafe();
 
     internal static ConfigModel Config
         => Instance._loadedConfig;
@@ -185,6 +181,7 @@ public class Mod : StardewModdingAPI.Mod
 
     internal void OnTimeChanged(object? sender, TimeChangedEventArgs e)
     {
+        Log.Debug($"{Cafe.Tables.Count} tables");
         if (!Context.IsMainPlayer) return;
         Cafe.TenMinuteUpdate();
     }
@@ -193,7 +190,7 @@ public class Mod : StardewModdingAPI.Mod
     internal void OnRenderedWorld(object? sender, RenderedWorldEventArgs e)
     {
         // Get list of reserved tables with center coords
-        foreach (var table in Cafe.Tables)
+        foreach (Table table in Cafe.Tables)
         {
             if (Game1.currentLocation.Name.Equals(table.CurrentLocation))
             {
@@ -218,7 +215,7 @@ public class Mod : StardewModdingAPI.Mod
             }
         }
 
-        if (IsPlacingSignBoard)
+        if (this.IsPlacingSignBoard)
         {
             foreach (Vector2 tile in TileHelper.GetCircularTileGrid(new Vector2((Game1.viewport.X + Game1.getOldMouseX(false)) / 64, (Game1.viewport.Y + Game1.getOldMouseY(false)) / 64), this._loadedConfig.DistanceForSignboardToRegisterTables))
             {
@@ -298,8 +295,8 @@ public class Mod : StardewModdingAPI.Mod
             return;
         }
 
-        Cafe.OpeningTime.Set(cafeData.OpeningTime);
-        Cafe.ClosingTime.Set(cafeData.ClosingTime);
+        Cafe.OpeningTime = cafeData.OpeningTime;
+        Cafe.ClosingTime = cafeData.ClosingTime;
         Cafe.Menu.Menu.Set(cafeData.MenuItemLists);
         foreach (VillagerCustomerData data in cafeData.VillagerCustomersData)
         {
@@ -309,6 +306,7 @@ public class Mod : StardewModdingAPI.Mod
                 continue;
             }
 
+            Log.Trace($"Loading customer data from save file {model.NpcName}");
             data.NpcName = model.NpcName;
             Cafe.VillagerCustomers.VillagerData[data.NpcName] = data;
         }
@@ -324,8 +322,8 @@ public class Mod : StardewModdingAPI.Mod
 
         CafeArchiveData cafeData = new()
         {
-            OpeningTime = Cafe.OpeningTime.Value,
-            ClosingTime = Cafe.ClosingTime.Value,
+            OpeningTime = Cafe.OpeningTime,
+            ClosingTime = Cafe.ClosingTime,
             MenuItemLists = new SerializableDictionary<MenuCategory, Inventory>(Cafe.Menu.ItemDictionary),
             VillagerCustomersData = Cafe.VillagerCustomers?.VillagerData.Values.ToList() ?? []
         };

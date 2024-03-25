@@ -18,8 +18,6 @@ public class GeneratedSpriteData : INetObject<NetFields>, IDisposable
 {
     public NetFields NetFields { get; } = new NetFields("GeneratedSpriteData");
 
-    private readonly NetString Guid = [];
-
     private readonly NetColor SkinTone = [Color.White];
 
     private readonly NetString HairId = [];
@@ -42,13 +40,8 @@ public class GeneratedSpriteData : INetObject<NetFields>, IDisposable
 
     public GeneratedSpriteData()
     {
-        this.NetFields.SetOwner(this).AddField(this.Guid).AddField(this.HairId).AddField(this.HairColors).AddField(this.ShirtId).AddField(this.ShirtColors).AddField(this.PantsId).AddField(this.PantsColors)
+        this.NetFields.SetOwner(this).AddField(this.SkinTone).AddField(this.HairId).AddField(this.HairColors).AddField(this.ShirtId).AddField(this.ShirtColors).AddField(this.PantsId).AddField(this.PantsColors)
             .AddField(this.ShoesId).AddField(this.AccessoryId).AddField(this.OutfitId).AddField(this.OutfitColors);
-    }
-
-    public GeneratedSpriteData(string guid) : this()
-    {
-        this.Guid.Set(guid);
     }
 
     /// <summary>

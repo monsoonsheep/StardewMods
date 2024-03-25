@@ -3,8 +3,11 @@ using HarmonyLib;
 using MonsoonSheep.Stardew.Common.Patching;
 using MyCafe.Characters;
 using MyCafe.Locations.Objects;
+using MyCafe.Netcode;
+using Netcode;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Network;
 using xTile.Dimensions;
 
 namespace MyCafe.Patching;
@@ -15,7 +18,7 @@ internal class NetFieldPatcher : BasePatcher
     public override void Apply(Harmony harmony, IMonitor monitor)
     {
         harmony.Patch(
-            original: this.RequireMethod<Farm>("initNetFields"),
+            original: AccessTools.Constructor(typeof(FarmerTeam)),
             postfix: this.GetHarmonyMethod(nameof(NetFieldPatcher.After_FarmInitNetFields))
         );
         harmony.Patch(
@@ -25,13 +28,12 @@ internal class NetFieldPatcher : BasePatcher
     }
 
     /// <summary>
-    /// Add the Cafe net field to the Farm location, and update <see cref="Mod.Cafe"/>
+    /// Add the Cafe net field to the farm, and update <see cref="Mod.Cafe"/>
     /// </summary>
-    private static void After_FarmInitNetFields(Farm __instance)
+    private static void After_FarmInitNetFields(FarmerTeam __instance)
     {
-        // Should it be "Cafe"?
-        __instance.NetFields.AddField(__instance.get_Cafe(), $"Cafe");
-        Mod.Instance.CafeField = __instance.get_Cafe();
+        NetRef<CafeNetFields> val = __instance.get_CafeNetFields();
+        __instance.NetFields.AddField(val);
     }
 
     /// <summary>

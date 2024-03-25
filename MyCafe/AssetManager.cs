@@ -25,9 +25,95 @@ internal sealed class AssetManager
 
     internal Dictionary<string, VillagerCustomerModel> VillagerCustomerModels = [];
 
+    internal void LoadContent(IContentPack defaultContent)
+    {
+        this.VillagerCustomerModels = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(ModKeys.ASSETS_NPCSCHEDULE);
+
+        // Load default content pack included in assets folder
+        this.LoadContentPack(defaultContent);
+
+        // Load content packs
+        foreach (IContentPack contentPack in this._modHelper.ContentPacks.GetOwned())
+            this.LoadContentPack(contentPack);
+    }
+
     internal AssetManager(IModHelper helper)
     {
         this._modHelper = helper;
+    }
+
+    internal void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
+    {
+        // NPC Schedules
+        if (e.Name.IsEquivalentTo(ModKeys.ASSETS_NPCSCHEDULE))
+        {
+            Dictionary<string, VillagerCustomerModel> data = [];
+
+            DirectoryInfo schedulesFolder = new DirectoryInfo(Path.Combine(this._modHelper.DirectoryPath, "assets", "VillagerSchedules"));
+            foreach (FileInfo file in schedulesFolder.GetFiles())
+            {
+                VillagerCustomerModel model = this._modHelper.ModContent.Load<VillagerCustomerModel>(file.FullName);
+                string npcName = file.Name.Replace(".json", "");
+                model.NpcName = npcName;
+                data[npcName] = model;
+            }
+
+            e.LoadFrom(() => data, AssetLoadPriority.Medium);
+        }
+
+        // Buildings data (Cafe and signboard)
+        else if (e.Name.IsEquivalentTo("Data/Buildings"))
+        {
+            e.Edit(asset =>
+            {
+                var data = asset.AsDictionary<string, BuildingData>();
+                data.Data[ModKeys.CAFE_BUILDING_BUILDING_ID] = this._modHelper.ModContent.Load<BuildingData>(Path.Combine("assets", "Buildings", "Cafe", "cafebuilding.json"));
+                data.Data[ModKeys.CAFE_SIGNBOARD_BUILDING_ID] = this._modHelper.ModContent.Load<BuildingData>(Path.Combine("assets", "Buildings", "Signboard", "signboard.json"));
+            }, AssetEditPriority.Early);
+        }
+
+        // Cafe building texture
+        else if (e.Name.IsEquivalentTo(ModKeys.CAFE_BUILDING_TEXTURE_NAME))
+        {
+            e.LoadFromModFile<Texture2D>(Path.Combine("assets", "Buildings", "Cafe", "cafebuilding.png"), AssetLoadPriority.Low);
+        }
+
+        // Cafe map tmx
+        else if (e.Name.IsEquivalentTo($"Maps/{ModKeys.CAFE_MAP_NAME}"))
+        {
+            e.LoadFromModFile<Map>(Path.Combine("assets", "Buildings", "Cafe", "cafemap.tmx"), AssetLoadPriority.Low);
+        }
+
+        // Signboard building texture
+        else if (e.Name.IsEquivalentTo(ModKeys.CAFE_SIGNBOARD_TEXTURE_NAME))
+        {
+            e.LoadFromModFile<Texture2D>(Path.Combine("assets", "Buildings", "Signboard", "signboard.png"), AssetLoadPriority.Low);
+        }
+
+        else if (e.Name.StartsWith(ModKeys.GENERATED_SPRITE_PREFIX))
+        {
+            string id = e.Name.Name[(ModKeys.GENERATED_SPRITE_PREFIX.Length + 1)..];
+
+            if (Mod.Cafe.GeneratedSprites.TryGetValue(id, out GeneratedSpriteData data))
+            {
+                Texture2D? sprite = data.Sprite;
+                if (sprite == null)
+                    Log.Error("Couldn't load texture from generated sprite data!");
+                else
+                    e.LoadFrom(() => sprite, AssetLoadPriority.Exclusive);
+            }
+            else
+                Log.Error($"Couldn't find generate sprite data for guid {id}");
+        }
+    }
+
+    internal void OnAssetReady(object? sender, AssetReadyEventArgs e)
+    {
+        // NPC Schedules
+        if (e.Name.IsEquivalentTo(ModKeys.ASSETS_NPCSCHEDULE))
+        {
+            this.VillagerCustomerModels = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(ModKeys.ASSETS_NPCSCHEDULE);
+        }
     }
 
     internal void LoadContentPack(IContentPack contentPack)
@@ -138,13 +224,13 @@ internal sealed class AssetManager
         }
     }
 
-    internal T? LoadAppearanceModel<T>(IContentPack contentPack, string modelName) where T : AppearanceModel
+    internal TAppearance? LoadAppearanceModel<TAppearance>(IContentPack contentPack, string modelName) where TAppearance : AppearanceModel
     {
-        string filename = Utility.GetFileNameForAppearanceType<T>();
-        string folderName = Utility.GetFolderNameForAppearance<T>();
+        string filename = Utility.GetFileNameForAppearanceType<TAppearance>();
+        string folderName = Utility.GetFolderNameForAppearance<TAppearance>();
 
         string relativePathOfModel = Path.Combine(folderName, modelName);
-        T? model = contentPack.ReadJsonFile<T>(Path.Combine(relativePathOfModel, $"{filename}.json"));
+        TAppearance? model = contentPack.ReadJsonFile<TAppearance>(Path.Combine(relativePathOfModel, $"{filename}.json"));
         if (model == null)
         {
             Log.Debug($"Couldn't read {filename}.json for content pack {contentPack.Manifest.UniqueID}");
@@ -158,91 +244,5 @@ internal sealed class AssetManager
         Log.Trace($"{folderName} model added: {model.Id}");
 
         return model;
-    }
-
-    internal void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
-    {
-        // NPC Schedules
-        if (e.Name.IsEquivalentTo(ModKeys.ASSETS_NPCSCHEDULE))
-        {
-            Dictionary<string, VillagerCustomerModel> data = [];
-
-            DirectoryInfo schedulesFolder = new DirectoryInfo(Path.Combine(this._modHelper.DirectoryPath, "assets", "VillagerSchedules"));
-            foreach (FileInfo file in schedulesFolder.GetFiles())
-            {
-                VillagerCustomerModel model = this._modHelper.ModContent.Load<VillagerCustomerModel>(file.FullName);
-                string npcName = file.Name.Replace(".json", "");
-                model.NpcName = npcName;
-                data[npcName] = model;
-            }
-
-            e.LoadFrom(() => data, AssetLoadPriority.Medium);
-        }
-
-        // Buildings data (Cafe and signboard)
-        else if (e.Name.IsEquivalentTo("Data/Buildings"))
-        {
-            e.Edit(asset =>
-            {
-                var data = asset.AsDictionary<string, BuildingData>();
-                data.Data[ModKeys.CAFE_BUILDING_BUILDING_ID] = this._modHelper.ModContent.Load<BuildingData>(Path.Combine("assets", "Buildings", "Cafe", "cafebuilding.json"));
-                data.Data[ModKeys.CAFE_SIGNBOARD_BUILDING_ID] = this._modHelper.ModContent.Load<BuildingData>(Path.Combine("assets", "Buildings", "Signboard", "signboard.json"));
-            }, AssetEditPriority.Early);
-        }
-
-        // Cafe building texture
-        else if (e.Name.IsEquivalentTo(ModKeys.CAFE_BUILDING_TEXTURE_NAME))
-        {
-            e.LoadFromModFile<Texture2D>(Path.Combine("assets", "Buildings", "Cafe", "cafebuilding.png"), AssetLoadPriority.Low);
-        }
-
-        // Cafe map tmx
-        else if (e.Name.IsEquivalentTo($"Maps/{ModKeys.CAFE_MAP_NAME}"))
-        {
-            e.LoadFromModFile<Map>(Path.Combine("assets", "Buildings", "Cafe", "cafemap.tmx"), AssetLoadPriority.Low);
-        }
-
-        // Signboard building texture
-        else if (e.Name.IsEquivalentTo(ModKeys.CAFE_SIGNBOARD_TEXTURE_NAME))
-        {
-            e.LoadFromModFile<Texture2D>(Path.Combine("assets", "Buildings", "Signboard", "signboard.png"), AssetLoadPriority.Low);
-        }
-
-        else if (e.Name.StartsWith(ModKeys.GENERATED_SPRITE_PREFIX))
-        {
-            string id = e.Name.Name[(ModKeys.GENERATED_SPRITE_PREFIX.Length + 1)..];
-
-            if (Mod.Cafe.GeneratedSprites.TryGetValue(id, out GeneratedSpriteData data))
-            {
-                Texture2D? sprite = data.Sprite;
-                if (sprite == null)
-                    Log.Error("Couldn't load texture from generated sprite data!");
-                else
-                    e.LoadFrom(() => sprite, AssetLoadPriority.Exclusive);
-            }
-            else
-                Log.Error($"Couldn't find generate sprite data for guid {id}");
-        }
-    }
-
-    internal void OnAssetReady(object? sender, AssetReadyEventArgs e)
-    {
-        // NPC Schedules
-        if (e.Name.IsEquivalentTo(ModKeys.ASSETS_NPCSCHEDULE))
-        {
-            this.VillagerCustomerModels = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(ModKeys.ASSETS_NPCSCHEDULE);
-        }
-    }
-
-    internal void LoadContent(IContentPack defaultContent)
-    {
-        this.VillagerCustomerModels = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(ModKeys.ASSETS_NPCSCHEDULE);
-
-        // Load default content pack included in assets folder
-        this.LoadContentPack(defaultContent);
-
-        // Load content packs
-        foreach (IContentPack contentPack in this._modHelper.ContentPacks.GetOwned())
-            this.LoadContentPack(contentPack);
     }
 }

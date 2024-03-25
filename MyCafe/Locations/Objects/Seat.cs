@@ -7,7 +7,7 @@ using StardewValley;
 
 namespace MyCafe.Locations.Objects;
 
-public class Seat : INetObject<NetFields>
+public abstract class Seat : INetObject<NetFields>
 {
     public NetFields NetFields { get; }
 
@@ -50,14 +50,14 @@ public class Seat : INetObject<NetFields>
     internal bool IsReserved
         => this.ReservingCustomer != null;
 
-    public Seat()
+    protected Seat()
     {
         this.NetFields = new NetFields(NetFields.GetNameForInstance(this));
         // ReSharper disable once VirtualMemberCallInConstructor
         this.InitNetFields();
     }
 
-    public Seat(Table table) : this()
+    protected Seat(Table table) : this()
     {
         this.Table = table;
         GameLocation? location = this.Location;

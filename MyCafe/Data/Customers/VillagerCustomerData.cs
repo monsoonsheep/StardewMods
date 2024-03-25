@@ -30,10 +30,5 @@ public class VillagerCustomerData
     {
         return Game1.getCharacterFromName(this.NpcName);
     }
-
-    internal VillagerCustomerModel GetModel()
-    {
-        return Mod.Assets.VillagerCustomerModels[this.NpcName];
-    }
 }
 

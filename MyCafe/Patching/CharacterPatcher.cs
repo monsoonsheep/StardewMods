@@ -57,7 +57,7 @@ internal class CharacterPatcher : BasePatcher
 
     private static void After_update(NPC __instance, GameTime time, GameLocation location)
     {
-        if ((Mod.NpcCustomers.Contains(__instance.Name) || __instance.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX)) && !__instance.IsInvisible)
+        if ((Mod.Cafe.NpcCustomers.Contains(__instance.Name) || __instance.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX)) && !__instance.IsInvisible)
         {
             if (__instance.controller != null
                 && !__instance.currentLocation.farmers.Any()
@@ -99,7 +99,7 @@ internal class CharacterPatcher : BasePatcher
 
     private static void After_draw(NPC __instance, SpriteBatch b, float alpha)
     {
-        if ((Mod.NpcCustomers.Contains(__instance.Name) || __instance.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX)) && !__instance.IsInvisible)
+        if ((Mod.Cafe.NpcCustomers.Contains(__instance.Name) || __instance.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX)) && !__instance.IsInvisible)
         {
             float layerDepth = Math.Max(0f, __instance.StandingPixel.Y / 10000f);
             Vector2 localPosition = __instance.getLocalPosition(Game1.viewport);

@@ -224,7 +224,7 @@ public static class NpcExtensions
 
     internal static void ReturnToSchedule(this NPC npc)
     {
-        Mod.NpcCustomers.Remove(npc.Name);
+        Mod.Cafe.NpcCustomers.Remove(npc.Name);
         npc.eventActor = false;
         npc.ignoreScheduleToday = false;
 

@@ -10,7 +10,7 @@ using StardewValley;
 
 namespace MyCafe.Locations.Objects;
 
-public class Table : INetObject<NetFields>
+public abstract class Table : INetObject<NetFields>
 {
     public NetFields NetFields { get; }
 
@@ -40,7 +40,7 @@ public class Table : INetObject<NetFields>
 
     internal bool IsReserved => this.State.Value != TableState.Free;
 
-    public Table()
+    protected Table()
     {
         this.NetFields = new NetFields(NetFields.GetNameForInstance(this));
         // ReSharper disable once VirtualMemberCallInConstructor

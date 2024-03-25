@@ -14,8 +14,8 @@ namespace MyCafe.Characters;
 
 public static class Pathfinding
 {
-    private static Action<List<string>> AddRoute = (route) => AddRouteMethod?.Invoke(null, [route, null]);
-    private static MethodInfo AddRouteMethod = AccessTools.Method(typeof(WarpPathfindingCache), "AddRoute", [typeof(List<string>), typeof(Gender?)]);
+    private static readonly Action<List<string>> AddRoute = (route) => AddRouteMethod?.Invoke(null, [route, null]);
+    private static readonly MethodInfo AddRouteMethod = AccessTools.Method(typeof(WarpPathfindingCache), "AddRoute", [typeof(List<string>), typeof(Gender?)]);
 
     private static readonly sbyte[,] Directions = new sbyte[4 ,2]
     {
@@ -34,7 +34,8 @@ public static class Pathfinding
         if (path == null || path.Count == 0)
         {
             Log.Error("Couldn't pathfind NPC");
-            return false;
+            throw new PathNotFoundException($"Error finding route to cafe. Couldn't find warp point for {me.Name}", me.TilePoint, targetTile,
+                me.currentLocation.Name, targetLocation.Name, me);
         }
 
         me.controller = new PathFindController(path, me.currentLocation, me, path.Last())
@@ -73,7 +74,7 @@ public static class Pathfinding
                 Point target = current.getWarpPointTo(locationsRoute[i + 1]);
 
                 if (target.Equals(Point.Zero))
-                    throw new PathNotFoundException($"Error finding route to cafe. Couldn't find warp point for {character.Name}", startTile, targetTile, startingLocation.Name, targetLocation.Name, character);
+                    return null;
 
                 Stack<Point>? nextPath = FindPath(nextStartPosition, target, current, character);
 
@@ -107,7 +108,7 @@ public static class Pathfinding
         }
 
         if (path.Count == 0)
-            throw new PathNotFoundException("Character couldn't find path.", startTile, targetTile, startingLocation.Name, targetLocation.Name, character);
+            return null;
         
         return path;
     }
@@ -301,7 +302,7 @@ public static class Pathfinding
 
             if (route is not { Count: > 1 })
             {
-                Log.Trace($"Can't add route from {gameLocation.Name} to Farm");
+                // Log.Trace($"Can't add route from {gameLocation.Name} to Farm");
                 continue;
             }
 
@@ -323,7 +324,7 @@ public static class Pathfinding
             List<string>? toFarm = WarpPathfindingCache.GetLocationRoute(location.Name, "Farm", Gender.Undefined)?.ToList();
             if (toFarm is not { Count: > 1 })
             {
-                Log.Warn($"Can't add route from {location.Name} to farm building {building.Name}");
+                // Log.Trace($"Can't add route from {location.Name} to farm building {building.Name}");
                 continue;
             }
 

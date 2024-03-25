@@ -27,11 +27,11 @@ internal class SignboardPatcher : BasePatcher
     {
         Building? building = (Building?)AccessTools.Field(typeof(CarpenterMenu), "currentBuilding")?.GetValue(__instance);
         if (building != null && building.GetData()?.CustomFields.TryGetValue(ModKeys.CAFE_SIGNBOARD_CUSTOMFIELD, out string? value) is true && value == "true")
-            Mod.IsPlacingSignBoard = true;
+            Mod.Instance.IsPlacingSignBoard = true;
     }
 
     private static void After_Game1WarpFarmer(LocationRequest locationRequest, int tileX, int tileY, int facingDirectionAfterWarp)
     {
-        Mod.IsPlacingSignBoard = false;
+        Mod.Instance.IsPlacingSignBoard = false;
     }
 }

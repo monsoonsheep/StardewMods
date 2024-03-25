@@ -81,14 +81,4 @@ public class CustomerGroup
             }
         }
     }
-
-    internal void StartEating()
-    {
-        this.ReservedTable!.State.Set(TableState.CustomersEating);
-    }
-
-    internal void TakeOrder()
-    {
-        this.ReservedTable!.State.Set(TableState.CustomersWaitingForFood);
-    }
 }

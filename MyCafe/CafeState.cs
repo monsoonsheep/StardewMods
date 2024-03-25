@@ -6,36 +6,40 @@ using System.Text;
 using System.Threading.Tasks;
 using HarmonyLib;
 using MyCafe.Interfaces;
+using MyCafe.Netcode;
 using Netcode;
 using StardewValley;
+using StardewValley.Network;
 
 namespace MyCafe;
 public static class CafeState
 {
-    internal class Holder { public NetRef<Cafe> Value = new(new Cafe()); }
-
-    internal static ConditionalWeakTable<Farm, Holder> Values = [];
+    public class Holder { public NetRef<CafeNetFields> Value = new(new CafeNetFields()); }
+    public static ConditionalWeakTable<FarmerTeam, Holder> Values = [];
 
     internal static void Register(ISpaceCoreApi spaceCore)
     {
+        // Again, DO WE NEED TO DO THIS????
         spaceCore.RegisterCustomProperty(
-            typeof(Farm),
-            "Cafe",
-            typeof(NetRef<Cafe>),
-            AccessTools.Method(typeof(CafeState), nameof(get_Cafe)),
-            AccessTools.Method(typeof(CafeState), nameof(set_Cafe)));
+            typeof(FarmerTeam),
+            "CafeNetFields",
+            typeof(NetRef<CafeNetFields>),
+            AccessTools.Method(typeof(CafeState), nameof(get_CafeNetFields)),
+            AccessTools.Method(typeof(CafeState), nameof(set_CafeNetFields)));
+
+        spaceCore.RegisterSerializerType(typeof(CafeNetFields));
     }
 
-    public static NetRef<Cafe> get_Cafe(this Farm farm)
+    public static NetRef<CafeNetFields> get_CafeNetFields(this FarmerTeam farm)
     {
         Holder holder = Values.GetOrCreateValue(farm);
         return holder.Value;
     }
 
-    public static void set_Cafe(this Farm farm, NetRef<Cafe> value)
+    public static void set_CafeNetFields(this FarmerTeam farm, NetRef<CafeNetFields> value)
     {
-        Log.Error("Setting Cafe field for Farm. Should this be happening?");
-        Holder holder = Values.GetOrCreateValue(farm);
-        holder.Value = value;
+        //Log.Error("Setting Cafe field for Farm. Should this be happening?");
+        //Holder holder = Values.GetOrCreateValue(team);
+        //holder.Value = value;
     }
 }

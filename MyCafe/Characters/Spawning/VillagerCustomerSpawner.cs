@@ -53,9 +53,9 @@ internal class VillagerCustomerSpawner : CustomerSpawner
         foreach (NPC c in group.Members)
         {
             c.get_OrderItem().Set(Debug.SetTestItemForOrder(c));
-            c.eventActor = true;
+            //c.eventActor = true; // Not doing eventactor, it's a workaround for the NPCBarrier tile property, but we're removing that property now
             c.ignoreScheduleToday = true;
-            Mod.NpcCustomers.Add(c.Name);
+            Mod.Cafe.NpcCustomers.Add(c.Name);
             Log.Trace($"{c.Name} is coming.");
         }
 
@@ -87,7 +87,7 @@ internal class VillagerCustomerSpawner : CustomerSpawner
         group.ReservedTable?.Free();
         try
         {
-            group.MoveTo(Game1.getLocationFromName("BusStop"), new Point(1, 23), (c, loc) => (c as NPC)!.ReturnToSchedule());
+            group.MoveTo(Game1.getLocationFromName("BusStop"), new Point(12, 23), (c, loc) => (c as NPC)!.ReturnToSchedule());
         }
         catch (PathNotFoundException e)
         {
@@ -97,6 +97,8 @@ internal class VillagerCustomerSpawner : CustomerSpawner
                 // TODO warp to their home
             }
         }
+
+        this._groups.Remove(group);
 
         return true;
     }
@@ -120,7 +122,7 @@ internal class VillagerCustomerSpawner : CustomerSpawner
     private bool CanVillagerVisit(VillagerCustomerData data, int timeOfDay)
     {
         NPC npc = data.GetNpc();
-        VillagerCustomerModel model = data.GetModel();
+        VillagerCustomerModel model = Mod.Assets.VillagerCustomerModels[data.NpcName];
 
         int daysSinceLastVisit = Game1.Date.TotalDays - data.LastVisitedDate.TotalDays;
         int daysAllowed = model.VisitFrequency switch
@@ -134,11 +136,8 @@ internal class VillagerCustomerSpawner : CustomerSpawner
             _ => 9999999
         };
 
-        foreach (CustomerGroup group in this._groups)
-            if (group.Members.Contains(npc))
-                return false;
-
-        if (npc.isSleeping.Value == true ||
+        if (Mod.Cafe.NpcCustomers.Contains(data.NpcName) ||
+            npc.isSleeping.Value == true ||
             npc.ScheduleKey == null ||
             daysSinceLastVisit < daysAllowed)
             return false;

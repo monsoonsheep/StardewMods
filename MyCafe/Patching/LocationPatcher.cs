@@ -12,6 +12,8 @@ using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Buildings;
 using xTile.Dimensions;
+using xTile.Layers;
+using xTile.Tiles;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace MyCafe.Patching;
@@ -22,12 +24,16 @@ internal class LocationPatcher : BasePatcher
     public override void Apply(Harmony harmony, IMonitor monitor)
     {
         harmony.Patch(
-            original: this.RequireMethod<GameLocation>("getWarpPointTo", [typeof(string), typeof(Character)]),
+            original: this.RequireMethod<GameLocation>(nameof(GameLocation.getWarpPointTo), [typeof(string), typeof(Character)]),
             postfix: this.GetHarmonyMethod(nameof(LocationPatcher.After_GetWarpPointTo))
         );
         harmony.Patch(
-            original: this.RequireMethod<Building>("HasIndoorsName", [typeof(string)]),
+            original: this.RequireMethod<Building>(nameof(Building.HasIndoorsName), [typeof(string)]),
             postfix: this.GetHarmonyMethod(nameof(LocationPatcher.After_BuildingHasIndoorsName))
+        );
+        harmony.Patch(
+            original: this.RequireMethod<GameLocation>(nameof(GameLocation.loadMap), [typeof(string), typeof(bool)]),
+            postfix: this.GetHarmonyMethod(nameof(LocationPatcher.After_GameLocationLoadMap))
         );
     }
 
@@ -42,9 +48,31 @@ internal class LocationPatcher : BasePatcher
 
     private static void After_BuildingHasIndoorsName(Building __instance, string name, ref bool __result)
     {
-        if (__result == false && name == Mod.Cafe.Indoor?.Name && __instance.indoors.Value?.Name == name)
+        if (Context.IsMainPlayer && __result == false && name == Mod.Cafe.Indoor?.Name && __instance.indoors.Value?.Name == name)
         {
             __result = true;
+        }
+    }
+
+    private static void After_GameLocationLoadMap(GameLocation __instance, string mapPath, bool force_reload)
+    {
+        if (__instance is Farm farm)
+        {
+            Layer layer = __instance.Map.GetLayer("Back");
+
+            for (int i = 0; i < layer.LayerWidth; i++)
+            {
+                for (int j = 0; j < layer.LayerHeight; j++)
+                {
+                    Tile tile = layer.Tiles[i, j];
+                    if (tile == null)
+                        continue;
+
+                    tile.Properties.Remove("NPCBarrier");
+                    tile.TileIndexProperties.Remove("NPCBarrier");
+                }
+            }
+        
         }
     }
 }

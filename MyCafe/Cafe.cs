@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
@@ -21,69 +22,77 @@ using MyCafe.Inventories;
 using MyCafe.Data.Customers;
 using System.Diagnostics.Metrics;
 using MyCafe.Characters.Spawning;
+using MyCafe.Netcode;
 
 namespace MyCafe;
 
-public class Cafe : INetObject<NetFields>
+public class Cafe
 {
-    public NetFields NetFields { get; } = new NetFields("Cafe");
+    internal NetRef<CafeNetFields>? fields;
 
-    private readonly NetCollection<Table> NetTables = [];
-    private readonly NetBool CafeEnabled = [];
-    private readonly NetLocationRef CafeIndoor = new();
-    private readonly NetLocationRef CafeOutdoor = new();
-
-    internal NetInt OpeningTime = new(630);
-    internal NetInt ClosingTime = new(2200);
-    private readonly NetRef<MenuInventory> NetMenu = new(new MenuInventory());
-
-    internal NetStringDictionary<GeneratedSpriteData, NetRef<GeneratedSpriteData>> GeneratedSprites = new();
+    internal CafeNetFields Fields
+    {
+        get => Game1.player.team.get_CafeNetFields().Value;
+    }
 
     internal RandomCustomerSpawner RandomCustomers = null!;
     internal VillagerCustomerSpawner VillagerCustomers = null!;
     internal RandomCustomerSpawner? ChatCustomers = null;
 
-    internal MenuInventory Menu => this.NetMenu.Value;
-
     internal int LastTimeCustomersArrived = 0;
 
     internal bool Enabled
     {
-        get => this.CafeEnabled.Value;
-        set => this.CafeEnabled.Set(value);
+        get => this.Fields.CafeEnabled.Value;
+        set => this.Fields.CafeEnabled.Set(value);
     }
 
     internal CafeLocation? Indoor
     {
-        get => this.CafeIndoor.Value as CafeLocation;
-        set => this.CafeIndoor.Set(value);
+        get => this.Fields.CafeIndoor.Value as CafeLocation;
+        set => this.Fields.CafeIndoor.Set(value);
     }
 
     internal GameLocation? Outdoor
     {
-        get => this.CafeOutdoor.Value;
-        set => this.CafeOutdoor.Set(value);
+        get => this.Fields.CafeOutdoor.Value;
+        set => this.Fields.CafeOutdoor.Set(value);
     }
 
     internal IList<Table> Tables
-        => this.NetTables as IList<Table>;
+        => this.Fields.NetTables as IList<Table>;
 
-    public Cafe()
+    internal int OpeningTime
     {
-        this.NetFields.SetOwner(this)
-            .AddField(this.OpeningTime, "OpeningTime").AddField(this.ClosingTime, "ClosingTime").AddField(this.NetTables, "NetTables").AddField(this.CafeEnabled, "CafeEnabled").AddField(this.CafeIndoor.NetFields, "CafeIndoor.NetFields")
-            .AddField(this.CafeOutdoor.NetFields, "CafeOutdoor.NetFields").AddField(this.NetMenu, "NetMenu").AddField(this.GeneratedSprites, "GeneratedSprites");
-        this.GeneratedSprites.OnValueRemoved += (id, data) => data.Dispose();
-        this.NetTables.OnValueAdded += table =>
+        get => this.Fields.OpeningTime.Value;
+        set => this.Fields.OpeningTime.Set(value);
+    }
+
+    internal int ClosingTime
+    {
+        get => this.Fields.ClosingTime.Value;
+        set => this.Fields.ClosingTime.Set(value);
+    }
+
+    internal MenuInventory Menu
+        => this.Fields.NetMenu.Value;
+
+    internal NetStringDictionary<GeneratedSpriteData, NetRef<GeneratedSpriteData>> GeneratedSprites
+        => this.Fields.GeneratedSprites;
+
+    internal ICollection<string> NpcCustomers
+        => this.Fields.NpcCustomers;
+
+    internal void InitializeForHost(IModHelper helper)
+    {
+        this.Fields.GeneratedSprites.OnValueRemoved += (id, data) => data.Dispose();
+        this.Fields.NetTables.OnValueAdded += table =>
             table.State.fieldChangeVisibleEvent += (_, oldValue, newValue) => this.OnTableStateChange(table, new TableStateChangedEventArgs()
             {
                 OldValue = oldValue,
                 NewValue = newValue
             });
-    }
 
-    internal void InitializeForHost(IModHelper helper)
-    {
         this.RandomCustomers = new RandomCustomerSpawner(getModelFunc: Mod.CharacterFactory.CreateRandomCustomer);
         this.VillagerCustomers = new VillagerCustomerSpawner();
 
@@ -171,7 +180,7 @@ public class Cafe : INetObject<NetFields>
     {
         foreach (CustomerSpawner spawner in this.Spawners())
         {
-            for (int i = spawner._groups.Count; i > 0; i--)
+            for (int i = spawner._groups.Count - 1; i >= 0; i--)
             {
                 spawner.EndCustomers(spawner._groups[i]);
             }
@@ -189,8 +198,8 @@ public class Cafe : INetObject<NetFields>
 
     internal void TenMinuteUpdate()
     {
-        int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, this.ClosingTime.Value);
-        int minutesTillOpens = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, this.OpeningTime.Value);
+        int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, this.ClosingTime);
+        int minutesTillOpens = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, this.OpeningTime);
         int minutesSinceLastVisitors = SUtility.CalculateMinutesBetweenTimes(this.LastTimeCustomersArrived, Game1.timeOfDay);
         float percentageOfTablesFree = (float) this.Tables.Count(t => !t.IsReserved) / this.Tables.Count;
 
@@ -238,17 +247,10 @@ public class Cafe : INetObject<NetFields>
 
     internal bool InteractWithTable(Table table, Farmer who)
     {
-        CustomerGroup? group = this.ActiveGroups().FirstOrDefault(g => g.ReservedTable == table);
-        if (table.State.Value != TableState.Free && group == null)
-        {
-            Log.Error("Interacting with active table but the reserving group is not in ActiveGroups");
-            return false;
-        }
-
-        switch (table.State.Value)
+       switch (table.State.Value)
         {
             case TableState.CustomersDecidedOnOrder:
-                group!.TakeOrder();
+                table.State.Set(TableState.CustomersWaitingForFood);
                 return true;
             case TableState.CustomersWaitingForFood:
                     List<string?> itemsNeeded = table.Seats
@@ -262,18 +264,47 @@ public class Cafe : INetObject<NetFields>
                     foreach (string? item in itemsNeeded)
                         who.removeFirstOfThisItemFromInventory(item);
 
-                    group!.StartEating();
+                    table.State.Set(TableState.CustomersWaitingForFood);
                     return true;
             default:
                 return false;
         }
     }
 
-    internal bool TryGetFurnitureTable(Furniture table, out FurnitureTable result)
+    internal bool IsRegisteredTable(Furniture furniture, [NotNullWhen(true)] out FurnitureTable? result)
     {
-        return (result =
-                Mod.Cafe.Tables.OfType<FurnitureTable>().FirstOrDefault(t => t.ActualTable.Value == table)!
-            ) != null;
+        foreach (Table t in this.Tables)
+        {
+            if (t is FurnitureTable ft && ft.ActualTable.Value == furniture)
+            {
+                result = ft;
+                return true;
+            }
+        }
+
+        result = null;
+        return false;
+    }
+
+    internal bool IsRegisteredChair(Furniture furniture, [NotNullWhen(true)] out FurnitureSeat? result)
+    {
+        foreach (Table t in this.Tables)
+        {
+            if (t is FurnitureTable ft)
+            {
+                foreach (FurnitureSeat fs in ft.Seats.Cast<FurnitureSeat>())
+                {
+                    if (fs.ActualChair.Value == furniture)
+                    {
+                        result = fs;
+                        return true;
+                    }
+                }
+            }
+        }
+
+        result = null;
+        return false;
     }
 
     internal void OnFurniturePlaced(Furniture placed, GameLocation location)
@@ -285,16 +316,18 @@ public class Cafe : INetObject<NetFields>
                 || Utility.IsTable(facingFurniture) == false
                 || facingFurniture.GetBoundingBox().Intersects(placed.boundingBox.Value))
                 return;
-            
-            FurnitureTable table = this.TryGetFurnitureTable(facingFurniture, out FurnitureTable existing)
-                    ? existing : new FurnitureTable(facingFurniture, location.Name);
+
+            if (!this.IsRegisteredTable(facingFurniture, out FurnitureTable? table))
+            {
+                table = new FurnitureTable(facingFurniture, location.Name);
+                this.AddTable(table);
+            }
 
             table.AddChair(placed);
-            this.AddTable(table);
         }
         else if (Utility.IsTable(placed))
         {
-            if (!this.TryGetFurnitureTable(placed, out _))
+            if (!this.IsRegisteredTable(placed, out _))
             {
                 FurnitureTable table = new(placed, location.Name);
                 if (table.Seats.Count > 0)
@@ -311,16 +344,21 @@ public class Cafe : INetObject<NetFields>
                 .OfType<FurnitureTable>()
                 .FirstOrDefault(t => t.Seats.Any(seat => (seat as FurnitureSeat)?.ActualChair.Value.Equals(f) is true));
 
-            existingTable?.RemoveChair(f);
+            if (existingTable != null)
+            {
+                existingTable.RemoveChair(f);
+                if (existingTable.Seats.Count == 0)
+                    this.RemoveTable(existingTable);
+            }
         }
         else if (Utility.IsTable(f))
         {
-            if (this.TryGetFurnitureTable(f, out FurnitureTable trackedTable))
+            if (this.IsRegisteredTable(f, out FurnitureTable? trackedTable))
                 this.RemoveTable(trackedTable);
         }
     }
 
-    private void OnTableStateChange(object sender, TableStateChangedEventArgs e)
+    internal void OnTableStateChange(object sender, TableStateChangedEventArgs e)
     {
         if (!Context.IsMainPlayer || e.OldValue == e.NewValue)
             return;

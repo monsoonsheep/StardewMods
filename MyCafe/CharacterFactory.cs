@@ -56,7 +56,7 @@ internal sealed class CharacterFactory
         int[] skin = this.SkinTones.PickRandom()!;
         Color skinTone = new Color(skin[0], skin[1], skin[2]);
 
-        GeneratedSpriteData spriteData = new(guid);
+        GeneratedSpriteData spriteData = new();
         spriteData.SetSkinTone(skinTone);
 
         if (Game1.random.Next(2) == 0)
@@ -99,9 +99,9 @@ internal sealed class CharacterFactory
         spriteData.SetAppearance<PantsModel>(pants.Id, pantsPaint?.GetRandomPermutation());
     }
 
-    internal T? GetModel<T>(string id) where T : AppearanceModel
+    internal TAppearance? GetModel<TAppearance>(string id) where TAppearance : AppearanceModel
     {
-        return this.GetCollection<T>().FirstOrDefault(c => c.Id == id);
+        return this.GetCollection<TAppearance>().FirstOrDefault(c => c.Id == id);
     }
 
     private ICollection<TAppearance> GetCollection<TAppearance>() where TAppearance : AppearanceModel

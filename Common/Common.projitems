@@ -33,7 +33,4 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ObjectReferenceComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SetExtensions.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)Enums\" />
-  </ItemGroup>
 </Project>

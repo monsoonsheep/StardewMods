@@ -23,4 +23,5 @@ internal static class ModKeys
     internal const string GENDER_ANY = "any";
 
     internal const string CUSTOMER_NPC_NAME_PREFIX = "CustomerNPC_";
+    internal const string VILLAGER_CUSTOMER_MODDATA_IDENTIFIER = "MonsoonSheep.MyCafe_IsCustomerNPC";
 }
