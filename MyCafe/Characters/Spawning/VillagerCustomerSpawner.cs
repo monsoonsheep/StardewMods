@@ -8,6 +8,7 @@ using MyCafe.Data.Customers;
 using MyCafe.Data.Models;
 using MyCafe.Enums;
 using MyCafe.Locations.Objects;
+using MyCafe.Netcode;
 using StardewModdingAPI;
 using StardewValley;
 using SUtility = StardewValley.Utility;

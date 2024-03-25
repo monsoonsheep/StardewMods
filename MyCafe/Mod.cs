@@ -123,7 +123,7 @@ public class Mod : StardewModdingAPI.Mod
         spaceCore.RegisterSerializerType(typeof(CafeLocation));
 
         // Remove this? It might not be need. Test multiplayer to confirm.
-        CafeState.Register(spaceCore);
+        FarmerTeamVirtualProperties.Register(spaceCore);
 
         this._assetManager.LoadContent(this.Helper.ContentPacks.CreateTemporary(
             Path.Combine(this.Helper.DirectoryPath, "assets", "DefaultContent"),

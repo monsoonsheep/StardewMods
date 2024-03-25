@@ -14,7 +14,7 @@ using StardewValley.Network;
 namespace MyCafe.Netcode;
 
 [XmlType( "Mods_MonsoonSheep_MyCafe_CafeNetFields" )]
-public class CafeNetFields : INetObject<NetFields>
+public class CafeNetObject : INetObject<NetFields>
 {
     public NetFields NetFields { get; } = new NetFields("CafeNetFields");
 
@@ -30,7 +30,7 @@ public class CafeNetFields : INetObject<NetFields>
 
     public readonly NetStringDictionary<GeneratedSpriteData, NetRef<GeneratedSpriteData>> GeneratedSprites = new();
 
-    public CafeNetFields()
+    public CafeNetObject()
     {
         this.NetFields.SetOwner(this)
             .AddField(this.OpeningTime, "OpeningTime").AddField(this.ClosingTime, "ClosingTime").AddField(this.NetTables, "NetTables").AddField(this.CafeEnabled, "CafeEnabled").AddField(this.CafeIndoor.NetFields, "CafeIndoor.NetFields")

@@ -28,9 +28,7 @@ namespace MyCafe;
 
 public class Cafe
 {
-    internal NetRef<CafeNetFields>? fields;
-
-    internal CafeNetFields Fields
+    internal CafeNetObject Fields
     {
         get => Game1.player.team.get_CafeNetFields().Value;
     }
@@ -264,7 +262,7 @@ public class Cafe
                     foreach (string? item in itemsNeeded)
                         who.removeFirstOfThisItemFromInventory(item);
 
-                    table.State.Set(TableState.CustomersWaitingForFood);
+                    table.State.Set(TableState.CustomersEating);
                     return true;
             default:
                 return false;

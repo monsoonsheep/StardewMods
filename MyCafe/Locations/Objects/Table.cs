@@ -4,6 +4,7 @@ using System.Xml.Serialization;
 using Microsoft.Xna.Framework;
 using MyCafe.Characters;
 using MyCafe.Enums;
+using MyCafe.Netcode;
 using Netcode;
 using StardewValley;
 

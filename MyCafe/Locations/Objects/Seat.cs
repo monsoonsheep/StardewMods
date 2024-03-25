@@ -2,6 +2,7 @@ using System.Xml.Serialization;
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common;
 using MyCafe.Characters;
+using MyCafe.Netcode;
 using Netcode;
 using StardewValley;
 

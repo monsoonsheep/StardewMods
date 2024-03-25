@@ -6,6 +6,7 @@ using MonsoonSheep.Stardew.Common;
 using MyCafe.Characters.Spawning;
 using MyCafe.Enums;
 using MyCafe.Locations.Objects;
+using MyCafe.Netcode;
 using StardewValley;
 using StardewValley.Pathfinding;
 

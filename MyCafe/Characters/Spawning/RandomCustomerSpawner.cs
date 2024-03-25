@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework.Graphics;
 using MyCafe.Data.Models;
 using MyCafe.Enums;
 using MyCafe.Locations.Objects;
+using MyCafe.Netcode;
 using StardewModdingAPI;
 using StardewValley;
 

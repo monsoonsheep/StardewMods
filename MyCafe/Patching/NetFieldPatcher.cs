@@ -32,14 +32,14 @@ internal class NetFieldPatcher : BasePatcher
     /// </summary>
     private static void After_FarmInitNetFields(FarmerTeam __instance)
     {
-        NetRef<CafeNetFields> val = __instance.get_CafeNetFields();
+        NetRef<CafeNetObject> val = __instance.get_CafeNetFields();
         __instance.NetFields.AddField(val);
     }
 
     /// <summary>
     /// Add net fields to NPCs
     /// </summary>
-    private static void After_CharacterInitNetFields(Character __instance)
+    private static void After_CharacterInitNetFields(NPC __instance)
     {
         __instance.NetFields
             .AddField(__instance.get_OrderItem(), $"{Mod.UniqueId}.Character.OrderItem")

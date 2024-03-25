@@ -52,10 +52,7 @@ internal class FurniturePatcher : BasePatcher
     private static bool Before_AddSittingFarmer(Furniture __instance, Farmer who, ref Vector2? __result)
     {
         if (Utility.IsChair(__instance)
-            && Mod.Cafe.Tables
-                .Any(t => t.Seats
-                    .OfType<FurnitureSeat>()
-                    .Any(s => s.IsReserved && s.ActualChair.Value.Equals(__instance))))
+            && Mod.Cafe.IsRegisteredChair(__instance, out FurnitureSeat? chair) && chair.IsReserved)
         {
             Log.Warn("Can't sit in this chair, it's reserved");
             __result = null;
