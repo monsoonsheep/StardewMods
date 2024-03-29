@@ -18,9 +18,9 @@ internal class RandomCustomerSpawner : CustomerSpawner
 {
     private readonly Func<CustomerModel?> _getModelFunc;
 
-    internal RandomCustomerSpawner(Func<CustomerModel?> getModelFunc)
+    internal RandomCustomerSpawner()
     {
-        this._getModelFunc = getModelFunc;
+        this._getModelFunc = Mod.CharacterFactory.CreateRandomCustomer;
     }
 
     internal override void Initialize(IModHelper helper)

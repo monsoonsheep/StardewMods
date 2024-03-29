@@ -31,6 +31,7 @@ using StardewModdingAPI;
 using StardewModdingAPI.Enums;
 using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.Buildings;
 using StardewValley.GameData.Buildings;
 using StardewValley.Inventories;
 using StardewValley.Locations;
@@ -43,6 +44,8 @@ namespace MyCafe;
 public class Mod : StardewModdingAPI.Mod
 {
     internal static Mod Instance = null!;
+
+    private Cafe _cafe = null!;
 
     private Texture2D _sprites = null!;
     private ConfigModel _loadedConfig = null!;
@@ -58,7 +61,8 @@ public class Mod : StardewModdingAPI.Mod
     internal static string UniqueId
         => Instance.ModManifest.UniqueID;
 
-    internal static Cafe Cafe = new Cafe();
+    internal static Cafe Cafe
+        => Instance._cafe;
 
     internal static ConfigModel Config
         => Instance._loadedConfig;
@@ -68,7 +72,6 @@ public class Mod : StardewModdingAPI.Mod
 
     internal static AssetManager Assets
         => Instance._assetManager;
-
 
     public Mod()
     {
@@ -82,6 +85,7 @@ public class Mod : StardewModdingAPI.Mod
         I18n.Init(helper.Translation);
         this._loadedConfig = helper.ReadConfig<ConfigModel>();
         this._assetManager = new AssetManager(helper);
+        this._cafe = new Cafe();
         this._characterFactory = new CharacterFactory(helper);
         this._sprites = helper.ModContent.Load<Texture2D>(Path.Combine("assets", "sprites.png"));
 
@@ -152,6 +156,13 @@ public class Mod : StardewModdingAPI.Mod
         if (!Context.IsMainPlayer)
             return;
 
+        // When the signboard is built, add a flag
+        if (Game1.IsBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID) && Game1.MasterPlayer.mailReceived.Add(ModKeys.MAILFLAG_HAS_BUILT_SIGNBOARD) == true)
+        {
+            GameLocation eventLocation = Game1.locations.First(l => l.isBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID));
+            this.Helper.GameContent.InvalidateCache($"Data/Events/{eventLocation.Name}");
+        }
+
         Cafe.DayUpdate();
     }
 
@@ -169,48 +180,47 @@ public class Mod : StardewModdingAPI.Mod
             return;
 
         // Delete customers
-        SUtility.ForEachLocation(delegate (GameLocation loc)
-        {
-            for (int i = loc.characters.Count - 1; i >= 0; i--)
-                if (loc.characters[i].Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX))
-                    loc.characters.RemoveAt(i); // TODO if it's a villager customer, convert them (is it needed or will the game warp them anyway?)
-            return true;
-        });
         Cafe.RemoveAllCustomers();
     }
 
     internal void OnTimeChanged(object? sender, TimeChangedEventArgs e)
     {
-        Log.Debug($"{Cafe.Tables.Count} tables");
-        if (!Context.IsMainPlayer) return;
+        Debug.PrintAllInfo();
+        if (!Context.IsMainPlayer)
+            return;
         Cafe.TenMinuteUpdate();
     }
 
     [SuppressMessage("ReSharper", "PossibleLossOfFraction", Justification = "Deliberate in order to get the tile")]
     internal void OnRenderedWorld(object? sender, RenderedWorldEventArgs e)
     {
-        // Get list of reserved tables with center coords
-        foreach (Table table in Cafe.Tables)
+        if (Cafe.Enabled)
         {
-            if (Game1.currentLocation.Name.Equals(table.CurrentLocation))
+            // Get list of reserved tables with center coords
+            foreach (Table table in Cafe.Tables)
             {
-                Vector2 offset = new Vector2(0, (float) Math.Round(4f * Math.Sin(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 250.0)));
-
-                switch (table.State.Value)
+                if (Game1.currentLocation.Name.Equals(table.CurrentLocation))
                 {
-                    case TableState.CustomersDecidedOnOrder:
-                        // Exclamation mark
-                        e.SpriteBatch.Draw(
-                            Game1.mouseCursors,
-                            Game1.GlobalToLocal(table.Center + new Vector2(-8, -64)) + offset,
-                            new Rectangle(402, 495, 7, 16),
-                            Color.White,
-                            0f,
-                            new Vector2(1f, 4f),
-                            4f,
-                            SpriteEffects.None,
-                            1f);
-                        break;
+                    e.SpriteBatch.DrawString(Game1.smallFont, table.Seats.Count.ToString(), Game1.GlobalToLocal(table.Center + new Vector2(-8, -64)), Color.White);
+
+                    // Table status
+                    Vector2 offset = new Vector2(0, (float) Math.Round(4f * Math.Sin(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 250.0)));
+                    switch (table.State.Value)
+                    {
+                        case TableState.CustomersDecidedOnOrder:
+                            // Exclamation mark
+                            e.SpriteBatch.Draw(
+                                Game1.mouseCursors,
+                                Game1.GlobalToLocal(table.Center + new Vector2(-8, -64)) + offset,
+                                new Rectangle(402, 495, 7, 16),
+                                Color.White,
+                                0f,
+                                new Vector2(1f, 4f),
+                                4f,
+                                SpriteEffects.None,
+                                1f);
+                            break;
+                    }
                 }
             }
         }
@@ -236,11 +246,12 @@ public class Mod : StardewModdingAPI.Mod
                 e.SpriteBatch.DrawLine(area.X, area.Y + area.Height, new Vector2(area.Width, 1), borderColor); // bottom
             }
         }
+
     }
 
     internal void OnFurnitureListChanged(object? sender, FurnitureListChangedEventArgs e)
     {
-        if (!Context.IsMainPlayer)
+        if (!Context.IsMainPlayer || Cafe.Enabled == false)
             return;
 
         if (e.Location.Equals(Cafe.Indoor) || e.Location.Equals(Cafe.Outdoor))
@@ -349,11 +360,54 @@ public class Mod : StardewModdingAPI.Mod
         // get Generic Mod Config Menu's API (if it's installed)
         IGenericModConfigMenuApi? configMenu = helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
 
+        if (configMenu == null)
+            return;
+
         // register mod
-        configMenu?.Register(
+        configMenu.Register(
             mod: manifest,
             reset: () => this._loadedConfig = new ConfigModel(),
             save: () => helper.WriteConfig(this._loadedConfig)
+        );
+
+        configMenu.AddSectionTitle(
+            mod: manifest,
+            text: () => "Customer Visits");
+
+        configMenu.AddNumberOption(
+            mod: manifest,
+            getValue: () => this._loadedConfig.EnableCustomCustomers,
+            setValue: (value) => this._loadedConfig.EnableCustomCustomers = value,
+            name: () => "Custom Customers",
+            tooltip: () => "How often custom-made customers will visit",
+            min: 0,
+            max: 5,
+            interval: 1,
+            formatValue: (val) => val == 0 ? "Disabled" : val.ToString()
+            );
+
+        configMenu.AddNumberOption(
+            mod: manifest,
+            getValue: () => this._loadedConfig.EnableNpcCustomers,
+            setValue: (value) => this._loadedConfig.EnableNpcCustomers = value,
+            name: () => "NPC Customers",
+            tooltip: () => "How often villager/townspeople customers will visit",
+            min: 0,
+            max: 5,
+            interval: 1,
+            formatValue: (val) => val == 0 ? "Disabled" : val.ToString()
+        );
+
+        configMenu.AddNumberOption(
+            mod: manifest,
+            getValue: () => this._loadedConfig.EnableRandomlyGeneratedCustomers,
+            setValue: (value) => this._loadedConfig.EnableRandomlyGeneratedCustomers = value,
+            name: () => "Randomly Generated Customers",
+            tooltip: () => "How often randomly generated customers will visit",
+            min: 0,
+            max: 5,
+            interval: 1,
+            formatValue: (val) => val == 0 ? "Disabled" : val.ToString()
         );
     }
 

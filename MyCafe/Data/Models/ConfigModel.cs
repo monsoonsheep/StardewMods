@@ -10,8 +10,9 @@ internal class ConfigModel
 {
     public int DistanceForSignboardToRegisterTables { get; set; } = 7;
     public bool EnableScrollbarInMenuBoard { get; set; } = false;
-    public int CustomerSpawnFrequency { get; set; } = 2;
-    public int NpcCustomerSpawnFrequency { get; set; } = 2;
+    public int EnableCustomCustomers { get; set; } = 5;
+    public int EnableRandomlyGeneratedCustomers { get; set; } = 5;
+    public int EnableNpcCustomers { get; set; } = 5;
 
 #if YOUTUBE
     public string YoutubeClientId { get; set; } = "Your Client Id here";

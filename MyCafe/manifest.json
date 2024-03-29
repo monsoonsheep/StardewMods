@@ -1,16 +1,31 @@
 {
+  /*
+   | This file is automatically updated by ModManifestBuilder
+   | when the project is compiled.
+   | 
+   | Changes made to this file may be overwritten.
+   | 
+   */
+  "$schema": "https://smapi.io/schemas/manifest.json",
+  "UniqueID": "MonsoonSheep.MyCafe",
   "Name": "My Cafe",
   "Author": "MonsoonSheep",
-  "Version": "0.1.0",
-  "Description": "My mod",
-  "UniqueID": "MonsoonSheep.MyCafe",
+  "Version": "0.1.0-Debug",
+  "Description": "Start a restaurant in Stardew Valley",
   "EntryDll": "MyCafe.dll",
-  "MinimumApiVersion": "3.0.0",
-  "UpdateKeys": [],
   "Dependencies": [
-       {
-          "UniqueID": "spacechase0.SpaceCore",
-          "MinimumVersion": "1.13.0"
-       }
-    ]
+    {
+      "UniqueID": "spacechase0.GenericModConfigMenu",
+      "MinimumVersion": "1.12",
+      "IsRequired": false
+    },
+    {
+      "UniqueID": "spacechase0.SpaceCore",
+      "MinimumVersion": "1.20.2"
+    }
+  ],
+  "UpdateKeys": [
+    "\"Nexus:20695\"",
+    "Nexus:20695"
+  ]
 }

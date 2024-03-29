@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Xml.Serialization;
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common;
@@ -20,7 +21,7 @@ public abstract class Seat : INetObject<NetFields>
 
     internal Table Table
     {
-        get => this.TableField ??= Mod.Cafe.GetTableOfSeat(this);
+        get => this.TableField ??= Mod.Cafe.Tables.FirstOrDefault(t => t.Seats.Contains(this))!;
         set => this.TableField = value;
     }
 
@@ -87,7 +88,6 @@ public abstract class Seat : INetObject<NetFields>
 
     internal virtual void Free()
     {
-        Log.Debug("Freeing base seat");
         this.ReservingCustomer = null;
     }
 }

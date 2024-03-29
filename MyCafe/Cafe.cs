@@ -22,76 +22,104 @@ using MyCafe.Inventories;
 using MyCafe.Data.Customers;
 using System.Diagnostics.Metrics;
 using MyCafe.Characters.Spawning;
+using MyCafe.Data.Models;
 using MyCafe.Netcode;
 
 namespace MyCafe;
 
 public class Cafe
 {
-    internal CafeNetObject Fields
-    {
-        get => Game1.player.team.get_CafeNetFields().Value;
-    }
-
     internal RandomCustomerSpawner RandomCustomers = null!;
+
     internal VillagerCustomerSpawner VillagerCustomers = null!;
+
     internal RandomCustomerSpawner? ChatCustomers = null;
 
     internal int LastTimeCustomersArrived = 0;
 
+    private CafeNetObject _fields
+        => Game1.player.team.get_CafeNetFields().Value;
+
     internal bool Enabled
     {
-        get => this.Fields.CafeEnabled.Value;
-        set => this.Fields.CafeEnabled.Set(value);
+        get => this._fields.CafeEnabled.Value;
+        set => this._fields.CafeEnabled.Set(value);
     }
 
     internal CafeLocation? Indoor
     {
-        get => this.Fields.CafeIndoor.Value as CafeLocation;
-        set => this.Fields.CafeIndoor.Set(value);
+        get => this._fields.CafeIndoor.Value as CafeLocation;
+        set => this._fields.CafeIndoor.Set(value);
     }
 
     internal GameLocation? Outdoor
     {
-        get => this.Fields.CafeOutdoor.Value;
-        set => this.Fields.CafeOutdoor.Set(value);
+        get => this._fields.CafeOutdoor.Value;
+        set => this._fields.CafeOutdoor.Set(value);
     }
-
-    internal IList<Table> Tables
-        => this.Fields.NetTables as IList<Table>;
 
     internal int OpeningTime
     {
-        get => this.Fields.OpeningTime.Value;
-        set => this.Fields.OpeningTime.Set(value);
+        get => this._fields.OpeningTime.Value;
+        set => this._fields.OpeningTime.Set(value);
     }
 
     internal int ClosingTime
     {
-        get => this.Fields.ClosingTime.Value;
-        set => this.Fields.ClosingTime.Set(value);
+        get => this._fields.ClosingTime.Value;
+        set => this._fields.ClosingTime.Set(value);
     }
 
+    internal IList<Table> Tables
+        => this._fields.NetTables as IList<Table>;
+
     internal MenuInventory Menu
-        => this.Fields.NetMenu.Value;
+        => this._fields.NetMenu.Value;
 
     internal NetStringDictionary<GeneratedSpriteData, NetRef<GeneratedSpriteData>> GeneratedSprites
-        => this.Fields.GeneratedSprites;
+        => this._fields.GeneratedSprites;
 
     internal ICollection<string> NpcCustomers
-        => this.Fields.NpcCustomers;
+        => this._fields.NpcCustomers;
+
+    private IEnumerable<CustomerSpawner> Spawners
+    {
+        get
+        {
+            yield return this.RandomCustomers;
+            yield return this.VillagerCustomers;
+
+            if (this.ChatCustomers != null)
+                yield return this.ChatCustomers;
+        }
+    }
+
+    private IEnumerable<CustomerGroup> ActiveGroups
+    {
+        get
+        {
+            foreach (CustomerGroup g in this.RandomCustomers._groups)
+                yield return g;
+            foreach (CustomerGroup g in this.VillagerCustomers._groups)
+                yield return g;
+
+            if (this.ChatCustomers != null)
+                foreach (CustomerGroup g in this.ChatCustomers._groups)
+                    yield return g;
+        }
+    }
 
     internal void InitializeForHost(IModHelper helper)
     {
-        this.Fields.GeneratedSprites.OnValueRemoved += (id, data) => data.Dispose();
-        this.Fields.NetTables.OnValueAdded += table =>
+        this._fields.GeneratedSprites.OnValueRemoved += (id, data) => data.Dispose();
+        this._fields.NetTables.OnValueAdded += table =>
             table.State.fieldChangeVisibleEvent += (_, oldValue, newValue) => this.OnTableStateChange(table, new TableStateChangedEventArgs()
             {
                 OldValue = oldValue,
                 NewValue = newValue
             });
 
-        this.RandomCustomers = new RandomCustomerSpawner(getModelFunc: Mod.CharacterFactory.CreateRandomCustomer);
+        this.RandomCustomers = new RandomCustomerSpawner();
         this.VillagerCustomers = new VillagerCustomerSpawner();
 
         this.RandomCustomers.Initialize(helper);
@@ -118,7 +146,7 @@ public class Cafe
     private void PopulateTables()
     {
         this.Tables.Clear();
-        var locations = new List<GameLocation>();
+        List<GameLocation> locations = new List<GameLocation>();
 
         if (this.Indoor != null)
             locations.Add(this.Indoor);
@@ -162,36 +190,15 @@ public class Cafe
         }
     }
 
-    private IEnumerable<CustomerGroup> ActiveGroups()
-    {
-        foreach (CustomerGroup g in this.RandomCustomers._groups)
-            yield return g;
-        foreach (CustomerGroup g in this.VillagerCustomers._groups)
-            yield return g;
-
-        if (this.ChatCustomers != null)
-            foreach (CustomerGroup g in this.ChatCustomers._groups)
-                yield return g;
-    }
-
     internal void RemoveAllCustomers()
     {
-        foreach (CustomerSpawner spawner in this.Spawners())
+        foreach (CustomerSpawner spawner in this.Spawners)
         {
             for (int i = spawner._groups.Count - 1; i >= 0; i--)
             {
-                spawner.EndCustomers(spawner._groups[i]);
+                spawner.EndCustomers(spawner._groups[i], force: true);
             }
         }
-    }
-
-    private IEnumerable<CustomerSpawner> Spawners()
-    {
-        yield return this.RandomCustomers;
-        yield return this.VillagerCustomers;
-
-        if (this.ChatCustomers != null)
-            yield return this.ChatCustomers;
     }
 
     internal void TenMinuteUpdate()
@@ -255,6 +262,7 @@ public class Cafe
                         .Where(s => s.ReservingCustomer != null)
                         .Select(c => c.ReservingCustomer!.get_OrderItem().Value?.ItemId)
                         .ToList();
+
                     foreach (string? item in itemsNeeded)
                         if (!string.IsNullOrEmpty(item) && !who.Items.ContainsId(item, minimum: itemsNeeded.Count(x => x == item)))
                             return false;
@@ -307,13 +315,28 @@ public class Cafe
 
     internal void OnFurniturePlaced(Furniture placed, GameLocation location)
     {
+        if (location.Equals(this.Outdoor))
+        {
+            Building signboard = location.buildings.First(b => b.buildingType.Value == ModKeys.CAFE_SIGNBOARD_BUILDING_ID);
+            Vector2 signboardTile = new Vector2(signboard.tileX.Value, signboard.tileY.Value);
+            int distance = (int) Vector2.Distance(signboardTile, placed.TileLocation);
+            if (distance > Mod.Config.DistanceForSignboardToRegisterTables)
+            {
+                return;
+            }
+        }
+
+        Log.Trace("Placed furniture");
+
         if (Utility.IsChair(placed))
         {
             Furniture facingFurniture = location.GetFurnitureAt(placed.TileLocation + CommonHelper.DirectionIntToDirectionVector(placed.currentRotation.Value) * new Vector2(1, -1));
             if (facingFurniture == null
                 || Utility.IsTable(facingFurniture) == false
                 || facingFurniture.GetBoundingBox().Intersects(placed.boundingBox.Value))
+            {
                 return;
+            }
 
             if (!this.IsRegisteredTable(facingFurniture, out FurnitureTable? table))
             {
@@ -329,7 +352,9 @@ public class Cafe
             {
                 FurnitureTable table = new(placed, location.Name);
                 if (table.Seats.Count > 0)
+                {
                     this.AddTable(table);
+                }
             }
         }
     }
@@ -346,13 +371,17 @@ public class Cafe
             {
                 existingTable.RemoveChair(f);
                 if (existingTable.Seats.Count == 0)
+                {
                     this.RemoveTable(existingTable);
+                }
             }
         }
         else if (Utility.IsTable(f))
         {
             if (this.IsRegisteredTable(f, out FurnitureTable? trackedTable))
+            {
                 this.RemoveTable(trackedTable);
+            }
         }
     }
 
@@ -362,7 +391,7 @@ public class Cafe
             return;
 
         Table table = (Table) sender;
-        CustomerGroup? group = this.ActiveGroups().FirstOrDefault(g => g.ReservedTable == table);
+        CustomerGroup? group = this.ActiveGroups.FirstOrDefault(g => g.ReservedTable == table);
 
         if ((e.NewValue != TableState.Free && e.NewValue != TableState.CustomersComing) && group == null)
         {
@@ -412,12 +441,6 @@ public class Cafe
     internal Table? GetFreeTable(int minSeats = 1)
     {
         return this.Tables.PickRandomWhere(t => !t.IsReserved && t.Seats.Count >= minSeats);
-    }
-
-    internal Table GetTableOfSeat(Seat seat)
-    {
-        Log.Warn("Should refactor this method away");
-        return this.Tables.FirstOrDefault(t => t.Seats.Contains(seat))!;
     }
 
     internal bool UpdateCafeLocations()

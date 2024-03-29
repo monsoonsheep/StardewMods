@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using MyCafe.Enums;
@@ -21,6 +22,8 @@ internal static class Debug
         switch (e.Button)
         {
             case SButton.NumPad0:
+                GameLocation eventLocation = Game1.locations.First(l => l.isBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID));
+                Mod.Instance.Helper.GameContent.InvalidateCache($"Data/Events/{eventLocation.Name}");
                 break;
             case SButton.NumPad1:
                 WarpToBus();
@@ -107,5 +110,10 @@ internal static class Debug
     internal static void WarpToBus()
     {
         Game1.warpFarmer("BusStop", 12, 15, false);
+    }
+
+    internal static void PrintAllInfo()
+    {
+        Log.Debug($"{Mod.Cafe.Tables.Count} tables");
     }
 }

@@ -11,6 +11,7 @@ using MyCafe.Locations.Objects;
 using MyCafe.Netcode;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Pathfinding;
 using SUtility = StardewValley.Utility;
 
 namespace MyCafe.Characters.Spawning;
@@ -69,7 +70,7 @@ internal class VillagerCustomerSpawner : CustomerSpawner
             Log.Error($"Couldn't make villager customers. Reverting changes...\n{e.Message}\n{e.StackTrace}");
 
             foreach (NPC c in group.Members)
-                c.ReturnToSchedule();
+                ReturnToSchedule(c);
 
             return false;
         }
@@ -88,7 +89,7 @@ internal class VillagerCustomerSpawner : CustomerSpawner
         group.ReservedTable?.Free();
         try
         {
-            group.MoveTo(Game1.getLocationFromName("BusStop"), new Point(12, 23), (c, loc) => (c as NPC)!.ReturnToSchedule());
+            group.MoveTo(Game1.getLocationFromName("BusStop"), new Point(12, 23), (c, _) => ReturnToSchedule((c as NPC)!));
         }
         catch (PathNotFoundException e)
         {
@@ -166,5 +167,73 @@ internal class VillagerCustomerSpawner : CustomerSpawner
         return true;
     }
 
- 
+    internal static void ReturnToSchedule(NPC npc)
+    {
+        Mod.Cafe.NpcCustomers.Remove(npc.Name);
+        npc.ignoreScheduleToday = false;
+
+        List<int> activityTimes = npc.Schedule.Keys.OrderBy(i => i).ToList();
+        int timeOfCurrent = activityTimes.LastOrDefault(t => t <= Game1.timeOfDay);
+        int timeOfNext = activityTimes.FirstOrDefault(t => t > Game1.timeOfDay);
+        int minutesSinceCurrentStarted = SUtility.CalculateMinutesBetweenTimes(timeOfCurrent, Game1.timeOfDay);
+        int minutesTillNextStarts = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, timeOfNext);
+        int timeOfActivity;
+
+        Log.Trace($"[{Game1.timeOfDay}] Returning {npc.Name} to schedule for key \"{npc.ScheduleKey}\". Time of current activity is {timeOfCurrent}, next activity is at {timeOfNext}.");
+
+        if (timeOfCurrent == 0) // Means it's the start of the day
+        {
+            timeOfActivity = activityTimes.First();
+        }
+        else if (timeOfNext == 0) // Means it's the end of the day
+        {
+            timeOfActivity = activityTimes.Last();
+        }
+        else
+        {
+            if (minutesTillNextStarts < minutesSinceCurrentStarted && minutesTillNextStarts <= 30)
+                // If we're very close to the next item, 
+                timeOfActivity = timeOfNext;
+            else
+                timeOfActivity = timeOfCurrent;
+        }
+
+        Log.Trace($"Time of selected activity is {timeOfActivity}");
+
+        SchedulePathDescription originalPathDescription = npc.Schedule[timeOfActivity];
+
+        Log.Trace($"Schedule description is {originalPathDescription.targetLocationName}: {originalPathDescription.targetTile}, behavior: {originalPathDescription.endOfRouteBehavior}");
+
+        GameLocation targetLocation = Game1.getLocationFromName(originalPathDescription.targetLocationName);
+        Stack<Point>? routeToScheduleItem = Pathfinding.PathfindFromLocationToLocation(
+            npc.currentLocation,
+            npc.TilePoint,
+            targetLocation,
+            originalPathDescription.targetTile,
+            npc);
+
+        if (routeToScheduleItem == null)
+        {
+            Log.Trace("Can't find route back");
+            // TODO: Warp them to their home
+            return;
+        }
+
+        // Can this return null?
+        SchedulePathDescription toInsert = npc.pathfindToNextScheduleLocation(
+            npc.ScheduleKey,
+            npc.currentLocation.Name,
+            npc.TilePoint.X,
+            npc.TilePoint.Y,
+            originalPathDescription.targetLocationName,
+            originalPathDescription.targetTile.X,
+            originalPathDescription.targetTile.Y,
+            originalPathDescription.facingDirection,
+            originalPathDescription.endOfRouteBehavior,
+            originalPathDescription.endOfRouteMessage);
+
+        npc.queuedSchedulePaths.Clear();
+        npc.Schedule[Game1.timeOfDay] = toInsert;
+        npc.checkSchedule(Game1.timeOfDay);
+    }
 }

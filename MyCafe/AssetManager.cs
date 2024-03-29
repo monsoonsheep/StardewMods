@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
@@ -15,6 +16,7 @@ using MyCafe.Enums;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.Buildings;
 using StardewValley.GameData.Buildings;
 using xTile;
 
@@ -25,18 +27,6 @@ internal sealed class AssetManager
 
     internal Dictionary<string, VillagerCustomerModel> VillagerCustomerModels = [];
 
-    internal void LoadContent(IContentPack defaultContent)
-    {
-        this.VillagerCustomerModels = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(ModKeys.ASSETS_NPCSCHEDULE);
-
-        // Load default content pack included in assets folder
-        this.LoadContentPack(defaultContent);
-
-        // Load content packs
-        foreach (IContentPack contentPack in this._modHelper.ContentPacks.GetOwned())
-            this.LoadContentPack(contentPack);
-    }
-
     internal AssetManager(IModHelper helper)
     {
         this._modHelper = helper;
@@ -45,7 +35,7 @@ internal sealed class AssetManager
     internal void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
     {
         // NPC Schedules
-        if (e.Name.IsEquivalentTo(ModKeys.ASSETS_NPCSCHEDULE))
+        if (e.NameWithoutLocale.IsEquivalentTo(ModKeys.ASSETS_NPCSCHEDULE))
         {
             Dictionary<string, VillagerCustomerModel> data = [];
 
@@ -62,7 +52,7 @@ internal sealed class AssetManager
         }
 
         // Buildings data (Cafe and signboard)
-        else if (e.Name.IsEquivalentTo("Data/Buildings"))
+        else if (e.NameWithoutLocale.IsEquivalentTo("Data/Buildings"))
         {
             e.Edit(asset =>
             {
@@ -73,24 +63,25 @@ internal sealed class AssetManager
         }
 
         // Cafe building texture
-        else if (e.Name.IsEquivalentTo(ModKeys.CAFE_BUILDING_TEXTURE_NAME))
+        else if (e.NameWithoutLocale.IsEquivalentTo(ModKeys.CAFE_BUILDING_TEXTURE_NAME))
         {
             e.LoadFromModFile<Texture2D>(Path.Combine("assets", "Buildings", "Cafe", "cafebuilding.png"), AssetLoadPriority.Low);
         }
 
         // Cafe map tmx
-        else if (e.Name.IsEquivalentTo($"Maps/{ModKeys.CAFE_MAP_NAME}"))
+        else if (e.NameWithoutLocale.IsEquivalentTo($"Maps/{ModKeys.CAFE_MAP_NAME}"))
         {
             e.LoadFromModFile<Map>(Path.Combine("assets", "Buildings", "Cafe", "cafemap.tmx"), AssetLoadPriority.Low);
         }
 
         // Signboard building texture
-        else if (e.Name.IsEquivalentTo(ModKeys.CAFE_SIGNBOARD_TEXTURE_NAME))
+        else if (e.NameWithoutLocale.IsEquivalentTo(ModKeys.CAFE_SIGNBOARD_TEXTURE_NAME))
         {
             e.LoadFromModFile<Texture2D>(Path.Combine("assets", "Buildings", "Signboard", "signboard.png"), AssetLoadPriority.Low);
         }
 
-        else if (e.Name.StartsWith(ModKeys.GENERATED_SPRITE_PREFIX))
+        // Random generated sprite (with a GUID after the initial asset name)
+        else if (e.NameWithoutLocale.StartsWith(ModKeys.GENERATED_SPRITE_PREFIX))
         {
             string id = e.Name.Name[(ModKeys.GENERATED_SPRITE_PREFIX.Length + 1)..];
 
@@ -100,20 +91,74 @@ internal sealed class AssetManager
                 if (sprite == null)
                     Log.Error("Couldn't load texture from generated sprite data!");
                 else
-                    e.LoadFrom(() => sprite, AssetLoadPriority.Exclusive);
+                    e.LoadFrom(() => sprite, AssetLoadPriority.Medium);
             }
             else
                 Log.Error($"Couldn't find generate sprite data for guid {id}");
         }
+
+        // Custom events (Added by CP component)
+        else if (e.NameWithoutLocale.IsEquivalentTo($"Data/{ModKeys.MODASSET_EVENTS}"))
+        {
+            e.LoadFrom(() => new Dictionary<string, string>(), AssetLoadPriority.Low);
+        }
+
+        // Cafe introduction event (Inject into Data/Events/cafelocation only when we need to, the game triggers the event and the event sets a mail flag that disables this
+        else if (e.NameWithoutLocale.IsDirectlyUnderPath("Data/Events") &&
+                 Context.IsMainPlayer &&
+                 Game1.MasterPlayer.mailReceived.Contains(ModKeys.MAILFLAG_HAS_BUILT_SIGNBOARD) &&
+                 Game1.MasterPlayer.mailReceived.Contains(ModKeys.MAILFLAG_HAS_SEEN_CAFE_INTRODUCTION) == false
+                 )
+        {
+            GameLocation eventLocation = Game1.locations.First(l => l.isBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID));
+            if (e.NameWithoutLocale.IsEquivalentTo($"Data/Events/{eventLocation.Name}"))
+            {
+                string @event = this.GetCafeIntroductionEvent();
+                e.Edit((asset) =>
+                {
+                    IDictionary<string, string> data = asset.AsDictionary<string, string>().Data;
+                    data[$"{ModKeys.MODASSET_EVENTS.Replace('/', '_')}_{ModKeys.EVENT_CAFEINTRODUCTION}/M 100"] = @event;
+                });
+            }
+        }
+    }
+
+    private string GetCafeIntroductionEvent()
+    {
+        GameLocation eventLocation = Game1.locations.First(l => l.isBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID));
+        Building signboard = eventLocation.getBuildingByType(ModKeys.CAFE_SIGNBOARD_BUILDING_ID);
+        Point signboardTile = new Point(signboard.tileX.Value, signboard.tileY.Value + signboard.tilesHigh.Value);
+
+        string eventString = Game1.content.Load<Dictionary<string, string>>($"Data/{ModKeys.MODASSET_EVENTS}")[ModKeys.EVENT_CAFEINTRODUCTION];
+
+        // Replace the encoded coordinates with the position of the signboard building
+        string substituted = Regex.Replace(
+            eventString,
+            @"(6\d{2})\s(6\d{2})",
+            (m) => $"{(int.Parse(m.Groups[1].Value) - 650 + signboardTile.X)} {(int.Parse(m.Groups[2].Value) - 650 + signboardTile.Y)}");
+
+        return substituted;
     }
 
     internal void OnAssetReady(object? sender, AssetReadyEventArgs e)
     {
         // NPC Schedules
-        if (e.Name.IsEquivalentTo(ModKeys.ASSETS_NPCSCHEDULE))
+        if (e.NameWithoutLocale.IsEquivalentTo(ModKeys.ASSETS_NPCSCHEDULE))
         {
             this.VillagerCustomerModels = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(ModKeys.ASSETS_NPCSCHEDULE);
         }
+    }
+
+    internal void LoadContent(IContentPack defaultContent)
+    {
+        this.VillagerCustomerModels = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(ModKeys.ASSETS_NPCSCHEDULE);
+
+        // Load default content pack included in assets folder
+        this.LoadContentPack(defaultContent);
+
+        // Load content packs
+        foreach (IContentPack contentPack in this._modHelper.ContentPacks.GetOwned())
+            this.LoadContentPack(contentPack);
     }
 
     internal void LoadContentPack(IContentPack contentPack)

@@ -166,7 +166,7 @@ namespace MonsoonSheep.Stardew.Common
         {
             for (int x = -distance; x <= distance; x++)
                 for (int y = -distance; y <= distance; y++)
-                    if (x * x + y * y <= Math.Abs(distance) * Math.Abs(distance))
+                    if (x * x + y * y <= distance * distance)
                         yield return new Vector2(origin.X + x, origin.Y + y);
         }
     }

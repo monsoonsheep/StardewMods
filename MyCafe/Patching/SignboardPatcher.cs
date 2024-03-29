@@ -13,6 +13,7 @@ internal class SignboardPatcher : BasePatcher
 {
     public override void Apply(Harmony harmony, IMonitor monitor)
     {
+
         harmony.Patch(
             original: this.RequireMethod<CarpenterMenu>("setUpForBuildingPlacement"),
             postfix: this.GetHarmonyMethod(nameof(After_SetUpForBuildingPlacement))

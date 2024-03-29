@@ -20,7 +20,6 @@
     <!-- SMAPI Paths -->
 		<ModFolderName>My Cafe</ModFolderName>
 		<GamePath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley</GamePath>
-		<GameModsPath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley\Mods\My Mods</GameModsPath>
 	</PropertyGroup>
 
 	<!-- Enable/disable Live Chat Integration with StreamingClientLibrary -->
@@ -75,10 +74,26 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Leclair.Stardew.ModManifestBuilder" Version="2.1.0" />
 		<PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.0.1" />
 		<PackageReference Include="Mono.Cecil" Version="0.11.5.0" />
 	</ItemGroup>
 
 	<Import Project="..\Common.Patching\Common.Patching.projitems" Label="Shared" />
 	<Import Project="..\Common\Common.projitems" Label="Shared" />
+
+  <!-- SMAPI Manifest -->
+  <PropertyGroup>
+    <Name>My Cafe</Name>
+    <Authorts>MonsoonSheep</Authorts>
+    <Description>Start a restaurant in Stardew Valley</Description>
+    <UniqueId>MonsoonSheep.MyCafe</UniqueId>
+    <UpdateKeys>"Nexus:20695"</UpdateKeys>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SMAPIDependency Include="spacechase0.SpaceCore" Version="1.19" Reference="true" />
+    <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
+  </ItemGroup>
 </Project>
