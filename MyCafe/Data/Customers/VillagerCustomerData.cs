@@ -1,9 +1,4 @@
-using System.Collections.Generic;
-using System.Xml.Serialization;
-using Microsoft.Xna.Framework;
-using MyCafe.Data.Models;
 using StardewValley;
-using StardewValley.Pathfinding;
 
 namespace MyCafe.Data.Customers;
 

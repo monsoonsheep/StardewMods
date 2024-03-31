@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MyCafe.Data.Models;
@@ -20,7 +18,7 @@ internal class RandomCustomerSpawner : CustomerSpawner
 
     internal RandomCustomerSpawner()
     {
-        this._getModelFunc = Mod.CharacterFactory.CreateRandomCustomer;
+        this._getModelFunc = Mod.CharacterFactory.GenerateCustomer;
     }
 
     internal override void Initialize(IModHelper helper)

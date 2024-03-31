@@ -1,4 +1,4 @@
-using System.Xml.Serialization;
+using Microsoft.Xna.Framework;
 using Netcode;
 using StardewValley.Objects;
 
@@ -23,6 +23,31 @@ public sealed class FurnitureSeat : Seat
     {
         base.InitNetFields();
         this.NetFields.AddField(this.ActualChair);
+    }
+
+    public override Vector2 SittingPosition
+    {
+        get
+        {
+            Vector2 pos = this.ActualChair.Value.GetSeatPositions()[0] * 64f;
+            switch (this.SittingDirection)
+            {
+                case 0:
+                    pos.Y -= 12f;
+                    break;
+                case 1:
+                    pos.X += 10f;
+                    break;
+                case 2:
+                    pos.Y += 4f;
+                    break;
+                case 3:
+                    pos.X -= 10f;
+                    break;
+            }
+
+            return pos;
+        }
     }
 
     internal override int SittingDirection

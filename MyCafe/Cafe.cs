@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using HarmonyLib;
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common;
 using MyCafe.Characters;
@@ -12,17 +11,13 @@ using Netcode;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Buildings;
-using StardewValley.Inventories;
 using StardewValley.Locations;
 using StardewValley.Network;
 using StardewValley.Objects;
-using StardewValley.Pathfinding;
 using SUtility = StardewValley.Utility;
 using MyCafe.Inventories;
 using MyCafe.Data.Customers;
-using System.Diagnostics.Metrics;
 using MyCafe.Characters.Spawning;
-using MyCafe.Data.Models;
 using MyCafe.Netcode;
 
 namespace MyCafe;
@@ -245,7 +240,7 @@ public class Cafe
     internal void RemoveTable(FurnitureTable table)
     {
         if (this.Tables.Remove(table))
-            Log.Debug($"Table removed");
+            Log.Debug("Table removed");
         else
             Log.Warn("Trying to remove a table that isn't registered");
     }
@@ -315,32 +310,24 @@ public class Cafe
 
     internal void OnFurniturePlaced(Furniture placed, GameLocation location)
     {
-        if (location.Equals(this.Outdoor))
-        {
-            Building signboard = location.buildings.First(b => b.buildingType.Value == ModKeys.CAFE_SIGNBOARD_BUILDING_ID);
-            Vector2 signboardTile = new Vector2(signboard.tileX.Value, signboard.tileY.Value);
-            int distance = (int) Vector2.Distance(signboardTile, placed.TileLocation);
-            if (distance > Mod.Config.DistanceForSignboardToRegisterTables)
-            {
-                return;
-            }
-        }
-
         Log.Trace("Placed furniture");
 
         if (Utility.IsChair(placed))
         {
-            Furniture facingFurniture = location.GetFurnitureAt(placed.TileLocation + CommonHelper.DirectionIntToDirectionVector(placed.currentRotation.Value) * new Vector2(1, -1));
-            if (facingFurniture == null
-                || Utility.IsTable(facingFurniture) == false
-                || facingFurniture.GetBoundingBox().Intersects(placed.boundingBox.Value))
+            Furniture facingTable = location.GetFurnitureAt(placed.TileLocation + CommonHelper.DirectionIntToDirectionVector(placed.currentRotation.Value) * new Vector2(1, -1));
+            if (facingTable == null
+                || Utility.IsTable(facingTable) == false
+                || facingTable.GetBoundingBox().Intersects(placed.boundingBox.Value))
             {
                 return;
             }
 
-            if (!this.IsRegisteredTable(facingFurniture, out FurnitureTable? table))
+            if (!this.IsRegisteredTable(facingTable, out FurnitureTable? table))
             {
-                table = new FurnitureTable(facingFurniture, location.Name);
+                if (location.Equals(this.Outdoor) && this.IsFurnitureWithinRangeOfSignboard(facingTable, location) == false)
+                    return;
+
+                table = new FurnitureTable(facingTable, location.Name);
                 this.AddTable(table);
             }
 
@@ -348,6 +335,10 @@ public class Cafe
         }
         else if (Utility.IsTable(placed))
         {
+            if (location.Equals(this.Outdoor) && this.IsFurnitureWithinRangeOfSignboard(placed, location) == false)
+                return;
+
+
             if (!this.IsRegisteredTable(placed, out _))
             {
                 FurnitureTable table = new(placed, location.Name);
@@ -357,6 +348,24 @@ public class Cafe
                 }
             }
         }
+    }
+
+    private bool IsFurnitureWithinRangeOfSignboard(Furniture furniture, GameLocation location)
+    {
+        // Skip if the placed table is outside of the signboard's range
+        Building signboard = location.buildings.First(b => b.buildingType.Value == ModKeys.CAFE_SIGNBOARD_BUILDING_ID);
+        Point signboardTile = new Point(signboard.tileX.Value, signboard.tileY.Value);
+        int distance = int.MaxValue;
+
+        for (int x = (int) furniture.TileLocation.X; x <= furniture.TileLocation.X + furniture.getTilesWide(); x++)
+        {
+            for (int y = (int) furniture.TileLocation.Y; y <= furniture.TileLocation.Y + furniture.getTilesHigh(); y++)
+            {
+                distance = Math.Min(distance, (int) Vector2.Distance(new Vector2(x, y), signboardTile.ToVector2()));
+            }
+        }
+
+        return distance <= Mod.Config.DistanceForSignboardToRegisterTables;
     }
 
     internal void OnFurnitureRemoved(Furniture f, GameLocation location)

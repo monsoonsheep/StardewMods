@@ -1,5 +1,4 @@
 using StardewModdingAPI;
-using StardewValley;
 
 namespace MyCafe;
 

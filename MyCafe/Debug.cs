@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Xna.Framework;
+using MyCafe.Data.Customers;
 using MyCafe.Enums;
 using MyCafe.Locations.Objects;
 using MyCafe.UI;
@@ -41,13 +41,16 @@ internal static class Debug
                 Log.Trace("Breaking");
                 break;
             case SButton.NumPad6:
+               
                 break;
             case SButton.NumPad7:
                 SetMenuItems();
                 break;
             case SButton.NumPad8:
+
                 break;
             case SButton.NumPad9:
+
                 break;
             case SButton.U:
                 OpenCafeMenu();

@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common.Patching;
@@ -31,6 +30,17 @@ internal class FurniturePatcher : BasePatcher
             original: this.RequireMethod<Furniture>(nameof(Furniture.AddSittingFarmer)),
             prefix: this.GetHarmonyMethod(nameof(Before_AddSittingFarmer))
         );
+        harmony.Patch(
+            original: this.RequireMethod<Furniture>(nameof(Furniture.HasSittingFarmers)),
+            postfix: this.GetHarmonyMethod(nameof(After_FurnitureHasSittingFarmers)));
+    }
+
+    private static void After_FurnitureHasSittingFarmers(Furniture __instance, ref bool __result)
+    {
+        if (Mod.Cafe.IsRegisteredChair(__instance, out FurnitureSeat? seat) && seat.IsReserved)
+        {
+            __result = true;
+        }
     }
 
     /// <summary>

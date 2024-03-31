@@ -1,24 +1,16 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
 using System.Xml.Serialization;
-using HarmonyLib;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using MonsoonSheep.Stardew.Common;
 using MonsoonSheep.Stardew.Common.Patching;
 using MyCafe.Characters;
-using MyCafe.Characters.Spawning;
 using MyCafe.Data;
 using MyCafe.Data.Customers;
 using MyCafe.Data.Models;
-using MyCafe.Data.Models.Appearances;
 using MyCafe.Enums;
 using MyCafe.Interfaces;
 using MyCafe.Inventories;
@@ -26,18 +18,11 @@ using MyCafe.Locations.Objects;
 using MyCafe.Netcode;
 using MyCafe.Patching;
 using MyCafe.UI;
-using Netcode;
 using StardewModdingAPI;
-using StardewModdingAPI.Enums;
 using StardewModdingAPI.Events;
 using StardewValley;
-using StardewValley.Buildings;
-using StardewValley.GameData.Buildings;
 using StardewValley.Inventories;
 using StardewValley.Locations;
-using StardewValley.Objects;
-using xTile;
-using SUtility = StardewValley.Utility;
 
 namespace MyCafe;
 
@@ -137,8 +122,6 @@ public class Mod : StardewModdingAPI.Mod
             this.ModManifest.Author,
             this.ModManifest.Version)
         );
-
-        this._characterFactory.Initialize();
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
@@ -201,10 +184,9 @@ public class Mod : StardewModdingAPI.Mod
             {
                 if (Game1.currentLocation.Name.Equals(table.CurrentLocation))
                 {
-                    e.SpriteBatch.DrawString(Game1.smallFont, table.Seats.Count.ToString(), Game1.GlobalToLocal(table.Center + new Vector2(-8, -64)), Color.White);
-
                     // Table status
                     Vector2 offset = new Vector2(0, (float) Math.Round(4f * Math.Sin(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 250.0)));
+
                     switch (table.State.Value)
                     {
                         case TableState.CustomersDecidedOnOrder:
@@ -220,6 +202,14 @@ public class Mod : StardewModdingAPI.Mod
                                 SpriteEffects.None,
                                 1f);
                             break;
+                        default:
+                            if (true || Game1.timeOfDay < Cafe.OpeningTime)
+                            {
+                                e.SpriteBatch.DrawString(Game1.tinyFont, table.Seats.Count.ToString(), Game1.GlobalToLocal(table.Center + new Vector2(-10, -96)) + offset, Color.Black, 0f, Vector2.Zero, 4f, SpriteEffects.None, 1f);
+                            }
+
+                            break;
+
                     }
                 }
             }

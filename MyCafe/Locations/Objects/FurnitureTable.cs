@@ -1,5 +1,4 @@
 using System.Linq;
-using System.Xml.Serialization;
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common;
 using Netcode;
@@ -100,8 +99,8 @@ public class FurnitureTable : Table
             Log.Debug("Trying to remove a chair that wasn't tracked");
             return false;
         }
-
-        this.Seats.Set(this.Seats.TakeWhile(c => c.Position != chairToRemove.TileLocation.ToPoint()).ToList());
+        this.Seats.RemoveWhere(s => s.Position.X == (int) chairToRemove.TileLocation.X && s.Position.Y == (int) chairToRemove.TileLocation.Y);
+        //this.Seats.Set(this.Seats.TakeWhile(c => c.Position != chairToRemove.TileLocation.ToPoint()).ToList());
         Log.Debug("Removed chair from table");
         return true;
     }

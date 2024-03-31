@@ -1,10 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
-using MyCafe.Characters.Spawning;
 using MyCafe.Data.Customers;
 using MyCafe.Inventories;
 using MyCafe.Locations.Objects;

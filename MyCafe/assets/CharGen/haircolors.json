@@ -1,51 +1,19 @@
 [
-	// Orange + dark + slightly more brown version
+	// somps
 	{
-		"Main": [255, 147, 0],
-		"Secondary": [112, 4, 0],
-		"Multipliers": [
-			[171, 101, 68],
-			[178, 162, 146]
-		]
-	},
-	
-	// Light brown (less saturated)
-	{
-		"Main": [153, 78, 26],
+		"Main": [224, 161, 85],
 		"Secondary": [81, 33, 31]
 	},
-
-	// Ghibli tree greens
 	{
-		"Main": [16, 145, 52],
-		"Secondary": [16, 94, 77],
-		"Multipliers": [
-			[103, 171, 171]
-		]
+		"Main": [86, 64, 105],
+		"Secondary": [255, 255, 255]
 	},
-
-	// Painter's white
 	{
-		"Main": [238, 217, 219],
-		"Secondary": [107, 96, 99]
+		"Main": [133, 83, 66],
+		"Secondary": [255, 255, 255]
 	},
-
-	// Brownish blonde
 	{
-		"Main": [255, 199, 79],
-		"Secondary": [86, 37, 32]
-	},
-
-	// Dark collection
-	{
-		"Main": [59, 14, 60],
-		"Secondary": [49, 0, 37],
-		"Multipliers": [
-			[64, 54, 87],
-			[87, 50, 57],
-			[171, 152, 74],
-			[171, 101, 68],
-			[103, 171, 171]
-		]
+		"Main": [125, 187, 105],
+		"Secondary": [255, 255, 255]
 	}
 ]

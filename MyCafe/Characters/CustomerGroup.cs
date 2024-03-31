@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
@@ -69,16 +68,14 @@ public class CustomerGroup
             if (!member.PathTo(location, tilePositions[i], 3, endBehavior))
                 return;
 
-            if (member.get_IsSittingDown())
+            if (member.get_IsSittingDown().Value)
             {
-                member.set_IsSittingDown(false);
-                int direction = CommonHelper.DirectionIntFromVectors(member.Tile, member.controller.pathToEndPoint.First().ToVector2());
-                if (direction != -1)
-                {
-                    member.Jump(direction);
-                    member.Freeze();
-                    member.set_AfterLerp(c => c.Unfreeze());
-                }
+                member.get_IsSittingDown().Set(false);
+                member.Sprite.ClearAnimation();
+
+                member.JumpTo(member.controller.pathToEndPoint.First().ToVector2() * 64f);
+                member.Freeze();
+                member.set_AfterLerp(c => c.Unfreeze());
             }
         }
     }

@@ -1,15 +1,17 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Xml.Serialization;
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common;
-using MyCafe.Characters;
+using Netcode;
 using StardewValley;
 
 namespace MyCafe.Locations.Objects;
 
 public sealed class LocationSeat : Seat
 {
+    private readonly NetRef<MapSeat?> NetMapSeat = [null];
+
     public LocationSeat() : base()
     {
     }
@@ -17,6 +19,36 @@ public sealed class LocationSeat : Seat
     public LocationSeat(Point position, Table table) : base(table)
     {
         this.Position = position;
+        MapSeat? mapSeat = this.Location.mapSeats.FirstOrDefault(m => m.GetSeatBounds().Contains(this.Position));
+        if (mapSeat != null)
+        {
+            this.NetMapSeat.Set(mapSeat);
+        }
+        else
+        {
+            Log.Error("Couldn't set MapSeat for LocationSeat");
+        }
+    }
+
+    protected override void InitNetFields()
+    {
+        base.InitNetFields();
+        this.NetFields.AddField(this.NetMapSeat);
+    }
+
+    public override Vector2 SittingPosition
+    {
+        get
+        {
+            if (this.NetMapSeat.Value == null)
+            {
+                return this.Position.ToVector2();
+            }
+            else
+            {
+                return this.NetMapSeat.Value.GetSeatPositions()[0];
+            }
+        }
     }
 
     internal override int SittingDirection
@@ -40,54 +72,4 @@ public sealed class LocationSeat : Seat
             return 0;
         }
     }
-
-    internal override bool Reserve(NPC customer)
-    {
-        if (!base.Reserve(customer))
-            return false;
-
-        GameLocation? location = CommonHelper.GetLocation(this.Table.CurrentLocation);
-        if (location == null)
-            return false;
-
-        try
-        {
-            MapSeat? mapSeat = location.mapSeats.FirstOrDefault(s => s.tilePosition.Value.Equals(this.Position.ToVector2()));
-            mapSeat?.sittingFarmers.Add(Game1.MasterPlayer.UniqueMultiplayerID, 0);
-        }
-        catch (ArgumentException ex)
-        {
-            Log.Debug("Couldn't add fake farmer to map seat");
-            Log.Trace($"{ex.Message}");
-            Log.Trace($"{ex.StackTrace}");
-            return false;
-        }
-
-        return true;
-    }
-
-    internal override void Free()
-    {
-        Log.Debug("Freeing seat");
-        base.Free();
-        GameLocation? location = CommonHelper.GetLocation(this.Table.CurrentLocation);
-        MapSeat? mapSeat = location?.mapSeats?.ToList().FirstOrDefault(s => s.tilePosition.Value.Equals(this.Position.ToVector2()));
-        if (mapSeat != null)
-        {
-            try
-            {
-                mapSeat.RemoveSittingFarmer(Game1.MasterPlayer);
-            }
-            catch (Exception ex)
-            {
-                Log.Debug("Couldn't remove farmer map seat");
-                Log.Trace($"{ex.Message}\n{ex.StackTrace}");
-            }
-        }
-        else
-        {
-            Log.Debug("Couldn't find map seat for freeing location seat");
-        }
-    }
-
 }

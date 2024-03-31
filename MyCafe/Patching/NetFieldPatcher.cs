@@ -1,14 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
 using HarmonyLib;
 using MonsoonSheep.Stardew.Common.Patching;
-using MyCafe.Characters;
-using MyCafe.Locations.Objects;
 using MyCafe.Netcode;
 using Netcode;
 using StardewModdingAPI;
 using StardewValley;
-using StardewValley.Network;
-using xTile.Dimensions;
 
 namespace MyCafe.Patching;
 
@@ -44,6 +40,7 @@ internal class NetFieldPatcher : BasePatcher
         __instance.NetFields
             .AddField(__instance.get_OrderItem(), $"{Mod.UniqueId}.Character.OrderItem")
             .AddField(__instance.get_DrawName(), $"{Mod.UniqueId}.Character.DrawName")
-            .AddField(__instance.get_DrawOrderItem(), $"{Mod.UniqueId}.Character.DrawOrderItem");
+            .AddField(__instance.get_DrawOrderItem(), $"{Mod.UniqueId}.Character.DrawOrderItem")
+            .AddField(__instance.get_IsSittingDown(), $"{Mod.UniqueId}.Character.IsSittingDown");
     }
 }

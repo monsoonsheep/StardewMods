@@ -1,18 +1,12 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using MonsoonSheep.Stardew.Common;
 using MyCafe.Data.Customers;
 using MyCafe.Data.Models;
 using MyCafe.Data.Models.Appearances;
-using MyCafe.Enums;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -159,6 +153,14 @@ internal sealed class AssetManager
         // Load content packs
         foreach (IContentPack contentPack in this._modHelper.ContentPacks.GetOwned())
             this.LoadContentPack(contentPack);
+
+        Mod.CharacterFactory.BodyBase = this._modHelper.ModContent.Load<IRawTextureData>(Path.Combine("assets", "CharGen", "base.png"));
+        Mod.CharacterFactory.Eyes = this._modHelper.ModContent.Load<IRawTextureData>(Path.Combine("assets", "CharGen", "eyes.png"));
+        Mod.CharacterFactory.SkinTones = this._modHelper.ModContent.Load<List<int[]>>(Path.Combine("assets", "CharGen", "skintones.json"));
+        Mod.CharacterFactory.EyeColors = this._modHelper.ModContent.Load<List<int[]>>(Path.Combine("assets", "CharGen", "eyecolors.json"));
+        Mod.CharacterFactory.HairColors = this._modHelper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "haircolors.json"));
+        Mod.CharacterFactory.ShirtColors = this._modHelper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "shirtcolors.json"));
+        Mod.CharacterFactory.PantsColors = this._modHelper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "pantscolors.json"));
     }
 
     internal void LoadContentPack(IContentPack contentPack)

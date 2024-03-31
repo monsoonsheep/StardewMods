@@ -243,8 +243,10 @@ public static class Pathfinding
         {
             Point newTile = startTile + new Point(direction[0], direction[1]);
 
-            if (location.GetFurnitureAt(newTile.ToVector2()) != null
-                || !location.isTilePassable(new Location(newTile.X, newTile.Y), Game1.viewport))
+            if (location.getBuildingAt(newTile.ToVector2()) != null ||
+                location.getObjectAtTile(newTile.X, newTile.Y) != null ||
+                //location.GetFurnitureAt(newTile.ToVector2()) != null ||
+                !location.isTilePassable(new Location(newTile.X, newTile.Y), Game1.viewport))
                 continue;
 
             Stack<Point>? p = FindPath(newTile, targetTile, location, character, iterations: 1500);

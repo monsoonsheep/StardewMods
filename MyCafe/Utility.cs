@@ -1,11 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Xna.Framework;
-using MonsoonSheep.Stardew.Common;
 using MyCafe.Data.Models.Appearances;
-using MyCafe.Inventories;
-using MyCafe.Locations.Objects;
 using StardewValley;
 using StardewValley.Objects;
 

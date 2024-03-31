@@ -1,20 +1,12 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common.Patching;
-using MyCafe.Locations.Objects;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Buildings;
-using xTile.Dimensions;
 using xTile.Layers;
 using xTile.Tiles;
-using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace MyCafe.Patching;
 

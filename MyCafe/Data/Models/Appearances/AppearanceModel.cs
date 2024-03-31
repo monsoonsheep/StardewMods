@@ -1,12 +1,8 @@
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewValley;
 using System.Collections.Generic;
 using System.Linq;
-using MyCafe.Characters;
-using MyCafe.Data.Customers;
-using StardewModdingAPI.Framework.ModLoading.Rewriters.StardewValley_1_6;
 
 namespace MyCafe.Data.Models.Appearances;
 
@@ -33,7 +29,7 @@ public class AppearanceModel
     /// <summary>
     /// Returns true if the given color is in the model's ColorMasks list
     /// </summary>
-    /// <remarks>From FashionSense by PeacefulEnd https://github.com/Floogen/FashionSense/blob/18f0a8b29dfdd1aeb8780440b7f3226275e0dcbb/FashionSense/Framework/Models/Appearances/AppearanceModel.cs#L84</remarks>
+    /// <remarks>From the mod FashionSense by PeacefulEnd https://github.com/Floogen/FashionSense/blob/18f0a8b29dfdd1aeb8780440b7f3226275e0dcbb/FashionSense/Framework/Models/Appearances/AppearanceModel.cs#L84</remarks>
     internal bool IsMaskedColor(Color color)
     {
         foreach (Color maskedColor in this.ColorMasks.Select(c => new Color(c[0], c[1], c[2], c.Length > 3 ? c[3] : 255)))
@@ -70,7 +66,7 @@ public class AppearanceModel
     /// Load the model's texture and color it with the given colors
     /// </summary>
     /// <param name="colors">An array of 3 colors: The main color, the secondary darker color, and the multiplier, in that order</param>
-    internal IRawTextureData GetTexture(IList<Color>? colors)
+    internal IRawTextureData GetTextureWithPaint(IList<Color>? colors)
     {
         IRawTextureData texData = this.ContentPack.ModContent.Load<IRawTextureData>(this.TexturePath);
 
@@ -122,5 +118,38 @@ public class AppearanceModel
                 alpha: c.A
             );
         }
+    }
+
+    internal IRawTextureData GetTextureWithMultiplyColors(Color color)
+    {
+        IRawTextureData texData = this.ContentPack.ModContent.Load<IRawTextureData>(this.TexturePath);
+
+        float[] multiply = [color.R / 255f, color.G / 255f, color.B / 255f];
+        if (this.ConstantColor)
+            return texData;
+
+        for (int i = 0; i < texData.Data.Length; i++)
+        {
+            Color c = texData.Data[i];
+            if (c == Color.Transparent)
+                continue;
+
+            texData.Data[i] = new Color(
+                (int) (c.R * multiply[0]),
+                (int) (c.G * multiply[1]),
+                (int) (c.B * multiply[2]),
+                c.A);
+        }
+
+        return texData;
+    }
+
+    /// <summary>
+    /// Load the model's texture and color it with the given colors
+    /// </summary>
+    internal IRawTextureData GetTextureNoColor()
+    {
+        IRawTextureData texData = this.ContentPack.ModContent.Load<IRawTextureData>(this.TexturePath);
+        return texData;
     }
 }

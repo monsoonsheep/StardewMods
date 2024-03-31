@@ -1,8 +1,6 @@
 using System.Linq;
-using System.Xml.Serialization;
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common;
-using MyCafe.Characters;
 using MyCafe.Netcode;
 using Netcode;
 using StardewValley;
@@ -31,15 +29,8 @@ public abstract class Seat : INetObject<NetFields>
         set => this.NetReservingCustomer.Set(value);
     }
 
-    internal GameLocation? Location
-    {
-        get
-        {
-            if (this.Table?.CurrentLocation != null)
-                return CommonHelper.GetLocation(this.Table.CurrentLocation);
-            return null;
-        }
-    }
+    internal GameLocation Location
+        => CommonHelper.GetLocation(this.Table.CurrentLocation)!;
 
     internal Point Position
     {
@@ -51,6 +42,8 @@ public abstract class Seat : INetObject<NetFields>
 
     internal bool IsReserved
         => this.ReservingCustomer != null;
+
+    public abstract Vector2 SittingPosition { get; }
 
     protected Seat()
     {

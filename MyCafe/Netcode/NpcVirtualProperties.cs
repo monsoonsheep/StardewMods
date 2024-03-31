@@ -1,9 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using MyCafe.Characters;
 using MyCafe.Interfaces;
@@ -17,13 +13,13 @@ internal static class NpcVirtualProperties
     internal class Holder
     {
         public readonly NetRef<Item> OrderItem = [];
-        public readonly NetBool DrawName = [];
-        public readonly NetBool DrawOrderItem = [];
+        public readonly NetBool DrawName = [false];
+        public readonly NetBool DrawOrderItem = [false];
+        public NetBool IsSittingDown = [false];
 
         public CustomerGroup? Group;
         public Seat? Seat;
 
-        public bool IsSittingDown;
         public Action<NPC>? AfterLerp;
 
         public Vector2 LerpStartPosition;
@@ -105,13 +101,13 @@ internal static class NpcVirtualProperties
         holder.Seat = value;
     }
 
-    public static bool get_IsSittingDown(this NPC npc)
+    public static NetBool get_IsSittingDown(this NPC npc)
     {
         Holder holder = Values.GetOrCreateValue(npc);
         return holder.IsSittingDown;
     }
 
-    public static void set_IsSittingDown(this NPC npc, bool value)
+    public static void set_IsSittingDown(this NPC npc, NetBool value)
     {
         Holder holder = Values.GetOrCreateValue(npc);
         holder.IsSittingDown = value;
