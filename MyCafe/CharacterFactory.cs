@@ -61,7 +61,11 @@ internal sealed class CharacterFactory
         return model;
     }
 
-    internal GeneratedSpriteData GenerateRandomSpriteData()
+    /// <summary>
+    /// Create a randomized <see cref="GeneratedSpriteData"/> containing info for appearance parts, to be added to a netsynced list
+    /// </summary>
+    /// <returns></returns>
+    private GeneratedSpriteData GenerateRandomSpriteData()
     {
         GeneratedSpriteData sprite = new();
 
@@ -106,12 +110,12 @@ internal sealed class CharacterFactory
     }
 
     /// <summary>
-    /// This is called by both the host and clients. Composites the appearance model textures available in this object (synced by net fields) into a <see cref="Texture2D"/>
+    /// This is called by both the host and clients. Composites the appearance model textures available in the <see cref="GeneratedSpriteData"/> object (synced by net fields) into a <see cref="Texture2D"/>
     /// </summary>
-    internal Texture2D? GenerateTextureManual(GeneratedSpriteData sprite)
+    internal Texture2D GenerateTexture(GeneratedSpriteData sprite)
     {
-        IRawTextureData body = this.GetBodyData(sprite);
-        IRawTextureData eyes = this.GetEyesData(sprite);
+        IRawTextureData body = this.PaintBody(sprite.SkinTone.Value);
+        IRawTextureData eyes = this.PaintEyes(sprite.EyeColor.Value);
 
         IRawTextureData? hair = this.GetTextureDataForPart<HairModel>(sprite);
 
@@ -153,14 +157,14 @@ internal sealed class CharacterFactory
     /// <summary>
     /// Paint the body base texture with the skin tone set in this object and return it as raw texture data
     /// </summary>
-    private IRawTextureData GetBodyData(GeneratedSpriteData sprite)
+    private IRawTextureData PaintBody(Color skinTone)
     {
         Color[] data = new Color[this.BodyBase.Width * this.BodyBase.Height];
 
-        float[] skinColor = [
-            sprite.SkinTone.Value.R / 255f,
-            sprite.SkinTone.Value.G / 255f,
-            sprite.SkinTone.Value.B / 255f
+        float[] multiplier = [
+            skinTone.R / 255f,
+            skinTone.G / 255f,
+            skinTone.B / 255f
         ];
         
         for (int i = 0; i < this.BodyBase.Data.Length; i++)
@@ -169,21 +173,28 @@ internal sealed class CharacterFactory
             if (baseColor == Color.Transparent)
                 continue;
 
-            data[i] = new Color((int) (baseColor.R * skinColor[0]), (int) (baseColor.G * skinColor[1]), (int) (baseColor.B * skinColor[2]), baseColor.A);
+            data[i] = new Color(
+                (int) (baseColor.R * multiplier[0]),
+                (int) (baseColor.G * multiplier[1]),
+                (int) (baseColor.B * multiplier[2]),
+                baseColor.A);
         }
 
         RawTextureData tex = new RawTextureData(data, this.BodyBase.Width, this.BodyBase.Height);
         return tex;
     }
 
-    private IRawTextureData GetEyesData(GeneratedSpriteData sprite)
+    /// <summary>
+    /// Get the eyes texture data with the given color applied
+    /// </summary>
+    private IRawTextureData PaintEyes(Color color)
     {
         Color[] data = new Color[this.Eyes.Data.Length];
 
         float[] eyeColor = [
-            sprite.EyeColor.Value.R / 255f,
-            sprite.EyeColor.Value.G / 255f,
-            sprite.EyeColor.Value.B / 255f
+            color.R / 255f,
+            color.G / 255f,
+            color.B / 255f
         ];
         
         for (int i = 0; i < this.Eyes.Data.Length; i++)

@@ -409,7 +409,6 @@ public class Mod : StardewModdingAPI.Mod
         return Instance.Helper.ModRegistry.GetApi<IBusSchedulesApi>("MonsoonSheep.BusSchedules");
     }
 
-    
     internal static string GetCafeIntroductionEvent()
     {
         GameLocation eventLocation = Game1.locations.First(l => l.isBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID));

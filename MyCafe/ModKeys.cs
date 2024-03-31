@@ -4,7 +4,6 @@ namespace MyCafe;
 
 internal static class ModKeys
 {
-
     internal const string MAILFLAG_HAS_BUILT_SIGNBOARD = "MonsoonSheep.MyCafe_OpenCafeMenu";
     internal const string MAILFLAG_HAS_SEEN_CAFE_INTRODUCTION = "MonsoonSheep.MyCafe_HasSeenCafeIntroductionEvent";
     internal const string EVENT_CAFEINTRODUCTION = "CafeIntroduction";
