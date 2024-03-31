@@ -82,120 +82,27 @@ internal sealed class CharacterFactory
         // Either shirts + pants or outfit
         if (Game1.random.Next(2) >= 0)
         {
-            sprite.SetAppearanceForSprite<ShirtModel>(
+            sprite.SetAppearance<ShirtModel>(
                 this.GetRandomAppearance<ShirtModel>(gender).Id,
                 this.ShirtColors.PickRandom()!.GetRandomPermutation());
 
-            sprite.SetAppearanceForSprite<PantsModel>(
+            sprite.SetAppearance<PantsModel>(
                 this.GetRandomAppearance<PantsModel>(gender).Id,
                 this.PantsColors.PickRandom()!.GetRandomPermutation());
         }
         else
         {
-            sprite.SetAppearanceForSprite<OutfitModel>(
+            sprite.SetAppearance<OutfitModel>(
                 this.GetRandomAppearance<OutfitModel>(Gender.Undefined).Id,
                 this.OutfitColors.PickRandom()!.GetRandomPermutation());
         }
 
         // Hair
-        sprite.SetAppearanceForSprite<HairModel>(
+        sprite.SetAppearance<HairModel>(
             this.GetRandomAppearance<HairModel>(gender).Id,
             this.HairColors.PickRandom()!.GetRandomPermutation());
 
         return sprite;
-    }
-
-    
-    /// <summary>
-    /// This is called by both the host and clients. Composites the appearance model textures available in this object (synced by net fields) into a <see cref="Texture2D"/>
-    /// </summary>
-    internal Texture2D? GenerateTextureWithSpriteBatch(GeneratedSpriteData sprite)
-    {
-        Texture2D body = this.GetBodyTexture();
-        Texture2D eyes = this.GetEyesTexture(sprite);
-        Color eyeColor = sprite.EyeColor.Value;
-        
-        Texture2D? hair = this.GetTextureForPart<HairModel>(sprite);
-        Color hairColor = sprite.HairColors[0];
-
-        Texture2D? shirt = this.GetTextureForPart<ShirtModel>(sprite);
-        Color shirtColor = sprite.ShirtColors.Count > 0 ? sprite.ShirtColors[0] : Color.White;
-
-        Texture2D? pants = this.GetTextureForPart<PantsModel>(sprite);
-        Color pantsColor = sprite.PantsColors.Count > 0 ? sprite.PantsColors[0] : Color.White;
-
-        Texture2D? outfit = this.GetTextureForPart<OutfitModel>(sprite);
-        Color outfitColor = sprite.OutfitColors.Count > 0 ? sprite.OutfitColors[0] : Color.White;
-
-        Texture2D? shoes = this.GetTextureForPart<ShoesModel>(sprite);
-        Texture2D? accessory = this.GetTextureForPart<AccessoryModel>(sprite);
-
-        // Verify not null
-        if (!string.IsNullOrEmpty(sprite.OutfitId.Value) && outfit == null)
-        {
-            Log.Error("Couldn't load outfit texture");
-            return null;
-        }
-        if ((!string.IsNullOrEmpty(sprite.ShirtId.Value) || !string.IsNullOrEmpty(sprite.PantsId.Value)) && (shirt == null || pants == null))
-        {
-            Log.Error("Couldn't load shirt/pants textures");
-            return null;
-        }
-
-        Texture2D finalSprite = new Texture2D(Game1.graphics.GraphicsDevice, 64, 160);
-        RenderTarget2D renderTarget = new RenderTarget2D(Game1.graphics.GraphicsDevice, 64, 160);
-        SpriteBatch sb = new SpriteBatch(Game1.graphics.GraphicsDevice);
-        RenderTargetBinding[] temp = [];
-        Game1.graphics.GraphicsDevice.GetRenderTargets(temp);
-        Game1.graphics.GraphicsDevice.SetRenderTarget(renderTarget);
-        Game1.graphics.GraphicsDevice.Clear(Color.Transparent);
-        BlendState previousBlendState = Game1.graphics.GraphicsDevice.BlendState;
-        Game1.graphics.GraphicsDevice.BlendState = BlendState.AlphaBlend;
-
-        sb.Begin(SpriteSortMode.Immediate);
-
-        sb.Draw(body, Vector2.Zero, sprite.SkinTone.Value);
-        sb.Draw(eyes, Vector2.Zero, sprite.EyeColor.Value);
-
-
-        if (shoes != null)
-            sb.Draw(shoes, Vector2.Zero, Color.White);
-
-        if (pants != null)
-            sb.Draw(pants, Vector2.Zero, pantsColor);
-
-        if (shirt != null)
-            sb.Draw(shirt, Vector2.Zero, shirtColor);
-
-        if (outfit != null)
-            sb.Draw(outfit, Vector2.Zero, outfitColor);
-
-        if (hair != null)
-            sb.Draw(hair, Vector2.Zero, hairColor);
-
-        if (accessory != null)
-            sb.Draw(accessory, Vector2.Zero, Color.White);
-
-        sb.End();
-
-        Color[] data = new Color[body.Width * body.Height];
-        renderTarget.GetData(data, 0, body.Width * body.Height);
-        finalSprite.SetData(data);
-
-        sb.Dispose();
-        renderTarget.Dispose();
-        body.Dispose();
-        eyes.Dispose();
-        hair?.Dispose();
-        pants?.Dispose();
-        shirt?.Dispose();
-        outfit?.Dispose();
-        shoes?.Dispose();
-        accessory?.Dispose();
-        Game1.graphics.GraphicsDevice.BlendState = previousBlendState;
-        Game1.graphics.GraphicsDevice.SetRenderTargets(temp);
-
-        return finalSprite;
     }
 
     /// <summary>
@@ -269,13 +176,6 @@ internal sealed class CharacterFactory
         return tex;
     }
 
-    private Texture2D GetBodyTexture()
-    {
-        Texture2D tex = new Texture2D(Game1.graphics.GraphicsDevice, this.BodyBase.Width, this.BodyBase.Height);
-        tex.SetData(this.BodyBase.Data);
-        return tex;
-    }
-
     private IRawTextureData GetEyesData(GeneratedSpriteData sprite)
     {
         Color[] data = new Color[this.Eyes.Data.Length];
@@ -311,61 +211,26 @@ internal sealed class CharacterFactory
         return tex;
     }
 
-    private Texture2D GetEyesTexture(GeneratedSpriteData sprite)
-    {
-        Texture2D tex = new Texture2D(Game1.graphics.GraphicsDevice, this.Eyes.Width, this.Eyes.Height);
-        tex.SetData(this.Eyes.Data);
-        return tex;
-    }
-
     /// <summary>
     /// Returns the texture data set in this object for the given type of appearance model. For example, Calling with HairModel will return the hair texture for this object
     /// </summary>
     /// <typeparam name="TAppearance">The type of model inheriting from <see cref="AppearanceModel"/></typeparam>
     private IRawTextureData? GetTextureDataForPart<TAppearance>(GeneratedSpriteData sprite) where TAppearance : AppearanceModel
     {
-        string id = sprite.GetModelIdField<TAppearance>().Value;
-        AppearanceModel? model = this.GetModel<TAppearance>(id);
+        string id = sprite.GetModelId<TAppearance>().Value;
+        AppearanceModel? model = this.GetModelCollection<TAppearance>().FirstOrDefault(c => c.Id == id);
         IList<Color>? colors = sprite.GetPaint<TAppearance>();
 
         if (model == null)
             return null;
 
-        if (colors == null || colors.Count == 0)
-        {
-            return model.GetTextureNoColor();
-        }
-        else
-        {
-            return model.GetTextureWithMultiplyColors(colors[0]);
-        }
+        if (colors is { Count: > 0 })
+            return model.GetTexture(colors[0]);
+        
+        return model.GetRawTexture();
     }
 
-    /// <summary>
-    /// Returns the texture data set in this object for the given type of appearance model. For example, Calling with HairModel will return the hair texture for this object
-    /// </summary>
-    /// <typeparam name="TAppearance">The type of model inheriting from <see cref="AppearanceModel"/></typeparam>
-    private Texture2D? GetTextureForPart<TAppearance>(GeneratedSpriteData sprite) where TAppearance : AppearanceModel
-    {
-        string id = sprite.GetModelIdField<TAppearance>().Value;
-        AppearanceModel? model = this.GetModel<TAppearance>(id);
-        IRawTextureData? data = model?.GetTextureNoColor();
-        if (data != null)
-        {
-            Texture2D tex = new Texture2D(Game1.graphics.GraphicsDevice, data.Width, data.Height);
-            tex.SetData(data.Data);
-            return tex;
-        }
-
-        return null;
-    }
-
-    private TAppearance? GetModel<TAppearance>(string id) where TAppearance : AppearanceModel
-    {
-        return this.GetCollection<TAppearance>().FirstOrDefault(c => c.Id == id);
-    }
-
-    private ICollection<TAppearance> GetCollection<TAppearance>() where TAppearance : AppearanceModel
+    private ICollection<TAppearance> GetModelCollection<TAppearance>() where TAppearance : AppearanceModel
     {
         ICollection<TAppearance> collection = (typeof(TAppearance).Name switch
         {
@@ -382,7 +247,7 @@ internal sealed class CharacterFactory
 
     private TAppearance GetRandomAppearance<TAppearance>(Gender gender = Gender.Undefined) where TAppearance : AppearanceModel
     {
-        ICollection<TAppearance> collection = this.GetCollection<TAppearance>();
+        ICollection<TAppearance> collection = this.GetModelCollection<TAppearance>();
         return collection.Where(m => m.MatchesGender(gender)).MinBy(_ => Game1.random.Next())!;
     }
 }

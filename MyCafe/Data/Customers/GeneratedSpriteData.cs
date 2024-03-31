@@ -43,10 +43,9 @@ public class GeneratedSpriteData : INetObject<NetFields>, IDisposable
             .AddField(this.ShoesId).AddField(this.AccessoryId).AddField(this.OutfitId).AddField(this.OutfitColors);
     }
 
-    internal void SetAppearanceForSprite<TAppearance>(string id, Color[]? colors = null) where TAppearance: AppearanceModel
+    internal void SetAppearance<TAppearance>(string id, Color[]? colors = null) where TAppearance: AppearanceModel
     {
-        NetString modelField = this.GetModelIdField<TAppearance>();
-        modelField.Set(id);
+        this.GetModelId<TAppearance>().Set(id);
 
         if (colors != null)
         {
@@ -55,7 +54,7 @@ public class GeneratedSpriteData : INetObject<NetFields>, IDisposable
         }
     }
 
-    internal NetString GetModelIdField<TAppearance>() where TAppearance : AppearanceModel
+    internal NetString GetModelId<TAppearance>() where TAppearance : AppearanceModel
     {
         NetString field = (typeof(TAppearance).Name switch
         {
