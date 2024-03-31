@@ -22,8 +22,7 @@ internal static class Debug
         switch (e.Button)
         {
             case SButton.NumPad0:
-                GameLocation eventLocation = Game1.locations.First(l => l.isBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID));
-                Mod.Instance.Helper.GameContent.InvalidateCache($"Data/Events/{eventLocation.Name}");
+                
                 break;
             case SButton.NumPad1:
                 WarpToBus();
@@ -58,6 +57,12 @@ internal static class Debug
             default:
                 return;
         }
+    }
+
+    internal static void InvalidateIntroductionEvent()
+    {
+        GameLocation eventLocation = Game1.locations.First(l => l.isBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID));
+        Mod.Instance.Helper.GameContent.InvalidateCache($"Data/Events/{eventLocation.Name}");
     }
 
     internal static void SpawnCustomers(GroupType type)
@@ -101,13 +106,6 @@ internal static class Debug
         {
             Mod.Cafe.Menu.AddItem(d, "Dessert");
         }
-    }
-
-    internal static bool Wait10Seconds()
-    {
-        Task.Delay(3000);
-        Log.Info("Connected!");
-        return true;
     }
 
     internal static void WarpToBus()

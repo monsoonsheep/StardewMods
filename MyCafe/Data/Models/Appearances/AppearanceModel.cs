@@ -8,12 +8,13 @@ namespace MyCafe.Data.Models.Appearances;
 
 public abstract class AppearanceModel
 {
-    public IContentPack ContentPack { get; set; } = null!;
-    public string Id { get; set; } = null!;
-    public string TexturePath { get; set; } = null!;
     public string Gender { get; set; } = "any";
     public List<int[]> ColorMasks { get; set; } = [];
     public bool ConstantColor { get; set; } = false;
+
+    internal string Id { get; set; } = null!;
+    internal string TexturePath { get; set; } = null!;
+    internal IContentPack ContentPack { get; set; } = null!;
 
     /// <summary>
     /// Get the <see cref="StardewValley.Gender"/> of the model
@@ -28,7 +29,7 @@ public abstract class AppearanceModel
     /// Returns true if the given color is in the model's ColorMasks list
     /// </summary>
     /// <remarks>From the mod FashionSense by PeacefulEnd https://github.com/Floogen/FashionSense/blob/18f0a8b29dfdd1aeb8780440b7f3226275e0dcbb/FashionSense/Framework/Models/Appearances/AppearanceModel.cs#L84</remarks>
-    internal bool IsMaskedColor(Color color)
+    private bool IsMaskedColor(Color color)
     {
         foreach (Color maskedColor in this.ColorMasks.Select(c => new Color(c[0], c[1], c[2], c.Length > 3 ? c[3] : 255)))
         {

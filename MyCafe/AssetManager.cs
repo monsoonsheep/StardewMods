@@ -101,13 +101,12 @@ internal sealed class AssetManager
         else if (e.NameWithoutLocale.IsDirectlyUnderPath("Data/Events") &&
                  Context.IsMainPlayer &&
                  Game1.MasterPlayer.mailReceived.Contains(ModKeys.MAILFLAG_HAS_BUILT_SIGNBOARD) &&
-                 Game1.MasterPlayer.mailReceived.Contains(ModKeys.MAILFLAG_HAS_SEEN_CAFE_INTRODUCTION) == false
-                 )
+                 Game1.MasterPlayer.mailReceived.Contains(ModKeys.MAILFLAG_HAS_SEEN_CAFE_INTRODUCTION) == false)
         {
             GameLocation eventLocation = Game1.locations.First(l => l.isBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID));
             if (e.NameWithoutLocale.IsEquivalentTo($"Data/Events/{eventLocation.Name}"))
             {
-                string @event = this.GetCafeIntroductionEvent();
+                string @event = Mod.GetCafeIntroductionEvent();
                 e.Edit((asset) =>
                 {
                     IDictionary<string, string> data = asset.AsDictionary<string, string>().Data;
@@ -115,23 +114,6 @@ internal sealed class AssetManager
                 });
             }
         }
-    }
-
-    private string GetCafeIntroductionEvent()
-    {
-        GameLocation eventLocation = Game1.locations.First(l => l.isBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID));
-        Building signboard = eventLocation.getBuildingByType(ModKeys.CAFE_SIGNBOARD_BUILDING_ID);
-        Point signboardTile = new Point(signboard.tileX.Value, signboard.tileY.Value + signboard.tilesHigh.Value);
-
-        string eventString = Game1.content.Load<Dictionary<string, string>>($"Data/{ModKeys.MODASSET_EVENTS}")[ModKeys.EVENT_CAFEINTRODUCTION];
-
-        // Replace the encoded coordinates with the position of the signboard building
-        string substituted = Regex.Replace(
-            eventString,
-            @"(6\d{2})\s(6\d{2})",
-            (m) => $"{(int.Parse(m.Groups[1].Value) - 650 + signboardTile.X)} {(int.Parse(m.Groups[2].Value) - 650 + signboardTile.Y)}");
-
-        return substituted;
     }
 
     internal void OnAssetReady(object? sender, AssetReadyEventArgs e)

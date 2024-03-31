@@ -40,7 +40,7 @@ public class CafeLocation : GameLocation
         this.MapTables.Clear();
         Layer layer = this.Map.GetLayer("Back");
 
-        Dictionary<string, Rectangle> seatStringToTableRecs = new();
+        Dictionary<string, Rectangle> tableRectangles = new();
 
         for (int i = 0; i < layer.LayerWidth; i++)
         {
@@ -55,23 +55,23 @@ public class CafeLocation : GameLocation
                 {
                     Rectangle thisTile = new Rectangle(i, j, 1, 1);
 
-                    seatStringToTableRecs[val] = seatStringToTableRecs.TryGetValue(val, out var existingTileKey)
+                    tableRectangles[val] = tableRectangles.TryGetValue(val, out var existingTileKey)
                         ? Rectangle.Union(thisTile, existingTileKey)
                         : thisTile;
                 }
             }
         }
 
-        foreach (var pair in seatStringToTableRecs)
+        foreach (var rect in tableRectangles)
         {
-            string[] splitValues = pair.Key.Split(' ');
+            string[] splitValues = rect.Key.Split(' ');
             var seats = new List<Vector2>();
 
             for (int i = 0; i < splitValues.Length; i += 2)
             {
                 if (i + 1 >= splitValues.Length || !float.TryParse(splitValues[i], out float x) || !float.TryParse(splitValues[i + 1], out float y))
                 {
-                    Console.WriteLine($"Invalid values in Cafe Map's seats at {pair.Value.X}, {pair.Value.Y}", LogLevel.Warn);
+                    Console.WriteLine($"Invalid values in Cafe Map's seats at {rect.Value.X}, {rect.Value.Y}", LogLevel.Warn);
                     return;
                 }
 
@@ -81,7 +81,7 @@ public class CafeLocation : GameLocation
 
             if (seats.Count > 0)
             {
-                this.MapTables.Add(pair.Value, seats);
+                this.MapTables.Add(rect.Value, seats);
             }
         }
     }

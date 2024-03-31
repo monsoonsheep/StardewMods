@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -21,6 +23,7 @@ using MyCafe.UI;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.Buildings;
 using StardewValley.Inventories;
 using StardewValley.Locations;
 
@@ -140,7 +143,8 @@ public class Mod : StardewModdingAPI.Mod
             return;
 
         // When the signboard is built, add a flag
-        if (Game1.IsBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID) && Game1.MasterPlayer.mailReceived.Add(ModKeys.MAILFLAG_HAS_BUILT_SIGNBOARD) == true)
+        if (Game1.IsBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID) &&
+            Game1.MasterPlayer.mailReceived.Add(ModKeys.MAILFLAG_HAS_BUILT_SIGNBOARD) == true)
         {
             GameLocation eventLocation = Game1.locations.First(l => l.isBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID));
             this.Helper.GameContent.InvalidateCache($"Data/Events/{eventLocation.Name}");
@@ -168,7 +172,6 @@ public class Mod : StardewModdingAPI.Mod
 
     internal void OnTimeChanged(object? sender, TimeChangedEventArgs e)
     {
-        Debug.PrintAllInfo();
         if (!Context.IsMainPlayer)
             return;
         Cafe.TenMinuteUpdate();
@@ -404,6 +407,24 @@ public class Mod : StardewModdingAPI.Mod
     internal static IBusSchedulesApi? GetBusSchedulesApi()
     {
         return Instance.Helper.ModRegistry.GetApi<IBusSchedulesApi>("MonsoonSheep.BusSchedules");
+    }
+
+    
+    internal static string GetCafeIntroductionEvent()
+    {
+        GameLocation eventLocation = Game1.locations.First(l => l.isBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID));
+        Building signboard = eventLocation.getBuildingByType(ModKeys.CAFE_SIGNBOARD_BUILDING_ID);
+        Point signboardTile = new Point(signboard.tileX.Value, signboard.tileY.Value + signboard.tilesHigh.Value);
+
+        string eventString = Game1.content.Load<Dictionary<string, string>>($"Data/{ModKeys.MODASSET_EVENTS}")[ModKeys.EVENT_CAFEINTRODUCTION];
+
+        // Replace the encoded coordinates with the position of the signboard building
+        string substituted = Regex.Replace(
+            eventString,
+            @"(6\d{2})\s(6\d{2})",
+            (m) => $"{(int.Parse(m.Groups[1].Value) - 650 + signboardTile.X)} {(int.Parse(m.Groups[2].Value) - 650 + signboardTile.Y)}");
+
+        return substituted;
     }
 
 #if YOUTUBE || TWITCH
