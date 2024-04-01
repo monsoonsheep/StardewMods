@@ -67,12 +67,7 @@ internal static class Debug
 
     internal static void SpawnCustomers(GroupType type)
     {
-        Table? table = Mod.Cafe.GetFreeTable();
-        if (table != null)
-            if (type == GroupType.Villager)
-                Mod.Cafe.VillagerCustomers.Spawn(table);
-            else
-                Mod.Cafe.RandomCustomers.Spawn(table);
+        Mod.Cafe.SpawnCustomers(type);
     }
 
     internal static void OpenCafeMenu()

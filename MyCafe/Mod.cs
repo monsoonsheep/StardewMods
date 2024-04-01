@@ -135,6 +135,19 @@ public class Mod : StardewModdingAPI.Mod
         Cafe.InitializeForHost(this.Helper);
         this.LoadCafeData();
         Pathfinding.AddRoutesToFarm();
+        StardewValley.Utility.ForEachLocation((loc) =>
+        {
+            for (int i = loc.characters.Count - 1; i >= 0; i--)
+            {
+                NPC npc = loc.characters[i];
+                if (npc.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX))
+                {
+                    loc.characters.RemoveAt(i);
+                }
+            }
+
+            return true;
+        });
     }
 
     internal void OnDayStarted(object? sender, DayStartedEventArgs e)
@@ -168,6 +181,19 @@ public class Mod : StardewModdingAPI.Mod
 
         // Delete customers
         Cafe.RemoveAllCustomers();
+        StardewValley.Utility.ForEachLocation((loc) =>
+        {
+            for (int i = loc.characters.Count - 1; i >= 0; i--)
+            {
+                NPC npc = loc.characters[i];
+                if (npc.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX))
+                {
+                    loc.characters.RemoveAt(i);
+                }
+            }
+
+            return true;
+        });
     }
 
     internal void OnTimeChanged(object? sender, TimeChangedEventArgs e)
@@ -312,7 +338,7 @@ public class Mod : StardewModdingAPI.Mod
 
             Log.Trace($"Loading customer data from save file {model.NpcName}");
             data.NpcName = model.NpcName;
-            Cafe.VillagerCustomers.VillagerData[data.NpcName] = data;
+            Cafe.VillagerData[data.NpcName] = data;
         }
     }
 
@@ -329,7 +355,7 @@ public class Mod : StardewModdingAPI.Mod
             OpeningTime = Cafe.OpeningTime,
             ClosingTime = Cafe.ClosingTime,
             MenuItemLists = new SerializableDictionary<MenuCategory, Inventory>(Cafe.Menu.ItemDictionary),
-            VillagerCustomersData = Cafe.VillagerCustomers?.VillagerData.Values.ToList() ?? []
+            VillagerCustomersData = Cafe.VillagerData.Values.ToList() ?? []
         };
 
         XmlSerializer serializer = new(typeof(CafeArchiveData));

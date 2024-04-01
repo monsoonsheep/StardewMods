@@ -19,7 +19,7 @@ internal class NetFieldPatcher : BasePatcher
         );
         harmony.Patch(
             original: this.RequireMethod<Character>("initNetFields"),
-            postfix: this.GetHarmonyMethod(nameof(NetFieldPatcher.After_CharacterInitNetFields))
+            postfix: this.GetHarmonyMethod(nameof(NetFieldPatcher.After_NpcInitNetFields))
         );
     }
 
@@ -35,7 +35,7 @@ internal class NetFieldPatcher : BasePatcher
     /// <summary>
     /// Add net fields to NPCs
     /// </summary>
-    private static void After_CharacterInitNetFields(NPC __instance)
+    private static void After_NpcInitNetFields(NPC __instance)
     {
         __instance.NetFields
             .AddField(__instance.get_OrderItem(), $"{Mod.UniqueId}.Character.OrderItem")

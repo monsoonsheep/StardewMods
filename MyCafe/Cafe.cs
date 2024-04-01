@@ -17,18 +17,21 @@ using StardewValley.Objects;
 using SUtility = StardewValley.Utility;
 using MyCafe.Inventories;
 using MyCafe.Data.Customers;
-using MyCafe.Characters.Spawning;
 using MyCafe.Netcode;
+using MyCafe.Data.Models;
+using System.Text.RegularExpressions;
+using StardewValley.Pathfinding;
 
 namespace MyCafe;
 
 public class Cafe
 {
-    internal RandomCustomerSpawner RandomCustomers = null!;
+    internal RandomCustomerBuilder RandomCustomers = new RandomCustomerBuilder();
+    internal VillagerCustomerBuilder VillgersCustomers = new VillagerCustomerBuilder();
 
-    internal VillagerCustomerSpawner VillagerCustomers = null!;
+    internal List<CustomerGroup> Groups = [];
 
-    internal RandomCustomerSpawner? ChatCustomers = null;
+    internal readonly Dictionary<string, VillagerCustomerData> VillagerData = new();
 
     internal int LastTimeCustomersArrived = 0;
 
@@ -77,33 +80,6 @@ public class Cafe
     internal ICollection<string> NpcCustomers
         => this._fields.NpcCustomers;
 
-    private IEnumerable<CustomerSpawner> Spawners
-    {
-        get
-        {
-            yield return this.RandomCustomers;
-            yield return this.VillagerCustomers;
-
-            if (this.ChatCustomers != null)
-                yield return this.ChatCustomers;
-        }
-    }
-
-    private IEnumerable<CustomerGroup> ActiveGroups
-    {
-        get
-        {
-            foreach (CustomerGroup g in this.RandomCustomers._groups)
-                yield return g;
-            foreach (CustomerGroup g in this.VillagerCustomers._groups)
-                yield return g;
-
-            if (this.ChatCustomers != null)
-                foreach (CustomerGroup g in this.ChatCustomers._groups)
-                    yield return g;
-        }
-    }
-
     internal void InitializeForHost(IModHelper helper)
     {
         this._fields.GeneratedSprites.OnValueRemoved += (id, data) => data.Dispose();
@@ -113,12 +89,6 @@ public class Cafe
                 OldValue = oldValue,
                 NewValue = newValue
             });
-
-        this.RandomCustomers = new RandomCustomerSpawner();
-        this.VillagerCustomers = new VillagerCustomerSpawner();
-
-        this.RandomCustomers.Initialize(helper);
-        this.VillagerCustomers.Initialize(helper);
     }
 
     internal void DayUpdate()
@@ -187,12 +157,9 @@ public class Cafe
 
     internal void RemoveAllCustomers()
     {
-        foreach (CustomerSpawner spawner in this.Spawners)
+        foreach (CustomerGroup g in this.Groups)
         {
-            for (int i = spawner._groups.Count - 1; i >= 0; i--)
-            {
-                spawner.EndCustomers(spawner._groups[i], force: true);
-            }
+            this.EndCustomerGroup(g);
         }
     }
 
@@ -400,7 +367,7 @@ public class Cafe
             return;
 
         Table table = (Table) sender;
-        CustomerGroup? group = this.ActiveGroups.FirstOrDefault(g => g.ReservedTable == table);
+        CustomerGroup? group = this.Groups.FirstOrDefault(g => g.ReservedTable == table);
 
         if ((e.NewValue != TableState.Free && e.NewValue != TableState.CustomersComing) && group == null)
         {
@@ -442,7 +409,13 @@ public class Cafe
             case TableState.CustomersFinishedEating:
                 Log.Debug("Table finished meal");
 
-                group!._spawner.EndCustomers(group);
+                if (group == null)
+                {
+                    Log.Error("Group not found for table");
+                    return;
+                }
+
+                this.EndCustomerGroup(group);
                 break;
         }
     }
@@ -496,5 +469,221 @@ public class Cafe
 
         return foundSignboard || foundIndoor;
     }
-}
 
+    internal void TryRemoveRandomNpcData(string name)
+    {
+        Match findRandomGuid = new Regex($@"{ModKeys.CUSTOMER_NPC_NAME_PREFIX}Random(.*)").Match(name);
+        if (findRandomGuid.Success)
+        {
+            Log.Trace("Deleting random customer and its generated sprite");
+            string guid = findRandomGuid.Groups[1].Value;
+            if (this.GeneratedSprites.Remove(guid) == false)
+                Log.Trace("Tried to remove GUID for random customer but it wasn't registered.");
+        }
+    }
+
+    internal void SpawnCustomers(GroupType type)
+    {
+        Table? table = this.GetFreeTable();
+        if (table == null)
+            return;
+
+        CustomerGroup? group = type switch
+        {
+            GroupType.Random => this.RandomCustomers.TrySpawn(table),
+            GroupType.Villager => this.VillgersCustomers.TrySpawn(table),
+            _ => null
+        };
+
+        if (group == null)
+            return;
+
+        this.Groups.Add(group);
+    }
+
+  
+    internal void EndCustomerGroup(CustomerGroup group)
+    {
+        Log.Debug($"Removing customers");
+        
+        group.ReservedTable?.Free();
+        this.Groups.Remove(group);
+
+        if (group.Type != GroupType.Villager)
+        {
+            try
+            {
+                group.MoveTo(
+                    Game1.getLocationFromName("BusStop"),
+                    new Point(33, 9),
+                    (c, loc) => this.DeleteNpcFromExistence((c as NPC)!));
+            }
+            catch (PathNotFoundException e)
+            {
+                Log.Error($"Couldn't return customers to bus stop\n{e.Message}\n{e.StackTrace}");
+                foreach (NPC c in group.Members)
+                {
+                    this.DeleteNpcFromExistence(c);
+                }
+            }
+        }
+        else
+        {
+            try
+            {
+                group.MoveTo(Game1.getLocationFromName("BusStop"), new Point(12, 23), (c, _) => this.ReturnVillagerToSchedule((c as NPC)!));
+            }
+            catch (PathNotFoundException e)
+            {
+                Log.Error($"Villager NPCs can't find path out of cafe\n{e.Message}\n{e.StackTrace}");
+                foreach (NPC npc in group.Members)
+                {
+                    // TODO warp to their home
+                }
+            }
+        }
+
+    }
+
+    internal void DeleteNpcFromExistence(NPC npc)
+    {
+        npc.currentLocation?.characters.Remove(npc);
+        this.TryRemoveRandomNpcData(npc.Name);
+    }
+
+    internal void ReturnVillagerToSchedule(NPC npc)
+    {
+        this.NpcCustomers.Remove(npc.Name);
+        npc.ignoreScheduleToday = false;
+        npc.get_OrderItem().Set(null!);
+        npc.get_IsSittingDown().Set(false);
+        npc.set_Seat(null);
+
+        List<int> activityTimes = npc.Schedule.Keys.OrderBy(i => i).ToList();
+        int timeOfCurrent = activityTimes.LastOrDefault(t => t <= Game1.timeOfDay);
+        int timeOfNext = activityTimes.FirstOrDefault(t => t > Game1.timeOfDay);
+        int minutesSinceCurrentStarted = SUtility.CalculateMinutesBetweenTimes(timeOfCurrent, Game1.timeOfDay);
+        int minutesTillNextStarts = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, timeOfNext);
+        int timeOfActivity;
+
+        Log.Trace($"[{Game1.timeOfDay}] Returning {npc.Name} to schedule for key \"{npc.ScheduleKey}\". Time of current activity is {timeOfCurrent}, next activity is at {timeOfNext}.");
+
+        if (timeOfCurrent == 0) // Means it's the start of the day
+        {
+            timeOfActivity = activityTimes.First();
+        }
+        else if (timeOfNext == 0) // Means it's the end of the day
+        {
+            timeOfActivity = activityTimes.Last();
+        }
+        else
+        {
+            if (minutesTillNextStarts < minutesSinceCurrentStarted && minutesTillNextStarts <= 30)
+                // If we're very close to the next item, 
+                timeOfActivity = timeOfNext;
+            else
+                timeOfActivity = timeOfCurrent;
+        }
+
+        Log.Trace($"Time of selected activity is {timeOfActivity}");
+
+        SchedulePathDescription originalPathDescription = npc.Schedule[timeOfActivity];
+
+        Log.Trace($"Schedule description is {originalPathDescription.targetLocationName}: {originalPathDescription.targetTile}, behavior: {originalPathDescription.endOfRouteBehavior}");
+
+        GameLocation targetLocation = Game1.getLocationFromName(originalPathDescription.targetLocationName);
+        Stack<Point>? routeToScheduleItem = Pathfinding.PathfindFromLocationToLocation(
+            npc.currentLocation,
+            npc.TilePoint,
+            targetLocation,
+            originalPathDescription.targetTile,
+            npc);
+
+        if (routeToScheduleItem == null)
+        {
+            Log.Trace("Can't find route back");
+            // TODO: Warp them to their home
+            return;
+        }
+
+        // Can this return null?
+        SchedulePathDescription toInsert = npc.pathfindToNextScheduleLocation(
+            npc.ScheduleKey,
+            npc.currentLocation.Name,
+            npc.TilePoint.X,
+            npc.TilePoint.Y,
+            originalPathDescription.targetLocationName,
+            originalPathDescription.targetTile.X,
+            originalPathDescription.targetTile.Y,
+            originalPathDescription.facingDirection,
+            originalPathDescription.endOfRouteBehavior,
+            originalPathDescription.endOfRouteMessage);
+
+        npc.queuedSchedulePaths.Clear();
+        npc.Schedule[Game1.timeOfDay] = toInsert;
+        npc.checkSchedule(Game1.timeOfDay);
+    }
+
+    
+    internal List<VillagerCustomerData> GetAvailableVillagerCustomers(int count)
+    {
+        List<VillagerCustomerData> list = [];
+
+        foreach (KeyValuePair<string, VillagerCustomerData> data in this.VillagerData.OrderBy(_ => Game1.random.Next()))
+        {
+            if (list.Count == count)
+                break;
+
+            if (this.CanVillagerVisit(data.Value, Game1.timeOfDay))
+                list.Add(data.Value);
+        }
+
+        return list;
+    }
+
+    private bool CanVillagerVisit(VillagerCustomerData data, int timeOfDay)
+    {
+        NPC npc = data.GetNpc();
+        VillagerCustomerModel model = Mod.Assets.VillagerCustomerModels[data.NpcName];
+
+        int daysSinceLastVisit = Game1.Date.TotalDays - data.LastVisitedDate.TotalDays;
+        int daysAllowed = model.VisitFrequency switch
+        {
+            0 => 200,
+            1 => 27,
+            2 => 13,
+            3 => 7,
+            4 => 3,
+            5 => 1,
+            _ => 9999999
+        };
+
+        if (Mod.Cafe.NpcCustomers.Contains(data.NpcName) ||
+            npc.isSleeping.Value == true ||
+            npc.ScheduleKey == null ||
+            daysSinceLastVisit < daysAllowed)
+            return false;
+
+        // If no busy period for today, they're free all day
+        if (!model.BusyTimes.TryGetValue(npc.ScheduleKey, out List<BusyPeriod>? busyPeriods))
+            return false;
+        if (busyPeriods.Count == 0)
+            return true;
+
+        // Check their busy periods for their current schedule key
+        foreach (BusyPeriod busyPeriod in busyPeriods)
+        {
+            if (SUtility.CalculateMinutesBetweenTimes(timeOfDay, busyPeriod.From) <= 120
+                && SUtility.CalculateMinutesBetweenTimes(timeOfDay, busyPeriod.To) > 0)
+            {
+                if (!(busyPeriod.Priority <= 3 && Game1.random.Next(6 * busyPeriod.Priority) == 0) &&
+                    !(busyPeriod.Priority == 4 && Game1.random.Next(50) == 0))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+}

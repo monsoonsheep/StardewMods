@@ -44,7 +44,7 @@ internal sealed class CharacterFactory
     /// This associates the sprite data with the Model by setting the model's Spritesheet path to a custom Guid, which is then
     /// added to a netsynced set and its texture is loaded by AssetRequested
     /// </summary>
-    internal CustomerModel GenerateCustomer()
+    internal CustomerModel GenerateRandomCustomer()
     {
         GeneratedSpriteData sprite = this.GenerateRandomSpriteData();
 
@@ -60,6 +60,8 @@ internal sealed class CharacterFactory
 
         return model;
     }
+
+
 
     /// <summary>
     /// Create a randomized <see cref="GeneratedSpriteData"/> containing info for appearance parts, to be added to a netsynced list
