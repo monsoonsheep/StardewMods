@@ -214,6 +214,11 @@ public sealed class CafeMenu : IClickableMenu
     public override void receiveGamePadButton(Buttons b)
     {
         base.receiveGamePadButton(b);
+        if (this._menuBoard.currentlySnappedComponent != null)
+        {
+            this._menuBoard.receiveGamePadButton(b);
+            return;
+        }
         switch (b)
         {
             case Buttons.RightTrigger:

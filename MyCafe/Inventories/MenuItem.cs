@@ -14,7 +14,7 @@ internal class MenuItem
     public string QualifiedItemId { get; }
 
     /// <summary>The menu category of the item</summary>
-    public MenuCategory Category { get; }
+    public FoodCategory Category { get; }
 
     /// <summary>The item's default name.</summary>
     public string Name => this.Item.Name;
@@ -23,7 +23,7 @@ internal class MenuItem
     public string DisplayName => this.Item.DisplayName;
 
     /// <summary>Construct an instance.</summary>
-    public MenuItem(Item item, MenuCategory category)
+    public MenuItem(Item item, FoodCategory category)
     {
         this.Item = item;
         this.Id = item.ItemId;

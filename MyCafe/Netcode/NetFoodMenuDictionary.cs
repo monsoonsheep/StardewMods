@@ -10,29 +10,29 @@ using StardewValley.Inventories;
 
 #nullable disable
 namespace MyCafe.Netcode;
-public class NetMenuDictionary : NetFieldDictionary<MenuCategory, Inventory, NetRef<Inventory>, SerializableDictionary<MenuCategory, Inventory>, NetMenuDictionary>
+public class NetFoodMenuDictionary : NetFieldDictionary<FoodCategory, Inventory, NetRef<Inventory>, SerializableDictionary<FoodCategory, Inventory>, NetFoodMenuDictionary>
 {
-    public NetMenuDictionary()
+    public NetFoodMenuDictionary()
     {
     }
 
-    public NetMenuDictionary(IEnumerable<KeyValuePair<MenuCategory, Inventory>> dict)
+    public NetFoodMenuDictionary(IEnumerable<KeyValuePair<FoodCategory, Inventory>> dict)
         : base(dict)
     {
     }
 
     public Inventory this[string name] => this.Pairs.ToDictionary(i => i.Key, i => i.Value).FirstOrDefault(c => c.Key.Name.Equals(name)).Value;
 
-    protected override MenuCategory ReadKey(BinaryReader reader)
+    protected override FoodCategory ReadKey(BinaryReader reader)
     {
         string name = reader.ReadString();
         if (!Enum.TryParse(reader.ReadString(), ignoreCase: true, out MenuCategoryType type))
             type = MenuCategoryType.DEFAULT;
 
-        return new MenuCategory(name, type);
+        return new FoodCategory(name, type);
     }
 
-    protected override void WriteKey(BinaryWriter writer, MenuCategory key)
+    protected override void WriteKey(BinaryWriter writer, FoodCategory key)
     {
         writer.Write(key.Name);
         writer.Write(key.Type.ToString());

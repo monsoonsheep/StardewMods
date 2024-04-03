@@ -10,21 +10,18 @@ using StardewValley.Inventories;
 
 namespace MyCafe.Inventories;
 
-public class MenuInventory : INetObject<NetFields>
+public class FoodMenuInventory : INetObject<NetFields>
 {
-    public NetFields NetFields { get; } = new NetFields("MenuInventory");
+    public NetFields NetFields { get; } = new NetFields("FoodMenuInventory");
 
-    public readonly NetMenuDictionary Menu = new NetMenuDictionary();
+    public readonly NetFoodMenuDictionary MenuObject = new NetFoodMenuDictionary();
 
-    public IEnumerable<Inventory> Inventories
-        => this.Menu.Values.AsEnumerable();
+    internal IDictionary<FoodCategory, Inventory> ItemDictionary
+        => this.MenuObject.Pairs.ToDictionary(pair => pair.Key, pair => pair.Value);
 
-    public IDictionary<MenuCategory, Inventory> ItemDictionary
-        => this.Menu.Pairs.ToDictionary(pair => pair.Key, pair => pair.Value);
-
-    public MenuInventory()
+    public FoodMenuInventory()
     {
-        this.NetFields.SetOwner(this).AddField(this.Menu);
+        this.NetFields.SetOwner(this).AddField(this.MenuObject);
     }
 
     internal void InitializeForHost()
@@ -36,7 +33,7 @@ public class MenuInventory : INetObject<NetFields>
                 if (!Enum.TryParse(category.Type, out MenuCategoryType type))
                     type = MenuCategoryType.DEFAULT;
 
-                this.AddCategory(new MenuCategory(category.Name, type));
+                this.AddCategory(new FoodCategory(category.Name, type));
             }
         }
 
@@ -46,21 +43,21 @@ public class MenuInventory : INetObject<NetFields>
         if (this.HasCategory("Items") && this.GetItemsInCategory("Items")?.Any() == false)
             this.RemoveCategory("Items");
     }
-    public bool AddItem(Item item, MenuCategory category, int index = 0)
+    public bool AddItem(Item item, FoodCategory category, int index = 0)
     {
-        if (this.Inventories.Any(i => i.ContainsId(item.QualifiedItemId)))
+        if (this.MenuObject.Values.Any(i => i.ContainsId(item.QualifiedItemId)))
             return false;
 
-        if (!this.Menu.ContainsKey(category))
+        if (!this.MenuObject.ContainsKey(category))
             this.AddCategory(category);
 
-        this.Menu[category].Insert(index, item);
+        this.MenuObject[category].Insert(index, item);
         return true;
     }
 
     public bool AddItem(Item itemToAdd, string category, int index = 0)
     {
-        MenuCategory? cat = this.Menu.Keys.FirstOrDefault(x => x.Name == category);
+        FoodCategory? cat = this.MenuObject.Keys.FirstOrDefault(x => x.Name == category);
         if (cat != null)
             return this.AddItem(itemToAdd, cat, index);
 
@@ -69,30 +66,30 @@ public class MenuInventory : INetObject<NetFields>
 
     public void RemoveItem(Item item)
     {
-        this.Inventories.FirstOrDefault(i => i.Contains(item))?.Remove(item);
+        this.MenuObject.Values.FirstOrDefault(i => i.Contains(item))?.Remove(item);
     }
 
     public void AddCategory(string name, MenuCategoryType type = default)
     {
-        this.AddCategory(new MenuCategory(name, type));
+        this.AddCategory(new FoodCategory(name, type));
     }
 
-    public void AddCategory(MenuCategory category)
+    public void AddCategory(FoodCategory category)
     {
-        if (this.Menu.Keys.Any(x => x.Name == category.Name))
+        if (this.MenuObject.Keys.Any(x => x.Name == category.Name))
             return;
 
-        this.Menu.Add(category, new Inventory());
+        this.MenuObject.Add(category, new Inventory());
     }
 
-    public void RemoveCategory(MenuCategory category)
+    public void RemoveCategory(FoodCategory category)
     {
-        this.Menu.Remove(category);
+        this.MenuObject.Remove(category);
     }
 
     public void RemoveCategory(string name)
     {
-        this.Menu.RemoveWhere(pair => pair.Key.Name == name);
+        this.MenuObject.RemoveWhere(pair => pair.Key.Name == name);
     }
 
     internal bool HasCategory(string name)
@@ -102,11 +99,11 @@ public class MenuInventory : INetObject<NetFields>
 
     internal Inventory? GetItemsInCategory(string name)
     {
-        return this.Menu[name];
+        return this.MenuObject[name];
     }
 
-    internal Inventory? GetItemsInCategory(MenuCategory category)
+    internal Inventory? GetItemsInCategory(FoodCategory category)
     {
-        return this.Menu.ContainsKey(category) ? this.Menu[category] : null;
+        return this.MenuObject.ContainsKey(category) ? this.MenuObject[category] : null;
     }
 }

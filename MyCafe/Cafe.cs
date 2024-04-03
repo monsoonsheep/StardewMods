@@ -73,7 +73,7 @@ public class Cafe
     internal IList<Table> Tables
         => this._fields.NetTables as IList<Table>;
 
-    internal MenuInventory Menu
+    internal FoodMenuInventory Menu
         => this._fields.NetMenu.Value;
 
     internal NetStringDictionary<GeneratedSpriteData, NetRef<GeneratedSpriteData>> GeneratedSprites
@@ -342,8 +342,9 @@ public class Cafe
             case TableState.CustomersThinkingOfOrder:
                 Log.Debug("Table started");
 
-                Game1.delayedActions.Add(new DelayedAction(2000, () =>
+                Game1.delayedActions.Add(new DelayedAction(200, () =>
                     table.State.Set(TableState.CustomersDecidedOnOrder)));
+
                 break;
 
             case TableState.CustomersDecidedOnOrder:
@@ -356,6 +357,7 @@ public class Cafe
 
                 foreach (NPC member in group!.Members)
                     member.get_DrawOrderItem().Set(true);
+
                 break;
 
             case TableState.CustomersEating:
@@ -364,20 +366,16 @@ public class Cafe
                 foreach (NPC member in group!.Members)
                     member.get_DrawOrderItem().Set(false);
 
-                Game1.delayedActions.Add(new DelayedAction(2000, () => 
+                Game1.delayedActions.Add(new DelayedAction(200, () => 
                     table.State.Set(TableState.CustomersFinishedEating)));
+
                 break;
 
             case TableState.CustomersFinishedEating:
                 Log.Debug("Table finished meal");
 
-                if (group == null)
-                {
-                    Log.Error("Group not found for table");
-                    return;
-                }
+                this.EndCustomerGroup(group!);
 
-                this.EndCustomerGroup(group);
                 break;
         }
     }

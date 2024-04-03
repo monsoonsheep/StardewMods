@@ -12,6 +12,8 @@ internal class ConfigModel
     public int EnableNpcCustomers { get; set; } = 5;
     public List<MenuCategoryArchive> MenuCategories { get; set; } = [];
 
+    public bool ShowPricesInFoodMenu { get; set; } = true;
+
 #if YOUTUBE
     public string YoutubeClientId { get; set; } = "Your Client Id here";
     public string YoutubeClientSecret { get; set; } = "Your Client Secret here";

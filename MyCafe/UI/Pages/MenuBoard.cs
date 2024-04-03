@@ -138,7 +138,13 @@ internal class MenuBoard : MenuPageBase
                     if (this._entries[entryIndex] is MenuCategoryEntry category)
                     {
                         if (this.AddItem(held, category.Name, insertIndex - entryIndex))
+                        {
                             this.ParentMenu.HeldItem = null;
+                            if (slotIndex == this._slots.Count - 1)
+                            {
+                                this.DownArrowPressed();
+                            }
+                        }
                         return;
                     }
                 }
@@ -346,7 +352,7 @@ internal class MenuBoard : MenuPageBase
         this._categories.Clear();
         this._entries.Clear();
 
-        foreach (KeyValuePair<MenuCategory, Inventory> pair in Mod.Cafe.Menu.ItemDictionary)
+        foreach (KeyValuePair<FoodCategory, Inventory> pair in Mod.Cafe.Menu.ItemDictionary)
         {
             if (!this._categories.Contains(pair.Key.Name))
             {

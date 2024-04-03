@@ -19,7 +19,7 @@ public class CafeNetObject : INetObject<NetFields>
 
     public readonly NetInt OpeningTime = new(630);
     public readonly NetInt ClosingTime = new(2200);
-    public readonly NetRef<MenuInventory> NetMenu = new(new MenuInventory());
+    public readonly NetRef<FoodMenuInventory> NetMenu = new(new FoodMenuInventory());
     public readonly NetStringHashSet NpcCustomers = new NetStringHashSet();
 
     public readonly NetStringDictionary<GeneratedSpriteData, NetRef<GeneratedSpriteData>> GeneratedSprites = new();

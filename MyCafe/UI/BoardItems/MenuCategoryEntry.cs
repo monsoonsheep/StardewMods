@@ -43,6 +43,7 @@ internal class MenuCategoryEntry : MenuEntry
             new Vector2(1, 1),
             SpriteEffects.None,
             1f);
+
         b.Draw(Mod.Sprites,
             new Vector2(slotX + Bounds.Width - 16, slotY + 8),
             stretch,

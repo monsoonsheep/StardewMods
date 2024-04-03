@@ -322,7 +322,7 @@ public class Mod : StardewModdingAPI.Mod
 
         Cafe.OpeningTime = cafeData.OpeningTime;
         Cafe.ClosingTime = cafeData.ClosingTime;
-        Cafe.Menu.Menu.Set(cafeData.MenuItemLists);
+        Cafe.Menu.MenuObject.Set(cafeData.MenuItemLists);
         foreach (VillagerCustomerData data in cafeData.VillagerCustomersData)
         {
             if (!Assets.VillagerCustomerModels.TryGetValue(data.NpcName, out VillagerCustomerModel? model))
@@ -349,7 +349,7 @@ public class Mod : StardewModdingAPI.Mod
         {
             OpeningTime = Cafe.OpeningTime,
             ClosingTime = Cafe.ClosingTime,
-            MenuItemLists = new SerializableDictionary<MenuCategory, Inventory>(Cafe.Menu.ItemDictionary),
+            MenuItemLists = new SerializableDictionary<FoodCategory, Inventory>(Cafe.Menu.ItemDictionary),
             VillagerCustomersData = Cafe.VillagerData.Values.ToList() ?? []
         };
 
@@ -387,6 +387,12 @@ public class Mod : StardewModdingAPI.Mod
             reset: () => this._loadedConfig = new ConfigModel(),
             save: () => helper.WriteConfig(this._loadedConfig)
             );
+
+        configMenu.AddBoolOption(
+            mod: manifest,
+            getValue: () => this._loadedConfig.ShowPricesInFoodMenu,
+            setValue: (value) => this._loadedConfig.ShowPricesInFoodMenu = value,
+            name: () => "Show Prices in Food Menu");
 
         configMenu.AddSectionTitle(
             mod: manifest,

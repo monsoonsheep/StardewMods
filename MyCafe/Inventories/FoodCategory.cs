@@ -6,10 +6,11 @@ using Netcode;
 
 namespace MyCafe.Inventories;
 
-public class MenuCategory : INetObject<NetFields>
+[XmlRoot("Category")]
+public class FoodCategory : INetObject<NetFields>
 {
     [XmlIgnore]
-    public NetFields NetFields { get; } = new NetFields("MenuCategory");
+    public NetFields NetFields { get; } = new NetFields("FoodCategory");
 
     private NetString netName { get; set; } = new();
 
@@ -22,20 +23,20 @@ public class MenuCategory : INetObject<NetFields>
         get => this.netName.Value;
         set => this.netName.Set(value);
     }
-    public MenuCategory(string name, MenuCategoryType type) : this()
+    public FoodCategory(string name, MenuCategoryType type) : this()
     {
         this.netName.Set(name);
         this.Type.Set(type);
     }
 
-    public MenuCategory()
+    public FoodCategory()
     {
         this.NetFields.SetOwner(this).AddField(this.netName).AddField(this.Type);
     }
 
     public override bool Equals(object? obj)
     {
-        return obj is MenuCategory other && other.Name == this.Name;
+        return obj is FoodCategory other && other.Name == this.Name;
     }
 
     public override int GetHashCode()
