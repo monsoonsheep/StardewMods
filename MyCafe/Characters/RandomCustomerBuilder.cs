@@ -1,24 +1,25 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MyCafe.Characters;
 using MyCafe.Data.Models;
 using MyCafe.Enums;
-using MyCafe.Locations.Objects;
 using MyCafe.Netcode;
 using StardewValley;
 
-#nullable disable
-
-namespace MyCafe;
+namespace MyCafe.Characters;
 
 internal class RandomCustomerBuilder : CustomerBuilder
 {
-    internal override CustomerGroup BuildGroup()
+    internal RandomCustomerBuilder(Func<NPC, Item?> menuItemSelector) : base(menuItemSelector)
+    {
+    }
+
+    internal override CustomerGroup? BuildGroup()
     {
         List<NPC> customers = [];
 
-        for (int i = 0; i < base.table.Seats.Count; i++)
+        for (int i = 0; i < base._table!.Seats.Count; i++)
         {
             CustomerModel model = Mod.CharacterFactory.GenerateRandomCustomer(); // Generate from CharGen
 
@@ -35,18 +36,10 @@ internal class RandomCustomerBuilder : CustomerBuilder
         return group;
     }
 
-    internal override bool SetupGroup()
-    {
-        foreach (NPC c in this._group.Members)
-            c.get_OrderItem().Set(Debug.SetTestItemForOrder(c));
-
-        return true;
-    }
-
     internal override bool PreMove()
     {
         GameLocation busStop = Game1.getLocationFromName("BusStop");
-        foreach (NPC c in this._group.Members)
+        foreach (NPC c in this._group!.Members)
         {
             busStop.addCharacter(c);
             c.currentLocation = busStop;
@@ -60,7 +53,7 @@ internal class RandomCustomerBuilder : CustomerBuilder
     {
         try
         {
-            this._group.GoToTable();
+            this._group!.GoToTable();
         }
         catch (PathNotFoundException e)
         {
@@ -80,7 +73,7 @@ internal class RandomCustomerBuilder : CustomerBuilder
     {
         Log.Trace($"Reverting changes");
 
-        this._group.ReservedTable?.Free();
+        this._group!.ReservedTable?.Free();
 
         foreach (NPC npc in this._group.Members)
         {

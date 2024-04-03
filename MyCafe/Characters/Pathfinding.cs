@@ -304,7 +304,6 @@ public static class Pathfinding
 
             if (route is not { Count: > 1 })
             {
-                // Log.Trace($"Can't add route from {gameLocation.Name} to Farm");
                 continue;
             }
 
@@ -326,7 +325,6 @@ public static class Pathfinding
             List<string>? toFarm = WarpPathfindingCache.GetLocationRoute(location.Name, "Farm", Gender.Undefined)?.ToList();
             if (toFarm is not { Count: > 1 })
             {
-                // Log.Trace($"Can't add route from {location.Name} to farm building {building.Name}");
                 continue;
             }
 

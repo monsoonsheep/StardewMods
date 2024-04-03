@@ -135,19 +135,8 @@ public class Mod : StardewModdingAPI.Mod
         Cafe.InitializeForHost(this.Helper);
         this.LoadCafeData();
         Pathfinding.AddRoutesToFarm();
-        StardewValley.Utility.ForEachLocation((loc) =>
-        {
-            for (int i = loc.characters.Count - 1; i >= 0; i--)
-            {
-                NPC npc = loc.characters[i];
-                if (npc.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX))
-                {
-                    loc.characters.RemoveAt(i);
-                }
-            }
+        this.CleanUpCustomers();
 
-            return true;
-        });
     }
 
     internal void OnDayStarted(object? sender, DayStartedEventArgs e)
@@ -155,7 +144,7 @@ public class Mod : StardewModdingAPI.Mod
         if (!Context.IsMainPlayer)
             return;
 
-        // When the signboard is built, add a flag
+        // When the signboard is built, check if player has flag, add if not and inject the event with AssetRequested)
         if (Game1.IsBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID) &&
             Game1.MasterPlayer.mailReceived.Add(ModKeys.MAILFLAG_HAS_BUILT_SIGNBOARD) == true)
         {
@@ -181,19 +170,7 @@ public class Mod : StardewModdingAPI.Mod
 
         // Delete customers
         Cafe.RemoveAllCustomers();
-        StardewValley.Utility.ForEachLocation((loc) =>
-        {
-            for (int i = loc.characters.Count - 1; i >= 0; i--)
-            {
-                NPC npc = loc.characters[i];
-                if (npc.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX))
-                {
-                    loc.characters.RemoveAt(i);
-                }
-            }
-
-            return true;
-        });
+        this.CleanUpCustomers();
     }
 
     internal void OnTimeChanged(object? sender, TimeChangedEventArgs e)
@@ -231,9 +208,10 @@ public class Mod : StardewModdingAPI.Mod
                                 SpriteEffects.None,
                                 1f);
                             break;
-                        default:
+                        case TableState.Free:
                             if (true || Game1.timeOfDay < Cafe.OpeningTime)
                             {
+                                e.SpriteBatch.DrawString(Game1.tinyFont, table.Seats.Count.ToString(), Game1.GlobalToLocal(table.Center + new Vector2(-12, -112)) + offset, Color.LightBlue, 0f, Vector2.Zero, 5f, SpriteEffects.None, 0.99f);
                                 e.SpriteBatch.DrawString(Game1.tinyFont, table.Seats.Count.ToString(), Game1.GlobalToLocal(table.Center + new Vector2(-10, -96)) + offset, Color.Black, 0f, Vector2.Zero, 4f, SpriteEffects.None, 1f);
                             }
 
@@ -300,6 +278,23 @@ public class Mod : StardewModdingAPI.Mod
                 Log.Debug($"Invalid message from host\n{ex}", LogLevel.Error);
             }
         }
+    }
+
+    private void CleanUpCustomers()
+    {
+        StardewValley.Utility.ForEachLocation((loc) =>
+        {
+            for (int i = loc.characters.Count - 1; i >= 0; i--)
+            {
+                NPC npc = loc.characters[i];
+                if (npc.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX))
+                {
+                    loc.characters.RemoveAt(i);
+                }
+            }
+
+            return true;
+        });
     }
 
     internal void LoadCafeData()
@@ -374,11 +369,15 @@ public class Mod : StardewModdingAPI.Mod
         }
     }
 
+    private void TryLoadCategoriesConfig()
+    {
+
+    }
+
     internal void InitializeGmcm(IModHelper helper, IManifest manifest)
     {
         // get Generic Mod Config Menu's API (if it's installed)
         IGenericModConfigMenuApi? configMenu = helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
-
         if (configMenu == null)
             return;
 
@@ -387,22 +386,11 @@ public class Mod : StardewModdingAPI.Mod
             mod: manifest,
             reset: () => this._loadedConfig = new ConfigModel(),
             save: () => helper.WriteConfig(this._loadedConfig)
-        );
+            );
 
         configMenu.AddSectionTitle(
             mod: manifest,
-            text: () => "Customer Visits");
-
-        configMenu.AddNumberOption(
-            mod: manifest,
-            getValue: () => this._loadedConfig.EnableCustomCustomers,
-            setValue: (value) => this._loadedConfig.EnableCustomCustomers = value,
-            name: () => "Custom Customers",
-            tooltip: () => "How often custom-made customers will visit",
-            min: 0,
-            max: 5,
-            interval: 1,
-            formatValue: (val) => val == 0 ? "Disabled" : val.ToString()
+            text: () => "Customer Visits"
             );
 
         configMenu.AddNumberOption(
@@ -419,6 +407,18 @@ public class Mod : StardewModdingAPI.Mod
 
         configMenu.AddNumberOption(
             mod: manifest,
+            getValue: () => this._loadedConfig.EnableCustomCustomers,
+            setValue: (value) => this._loadedConfig.EnableCustomCustomers = value,
+            name: () => "Custom Customers",
+            tooltip: () => "How often custom-made customers will visit",
+            min: 0,
+            max: 5,
+            interval: 1,
+            formatValue: (val) => val == 0 ? "Disabled" : val.ToString()
+            );
+
+        configMenu.AddNumberOption(
+            mod: manifest,
             getValue: () => this._loadedConfig.EnableRandomlyGeneratedCustomers,
             setValue: (value) => this._loadedConfig.EnableRandomlyGeneratedCustomers = value,
             name: () => "Randomly Generated Customers",
@@ -427,7 +427,24 @@ public class Mod : StardewModdingAPI.Mod
             max: 5,
             interval: 1,
             formatValue: (val) => val == 0 ? "Disabled" : val.ToString()
-        );
+            );
+
+        configMenu.AddSectionTitle(
+            mod: manifest,
+            text: () => "Tables"
+            );
+
+        configMenu.AddNumberOption(
+            mod: manifest,
+            getValue: () => this._loadedConfig.DistanceForSignboardToRegisterTables,
+            setValue: (value) => this._loadedConfig.DistanceForSignboardToRegisterTables = value,
+            name: () => "Distance to register tables",
+            tooltip: () => "Radius from the signboard to detect tables",
+            min: 3,
+            max: 25,
+            interval: 1,
+            formatValue: (val) => val + " tiles"
+            );
     }
 
     internal static IBusSchedulesApi? GetBusSchedulesApi()

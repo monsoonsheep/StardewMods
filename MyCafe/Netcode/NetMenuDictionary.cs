@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using MyCafe.Enums;
 using MyCafe.Inventories;
 using Netcode;
@@ -19,6 +20,8 @@ public class NetMenuDictionary : NetFieldDictionary<MenuCategory, Inventory, Net
         : base(dict)
     {
     }
+
+    public Inventory this[string name] => this.Pairs.ToDictionary(i => i.Key, i => i.Value).FirstOrDefault(c => c.Key.Name.Equals(name)).Value;
 
     protected override MenuCategory ReadKey(BinaryReader reader)
     {

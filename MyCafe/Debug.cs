@@ -26,24 +26,30 @@ internal static class Debug
                 break;
             case SButton.NumPad1:
                 WarpToBus();
+
                 break;
             case SButton.NumPad2:
                 SpawnCustomers(GroupType.Random);
+
                 break;
             case SButton.NumPad3:
                 Mod.Cafe.RemoveAllCustomers();
+
                 break;
             case SButton.NumPad4:
                 SpawnCustomers(GroupType.Villager);
+
                 break;
             case SButton.NumPad5:
                 Log.Trace("Breaking");
+
                 break;
             case SButton.NumPad6:
                
                 break;
             case SButton.NumPad7:
                 SetMenuItems();
+
                 break;
             case SButton.NumPad8:
 
@@ -53,6 +59,7 @@ internal static class Debug
                 break;
             case SButton.U:
                 OpenCafeMenu();
+
                 break;
             default:
                 return;

@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using MyCafe.Data.Models;
 using MyCafe.Enums;
 using MyCafe.Netcode;
 using Netcode;
@@ -25,11 +27,25 @@ public class MenuInventory : INetObject<NetFields>
         this.NetFields.SetOwner(this).AddField(this.Menu);
     }
 
-    public Inventory GetItemsInCategory(MenuCategory category)
+    internal void InitializeForHost()
     {
-        return this.Menu[category];
-    }
+        foreach (MenuCategoryArchive category in Mod.Config.MenuCategories)
+        {
+            if (!this.ItemDictionary.Any(c => c.Key.Name.Equals(category.Name)))
+            {
+                if (!Enum.TryParse(category.Type, out MenuCategoryType type))
+                    type = MenuCategoryType.DEFAULT;
 
+                this.AddCategory(new MenuCategory(category.Name, type));
+            }
+        }
+
+        if (!this.ItemDictionary.Any())
+            this.AddCategory("Items");
+
+        if (this.HasCategory("Items") && this.GetItemsInCategory("Items")?.Any() == false)
+            this.RemoveCategory("Items");
+    }
     public bool AddItem(Item item, MenuCategory category, int index = 0)
     {
         if (this.Inventories.Any(i => i.ContainsId(item.QualifiedItemId)))
@@ -38,7 +54,7 @@ public class MenuInventory : INetObject<NetFields>
         if (!this.Menu.ContainsKey(category))
             this.AddCategory(category);
 
-        this.Menu[category].Add(item);
+        this.Menu[category].Insert(index, item);
         return true;
     }
 
@@ -72,5 +88,25 @@ public class MenuInventory : INetObject<NetFields>
     public void RemoveCategory(MenuCategory category)
     {
         this.Menu.Remove(category);
+    }
+
+    public void RemoveCategory(string name)
+    {
+        this.Menu.RemoveWhere(pair => pair.Key.Name == name);
+    }
+
+    internal bool HasCategory(string name)
+    {
+        return this.ItemDictionary.Any(c => c.Key.Name == name);
+    }
+
+    internal Inventory? GetItemsInCategory(string name)
+    {
+        return this.Menu[name];
+    }
+
+    internal Inventory? GetItemsInCategory(MenuCategory category)
+    {
+        return this.Menu.ContainsKey(category) ? this.Menu[category] : null;
     }
 }

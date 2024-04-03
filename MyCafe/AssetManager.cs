@@ -77,18 +77,32 @@ internal sealed class AssetManager
         // Random generated sprite (with a GUID after the initial asset name)
         else if (e.NameWithoutLocale.StartsWith(ModKeys.GENERATED_SPRITE_PREFIX))
         {
-            string id = e.Name.Name[(ModKeys.GENERATED_SPRITE_PREFIX.Length + 1)..];
+            string id = e.NameWithoutLocale.Name[(ModKeys.GENERATED_SPRITE_PREFIX.Length + 1)..];
+            bool failed = false;
 
             if (Mod.Cafe.GeneratedSprites.TryGetValue(id, out GeneratedSpriteData data))
             {
                 Texture2D? sprite = data.Sprite;
                 if (sprite == null)
+                {
                     Log.Error("Couldn't load texture from generated sprite data!");
+                    failed = true;
+                }
                 else
                     e.LoadFrom(() => sprite, AssetLoadPriority.Medium);
             }
             else
+            {
                 Log.Error($"Couldn't find generate sprite data for guid {id}");
+                failed = true;
+            }
+
+            if (failed)
+            {
+                // Either provide premade error texture or just load null and let the NPC.draw method handle it
+                //e.LoadFrom(() => Game1.content.Load<Texture2D>(FarmAnimal.ErrorTextureName), AssetLoadPriority.Medium);
+                e.LoadFrom(() => null!, AssetLoadPriority.Medium);
+            }
         }
 
         // Custom events (Added by CP component)
@@ -97,7 +111,7 @@ internal sealed class AssetManager
             e.LoadFrom(() => new Dictionary<string, string>(), AssetLoadPriority.Low);
         }
 
-        // Cafe introduction event (Inject into Data/Events/cafelocation only when we need to, the game triggers the event and the event sets a mail flag that disables this
+        // Cafe introduction event (Inject into Data/Events/<cafelocation> only when we need to, the game triggers the event and the event sets a mail flag that disables this
         else if (e.NameWithoutLocale.IsDirectlyUnderPath("Data/Events") &&
                  Context.IsMainPlayer &&
                  Game1.MasterPlayer.mailReceived.Contains(ModKeys.MAILFLAG_HAS_BUILT_SIGNBOARD) &&

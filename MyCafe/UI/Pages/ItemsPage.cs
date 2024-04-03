@@ -11,31 +11,29 @@ using SObject = StardewValley.Object;
 namespace MyCafe.UI.Pages;
 internal class ItemsPage : MenuPageBase
 {
-    private static Rectangle SourceSaveButton = new(62, 32, 31, 32);
-    private static Rectangle SourceLoadButton = new(93, 32, 31, 32);
+    private static readonly Rectangle sourceSaveButton = new(62, 32, 31, 32);
+    private static readonly Rectangle sourceLoadButton = new(93, 32, 31, 32);
 
     // Search
-    private readonly Rectangle SearchBarTextBoxBounds;
-    private readonly List<Item> SearchResultItems = new();
-    private readonly TextBox SearchBarTextBox;
-    public readonly ClickableComponent SearchBarComponent;
-    public readonly ClickableComponent[,] GridSlots;
+    private readonly TextBox _searchBarTextBox;
+    private readonly List<Item> _searchResultItems = new();
+    public readonly ClickableComponent _searchBarComponent;
+    public readonly ClickableComponent[,] _gridSlots;
 
     public readonly ClickableTextureComponent LoadButton;
     public readonly ClickableTextureComponent SaveButton;
     public readonly ClickableTextureComponent UpArrow;
     public readonly ClickableTextureComponent DownArrow;
 
-
-    private readonly int GridCountX;
-    private readonly int GridCountY;
-    private int CurrentRowIndex;
+    private readonly int _gridCountX;
+    private readonly int _gridCountY;
+    private int _currentRowIndex;
 
     private IEnumerable<ClickableComponent> ItemSlots
     {
         get
         {
-            foreach (var slot in this.GridSlots)
+            foreach (var slot in this._gridSlots)
             {
                 if (slot.item == null)
                     yield break;
@@ -47,24 +45,24 @@ internal class ItemsPage : MenuPageBase
 
     public ItemsPage(CafeMenu parent, Rectangle bounds) : base("Edit Menu", bounds, parent)
     {
-        this.SearchBarTextBoxBounds = new Rectangle(this.Bounds.X + this.Bounds.Width / 4, this.Bounds.Y + Game1.tileSize / 2, this.Bounds.Width / 2,
+        Rectangle searchBarBounds = new Rectangle(this.Bounds.X + this.Bounds.Width / 4, this.Bounds.Y + Game1.tileSize / 2, this.Bounds.Width / 2,
             Game1.tileSize
         );
 
         // Search
-        this.SearchBarTextBox = new TextBox(Game1.content.Load<Texture2D>("LooseSprites\\textBox"), null, Game1.smallFont, Game1.textColor)
+        this._searchBarTextBox = new TextBox(Game1.content.Load<Texture2D>("LooseSprites\\textBox"), null, Game1.smallFont, Game1.textColor)
         {
             textLimit = 32,
             Selected = false,
             Text = "Search",
-            X = this.SearchBarTextBoxBounds.X,
-            Y = this.SearchBarTextBoxBounds.Y,
-            Width = this.SearchBarTextBoxBounds.Width,
-            Height = this.SearchBarTextBoxBounds.Height
+            X = searchBarBounds.X,
+            Y = searchBarBounds.Y,
+            Width = searchBarBounds.Width,
+            Height = searchBarBounds.Height
         };
-        this.SearchBarTextBox.OnEnterPressed += (_) => this.CloseTextBox();
+        this._searchBarTextBox.OnEnterPressed += (_) => this.CloseTextBox();
 
-        this.SearchBarComponent = new ClickableComponent(this.SearchBarTextBoxBounds,
+        this._searchBarComponent = new ClickableComponent(searchBarBounds,
             "search")
         {
             myID = 50000,
@@ -76,9 +74,9 @@ internal class ItemsPage : MenuPageBase
         };
 
         this.LoadButton = new ClickableTextureComponent(
-            new Rectangle(this.Bounds.Right - SourceLoadButton.Width - 64, this.Bounds.Center.Y - SourceLoadButton.Height,
-                SourceLoadButton.Width, SourceLoadButton.Height), Mod.Sprites,
-            SourceLoadButton,
+            new Rectangle(this.Bounds.Right - sourceLoadButton.Width - 64, this.Bounds.Center.Y - sourceLoadButton.Height,
+                sourceLoadButton.Width, sourceLoadButton.Height), Mod.Sprites,
+            sourceLoadButton,
             2f)
         {
             myID = 45000,
@@ -91,9 +89,9 @@ internal class ItemsPage : MenuPageBase
         };
 
         this.SaveButton = new ClickableTextureComponent(
-            new Rectangle(this.Bounds.Right - SourceLoadButton.Width - 64, this.Bounds.Center.Y + SourceLoadButton.Height * 2,
-                SourceLoadButton.Width, SourceLoadButton.Height), Mod.Sprites,
-            SourceSaveButton,
+            new Rectangle(this.Bounds.Right - sourceLoadButton.Width - 64, this.Bounds.Center.Y + sourceLoadButton.Height * 2,
+                sourceLoadButton.Width, sourceLoadButton.Height), Mod.Sprites,
+            sourceSaveButton,
             2f)
         {
             myID = 45001,
@@ -111,17 +109,17 @@ internal class ItemsPage : MenuPageBase
         float gridWidth = this.Bounds.Width - 64 - 96;
         float gridHeight = this.Bounds.Height - 64 * 4;
 
-        this.GridCountX = (int)(gridWidth / 64f);
-        this.GridCountY = (int)(gridHeight / 64f);
+        this._gridCountX = (int)(gridWidth / 64f);
+        this._gridCountY = (int)(gridHeight / 64f);
 
         float gridX = this.Bounds.X + 32;
-        float gridY = this.SearchBarTextBoxBounds.Bottom + 64;
+        float gridY = searchBarBounds.Bottom + 64;
 
-        this.GridSlots = new ClickableComponent[this.GridCountY, this.GridCountX];
+        this._gridSlots = new ClickableComponent[this._gridCountY, this._gridCountX];
         int count = 0;
-        for (int i = 0; i < this.GridCountY; i++)
+        for (int i = 0; i < this._gridCountY; i++)
         {
-            for (int j = 0; j < this.GridCountX; j++)
+            for (int j = 0; j < this._gridCountX; j++)
             {
                 ClickableComponent component = new(
                     new Rectangle((int)gridX + j * Game1.tileSize + j * padding,
@@ -131,9 +129,9 @@ internal class ItemsPage : MenuPageBase
                 );
 
                 bool leftMost = j == 0;
-                bool rightMost = j == this.GridCountX - 1;
+                bool rightMost = j == this._gridCountX - 1;
                 bool topMost = i == 0;
-                bool bottom = i == this.GridCountY - 1;
+                bool bottom = i == this._gridCountY - 1;
 
                 component.region = 42420;
                 component.myID = 42420 + count;
@@ -146,12 +144,12 @@ internal class ItemsPage : MenuPageBase
 
                 count++;
 
-                this.GridSlots[i, j] = component;
+                this._gridSlots[i, j] = component;
             }
         }
 
-        var topRightSlot = this.GridSlots[0, this.GridSlots.GetLength(1) - 1];
-        var bottomRightSlot = this.GridSlots[this.GridSlots.GetLength(0) - 1, this.GridSlots.GetLength(1) - 1];
+        var topRightSlot = this._gridSlots[0, this._gridSlots.GetLength(1) - 1];
+        var bottomRightSlot = this._gridSlots[this._gridSlots.GetLength(0) - 1, this._gridSlots.GetLength(1) - 1];
 
         var upArrowBounds = new Rectangle(
             topRightSlot.bounds.Right,
@@ -181,7 +179,7 @@ internal class ItemsPage : MenuPageBase
         };
 
         this.DefaultComponent = 42420;
-        this.SearchResultItems.AddRange(Game1.player.Items.Where(i => i?.Category == SObject.CookingCategory));
+        this._searchResultItems.AddRange(Game1.player.Items.Where(i => i?.Category == SObject.CookingCategory));
         this.UpdateSlots();
     }
 
@@ -189,7 +187,7 @@ internal class ItemsPage : MenuPageBase
     {
         base.populateClickableComponentList();
 
-        foreach (var slot in this.GridSlots)
+        foreach (var slot in this._gridSlots)
         {
             this.allClickableComponents.Add(slot);
         }
@@ -201,7 +199,7 @@ internal class ItemsPage : MenuPageBase
         {
             return;
         }
-        if (Game1.options.menuButton.Contains(new InputButton(key)) && this.SearchBarTextBox is not { Selected: true })
+        if (Game1.options.menuButton.Contains(new InputButton(key)) && this._searchBarTextBox is not { Selected: true })
         {
             Game1.playSound("smallSelect");
             if (this.readyToClose())
@@ -209,7 +207,7 @@ internal class ItemsPage : MenuPageBase
                 Game1.exitActiveMenu();
             }
         }
-        else if (Game1.options.SnappyMenus && (!Game1.options.menuButton.Contains(new InputButton(key)) || this.SearchBarTextBox == null || !this.SearchBarTextBox.Selected))
+        else if (Game1.options.SnappyMenus && (!Game1.options.menuButton.Contains(new InputButton(key)) || this._searchBarTextBox == null || !this._searchBarTextBox.Selected))
         {
             base.receiveKeyPress(key);
         }
@@ -218,33 +216,38 @@ internal class ItemsPage : MenuPageBase
     public override void receiveLeftClick(int x, int y, bool playSound = true)
     {
         base.receiveLeftClick(x, y);
-        this.SearchBarTextBox.Update();
-        if (this.SearchBarTextBox.Selected)
+        this._searchBarTextBox.Update();
+        if (this._searchBarTextBox.Selected)
         {
-            this.SearchBarTextBox.Text = "";
+            this._searchBarTextBox.Text = "";
         }
         else
         {
-            foreach (var slot in this.ItemSlots)
+            foreach (ClickableComponent slot in this.ItemSlots)
             {
                 if (slot.containsPoint(x, y))
                 {
-                    if (this.ParentMenu.HeldItem != null)
-                        this.ParentMenu.HeldItem = null;
-                    else
+                    if (this.ParentMenu.HeldItem == null)
+                    {
                         this.ParentMenu.HeldItem = slot.item;
+                        return;
+                    }
                 }
             }
 
-            if (this.DownArrow.containsPoint(x, y) && this.CurrentRowIndex < Math.Max(0, this.SearchResultItems.Count / this.GridSlots.GetLength(1) - this.GridSlots.GetLength(0)))
+            if (this.DownArrow.containsPoint(x, y) && this._currentRowIndex < Math.Max(0, this._searchResultItems.Count / this._gridSlots.GetLength(1) - this._gridSlots.GetLength(0)))
             {
                 this.DownArrowPressed();
                 Game1.playSound("shwip");
             }
-            else if (this.UpArrow.containsPoint(x, y) && this.CurrentRowIndex > 0)
+            else if (this.UpArrow.containsPoint(x, y) && this._currentRowIndex > 0)
             {
                 this.UpArrowPressed();
                 Game1.playSound("shwip");
+            }
+            else
+            {
+                this.ParentMenu.HeldItem = null;
             }
         }
     }
@@ -254,7 +257,7 @@ internal class ItemsPage : MenuPageBase
         if (!base.TryHover(x, y))
             return false;
 
-        foreach (var c in this.ItemSlots)
+        foreach (ClickableComponent c in this.ItemSlots)
         {
             c.scale = Math.Max(1f, c.scale - 0.025f);
             if (c.containsPoint(x, y) && c.item != null)
@@ -272,41 +275,41 @@ internal class ItemsPage : MenuPageBase
         switch (direction)
         {
             case 0:
-                var upComponent = this.getComponentWithID(oldId - this.GridCountX);
+                ClickableComponent upComponent = this.getComponentWithID(oldId - this._gridCountX);
                 if (upComponent is { item: not null }) this.setCurrentlySnappedComponentTo(upComponent.myID);
                 break;
             case 1:
-                int countX = this.GridSlots.GetLength(1);
-                int countY = this.GridSlots.GetLength(0);
-                if ((oldId + 1 - 42420) % countX == 0 && this.SearchResultItems.Count / countX > countY)
+                int countX = this._gridSlots.GetLength(1);
+                int countY = this._gridSlots.GetLength(0);
+                if ((oldId + 1 - 42420) % countX == 0 && this._searchResultItems.Count / countX > countY)
                 {
                     this.automaticSnapBehavior(direction, oldRegion, oldId);
-                    if (this.currentlySnappedComponent == this.UpArrow && this.CurrentRowIndex == 0)
+                    if (this.currentlySnappedComponent == this.UpArrow && this._currentRowIndex == 0)
                     {
                         this.setCurrentlySnappedComponentTo(this.DownArrow.myID);
                     }
 
-                    if (this.currentlySnappedComponent == this.DownArrow && this.CurrentRowIndex >= Math.Max(0, this.SearchResultItems.Count / countX - countY))
+                    if (this.currentlySnappedComponent == this.DownArrow && this._currentRowIndex >= Math.Max(0, this._searchResultItems.Count / countX - countY))
                     {
                         this.setCurrentlySnappedComponentTo(this.UpArrow.myID);
                     }
                 }
                 else
                 {
-                    var rightComponent = this.getComponentWithID(oldId + 1);
+                    ClickableComponent rightComponent = this.getComponentWithID(oldId + 1);
                     if (rightComponent is { item: not null }) this.setCurrentlySnappedComponentTo(rightComponent.myID);
                 }
                 break;
             case 2:
-                var downComponent = this.getComponentWithID(oldId + this.GridCountX);
+                ClickableComponent downComponent = this.getComponentWithID(oldId + this._gridCountX);
                 if (downComponent is { item: not null }) this.setCurrentlySnappedComponentTo(downComponent.myID);
                 break;
             case 3:
-                if ((oldId - 42420) % this.GridCountX == 0)
+                if ((oldId - 42420) % this._gridCountX == 0)
                     this.SnapOut();
                 else
                 {
-                    var leftComponent = this.getComponentWithID(oldId - 1);
+                    ClickableComponent leftComponent = this.getComponentWithID(oldId - 1);
                     if (leftComponent is { item: not null }) this.setCurrentlySnappedComponentTo(leftComponent.myID);
                 }
                 break;
@@ -315,21 +318,21 @@ internal class ItemsPage : MenuPageBase
 
     public override void draw(SpriteBatch b)
     {
-        this.SearchBarTextBox.Draw(b, drawShadow: false);
-        this.LoadButton.draw(b);
-        this.SaveButton.draw(b);
+        this._searchBarTextBox.Draw(b, drawShadow: false);
+        //this.LoadButton.draw(b);
+        //this.SaveButton.draw(b);
 
-        foreach (var slot in this.ItemSlots)
+        foreach (ClickableComponent slot in this.ItemSlots)
         {
             slot.item?.drawInMenu(b, new Vector2(slot.bounds.X, slot.bounds.Y), slot.scale, 1f, 1f, StackDrawType.Hide, Color.White, false);
         }
 
-        if ((this.SearchResultItems.Count - this.CurrentRowIndex * this.GridSlots.GetLength(1)) / this.GridSlots.GetLength(1) > this.GridSlots.GetLength(0))
+        if ((this._searchResultItems.Count - this._currentRowIndex * this._gridSlots.GetLength(1)) / this._gridSlots.GetLength(1) > this._gridSlots.GetLength(0))
         {
             this.DownArrow.draw(b);
         }
 
-        if (this.CurrentRowIndex > 0)
+        if (this._currentRowIndex > 0)
         {
             this.UpArrow.draw(b);
         }
@@ -337,36 +340,36 @@ internal class ItemsPage : MenuPageBase
 
     private void UpdateSlots(int row = 0)
     {
-        this.CurrentRowIndex = row;
+        this._currentRowIndex = row;
 
-        foreach (var s in this.GridSlots)
+        foreach (ClickableComponent s in this._gridSlots)
             s.item = null;
 
-        int yCount = this.GridSlots.GetLength(0);
-        int xCount = this.GridSlots.GetLength(1);
+        int yCount = this._gridSlots.GetLength(0);
+        int xCount = this._gridSlots.GetLength(1);
 
-        for (int n = 0; n < this.SearchResultItems.Count && n < this.GridSlots.Length; n++)
+        for (int n = 0; n < this._searchResultItems.Count && n < this._gridSlots.Length; n++)
         {
-            this.GetSlotAtIndex(n).item = this.SearchResultItems[this.CurrentRowIndex * xCount + n];
+            this.GetSlotAtIndex(n).item = this._searchResultItems[this._currentRowIndex * xCount + n];
         }
     }
 
     private ClickableComponent GetSlotAtIndex(int index)
     {
-        return this.GridSlots[index / this.GridCountX, index % this.GridCountX];
+        return this._gridSlots[index / this._gridCountX, index % this._gridCountX];
     }
 
     internal void CloseTextBox()
     {
-        this.SearchBarTextBox.Selected = false;
+        this._searchBarTextBox.Selected = false;
         Game1.keyboardDispatcher.Subscriber = null;
-        string[] words = (this.SearchBarTextBox.Text ?? "").Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        string[] words = (this._searchBarTextBox.Text ?? "").Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
         if (!words.Any())
             return;
 
-        this.SearchResultItems.Clear();
+        this._searchResultItems.Clear();
 
-        var type = ItemRegistry.RequireTypeDefinition("(O)");
+        IItemDataDefinition type = ItemRegistry.RequireTypeDefinition("(O)");
         ObjectDataDefinition objectDefinition = ItemRegistry.GetObjectTypeDefinition();
         foreach (string? id in type.GetAllIds())
         {
@@ -374,7 +377,7 @@ internal class ItemsPage : MenuPageBase
             if (data.Category == SObject.CookingCategory)
             {
                 SObject item = ItemRegistry.Create<SObject>($"(O){id}");
-                if (item != null && words.All(word => item.DisplayName.Contains(word, StringComparison.OrdinalIgnoreCase))) this.SearchResultItems.Add(item);
+                if (item != null && words.All(word => item.DisplayName.Contains(word, StringComparison.OrdinalIgnoreCase))) this._searchResultItems.Add(item);
             }
         }
 
@@ -383,13 +386,13 @@ internal class ItemsPage : MenuPageBase
 
     private void DownArrowPressed()
     {
-        this.CurrentRowIndex++;
-        this.UpdateSlots(this.CurrentRowIndex);
+        this._currentRowIndex++;
+        this.UpdateSlots(this._currentRowIndex);
     }
 
     private void UpArrowPressed()
     {
-        this.CurrentRowIndex--;
-        this.UpdateSlots(this.CurrentRowIndex);
+        this._currentRowIndex--;
+        this.UpdateSlots(this._currentRowIndex);
     }
 }

@@ -22,6 +22,10 @@ public sealed class CafeMenu : IClickableMenu
     // Side box
     internal Rectangle sideBoxBounds;
 
+    // Source for edit button and edit cancel button
+    internal static Rectangle source_EditButton = new(0, 32, 31, 32);
+    internal static Rectangle source_EditButtonCancel = new(31, 32, 31, 32);
+
     private readonly MenuBoard _menuBoard;
 
     // Tabs
@@ -93,7 +97,8 @@ public sealed class CafeMenu : IClickableMenu
 
         this._pages[this._currentTab].populateClickableComponentList();
         this._pages[this._currentTab].allClickableComponents.AddRange(this._tabs);
-        if (focus) this._pages[this._currentTab].snapToDefaultClickableComponent();
+        if (focus)
+            this._pages[this._currentTab].snapToDefaultClickableComponent();
     }
 
     public override void receiveLeftClick(int x, int y, bool playSound = true)
@@ -249,7 +254,7 @@ public sealed class CafeMenu : IClickableMenu
         Game1.DrawBox(this.sideBoxBounds.X, this.sideBoxBounds.Y, this.sideBoxBounds.Width, this.sideBoxBounds.Height);
 
         b.End();
-        b.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp);
+        b.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp);
 
         this._menuBoard.draw(b);
         this._pages[this._currentTab].draw(b);

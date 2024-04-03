@@ -3,6 +3,6 @@ public enum MenuCategoryType
 {
     DEFAULT,
     Starter,
-    MainCourse,
+    Meal,
     Dessert
 }

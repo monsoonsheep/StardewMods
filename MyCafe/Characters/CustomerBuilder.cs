@@ -1,24 +1,41 @@
-using MyCafe.Characters;
+using System;
 using MyCafe.Locations.Objects;
+using MyCafe.Netcode;
+using StardewValley;
 
-namespace MyCafe;
+namespace MyCafe.Characters;
 
-#nullable disable
 internal abstract class CustomerBuilder
 {
-    protected Table table = null!;
-    protected CustomerGroup _group;
+    protected Table? _table;
+    protected CustomerGroup? _group;
+    protected Func<NPC, Item?> MenuItemSelector;
 
-    internal CustomerBuilder()
+    internal CustomerBuilder(Func<NPC, Item?> menuItemSelector)
     {
+        this.MenuItemSelector = menuItemSelector;
     }
 
-    internal abstract CustomerGroup BuildGroup();
-    internal abstract bool SetupGroup();
+    internal abstract CustomerGroup? BuildGroup();
 
+    internal virtual bool SetupGroup()
+    {
+        foreach (NPC npc in this._group!.Members)
+        {
+            Item? item = this.MenuItemSelector(npc);
+            if (item == null)
+                return false;
+
+            npc.get_OrderItem().Set(item);
+        }
+
+        return true;
+    }
+
+    #nullable disable
     internal bool ReserveTable()
     {
-        if (this._group.ReserveTable(this.table) == false)
+        if (this._group!.ReserveTable(this._table!) == false)
         {
             Log.Error("Couldn't reserve table for customers");
             return false;
@@ -35,7 +52,7 @@ internal abstract class CustomerBuilder
     internal CustomerGroup TrySpawn(Table tableToUse)
     {
         this._group = null;
-        this.table = tableToUse;
+        this._table = tableToUse;
         bool failed = false;
 
         if (this.SpawnSteps() == false)
@@ -55,7 +72,7 @@ internal abstract class CustomerBuilder
 
     private bool SpawnSteps()
     {
-        CustomerGroup g = this.BuildGroup();
+        CustomerGroup? g = this.BuildGroup();
         if (g == null)
         {
             this._group = null;

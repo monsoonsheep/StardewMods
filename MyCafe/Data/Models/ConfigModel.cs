@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using MyCafe.Inventories;
+
 namespace MyCafe.Data.Models;
 
 internal class ConfigModel
@@ -7,6 +10,7 @@ internal class ConfigModel
     public int EnableCustomCustomers { get; set; } = 5;
     public int EnableRandomlyGeneratedCustomers { get; set; } = 5;
     public int EnableNpcCustomers { get; set; } = 5;
+    public List<MenuCategoryArchive> MenuCategories { get; set; } = [];
 
 #if YOUTUBE
     public string YoutubeClientId { get; set; } = "Your Client Id here";

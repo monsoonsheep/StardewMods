@@ -1,21 +1,22 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using MyCafe.Characters;
 using MyCafe.Data.Customers;
 using MyCafe.Enums;
-using MyCafe.Locations.Objects;
 using MyCafe.Netcode;
 using StardewValley;
 
-#nullable disable
-
-namespace MyCafe;
+namespace MyCafe.Characters;
 
 internal class VillagerCustomerBuilder : CustomerBuilder
 {
     private List<VillagerCustomerData> npcVisitData = [];
 
-    internal override CustomerGroup BuildGroup()
+    internal VillagerCustomerBuilder(Func<NPC, Item?> menuItemSelector) : base(menuItemSelector)
+    {
+    }
+
+    internal override CustomerGroup? BuildGroup()
     {
         this.npcVisitData = Mod.Cafe.GetAvailableVillagerCustomers(1);
         if (this.npcVisitData.Count == 0)
@@ -33,19 +34,9 @@ internal class VillagerCustomerBuilder : CustomerBuilder
         return group;
     }
 
-    internal override bool SetupGroup()
-    {
-        foreach (NPC c in this._group.Members)
-        {
-            c.get_OrderItem().Set(Debug.SetTestItemForOrder(c));
-        }
-
-        return true;
-    }
-
     internal override bool PreMove()
     {
-        foreach (NPC c in this._group.Members)
+        foreach (NPC c in this._group!.Members)
         {
             c.ignoreScheduleToday = true;
             Log.Trace($"{c.Name} is coming.");
@@ -58,7 +49,7 @@ internal class VillagerCustomerBuilder : CustomerBuilder
     {
         try
         {
-            this._group.GoToTable();
+            this._group!.GoToTable();
         }
         catch (PathNotFoundException e)
         {
@@ -71,7 +62,7 @@ internal class VillagerCustomerBuilder : CustomerBuilder
 
     internal override bool PostMove()
     {
-        foreach (NPC c in this._group.Members)
+        foreach (NPC c in this._group!.Members)
         {
             Mod.Cafe.NpcCustomers.Add(c.Name);
         }

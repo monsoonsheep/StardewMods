@@ -18,8 +18,9 @@ internal class MenuBoard : MenuPageBase
     internal int slotCount = 9;
     internal static Rectangle source_Board = new(0, 64, 444, 576);
     internal static Rectangle source_Logo = new(134, 11, 94, 52);
-    internal static Rectangle source_EditButton = new(41, 19, 15, 13);
+    internal static Rectangle source_EditButton = new(0, 32, 31, 32);
     internal static Rectangle source_EditButtonCancel = new(31, 32, 31, 32);
+    internal static Rectangle source_PlusSign = new(101, 8, 20, 19);
 
     private readonly Rectangle target_Logo;
     private readonly Rectangle target_board;
@@ -45,6 +46,7 @@ internal class MenuBoard : MenuPageBase
             source_Logo.Width,
             source_Logo.Height);
 
+        // Scroll bar
         this._upArrow = new ClickableTextureComponent(
             new Rectangle(this.target_board.Right - 30, this.target_board.Y + 101, 44, 48),
             Game1.mouseCursors,
@@ -63,6 +65,8 @@ internal class MenuBoard : MenuPageBase
         this._scrollBarRunner = new Rectangle(this._scrollBar.bounds.X, this._upArrow.bounds.Bottom + 4, this._scrollBar.bounds.Width,
             this._downArrow.bounds.Top - this._upArrow.bounds.Bottom - 4);
 
+
+        // Menu slots (categories and items)
         for (int i = 0; i < this.slotCount; i++)
         {
             this._slots.Add(new ClickableComponent(new Rectangle(this.target_board.X + 24, this.target_board.Y + 111 + i * 43, this.target_board.Width - 27 * 2,
@@ -119,34 +123,39 @@ internal class MenuBoard : MenuPageBase
         {
             if (this._slots[slotIndex].containsPoint(x, y))
             {
-                // if not held, remove
-                // if held, add
+                int entryIndex = this._currentItemIndex + slotIndex;
 
-                int itemIndex = this._currentItemIndex + slotIndex;
+                // if held, add
+                // if not held, remove
+
                 if (this.ParentMenu.HeldItem is SObject held)
                 {
-                    while (itemIndex >= 0 && this._entries[itemIndex] is not MenuCategoryEntry)
-                        itemIndex--;
+                    int insertIndex = entryIndex;
+
+                    while (entryIndex >= 0 && (entryIndex >= this._entries.Count || this._entries[entryIndex] is not MenuCategoryEntry))
+                        entryIndex--;
                     
-                    if (this._entries[itemIndex] is MenuCategoryEntry entry)
+                    if (this._entries[entryIndex] is MenuCategoryEntry category)
                     {
-                        if (this.AddItem(held, entry.Name, this._currentItemIndex + slotIndex - itemIndex))
+                        if (this.AddItem(held, category.Name, insertIndex - entryIndex))
                             this.ParentMenu.HeldItem = null;
-                        break;
+                        return;
                     }
                 }
                 else
                 {
-                    Item? item = ( this._entries[this._currentItemIndex + slotIndex] as MenuItemEntry)?.Item;
-                    if (item != null)
+                    if (entryIndex < this._entries.Count)
                     {
-                        this.RemoveItem(this._currentItemIndex + slotIndex);
-                        this.ParentMenu.HeldItem = item;
+                        Item? item = (this._entries[entryIndex] as MenuItemEntry)?.Item;
+                        if (item != null)
+                        {
+                            this.RemoveItem(entryIndex);
+                            this.ParentMenu.HeldItem = item;
+                        }
                     }
                 }
             }
         }
-
         this._currentItemIndex = Math.Max(0, Math.Min(this._entries.Count - this.slotCount, this._currentItemIndex));
     }
 
@@ -204,10 +213,6 @@ internal class MenuBoard : MenuPageBase
                     entry.Scale = Math.Min(entry.Scale + 0.05f, 1.1f);
                 }
             }
-            else
-            {
-
-            }
         }
 
         return base.TryHover(x, y);
@@ -215,36 +220,38 @@ internal class MenuBoard : MenuPageBase
 
     protected override void customSnapBehavior(int direction, int oldRegion, int oldID)
     {
-        if (direction is 1 or 3)
+        switch (direction)
         {
-            this.SnapOut(1);
-            return;
-        }
-
-        if (direction == 2)
-        {
-            if (this._entries.Count > this.slotCount
-                && oldID == 1000 + this.slotCount
-                && this._currentItemIndex + this.slotCount < this._entries.Count)
-            {
+            case 1 or 3:
+                this.SnapOut(1);
+                return;
+            case 2 when this._entries.Count > this.slotCount
+                        && oldID == 1000 + this.slotCount
+                        && this._currentItemIndex + this.slotCount < this._entries.Count:
                 this.DownArrowPressed();
-            }
-            else if (this._currentItemIndex + (oldRegion + 1 - 1001) < this._entries.Count)
+                return;
+            case 2:
             {
-                base.setCurrentlySnappedComponentTo(oldRegion + 1);
+                if (this._currentItemIndex + (oldRegion + 1 - 1001) < this._entries.Count)
+                {
+                    base.setCurrentlySnappedComponentTo(oldRegion + 1);
+                }
+
+                return;
             }
-        }
-        else if (direction == 0)
-        {
-            if (this._entries.Count > this.slotCount
-                && oldID == 1001
-                && this._currentItemIndex > 0)
-            {
+            case 0 when this._entries.Count > this.slotCount
+                        && oldID == 1001
+                        && this._currentItemIndex > 0:
                 this.UpArrowPressed();
-            }
-            else if (this._currentItemIndex + (oldRegion - 1 - 1001) < this._entries.Count)
+                return;
+            case 0:
             {
-                base.setCurrentlySnappedComponentTo(oldRegion - 1);
+                if (this._currentItemIndex + (oldRegion - 1 - 1001) < this._entries.Count)
+                {
+                    base.setCurrentlySnappedComponentTo(oldRegion - 1);
+                }
+
+                return;
             }
         }
     }
@@ -272,31 +279,29 @@ internal class MenuBoard : MenuPageBase
         // Menu entries
         for (int i = 0; i < this._slots.Count; i++)
         {
-            if (this._currentItemIndex + i < this._entries.Count)
+            ClickableComponent slot = this._slots[i];
+            int entryIndex = this._currentItemIndex + i;
+
+            if (entryIndex < this._entries.Count)
             {
-                var entry = this._entries[this._currentItemIndex + i];
+                MenuEntry entry = this._entries[entryIndex];
 
-                entry.Draw(b, this._slots[i].bounds.X, this._slots[i].bounds.Y);
+                entry.Draw(b, slot.bounds.X, slot.bounds.Y);
 
-                if (this._slots[i].bounds.Contains(Game1.getMouseX(true), Game1.getMouseY(true)) && this._currentItemIndex + i < this._entries.Count)
+                if (slot.bounds.Contains(Game1.getMouseX(true), Game1.getMouseY(true)))
                 {
-                    if (entry is MenuCategoryEntry)
+                    // Red line to indicate where the held item would be added
+                    if (this.ParentMenu.HeldItem != null)
                     {
-                        if (this.ParentMenu.HeldItem != null)
-                        {
-                            drawTextureBox(b, Game1.mouseCursors, new Rectangle(403, 383, 6, 6), this._slots[i].bounds.X, this._slots[i].bounds.Y - 8, this._slots[i].bounds.Width, this._slots[i].bounds.Height,
-                                Color.White, drawShadow: false, draw_layer: 0.9f);
-                        }
-
-                        // draw edit icon
-                    }
-                    else
-                    {
-                        if (this.ParentMenu.HeldItem != null)
-                        {
-                            drawTextureBox(b, Game1.mouseCursors, new Rectangle(403, 383, 6, 6), this._slots[i].bounds.X, this._slots[i].bounds.Y + 28, this._slots[i].bounds.Width, 4,
-                                Color.OrangeRed, drawShadow: false, draw_layer: 0.9f);
-                        }
+                        drawTextureBox(
+                            b,
+                            Game1.mouseCursors,
+                            new Rectangle(403, 383, 6, 6),
+                            slot.bounds.X,
+                            slot.bounds.Y + 28,
+                            slot.bounds.Width,
+                            4,
+                            Color.OrangeRed, drawShadow: false, draw_layer: 0.9f);
                     }
                 }
             }
@@ -354,7 +359,6 @@ internal class MenuBoard : MenuPageBase
                 this._entries.Add(new MenuItemEntry(item));
             }
         }
-
        
         this._scrollBar.bounds.Height = (int)(this._scrollBarRunner.Height / (float)(this._entries.Count - this.slotCount));
     }

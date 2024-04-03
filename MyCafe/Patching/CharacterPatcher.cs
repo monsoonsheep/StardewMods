@@ -138,14 +138,14 @@ internal class CharacterPatcher : BasePatcher
         if ((Mod.Cafe.NpcCustomers.Contains(__instance.Name) || __instance.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX)) && !__instance.IsInvisible)
         {
             float layerDepth = Math.Max(0f, __instance.StandingPixel.Y / 10000f);
-            Vector2 localPosition = __instance.getLocalPosition(Game1.viewport);
+            Vector2 drawPosition = __instance.getLocalPosition(Game1.viewport);
 
             if (__instance.get_DrawName().Value == true)
             {
                 b.DrawString(
                     Game1.dialogueFont,
                     __instance.displayName,
-                    localPosition - new Vector2(40, 64),
+                    drawPosition - new Vector2(40, 64),
                     Color.White * 0.75f,
                     0f,
                     Vector2.Zero,
@@ -156,21 +156,32 @@ internal class CharacterPatcher : BasePatcher
             }
 
             // TODO move to the OnRenderedWorld event
-            if (__instance.get_DrawOrderItem().Value == true && __instance.get_OrderItem().Value != null)
+            Item item;
+            if (__instance.get_DrawOrderItem().Value == true && (item = __instance.get_OrderItem().Value) != null)
             {
                 Vector2 offset = new Vector2(0,
                     (float) Math.Round(4f * Math.Sin(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 250.0)));
 
-                localPosition.Y -= 32 + __instance.Sprite.SpriteHeight * 3;
+                drawPosition.Y -= 32 + __instance.Sprite.SpriteHeight * 3;
 
+                // Draw bubble
                 b.Draw(
                     Mod.Sprites,
-                    localPosition + offset,
+                    drawPosition + offset,
                     new Rectangle(0, 16, 16, 16),
                     Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None,
                     0.99f);
 
-                __instance.get_OrderItem().Value.drawInMenu(b, localPosition + offset, 0.35f, 1f, 0.992f);
+                // Item inside the bubble
+                item.drawInMenu(b, drawPosition + offset, 0.40f, 1f, 0.992f, StackDrawType.Hide, Color.White, drawShadow: false);
+
+                // Draw item name if hovering over bubble
+                Vector2 mouse = new Vector2(Game1.getMouseX(), Game1.getMouseY());
+                if (Vector2.Distance(drawPosition, mouse) <= Game1.tileSize)
+                {
+                    Vector2 size = Game1.dialogueFont.MeasureString(item.DisplayName) * 0.75f;
+                    b.DrawString(Game1.dialogueFont, item.DisplayName, drawPosition + new Vector2(32 - size.X / 2f, -10f), Color.Black, 0f, Vector2.Zero, 0.75f, SpriteEffects.None, 1f);
+                }
             }
         }
     }

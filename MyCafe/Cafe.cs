@@ -21,13 +21,15 @@ using MyCafe.Netcode;
 using MyCafe.Data.Models;
 using System.Text.RegularExpressions;
 using StardewValley.Pathfinding;
+using StardewValley.SpecialOrders.Objectives;
 
 namespace MyCafe;
 
 public class Cafe
 {
-    internal RandomCustomerBuilder RandomCustomers = new RandomCustomerBuilder();
-    internal VillagerCustomerBuilder VillgersCustomers = new VillagerCustomerBuilder();
+    internal RandomCustomerBuilder randomCustomerBuilder = null!;
+
+    internal VillagerCustomerBuilder villagerCustomerBuilder = null!;
 
     internal List<CustomerGroup> Groups = [];
 
@@ -89,6 +91,10 @@ public class Cafe
                 OldValue = oldValue,
                 NewValue = newValue
             });
+        this.Menu.InitializeForHost();
+
+        this.randomCustomerBuilder = new RandomCustomerBuilder(this.GetMenuItemForCustomer);
+        this.villagerCustomerBuilder = new VillagerCustomerBuilder(this.GetMenuItemForCustomer);
     }
 
     internal void DayUpdate()
@@ -103,10 +109,9 @@ public class Cafe
             this.Enabled = false;
             this.Tables.Clear();
         }
-
-        if (!this.Menu.Inventories.Any())
-            this.Menu.AddCategory("Menu");
     }
+
+    #region Tables
 
     private void PopulateTables()
     {
@@ -153,49 +158,6 @@ public class Cafe
             }
             Log.Debug($"{count} map-based tables found in cafe locations.");
         }
-    }
-
-    internal void RemoveAllCustomers()
-    {
-        foreach (CustomerGroup g in this.Groups)
-        {
-            this.EndCustomerGroup(g);
-        }
-    }
-
-    internal void TenMinuteUpdate()
-    {
-        int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, this.ClosingTime);
-        int minutesTillOpens = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, this.OpeningTime);
-        int minutesSinceLastVisitors = SUtility.CalculateMinutesBetweenTimes(this.LastTimeCustomersArrived, Game1.timeOfDay);
-        float percentageOfTablesFree = (float) this.Tables.Count(t => !t.IsReserved) / this.Tables.Count;
-
-        if (minutesTillCloses <= 20)
-            return;
-
-        float prob = 0f;
-
-        // more chance if it's been a while since last Visitors
-        prob += minutesSinceLastVisitors switch
-        {
-            <= 20 => 0f,
-            <= 30 => Game1.random.Next(5) == 0 ? 0.05f : -0.1f,
-            <= 60 => Game1.random.Next(2) == 0 ? 0.1f : 0f,
-            _ => 0.25f
-        };
-
-        // more chance if a higher percent of tables are free
-        prob += percentageOfTablesFree switch
-        {
-            <= 0.2f => 0.0f,
-            <= 0.5f => 0.1f,
-            <= 0.8f => 0.15f,
-            _ => 0.2f
-        };
-
-        // slight chance to spawn if last hour of open time
-        if (minutesTillCloses <= 60)
-            prob += Game1.random.Next(20 + Math.Max(0, minutesTillCloses / 3)) >= 28 ? 0.2f : -0.5f;
     }
 
     internal void AddTable(Table table)
@@ -425,6 +387,10 @@ public class Cafe
         return this.Tables.PickRandomWhere(t => !t.IsReserved && t.Seats.Count >= minSeats);
     }
 
+    #endregion
+
+    #region Locations
+
     internal bool UpdateCafeLocations()
     {
         if (this.Outdoor != null && this.Indoor != null && this.Outdoor.buildings.Contains(this.Indoor.GetContainingBuilding()))
@@ -470,16 +436,43 @@ public class Cafe
         return foundSignboard || foundIndoor;
     }
 
-    internal void TryRemoveRandomNpcData(string name)
+    #endregion
+
+    #region Customers
+
+    internal void TenMinuteUpdate()
     {
-        Match findRandomGuid = new Regex($@"{ModKeys.CUSTOMER_NPC_NAME_PREFIX}Random(.*)").Match(name);
-        if (findRandomGuid.Success)
+        int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, this.ClosingTime);
+        int minutesTillOpens = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, this.OpeningTime);
+        int minutesSinceLastVisitors = SUtility.CalculateMinutesBetweenTimes(this.LastTimeCustomersArrived, Game1.timeOfDay);
+        float percentageOfTablesFree = (float) this.Tables.Count(t => !t.IsReserved) / this.Tables.Count;
+
+        if (minutesTillCloses <= 20)
+            return;
+
+        float prob = 0f;
+
+        // more chance if it's been a while since last Visitors
+        prob += minutesSinceLastVisitors switch
         {
-            Log.Trace("Deleting random customer and its generated sprite");
-            string guid = findRandomGuid.Groups[1].Value;
-            if (this.GeneratedSprites.Remove(guid) == false)
-                Log.Trace("Tried to remove GUID for random customer but it wasn't registered.");
-        }
+            <= 20 => 0f,
+            <= 30 => Game1.random.Next(5) == 0 ? 0.05f : -0.1f,
+            <= 60 => Game1.random.Next(2) == 0 ? 0.1f : 0f,
+            _ => 0.25f
+        };
+
+        // more chance if a higher percent of tables are free
+        prob += percentageOfTablesFree switch
+        {
+            <= 0.2f => 0.0f,
+            <= 0.5f => 0.1f,
+            <= 0.8f => 0.15f,
+            _ => 0.2f
+        };
+
+        // slight chance to spawn if last hour of open time
+        if (minutesTillCloses <= 60)
+            prob += Game1.random.Next(20 + Math.Max(0, minutesTillCloses / 3)) >= 28 ? 0.2f : -0.5f;
     }
 
     internal void SpawnCustomers(GroupType type)
@@ -490,8 +483,8 @@ public class Cafe
 
         CustomerGroup? group = type switch
         {
-            GroupType.Random => this.RandomCustomers.TrySpawn(table),
-            GroupType.Villager => this.VillgersCustomers.TrySpawn(table),
+            GroupType.Random => this.randomCustomerBuilder.TrySpawn(table),
+            GroupType.Villager => this.villagerCustomerBuilder.TrySpawn(table),
             _ => null
         };
 
@@ -501,7 +494,111 @@ public class Cafe
         this.Groups.Add(group);
     }
 
-  
+    internal List<VillagerCustomerData> GetAvailableVillagerCustomers(int count)
+    {
+        List<VillagerCustomerData> list = [];
+
+        foreach (KeyValuePair<string, VillagerCustomerData> data in this.VillagerData.OrderBy(_ => Game1.random.Next()))
+        {
+            if (list.Count == count)
+                break;
+
+            if (this.CanVillagerVisit(data.Value, Game1.timeOfDay))
+                list.Add(data.Value);
+        }
+
+        return list;
+    }
+
+    private bool CanVillagerVisit(VillagerCustomerData data, int timeOfDay)
+    {
+        NPC npc = data.GetNpc();
+        VillagerCustomerModel model = Mod.Assets.VillagerCustomerModels[data.NpcName];
+
+        int daysSinceLastVisit = Game1.Date.TotalDays - data.LastVisitedDate.TotalDays;
+        int daysAllowed = model.VisitFrequency switch
+        {
+            0 => 200,
+            1 => 27,
+            2 => 13,
+            3 => 7,
+            4 => 3,
+            5 => 1,
+            _ => 9999999
+        };
+
+        if (Mod.Cafe.NpcCustomers.Contains(data.NpcName) ||
+            npc.isSleeping.Value == true ||
+            npc.ScheduleKey == null ||
+            daysSinceLastVisit < daysAllowed)
+            return false;
+
+        // If no busy period for today, they're free all day
+        if (!model.BusyTimes.TryGetValue(npc.ScheduleKey, out List<BusyPeriod>? busyPeriods))
+            return false;
+        if (busyPeriods.Count == 0)
+            return true;
+
+        // Check their busy periods for their current schedule key
+        foreach (BusyPeriod busyPeriod in busyPeriods)
+        {
+            if (SUtility.CalculateMinutesBetweenTimes(timeOfDay, busyPeriod.From) <= 120
+                && SUtility.CalculateMinutesBetweenTimes(timeOfDay, busyPeriod.To) > 0)
+            {
+                if (!(busyPeriod.Priority <= 3 && Game1.random.Next(6 * busyPeriod.Priority) == 0) &&
+                    !(busyPeriod.Priority == 4 && Game1.random.Next(50) == 0))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private Item? GetMenuItemForCustomer(NPC npc)
+    {
+        SortedDictionary<int, List<Item>> tastesItems = new SortedDictionary<int, List<Item>>();
+        int count = 0;
+
+        foreach (Item i in this.Menu.ItemDictionary.Values.SelectMany(i => i))
+        {
+            int tasteLevel;
+            switch (npc.getGiftTasteForThisItem(i))
+            {
+                case 6:
+                    tasteLevel = (int) GiftObjective.LikeLevels.Hated;
+                    break;
+                case 4:
+                    tasteLevel = (int) GiftObjective.LikeLevels.Disliked;
+                    break;
+                case 8:
+                    tasteLevel = (int) GiftObjective.LikeLevels.Neutral;
+                    break;
+                case 2:
+                    tasteLevel = (int) GiftObjective.LikeLevels.Liked;
+                    break;
+                case 0:
+                    tasteLevel = (int) GiftObjective.LikeLevels.Loved;
+                    break;
+                default:
+                    continue;
+            }
+
+            if (!tastesItems.ContainsKey(tasteLevel))
+                tastesItems[tasteLevel] = new List<Item>();
+
+            tastesItems[tasteLevel].Add(i);
+            count++;
+        }
+
+        // Null if either no items on menu or the best the menu can do for the npc is less than neutral taste for them
+        if (count == 0 || tastesItems.Keys.Max() <= (int)GiftObjective.LikeLevels.Disliked)
+            return null;
+
+        return tastesItems[tastesItems.Keys.Max()].PickRandom();
+    }
+
     internal void EndCustomerGroup(CustomerGroup group)
     {
         Log.Debug($"Removing customers");
@@ -543,12 +640,6 @@ public class Cafe
             }
         }
 
-    }
-
-    internal void DeleteNpcFromExistence(NPC npc)
-    {
-        npc.currentLocation?.characters.Remove(npc);
-        this.TryRemoveRandomNpcData(npc.Name);
     }
 
     internal void ReturnVillagerToSchedule(NPC npc)
@@ -624,66 +715,26 @@ public class Cafe
         npc.checkSchedule(Game1.timeOfDay);
     }
 
-    
-    internal List<VillagerCustomerData> GetAvailableVillagerCustomers(int count)
+    internal void DeleteNpcFromExistence(NPC npc)
     {
-        List<VillagerCustomerData> list = [];
-
-        foreach (KeyValuePair<string, VillagerCustomerData> data in this.VillagerData.OrderBy(_ => Game1.random.Next()))
+        npc.currentLocation?.characters.Remove(npc);
+        Match findRandomGuid = new Regex($@"{ModKeys.CUSTOMER_NPC_NAME_PREFIX}Random(.*)").Match(npc.Name);
+        if (findRandomGuid.Success)
         {
-            if (list.Count == count)
-                break;
-
-            if (this.CanVillagerVisit(data.Value, Game1.timeOfDay))
-                list.Add(data.Value);
+            Log.Trace("Deleting random customer and its generated sprite");
+            string guid = findRandomGuid.Groups[1].Value;
+            if (this.GeneratedSprites.Remove(guid) == false)
+                Log.Trace("Tried to remove GUID for random customer but it wasn't registered.");
         }
-
-        return list;
     }
 
-    private bool CanVillagerVisit(VillagerCustomerData data, int timeOfDay)
+    internal void RemoveAllCustomers()
     {
-        NPC npc = data.GetNpc();
-        VillagerCustomerModel model = Mod.Assets.VillagerCustomerModels[data.NpcName];
-
-        int daysSinceLastVisit = Game1.Date.TotalDays - data.LastVisitedDate.TotalDays;
-        int daysAllowed = model.VisitFrequency switch
+        foreach (CustomerGroup g in this.Groups)
         {
-            0 => 200,
-            1 => 27,
-            2 => 13,
-            3 => 7,
-            4 => 3,
-            5 => 1,
-            _ => 9999999
-        };
-
-        if (Mod.Cafe.NpcCustomers.Contains(data.NpcName) ||
-            npc.isSleeping.Value == true ||
-            npc.ScheduleKey == null ||
-            daysSinceLastVisit < daysAllowed)
-            return false;
-
-        // If no busy period for today, they're free all day
-        if (!model.BusyTimes.TryGetValue(npc.ScheduleKey, out List<BusyPeriod>? busyPeriods))
-            return false;
-        if (busyPeriods.Count == 0)
-            return true;
-
-        // Check their busy periods for their current schedule key
-        foreach (BusyPeriod busyPeriod in busyPeriods)
-        {
-            if (SUtility.CalculateMinutesBetweenTimes(timeOfDay, busyPeriod.From) <= 120
-                && SUtility.CalculateMinutesBetweenTimes(timeOfDay, busyPeriod.To) > 0)
-            {
-                if (!(busyPeriod.Priority <= 3 && Game1.random.Next(6 * busyPeriod.Priority) == 0) &&
-                    !(busyPeriod.Priority == 4 && Game1.random.Next(50) == 0))
-                {
-                    return false;
-                }
-            }
+            this.EndCustomerGroup(g);
         }
-
-        return true;
     }
+
+    #endregion
 }
