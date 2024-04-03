@@ -373,8 +373,9 @@ public class Cafe
 
             case TableState.CustomersFinishedEating:
                 Log.Debug("Table finished meal");
-
-                this.EndCustomerGroup(group!);
+                
+                group!.PayForFood();
+                this.EndCustomerGroup(group);
 
                 break;
         }

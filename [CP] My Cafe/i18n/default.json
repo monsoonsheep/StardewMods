@@ -1,0 +1,18 @@
+{
+	"event-CafeIntroduction.01": "I'm glad to see an up-and-coming food business in the valley.",
+	"event-CafeIntroduction.02": "I guess I'll sorta be your competitor in a way, huh?$h",
+	"event-CafeIntroduction.03": "I'm sure you'll be a fine rival, though.",
+	"event-CafeIntroduction.04": "So what kind of restaurant is this going to be?",
+
+	"event-CafeIntroduction.04.answer1": "Something casual like a diner.",
+	"event-CafeIntroduction.04.answer2": "A cozy bar.",
+	"event-CafeIntroduction.04.answer3": "A fine dining establishment.",
+	"event-CafeIntroduction.04.answer4": "It's a surprise.",
+
+	"event-CafeIntroduction.04.fork1.01": "I like the sound of that! I'll be sure to stop by if you happen to serve spaghetti.$h",
+	"event-CafeIntroduction.04.fork2.01": "Good choice. I'll be sure to drop by for a drink sometime.",
+	"event-CafeIntroduction.04.fork3.01": "Ooh fancy! I look forward to that.",
+	"event-CafeIntroduction.04.fork4.01": "Well, I look forward to it!$h",
+
+	"dialogue-Abigail.CafeVisit1": "",
+}

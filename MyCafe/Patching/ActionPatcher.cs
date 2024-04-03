@@ -46,7 +46,7 @@ internal class ActionPatcher : BasePatcher
         return true;
     }
 
-    private static bool Before_GameLocationCheckAction(GameLocation __instance, Location tileLocation, Rectangle viewport, Farmer who, ref bool __result)
+    private static bool Before_GameLocationCheckAction(GameLocation __instance, Location tileLocation, Rectangle _, Farmer who, ref bool __result)
     {
         if ((__instance.Equals(Mod.Cafe.Indoor) || __instance.Equals(Mod.Cafe.Outdoor)))
         {

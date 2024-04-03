@@ -299,11 +299,11 @@ public class Mod : StardewModdingAPI.Mod
 
     internal void LoadCafeData()
     {
-        string cafeDataFile = Path.Combine(Constants.CurrentSavePath ?? "", "MyCafe", "cafedata");
-
         // Load cafe data
-        if (!Game1.IsMasterGame || string.IsNullOrEmpty(Constants.CurrentSavePath) || !File.Exists(cafeDataFile))
+        if (!Game1.IsMasterGame || string.IsNullOrEmpty(Constants.CurrentSavePath) || !File.Exists(Path.Combine(Constants.CurrentSavePath, "MyCafe", "cafedata")))
             return;
+
+        string cafeDataFile = Path.Combine(Constants.CurrentSavePath, "MyCafe", "cafedata");
 
         CafeArchiveData cafeData;
         XmlSerializer serializer = new XmlSerializer(typeof(CafeArchiveData));

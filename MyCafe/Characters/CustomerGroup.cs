@@ -75,4 +75,9 @@ public class CustomerGroup
             }
         }
     }
+
+    internal void PayForFood()
+    {
+        Game1.MasterPlayer.Money += this.Members.Sum(m => m.get_OrderItem().Value?.salePrice() ?? 0);
+    }
 }
