@@ -12,7 +12,7 @@ using StardewValley;
 using Netcode;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace MyCafe;
+namespace MyCafe.Characters.Factory;
 internal sealed class CharacterFactory
 {
     private readonly IModHelper _modHelper;
@@ -52,7 +52,7 @@ internal sealed class CharacterFactory
 
         CustomerModel model = new CustomerModel
         {
-            Gender = Utility.GameGenderToCustomGender(sprite.Gender),
+            Gender = ModUtility.GameGenderToCustomGender(sprite.Gender),
             Name = $"{ModKeys.CUSTOMER_NPC_NAME_PREFIX}Random{sprite.Guid}",
             Spritesheet = $"{ModKeys.GENERATED_SPRITE_PREFIX}/{sprite.Guid}",
             Portrait = this._modHelper.ModContent.GetInternalAssetName(Path.Combine("assets", "CharGen", "Portraits", "cat.png")).Name
@@ -74,7 +74,7 @@ internal sealed class CharacterFactory
         string guid = Guid.NewGuid().ToString();
         sprite.Guid = guid;
 
-        Gender gender = Utility.GetRandomGender();
+        Gender gender = ModUtility.GetRandomGender();
         sprite.Gender = gender;
 
         int[] skin = this.SkinTones.PickRandom()!;
@@ -149,7 +149,7 @@ internal sealed class CharacterFactory
         if (accessory != null)
             layers.Add(accessory.Data);
 
-        Color[] finalData = Utility.CompositeTextures(layers);
+        Color[] finalData = ModUtility.CompositeTextures(layers);
 
         Texture2D finalTexture = new Texture2D(Game1.graphics.GraphicsDevice, body.Width, body.Height);
         finalTexture.SetData(finalData);
@@ -168,7 +168,7 @@ internal sealed class CharacterFactory
             skinTone.G / 255f,
             skinTone.B / 255f
         ];
-        
+
         for (int i = 0; i < this.BodyBase.Data.Length; i++)
         {
             Color baseColor = this.BodyBase.Data[i];
@@ -176,9 +176,9 @@ internal sealed class CharacterFactory
                 continue;
 
             data[i] = new Color(
-                (int) (baseColor.R * multiplier[0]),
-                (int) (baseColor.G * multiplier[1]),
-                (int) (baseColor.B * multiplier[2]),
+                (int)(baseColor.R * multiplier[0]),
+                (int)(baseColor.G * multiplier[1]),
+                (int)(baseColor.B * multiplier[2]),
                 baseColor.A);
         }
 
@@ -198,7 +198,7 @@ internal sealed class CharacterFactory
             color.G / 255f,
             color.B / 255f
         ];
-        
+
         for (int i = 0; i < this.Eyes.Data.Length; i++)
         {
             Color baseColor = this.Eyes.Data[i];
@@ -213,9 +213,9 @@ internal sealed class CharacterFactory
             else
             {
                 data[i] = new Color(
-                    (int) (baseColor.R * eyeColor[0]),
-                    (int) (baseColor.G * eyeColor[1]),
-                    (int) (baseColor.B * eyeColor[2]),
+                    (int)(baseColor.R * eyeColor[0]),
+                    (int)(baseColor.G * eyeColor[1]),
+                    (int)(baseColor.B * eyeColor[2]),
                     baseColor.A);
             }
         }
@@ -239,7 +239,7 @@ internal sealed class CharacterFactory
 
         if (colors is { Count: > 0 })
             return model.GetTexture(colors[0]);
-        
+
         return model.GetRawTexture();
     }
 

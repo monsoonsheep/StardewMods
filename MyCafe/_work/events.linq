@@ -1,21 +1,21 @@
 <Query Kind="Statements">
-  <Reference>&lt;ProgramFilesX86&gt;\Steam\steamapps\common\Stardew Valley\MonoGame.Framework.dll</Reference>
   <Namespace>Microsoft.Xna.Framework</Namespace>
   <RuntimeVersion>6.0</RuntimeVersion>
 </Query>
 
-Point signboardTile = new Point(650, 650);
+int x = 650, y = 650;
+
 string[] commands =
 [
     $"continue",
-    $"{signboardTile.X} {signboardTile.Y + 2}",
-    $"farmer {signboardTile.X} {signboardTile.Y + 1} 0 Gus {signboardTile.X + 1} {signboardTile.Y} 3 Robin {signboardTile.X - 1} {signboardTile.Y} 1",
+    $"{x} {y + 2}",
+    $"farmer {x} {y + 1} 0 Gus {x + 1} {y} 3 Robin {x - 1} {y} 1",
     $"ignoreEventTileOffset",
 	$"skippable",
     $"ignoreCollisions Gus",
     $"ignoreCollisions farmer",
     $"ignoreCollisions Robin",
-	$"makeInvisible {signboardTile.X - 1} {signboardTile.Y - 1} 3 3",
+	$"makeInvisible {x - 1} {y - 1} 3 3",
 
     $"pause 1000",
     $"emote farmer 40",
@@ -55,6 +55,7 @@ string[] commands =
     $"faceDirection farmer 0",
     $"pause 300",
 	$"addMailReceived MonsoonSheep.MyCafe_HasSeenCafeIntroductionEvent",
+	$"addConversationTopic MonsoonSheep_MyCafe_Dialogue_CafeOpened 7",
     $"end"
 ];
  

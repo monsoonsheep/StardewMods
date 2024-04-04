@@ -54,7 +54,7 @@ public class FurnitureTable : Table
 
                 GameLocation? location = CommonHelper.GetLocation(this.CurrentLocation);
                 Furniture? chairAt = location?.GetFurnitureAt(new Vector2(this.Position.X + i, this.Position.Y + j));
-                if (chairAt == null || !Utility.IsChair(chairAt))
+                if (chairAt == null || !ModUtility.IsChair(chairAt))
                     continue;
 
                 int rotation = chairAt.currentRotation.Value;

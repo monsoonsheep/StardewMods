@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using MyCafe.Data.Models.Appearances;
+using MyCafe.Enums;
 using StardewValley;
 using StardewValley.Objects;
 
 namespace MyCafe;
 
-internal static class Utility
+internal static class ModUtility
 {
     internal static bool IsChair(Furniture furniture)
     {
@@ -150,6 +151,56 @@ internal static class Utility
         }
 
         return finalData;
+    }
+
+    internal static Rectangle GetEmojiSource(EmojiSprite type)
+    {
+        return type switch
+        {
+            EmojiSprite.Smiley => new Rectangle(0, 0, 9, 9),
+            EmojiSprite.Disappointed => new Rectangle(82, 0, 9, 9),
+            EmojiSprite.Heart => new Rectangle(9, 27, 9, 9),
+            EmojiSprite.Time => new Rectangle(0, 27, 9, 9),
+            EmojiSprite.Money => new Rectangle(118, 18, 8, 9),
+            _ => new Rectangle(0, 0, 0, 0)
+        };
+    }
+
+    internal static void DoEmojiSprite(Vector2 position, EmojiSprite type)
+    {
+        Rectangle source = ModUtility.GetEmojiSource(type);
+        Game1.Multiplayer.broadcastSprites(
+            Game1.player.currentLocation,
+            new TemporaryAnimatedSprite("LooseSprites\\\\emojis",
+                source,
+                2000f,
+                1,
+                0,
+                position + new Vector2(0f, -64f),
+                flicker: false,
+                flipped: false,
+                1f, 0f, Color.White, 4f, 0f, 0f, 0f)
+            {
+                motion = new Vector2(0f, -0.5f),
+                alphaFade = 0.01f
+            });
+    }
+
+    internal static void CleanUpCustomers()
+    {
+        StardewValley.Utility.ForEachLocation((loc) =>
+        {
+            for (int i = loc.characters.Count - 1; i >= 0; i--)
+            {
+                NPC npc = loc.characters[i];
+                if (npc.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX))
+                {
+                    loc.characters.RemoveAt(i);
+                }
+            }
+
+            return true;
+        });
     }
 
 }

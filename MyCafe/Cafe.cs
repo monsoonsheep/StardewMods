@@ -22,6 +22,7 @@ using MyCafe.Data.Models;
 using System.Text.RegularExpressions;
 using StardewValley.Pathfinding;
 using StardewValley.SpecialOrders.Objectives;
+#pragma warning disable IDE0060
 
 namespace MyCafe;
 
@@ -33,59 +34,59 @@ public class Cafe
 
     internal List<CustomerGroup> Groups = [];
 
-    internal readonly Dictionary<string, VillagerCustomerData> VillagerData = new();
+    internal readonly Dictionary<string, VillagerCustomerData> VillagerData = [];
 
     internal int LastTimeCustomersArrived = 0;
 
-    private CafeNetObject _fields
+    private CafeNetObject Fields
         => Game1.player.team.get_CafeNetFields().Value;
 
     internal bool Enabled
     {
-        get => this._fields.CafeEnabled.Value;
-        set => this._fields.CafeEnabled.Set(value);
+        get => this.Fields.CafeEnabled.Value;
+        set => this.Fields.CafeEnabled.Set(value);
     }
 
     internal CafeLocation? Indoor
     {
-        get => this._fields.CafeIndoor.Value as CafeLocation;
-        set => this._fields.CafeIndoor.Set(value);
+        get => this.Fields.CafeIndoor.Value as CafeLocation;
+        set => this.Fields.CafeIndoor.Set(value);
     }
 
     internal GameLocation? Outdoor
     {
-        get => this._fields.CafeOutdoor.Value;
-        set => this._fields.CafeOutdoor.Set(value);
+        get => this.Fields.CafeOutdoor.Value;
+        set => this.Fields.CafeOutdoor.Set(value);
     }
 
     internal int OpeningTime
     {
-        get => this._fields.OpeningTime.Value;
-        set => this._fields.OpeningTime.Set(value);
+        get => this.Fields.OpeningTime.Value;
+        set => this.Fields.OpeningTime.Set(value);
     }
 
     internal int ClosingTime
     {
-        get => this._fields.ClosingTime.Value;
-        set => this._fields.ClosingTime.Set(value);
+        get => this.Fields.ClosingTime.Value;
+        set => this.Fields.ClosingTime.Set(value);
     }
 
     internal IList<Table> Tables
-        => this._fields.NetTables as IList<Table>;
+        => this.Fields.NetTables as IList<Table>;
 
     internal FoodMenuInventory Menu
-        => this._fields.NetMenu.Value;
+        => this.Fields.NetMenu.Value;
 
     internal NetStringDictionary<GeneratedSpriteData, NetRef<GeneratedSpriteData>> GeneratedSprites
-        => this._fields.GeneratedSprites;
+        => this.Fields.GeneratedSprites;
 
     internal ICollection<string> NpcCustomers
-        => this._fields.NpcCustomers;
+        => this.Fields.NpcCustomers;
 
     internal void InitializeForHost(IModHelper helper)
     {
-        this._fields.GeneratedSprites.OnValueRemoved += (id, data) => data.Dispose();
-        this._fields.NetTables.OnValueAdded += table =>
+        this.Fields.GeneratedSprites.OnValueRemoved += (id, data) => data.Dispose();
+        this.Fields.NetTables.OnValueAdded += table =>
             table.State.fieldChangeVisibleEvent += (_, oldValue, newValue) => this.OnTableStateChange(table, new TableStateChangedEventArgs()
             {
                 OldValue = oldValue,
@@ -115,8 +116,8 @@ public class Cafe
 
     private void PopulateTables()
     {
-        this.Tables.Clear();
-        List<GameLocation> locations = new List<GameLocation>();
+        this.Tables.Clear(); 
+        List<GameLocation> locations = [];
 
         if (this.Indoor != null)
             locations.Add(this.Indoor);
@@ -126,7 +127,7 @@ public class Cafe
         int count = 0;
         foreach (GameLocation location in locations)
         {
-            foreach (Furniture furniture in location.furniture.Where(t => Utility.IsTable((t))))
+            foreach (Furniture furniture in location.furniture.Where(t => ModUtility.IsTable((t))))
             {
                 FurnitureTable newTable = new FurnitureTable(furniture, location.Name);
                 if (newTable.Seats.Count > 0)
@@ -174,7 +175,7 @@ public class Cafe
             Log.Warn("Trying to remove a table that isn't registered");
     }
 
-    internal bool InteractWithTable(Table table, Farmer who)
+    internal static bool InteractWithTable(Table table, Farmer who)
     {
        switch (table.State.Value)
         {
@@ -241,11 +242,11 @@ public class Cafe
     {
         Log.Trace("Placed furniture");
 
-        if (Utility.IsChair(placed))
+        if (ModUtility.IsChair(placed))
         {
             Furniture facingTable = location.GetFurnitureAt(placed.TileLocation + CommonHelper.DirectionIntToDirectionVector(placed.currentRotation.Value) * new Vector2(1, -1));
             if (facingTable == null
-                || Utility.IsTable(facingTable) == false
+                || ModUtility.IsTable(facingTable) == false
                 || facingTable.GetBoundingBox().Intersects(placed.boundingBox.Value))
             {
                 return;
@@ -253,7 +254,7 @@ public class Cafe
 
             if (!this.IsRegisteredTable(facingTable, out FurnitureTable? table))
             {
-                if (location.Equals(this.Outdoor) && this.IsFurnitureWithinRangeOfSignboard(facingTable, location) == false)
+                if (location.Equals(this.Outdoor) && IsFurnitureWithinRangeOfSignboard(facingTable, location) == false)
                     return;
 
                 table = new FurnitureTable(facingTable, location.Name);
@@ -262,9 +263,9 @@ public class Cafe
 
             table.AddChair(placed);
         }
-        else if (Utility.IsTable(placed))
+        else if (ModUtility.IsTable(placed))
         {
-            if (location.Equals(this.Outdoor) && this.IsFurnitureWithinRangeOfSignboard(placed, location) == false)
+            if (location.Equals(this.Outdoor) && IsFurnitureWithinRangeOfSignboard(placed, location) == false)
                 return;
 
 
@@ -279,7 +280,7 @@ public class Cafe
         }
     }
 
-    private bool IsFurnitureWithinRangeOfSignboard(Furniture furniture, GameLocation location)
+    private static bool IsFurnitureWithinRangeOfSignboard(Furniture furniture, GameLocation location)
     {
         // Skip if the placed table is outside of the signboard's range
         Building signboard = location.buildings.First(b => b.buildingType.Value == ModKeys.CAFE_SIGNBOARD_BUILDING_ID);
@@ -299,7 +300,7 @@ public class Cafe
 
     internal void OnFurnitureRemoved(Furniture f, GameLocation location)
     {
-        if (Utility.IsChair(f))
+        if (ModUtility.IsChair(f))
         {
             FurnitureTable? existingTable = this.Tables
                 .OfType<FurnitureTable>()
@@ -314,7 +315,7 @@ public class Cafe
                 }
             }
         }
-        else if (Utility.IsTable(f))
+        else if (ModUtility.IsTable(f))
         {
             if (this.IsRegisteredTable(f, out FurnitureTable? trackedTable))
             {
@@ -502,17 +503,17 @@ public class Cafe
             if (list.Count == count)
                 break;
 
-            if (this.CanVillagerVisit(data.Value, Game1.timeOfDay))
+            if (CanVillagerVisit(data.Value, Game1.timeOfDay))
                 list.Add(data.Value);
         }
 
         return list;
     }
 
-    private bool CanVillagerVisit(VillagerCustomerData data, int timeOfDay)
+    private static bool CanVillagerVisit(VillagerCustomerData data, int timeOfDay)
     {
         NPC npc = data.GetNpc();
-        VillagerCustomerModel model = Mod.Assets.VillagerCustomerModels[data.NpcName];
+        VillagerCustomerModel model = Mod.Instance.VillagerCustomerModels[data.NpcName];
 
         int daysSinceLastVisit = Game1.Date.TotalDays - data.LastVisitedDate.TotalDays;
         int daysAllowed = model.VisitFrequency switch
@@ -557,7 +558,7 @@ public class Cafe
 
     private Item? GetMenuItemForCustomer(NPC npc)
     {
-        SortedDictionary<int, List<Item>> tastesItems = new SortedDictionary<int, List<Item>>();
+        SortedDictionary<int, List<Item>> tastesItems = [];
         int count = 0;
 
         foreach (Item i in this.Menu.ItemDictionary.Values.SelectMany(i => i))
@@ -585,7 +586,7 @@ public class Cafe
             }
 
             if (!tastesItems.ContainsKey(tasteLevel))
-                tastesItems[tasteLevel] = new List<Item>();
+                tastesItems[tasteLevel] = [];
 
             tastesItems[tasteLevel].Add(i);
             count++;

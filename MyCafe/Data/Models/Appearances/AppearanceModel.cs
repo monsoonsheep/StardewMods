@@ -22,7 +22,7 @@ public abstract class AppearanceModel
     /// <returns></returns>
     internal Gender GetGender()
     {
-        return Utility.CustomGenderToGameGender(this.Gender);
+        return ModUtility.CustomGenderToGameGender(this.Gender);
     }
 
     /// <summary>
@@ -57,7 +57,7 @@ public abstract class AppearanceModel
     /// </summary>
     internal bool MatchesGender(Gender gender)
     {
-        Gender myGender = Utility.CustomGenderToGameGender(this.Gender);
+        Gender myGender = ModUtility.CustomGenderToGameGender(this.Gender);
         return (myGender == gender) || (gender == StardewValley.Gender.Undefined) || (myGender == StardewValley.Gender.Undefined);
     }
 

@@ -10,9 +10,11 @@ using Microsoft.Xna.Framework.Graphics;
 using MonsoonSheep.Stardew.Common;
 using MonsoonSheep.Stardew.Common.Patching;
 using MyCafe.Characters;
+using MyCafe.Characters.Factory;
 using MyCafe.Data;
 using MyCafe.Data.Customers;
 using MyCafe.Data.Models;
+using MyCafe.Data.Models.Appearances;
 using MyCafe.Enums;
 using MyCafe.Interfaces;
 using MyCafe.Inventories;
@@ -24,8 +26,10 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Buildings;
+using StardewValley.GameData.Buildings;
 using StardewValley.Inventories;
 using StardewValley.Locations;
+using xTile;
 
 namespace MyCafe;
 
@@ -38,10 +42,11 @@ public class Mod : StardewModdingAPI.Mod
     private Texture2D _sprites = null!;
     private ConfigModel _loadedConfig = null!;
 
-    private AssetManager _assetManager = null!;
     private CharacterFactory _characterFactory = null!;
 
     internal bool IsPlacingSignBoard;
+
+    internal Dictionary<string, VillagerCustomerModel> VillagerCustomerModels = [];
 
     internal static Texture2D Sprites
         => Instance._sprites;
@@ -58,13 +63,7 @@ public class Mod : StardewModdingAPI.Mod
     internal static CharacterFactory CharacterFactory
         => Instance._characterFactory;
 
-    internal static AssetManager Assets
-        => Instance._assetManager;
-
-    public Mod()
-    {
-        Instance = this;
-    }
+    public Mod() => Instance = this;
 
     /// <inheritdoc/>
     public override void Entry(IModHelper helper)
@@ -72,7 +71,6 @@ public class Mod : StardewModdingAPI.Mod
         Log.Monitor = this.Monitor;
         I18n.Init(helper.Translation);
         this._loadedConfig = helper.ReadConfig<ConfigModel>();
-        this._assetManager = new AssetManager(helper);
         this._cafe = new Cafe();
         this._characterFactory = new CharacterFactory(helper);
         this._sprites = helper.ModContent.Load<Texture2D>(Path.Combine("assets", "sprites.png"));
@@ -97,8 +95,8 @@ public class Mod : StardewModdingAPI.Mod
         events.GameLoop.DayEnding += this.OnDayEnding;
         events.GameLoop.Saving += this.OnSaving;
 
-        events.Content.AssetRequested += this._assetManager.OnAssetRequested;
-        events.Content.AssetReady += this._assetManager.OnAssetReady;
+        events.Content.AssetRequested += this.OnAssetRequested;
+        events.Content.AssetReady += this.OnAssetReady;
         events.Multiplayer.ModMessageReceived += this.OnModMessageReceived;
         events.Display.RenderedWorld += this.OnRenderedWorld;
         events.World.FurnitureListChanged += this.OnFurnitureListChanged;
@@ -117,7 +115,7 @@ public class Mod : StardewModdingAPI.Mod
         // Remove this? It might not be need. Test multiplayer to confirm.
         FarmerTeamVirtualProperties.Register(spaceCore);
 
-        this._assetManager.LoadContent(this.Helper.ContentPacks.CreateTemporary(
+        this.LoadContent(this.Helper.ContentPacks.CreateTemporary(
             Path.Combine(this.Helper.DirectoryPath, "assets", "DefaultContent"),
             $"{this.ModManifest.Author}.DefaultContent",
             "MyCafe Fake Content Pack",
@@ -133,10 +131,9 @@ public class Mod : StardewModdingAPI.Mod
             return;
 
         Cafe.InitializeForHost(this.Helper);
-        this.LoadCafeData();
+        LoadCafeData();
         Pathfinding.AddRoutesToFarm();
-        this.CleanUpCustomers();
-
+        ModUtility.CleanUpCustomers();
     }
 
     internal void OnDayStarted(object? sender, DayStartedEventArgs e)
@@ -160,7 +157,7 @@ public class Mod : StardewModdingAPI.Mod
         if (!Context.IsMainPlayer)
             return;
 
-        this.SaveCafeData();
+        SaveCafeData();
     }
 
     internal void OnDayEnding(object? sender, DayEndingEventArgs e)
@@ -170,7 +167,7 @@ public class Mod : StardewModdingAPI.Mod
 
         // Delete customers
         Cafe.RemoveAllCustomers();
-        this.CleanUpCustomers();
+        ModUtility.CleanUpCustomers();
     }
 
     internal void OnTimeChanged(object? sender, TimeChangedEventArgs e)
@@ -180,7 +177,7 @@ public class Mod : StardewModdingAPI.Mod
         Cafe.TenMinuteUpdate();
     }
 
-    [SuppressMessage("ReSharper", "PossibleLossOfFraction", Justification = "Deliberate in order to get the tile")]
+    [SuppressMessage("ReSharper", "PossibleLossOfFraction")]
     internal void OnRenderedWorld(object? sender, RenderedWorldEventArgs e)
     {
         if (Cafe.Enabled)
@@ -209,7 +206,7 @@ public class Mod : StardewModdingAPI.Mod
                                 1f);
                             break;
                         case TableState.Free:
-                            if (true || Game1.timeOfDay < Cafe.OpeningTime)
+                            if (Debug.IsDebug() || Game1.timeOfDay < Cafe.OpeningTime)
                             {
                                 e.SpriteBatch.DrawString(Game1.tinyFont, table.Seats.Count.ToString(), Game1.GlobalToLocal(table.Center + new Vector2(-12, -112)) + offset, Color.LightBlue, 0f, Vector2.Zero, 5f, SpriteEffects.None, 0.99f);
                                 e.SpriteBatch.DrawString(Game1.tinyFont, table.Seats.Count.ToString(), Game1.GlobalToLocal(table.Center + new Vector2(-10, -96)) + offset, Color.Black, 0f, Vector2.Zero, 4f, SpriteEffects.None, 1f);
@@ -224,7 +221,9 @@ public class Mod : StardewModdingAPI.Mod
 
         if (this.IsPlacingSignBoard)
         {
-            foreach (Vector2 tile in TileHelper.GetCircularTileGrid(new Vector2((Game1.viewport.X + Game1.getOldMouseX(false)) / 64, (Game1.viewport.Y + Game1.getOldMouseY(false)) / 64), this._loadedConfig.DistanceForSignboardToRegisterTables))
+            foreach (Vector2 tile in TileHelper.GetCircularTileGrid(
+                         new Vector2((Game1.viewport.X + Game1.getOldMouseX(false)) / 64,
+                             (Game1.viewport.Y + Game1.getOldMouseY(false)) / 64), this._loadedConfig.DistanceForSignboardToRegisterTables))
             {
                 // get tile area in screen pixels
                 Rectangle area = new((int)(tile.X * Game1.tileSize - Game1.viewport.X), (int)(tile.Y * Game1.tileSize - Game1.viewport.Y), Game1.tileSize, Game1.tileSize);
@@ -280,24 +279,7 @@ public class Mod : StardewModdingAPI.Mod
         }
     }
 
-    private void CleanUpCustomers()
-    {
-        StardewValley.Utility.ForEachLocation((loc) =>
-        {
-            for (int i = loc.characters.Count - 1; i >= 0; i--)
-            {
-                NPC npc = loc.characters[i];
-                if (npc.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX))
-                {
-                    loc.characters.RemoveAt(i);
-                }
-            }
-
-            return true;
-        });
-    }
-
-    internal void LoadCafeData()
+    internal static void LoadCafeData()
     {
         // Load cafe data
         if (!Game1.IsMasterGame || string.IsNullOrEmpty(Constants.CurrentSavePath) || !File.Exists(Path.Combine(Constants.CurrentSavePath, "MyCafe", "cafedata")))
@@ -325,7 +307,7 @@ public class Mod : StardewModdingAPI.Mod
         Cafe.Menu.MenuObject.Set(cafeData.MenuItemLists);
         foreach (VillagerCustomerData data in cafeData.VillagerCustomersData)
         {
-            if (!Assets.VillagerCustomerModels.TryGetValue(data.NpcName, out VillagerCustomerModel? model))
+            if (!Instance.VillagerCustomerModels.TryGetValue(data.NpcName, out VillagerCustomerModel? model))
             {
                 Log.Debug("Loading NPC customer data but not model found. Skipping...");
                 continue;
@@ -337,7 +319,7 @@ public class Mod : StardewModdingAPI.Mod
         }
     }
 
-    internal void SaveCafeData()
+    internal static void SaveCafeData()
     {
         if (string.IsNullOrEmpty(Constants.CurrentSavePath))
             return;
@@ -350,7 +332,7 @@ public class Mod : StardewModdingAPI.Mod
             OpeningTime = Cafe.OpeningTime,
             ClosingTime = Cafe.ClosingTime,
             MenuItemLists = new SerializableDictionary<FoodCategory, Inventory>(Cafe.Menu.ItemDictionary),
-            VillagerCustomersData = Cafe.VillagerData.Values.ToList() ?? []
+            VillagerCustomersData = Cafe.VillagerData.Values.ToList()
         };
 
         XmlSerializer serializer = new(typeof(CafeArchiveData));
@@ -367,11 +349,6 @@ public class Mod : StardewModdingAPI.Mod
         {
             Log.Error("Couldn't read Cafe Data from external save folder");
         }
-    }
-
-    private void TryLoadCategoriesConfig()
-    {
-
     }
 
     internal void InitializeGmcm(IModHelper helper, IManifest manifest)
@@ -473,6 +450,271 @@ public class Mod : StardewModdingAPI.Mod
             (m) => $"{(int.Parse(m.Groups[1].Value) - 650 + signboardTile.X)} {(int.Parse(m.Groups[2].Value) - 650 + signboardTile.Y)}");
 
         return substituted;
+    }
+
+    
+
+    internal void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
+    {
+        // NPC Schedules
+        if (e.NameWithoutLocale.IsEquivalentTo(ModKeys.ASSETS_NPCSCHEDULE))
+        {
+            Dictionary<string, VillagerCustomerModel> data = [];
+
+            DirectoryInfo schedulesFolder = new DirectoryInfo(Path.Combine(this.Helper.DirectoryPath, "assets", "VillagerSchedules"));
+            foreach (FileInfo file in schedulesFolder.GetFiles())
+            {
+                VillagerCustomerModel model = this.Helper.ModContent.Load<VillagerCustomerModel>(file.FullName);
+                string npcName = file.Name.Replace(".json", "");
+                model.NpcName = npcName;
+                data[npcName] = model;
+            }
+
+            e.LoadFrom(() => data, AssetLoadPriority.Medium);
+        }
+
+        // Buildings data (Cafe and signboard)
+        else if (e.NameWithoutLocale.IsEquivalentTo("Data/Buildings"))
+        {
+            e.Edit(asset =>
+            {
+                var data = asset.AsDictionary<string, BuildingData>();
+                data.Data[ModKeys.CAFE_BUILDING_BUILDING_ID] = this.Helper.ModContent.Load<BuildingData>(Path.Combine("assets", "Buildings", "Cafe", "cafebuilding.json"));
+                data.Data[ModKeys.CAFE_SIGNBOARD_BUILDING_ID] = this.Helper.ModContent.Load<BuildingData>(Path.Combine("assets", "Buildings", "Signboard", "signboard.json"));
+            }, AssetEditPriority.Early);
+        }
+
+        // Cafe building texture
+        else if (e.NameWithoutLocale.IsEquivalentTo(ModKeys.CAFE_BUILDING_TEXTURE_NAME))
+        {
+            e.LoadFromModFile<Texture2D>(Path.Combine("assets", "Buildings", "Cafe", "cafebuilding.png"), AssetLoadPriority.Low);
+        }
+
+        // Cafe map tmx
+        else if (e.NameWithoutLocale.IsEquivalentTo($"Maps/{ModKeys.CAFE_MAP_NAME}"))
+        {
+            e.LoadFromModFile<Map>(Path.Combine("assets", "Buildings", "Cafe", "cafemap.tmx"), AssetLoadPriority.Low);
+        }
+
+        // Signboard building texture
+        else if (e.NameWithoutLocale.IsEquivalentTo(ModKeys.CAFE_SIGNBOARD_TEXTURE_NAME))
+        {
+            e.LoadFromModFile<Texture2D>(Path.Combine("assets", "Buildings", "Signboard", "signboard.png"), AssetLoadPriority.Low);
+        }
+
+        // Random generated sprite (with a GUID after the initial asset name)
+        else if (e.NameWithoutLocale.StartsWith(ModKeys.GENERATED_SPRITE_PREFIX))
+        {
+            string id = e.NameWithoutLocale.Name[(ModKeys.GENERATED_SPRITE_PREFIX.Length + 1)..];
+            bool failed = false;
+
+            if (Mod.Cafe.GeneratedSprites.TryGetValue(id, out GeneratedSpriteData data))
+            {
+                Texture2D? sprite = data.Sprite;
+                if (sprite == null)
+                {
+                    Log.Error("Couldn't load texture from generated sprite data!");
+                    failed = true;
+                }
+                else
+                    e.LoadFrom(() => sprite, AssetLoadPriority.Medium);
+            }
+            else
+            {
+                Log.Error($"Couldn't find generate sprite data for guid {id}");
+                failed = true;
+            }
+
+            if (failed)
+            {
+                // Either provide premade error texture or just load null and let the NPC.draw method handle it
+                //e.LoadFrom(() => Game1.content.Load<Texture2D>(FarmAnimal.ErrorTextureName), AssetLoadPriority.Medium);
+                e.LoadFrom(() => null!, AssetLoadPriority.Medium);
+            }
+        }
+
+        // Custom events (Added by CP component)
+        else if (e.NameWithoutLocale.IsEquivalentTo($"Data/{ModKeys.MODASSET_EVENTS}"))
+        {
+            e.LoadFrom(() => new Dictionary<string, string>(), AssetLoadPriority.Low);
+        }
+
+        // Cafe introduction event (Inject into Data/Events/<cafelocation> only when we need to, the game triggers the event and the event sets a mail flag that disables this
+        else if (e.NameWithoutLocale.IsDirectlyUnderPath("Data/Events") &&
+                 Context.IsMainPlayer &&
+                 Game1.MasterPlayer.mailReceived.Contains(ModKeys.MAILFLAG_HAS_BUILT_SIGNBOARD) &&
+                 Game1.MasterPlayer.mailReceived.Contains(ModKeys.MAILFLAG_HAS_SEEN_CAFE_INTRODUCTION) == false)
+        {
+            GameLocation eventLocation = Game1.locations.First(l => l.isBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID));
+            if (e.NameWithoutLocale.IsEquivalentTo($"Data/Events/{eventLocation.Name}"))
+            {
+                string @event = Mod.GetCafeIntroductionEvent();
+                e.Edit((asset) =>
+                {
+                    IDictionary<string, string> data = asset.AsDictionary<string, string>().Data;
+                    data[$"{ModKeys.MODASSET_EVENTS.Replace('/', '_')}_{ModKeys.EVENT_CAFEINTRODUCTION}/M 100"] = @event;
+                });
+            }
+        }
+    }
+
+    internal void OnAssetReady(object? sender, AssetReadyEventArgs e)
+    {
+        // NPC Schedules
+        if (e.NameWithoutLocale.IsEquivalentTo(ModKeys.ASSETS_NPCSCHEDULE))
+        {
+            this.VillagerCustomerModels = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(ModKeys.ASSETS_NPCSCHEDULE);
+        }
+    }
+
+    internal void LoadContent(IContentPack defaultContent)
+    {
+        this.VillagerCustomerModels = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(ModKeys.ASSETS_NPCSCHEDULE);
+
+        // Load default content pack included in assets folder
+        this.LoadContentPack(defaultContent);
+
+        // Load content packs
+        foreach (IContentPack contentPack in this.Helper.ContentPacks.GetOwned())
+            this.LoadContentPack(contentPack);
+
+        Mod.CharacterFactory.BodyBase = this.Helper.ModContent.Load<IRawTextureData>(Path.Combine("assets", "CharGen", "base.png"));
+        Mod.CharacterFactory.Eyes = this.Helper.ModContent.Load<IRawTextureData>(Path.Combine("assets", "CharGen", "eyes.png"));
+        Mod.CharacterFactory.SkinTones = this.Helper.ModContent.Load<List<int[]>>(Path.Combine("assets", "CharGen", "skintones.json"));
+        Mod.CharacterFactory.EyeColors = this.Helper.ModContent.Load<List<int[]>>(Path.Combine("assets", "CharGen", "eyecolors.json"));
+        Mod.CharacterFactory.HairColors = this.Helper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "haircolors.json"));
+        Mod.CharacterFactory.ShirtColors = this.Helper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "shirtcolors.json"));
+        Mod.CharacterFactory.PantsColors = this.Helper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "pantscolors.json"));
+    }
+
+    internal void LoadContentPack(IContentPack contentPack)
+    {
+        Log.Info($"Loading content pack {contentPack.Manifest.Name} by {contentPack.Manifest.Author}");
+
+        DirectoryInfo customersFolder = new(Path.Combine(contentPack.DirectoryPath, "Customers"));
+        DirectoryInfo hairsFolder = new(Path.Combine(contentPack.DirectoryPath, "Hairstyles"));
+        DirectoryInfo shirtsFolder = new(Path.Combine(contentPack.DirectoryPath, "Shirts"));
+        DirectoryInfo pantsFolder = new(Path.Combine(contentPack.DirectoryPath, "Pants"));
+        DirectoryInfo shoesFolder = new(Path.Combine(contentPack.DirectoryPath, "Shoes"));
+        DirectoryInfo accessoriesFolder = new(Path.Combine(contentPack.DirectoryPath, "Accessories"));
+        DirectoryInfo outfitsFolder = new(Path.Combine(contentPack.DirectoryPath, "Outfits"));
+
+        if (customersFolder.Exists)
+        {
+            DirectoryInfo[] customerModels = customersFolder.GetDirectories("*", SearchOption.TopDirectoryOnly);
+
+            // Load customer models
+            foreach (DirectoryInfo modelFolder in customerModels)
+            {
+                string relativePathOfModel = Path.Combine("Customers", modelFolder.Name);
+                CustomerModel? model = contentPack.ReadJsonFile<CustomerModel>(Path.Combine(relativePathOfModel, "customer.json"));
+                if (model == null)
+                {
+                    Log.Debug("Couldn't read customer.json for content pack");
+                    continue;
+                }
+                model.Name = modelFolder.Name;
+                model.Spritesheet = contentPack.ModContent.GetInternalAssetName(Path.Combine(relativePathOfModel, "customer.png")).Name;
+
+                string portraitPath = Path.Combine(relativePathOfModel, "portrait.png");
+
+                model.Portrait = contentPack.HasFile(portraitPath)
+                    ? contentPack.ModContent.GetInternalAssetName(portraitPath).Name
+                    : this.Helper.ModContent.GetInternalAssetName(Path.Combine("assets", "CharGen", "Portraits", (string.IsNullOrEmpty(model.Portrait) ? "cat" : model.Portrait) + ".png")).Name;
+
+                Log.Trace($"Customer model added: {model.Name}");
+                Mod.CharacterFactory.Customers[$"{contentPack.Manifest.UniqueID}/{model.Name}"] = model;
+            }
+        }
+
+        if (hairsFolder.Exists)
+        {
+            DirectoryInfo[] hairModels = hairsFolder.GetDirectories("*", SearchOption.TopDirectoryOnly);
+            foreach (DirectoryInfo modelFolder in hairModels)
+            {
+                HairModel? model = LoadAppearanceModel<HairModel>(contentPack, modelFolder.Name);
+                if (model != null) 
+                    Mod.CharacterFactory.Hairstyles[model.Id] = model;
+            }
+        }
+
+        if (shirtsFolder.Exists)
+        {
+            DirectoryInfo[] shirtModels = shirtsFolder.GetDirectories("*", SearchOption.TopDirectoryOnly);
+            foreach (DirectoryInfo modelFolder in shirtModels)
+            {
+                ShirtModel? model = LoadAppearanceModel<ShirtModel>(contentPack, modelFolder.Name);
+                if (model != null) 
+                    Mod.CharacterFactory.Shirts[model.Id] = model;
+            }
+        }
+
+        if (pantsFolder.Exists)
+        {
+            DirectoryInfo[] pantsModels = pantsFolder.GetDirectories("*", SearchOption.TopDirectoryOnly);
+            foreach (DirectoryInfo modelFolder in pantsModels)
+            {
+                PantsModel? model = LoadAppearanceModel<PantsModel>(contentPack, modelFolder.Name);
+                if (model != null) 
+                    Mod.CharacterFactory.Pants[model.Id] = model;
+            }
+        }
+
+        if (shoesFolder.Exists)
+        {
+            DirectoryInfo[] shoesModels = shoesFolder.GetDirectories("*", SearchOption.TopDirectoryOnly);
+            foreach (DirectoryInfo modelFolder in shoesModels)
+            {
+                ShoesModel? model = LoadAppearanceModel<ShoesModel>(contentPack, modelFolder.Name);
+                if (model != null) 
+                    Mod.CharacterFactory.Shoes[model.Id] = model;
+            }
+        }
+
+        if (accessoriesFolder.Exists)
+        {
+            DirectoryInfo[] accessoryModels = accessoriesFolder.GetDirectories("*", SearchOption.TopDirectoryOnly);
+            foreach (DirectoryInfo modelFolder in accessoryModels)
+            {
+                AccessoryModel? model = LoadAppearanceModel<AccessoryModel>(contentPack, modelFolder.Name);
+                if (model != null) 
+                    Mod.CharacterFactory.Accessories[model.Id] = model;
+            }
+        }
+
+        // Load outfits
+        if (outfitsFolder.Exists)
+        {
+            DirectoryInfo[] outfitModels = outfitsFolder.GetDirectories("*", SearchOption.TopDirectoryOnly);
+            foreach (DirectoryInfo modelFolder in outfitModels)
+            {
+                OutfitModel? model = LoadAppearanceModel<OutfitModel>(contentPack, modelFolder.Name);
+                if (model != null) 
+                    Mod.CharacterFactory.Outfits[model.Id] = model;
+            }
+        }
+    }
+
+    internal static TAppearance? LoadAppearanceModel<TAppearance>(IContentPack contentPack, string modelName) where TAppearance : AppearanceModel
+    {
+        string filename = ModUtility.GetFileNameForAppearanceType<TAppearance>();
+        string folderName = ModUtility.GetFolderNameForAppearance<TAppearance>();
+
+        string relativePathOfModel = Path.Combine(folderName, modelName);
+        TAppearance? model = contentPack.ReadJsonFile<TAppearance>(Path.Combine(relativePathOfModel, $"{filename}.json"));
+        if (model == null)
+        {
+            Log.Debug($"Couldn't read {filename}.json for content pack {contentPack.Manifest.UniqueID}");
+            return null;
+        }
+
+        model.Id = $"{contentPack.Manifest.UniqueID}/{modelName}";
+        model.TexturePath = contentPack.ModContent.GetInternalAssetName(Path.Combine(relativePathOfModel, $"{filename}.png")).Name;
+        model.ContentPack = contentPack;
+
+        Log.Trace($"{folderName} model added: {model.Id}");
+
+        return model;
     }
 
 #if YOUTUBE || TWITCH

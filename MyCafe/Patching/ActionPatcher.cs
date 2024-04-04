@@ -36,7 +36,7 @@ internal class ActionPatcher : BasePatcher
             if (table == null)
                 return true;
             
-            if (Mod.Cafe.InteractWithTable(table, who))
+            if (Cafe.InteractWithTable(table, who))
             {
                 __result = true;
                 return false;
@@ -46,7 +46,7 @@ internal class ActionPatcher : BasePatcher
         return true;
     }
 
-    private static bool Before_GameLocationCheckAction(GameLocation __instance, Location tileLocation, Rectangle _, Farmer who, ref bool __result)
+    private static bool Before_GameLocationCheckAction(GameLocation __instance, Location tileLocation, Rectangle viewport, Farmer who, ref bool __result)
     {
         if ((__instance.Equals(Mod.Cafe.Indoor) || __instance.Equals(Mod.Cafe.Outdoor)))
         {
@@ -54,7 +54,7 @@ internal class ActionPatcher : BasePatcher
             {
                 if (table.BoundingBox.Value.Contains(tileLocation.X * 64, tileLocation.Y * 64)
                     && table.CurrentLocation == __instance.Name
-                    && Mod.Cafe.InteractWithTable(table, who))
+                    && Cafe.InteractWithTable(table, who))
                 {
                     __result = true;
                     return false;

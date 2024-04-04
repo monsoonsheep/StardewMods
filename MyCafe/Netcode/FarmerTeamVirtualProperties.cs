@@ -20,7 +20,7 @@ public static class FarmerTeamVirtualProperties
             AccessTools.Method(typeof(FarmerTeamVirtualProperties), nameof(get_CafeNetFields)),
             AccessTools.Method(typeof(FarmerTeamVirtualProperties), nameof(set_CafeNetFields)));
 
-        spaceCore.RegisterSerializerType(typeof(CafeNetObject));
+        // spaceCore.RegisterSerializerType(typeof(CafeNetObject));
     }
 
     public static NetRef<CafeNetObject> get_CafeNetFields(this FarmerTeam farm)

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Xna.Framework;
 using MyCafe.Data.Customers;
 using MyCafe.Enums;
 using MyCafe.Locations.Objects;
@@ -9,6 +10,7 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Menus;
+#pragma warning disable IDE0060
 
 namespace MyCafe;
 
@@ -55,7 +57,7 @@ internal static class Debug
 
                 break;
             case SButton.NumPad9:
-
+                ModUtility.DoEmojiSprite(Game1.player.Tile, EmojiSprite.Money);
                 break;
             case SButton.U:
                 OpenCafeMenu();
@@ -118,5 +120,14 @@ internal static class Debug
     internal static void PrintAllInfo()
     {
         Log.Debug($"{Mod.Cafe.Tables.Count} tables");
+    }
+
+    internal static bool IsDebug()
+    {
+        #if DEBUG
+        return true;
+        #else
+        return false;
+        #endif
     }
 }

@@ -8,14 +8,13 @@ using StardewValley;
 
 namespace MyCafe.Patching;
 
-[SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony patching requirement")]
 internal class NetFieldPatcher : BasePatcher
 {
     public override void Apply(Harmony harmony, IMonitor monitor)
     {
         harmony.Patch(
             original: AccessTools.Constructor(typeof(FarmerTeam)),
-            postfix: this.GetHarmonyMethod(nameof(NetFieldPatcher.After_FarmInitNetFields))
+            postfix: this.GetHarmonyMethod(nameof(NetFieldPatcher.After_FarmerTeamConstructor))
         );
         harmony.Patch(
             original: this.RequireMethod<Character>("initNetFields"),
@@ -26,10 +25,11 @@ internal class NetFieldPatcher : BasePatcher
     /// <summary>
     /// Add the Cafe net field to the farm, and update <see cref="Mod.Cafe"/>
     /// </summary>
-    private static void After_FarmInitNetFields(FarmerTeam __instance)
+    private static void After_FarmerTeamConstructor(FarmerTeam __instance)
     {
         NetRef<CafeNetObject> val = __instance.get_CafeNetFields();
         __instance.NetFields.AddField(val);
+        Log.Info("Adding netfields to FarmerTeam");
     }
 
     /// <summary>

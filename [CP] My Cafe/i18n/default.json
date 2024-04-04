@@ -14,5 +14,8 @@
 	"event-CafeIntroduction.04.fork3.01": "Ooh fancy! I look forward to that.",
 	"event-CafeIntroduction.04.fork4.01": "Well, I look forward to it!$h",
 
-	"dialogue-Abigail.CafeVisit1": "",
+	"dialogue-Abigail.CafeVisit": "I've been waiting to eat today.",
+	"dialogue-Abigail.CafeFirstTimeVisit": "This place looks great!$h",
+	"dialogue-Abigail.LastAteComment": "I already miss the {0} I had at your restaurant the other day.#$b#I might visit again soon!$h",
+	"dialogue-Abigail.CafeOpened": "I heard you're running a restaurant now.#$b#Usually it's either Mom's cooking or the Saloon for me.#$b#Not that those are bad or anything! Just good to add some variety.$h"
 }

@@ -48,7 +48,7 @@ internal class FurniturePatcher : BasePatcher
     /// </summary>
     private static void After_GetAdditionalFurniturePlacementStatus(Furniture __instance, GameLocation location, int x, int y, Farmer who, ref int __result)
     {
-        if (Utility.IsTable(__instance))
+        if (ModUtility.IsTable(__instance))
         {
             Furniture table = location.GetFurnitureAt(new Vector2(x, y));
             if (Mod.Cafe.IsRegisteredTable(table, out FurnitureTable? trackedTable) && trackedTable.IsReserved)
@@ -61,7 +61,7 @@ internal class FurniturePatcher : BasePatcher
     /// </summary>
     private static bool Before_AddSittingFarmer(Furniture __instance, Farmer who, ref Vector2? __result)
     {
-        if (Utility.IsChair(__instance)
+        if (ModUtility.IsChair(__instance)
             && Mod.Cafe.IsRegisteredChair(__instance, out FurnitureSeat? chair) && chair.IsReserved)
         {
             Log.Warn("Can't sit in this chair, it's reserved");
@@ -77,7 +77,7 @@ internal class FurniturePatcher : BasePatcher
     /// </summary>
     private static bool Before_PerformObjectDropInAction(Furniture __instance, Item dropInItem, bool probe, Farmer who, ref bool __result)
     {
-        if (Utility.IsTable(__instance))
+        if (ModUtility.IsTable(__instance))
         {
             if (Mod.Cafe.IsRegisteredTable(__instance, out FurnitureTable? trackedTable)
                 && trackedTable.IsReserved)
@@ -96,7 +96,7 @@ internal class FurniturePatcher : BasePatcher
         if (__result is false)
             return;
 
-        if (Utility.IsTable(__instance))
+        if (ModUtility.IsTable(__instance))
         {
             if (Mod.Cafe.IsRegisteredTable(__instance, out FurnitureTable? trackedTable) && trackedTable.IsReserved)
             {
