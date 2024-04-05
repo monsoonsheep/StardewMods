@@ -6,7 +6,7 @@ using MyCafe.Enums;
 using MyCafe.Netcode;
 using StardewValley;
 
-namespace MyCafe.Characters;
+namespace MyCafe.Characters.Factory;
 
 internal class VillagerCustomerBuilder : CustomerBuilder
 {
@@ -62,16 +62,6 @@ internal class VillagerCustomerBuilder : CustomerBuilder
 
     internal override bool PostMove()
     {
-        foreach (NPC c in this._group!.Members)
-        {
-            Mod.Cafe.NpcCustomers.Add(c.Name);
-        }
-
-        foreach (var data in this.npcVisitData)
-        {
-            data.LastVisitedDate = Game1.Date;
-        }
-
         return true;
     }
 
@@ -79,7 +69,7 @@ internal class VillagerCustomerBuilder : CustomerBuilder
     {
         if (this._group == null)
             return;
-        
+
         foreach (NPC c in this._group.Members)
         {
             Mod.Cafe.ReturnVillagerToSchedule(c);

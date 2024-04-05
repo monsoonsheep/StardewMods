@@ -1,9 +1,27 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.Reflection;
+using StardewValley;
 
 namespace MyCafe.Interfaces;
 public interface ISpaceCoreApi
 {
-    public void RegisterSerializerType(Type type);
-    public void RegisterCustomProperty(Type declaringType, string propName, Type propType, MethodInfo getterMethod, MethodInfo setterMethod);
+    string[] GetCustomSkills();
+
+    int GetLevelForCustomSkill(Farmer farmer, string skill);
+
+    int GetExperienceForCustomSkill(Farmer farmer, string skill);
+
+    List<Tuple<string, int, int>> GetExperienceAndLevelsForCustomSkill(Farmer farmer);
+
+    void AddExperienceForCustomSkill(Farmer farmer, string skill, int amt);
+
+    int GetProfessionId(string skill, string profession);
+
+    /// Must have [XmlType("Mods_SOMETHINGHERE")] attribute (required to start with "Mods_")
+    void RegisterSerializerType(Type type);
+
+    void RegisterCustomProperty( Type declaringType, string name, Type propType, MethodInfo getter, MethodInfo setter );
+
+    public event EventHandler<Action<string, Action>> AdvancedInteractionStarted;
 }

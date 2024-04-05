@@ -22,21 +22,26 @@ using MyCafe.Data.Models;
 using System.Text.RegularExpressions;
 using StardewValley.Pathfinding;
 using StardewValley.SpecialOrders.Objectives;
+using MyCafe.Characters.Factory;
+using MyCafe.Data;
+
 #pragma warning disable IDE0060
 
 namespace MyCafe;
 
 public class Cafe
 {
-    internal RandomCustomerBuilder randomCustomerBuilder = null!;
+    private RandomCustomerBuilder randomCustomerBuilder = null!;
 
-    internal VillagerCustomerBuilder villagerCustomerBuilder = null!;
+    private VillagerCustomerBuilder villagerCustomerBuilder = null!;
 
-    internal List<CustomerGroup> Groups = [];
+    private readonly List<CustomerGroup> Groups = [];
 
     internal readonly Dictionary<string, VillagerCustomerData> VillagerData = [];
 
-    internal int LastTimeCustomersArrived = 0;
+    private readonly int LastTimeCustomersArrived = 0;
+
+    internal event EventHandler<CustomerSpawnedEventArgs> CustomerSpawned = null!;
 
     private CafeNetObject Fields
         => Game1.player.team.get_CafeNetFields().Value;
@@ -127,7 +132,7 @@ public class Cafe
         int count = 0;
         foreach (GameLocation location in locations)
         {
-            foreach (Furniture furniture in location.furniture.Where(t => ModUtility.IsTable((t))))
+            foreach (Furniture furniture in location.furniture.Where(t => t.IsTable()))
             {
                 FurnitureTable newTable = new FurnitureTable(furniture, location.Name);
                 if (newTable.Seats.Count > 0)
@@ -246,7 +251,7 @@ public class Cafe
         {
             Furniture facingTable = location.GetFurnitureAt(placed.TileLocation + CommonHelper.DirectionIntToDirectionVector(placed.currentRotation.Value) * new Vector2(1, -1));
             if (facingTable == null
-                || ModUtility.IsTable(facingTable) == false
+                || facingTable.IsTable() == false
                 || facingTable.GetBoundingBox().Intersects(placed.boundingBox.Value))
             {
                 return;
@@ -263,7 +268,7 @@ public class Cafe
 
             table.AddChair(placed);
         }
-        else if (ModUtility.IsTable(placed))
+        else if (placed.IsTable())
         {
             if (location.Equals(this.Outdoor) && IsFurnitureWithinRangeOfSignboard(placed, location) == false)
                 return;
@@ -315,7 +320,7 @@ public class Cafe
                 }
             }
         }
-        else if (ModUtility.IsTable(f))
+        else if (f.IsTable())
         {
             if (this.IsRegisteredTable(f, out FurnitureTable? trackedTable))
             {
@@ -491,6 +496,12 @@ public class Cafe
         if (group == null)
             return;
 
+        foreach (NPC c in group.Members)
+            this.CustomerSpawned.Invoke(null, new CustomerSpawnedEventArgs(
+                c,
+                group.ReservedTable!,
+                type == GroupType.Villager));
+
         this.Groups.Add(group);
     }
 
@@ -512,6 +523,8 @@ public class Cafe
 
     private static bool CanVillagerVisit(VillagerCustomerData data, int timeOfDay)
     {
+        if (data.NpcName == "Abigail") return true;
+
         NPC npc = data.GetNpc();
         VillagerCustomerModel model = Mod.Instance.VillagerCustomerModels[data.NpcName];
 

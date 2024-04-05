@@ -31,7 +31,8 @@ internal class ActionPatcher : BasePatcher
     {
         if (((Mod.Cafe.NpcCustomers.Contains(__instance.Name) || __instance.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX)) && !__instance.IsInvisible) && (l.Equals(Mod.Cafe.Indoor) || l.Equals(Mod.Cafe.Outdoor)))
         {
-            CustomerGroup? group = Mod.Cafe.Groups.FirstOrDefault(g => g.Members.Contains(__instance));
+            // TODO this doesn't work for multiplayer client
+            CustomerGroup? group = __instance.get_Group();
             Table? table = group?.ReservedTable;
             if (table == null)
                 return true;

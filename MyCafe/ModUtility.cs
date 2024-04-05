@@ -15,11 +15,6 @@ internal static class ModUtility
         return furniture.furniture_type.Value is 0 or 1 or 2;
     }
 
-    internal static bool IsTable(Furniture furniture)
-    {
-        return furniture.furniture_type.Value == 11;
-    }
-
     internal static List<Item> ParseMenuItems(string[] ids)
     {
         List<Item> items = [];

@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Reflection.Emit;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MonsoonSheep.Stardew.Common;
 using MonsoonSheep.Stardew.Common.Patching;
 using MyCafe.Characters;
+using MyCafe.Locations.Objects;
 using MyCafe.Netcode;
 using Netcode;
 using StardewModdingAPI;
@@ -20,16 +23,16 @@ internal class CharacterPatcher : BasePatcher
     public override void Apply(Harmony harmony, IMonitor monitor)
     {
         harmony.Patch(
+            original: this.RequireMethod<Game1>(nameof(Game1.warpCharacter), [typeof(NPC), typeof(string), typeof(Vector2)]),
+            postfix: this.GetHarmonyMethod(nameof(CharacterPatcher.After_Game1WarpCharacter))
+        );
+        harmony.Patch(
             original: this.RequireMethod<NPC>(nameof(NPC.draw), [typeof(SpriteBatch), typeof(float)]),
             transpiler: this.GetHarmonyMethod(nameof(CharacterPatcher.Transpile_NpcDraw))
         );
         harmony.Patch(
             original: this.RequireMethod<NPC>(nameof(NPC.ChooseAppearance)),
             prefix: this.GetHarmonyMethod(nameof(CharacterPatcher.Before_ChooseAppearance))
-        );
-        harmony.Patch(
-            original: this.RequireMethod<Character>(nameof(Character.doEmote), [typeof(int), typeof(bool), typeof(bool)]),
-            postfix: this.GetHarmonyMethod(nameof(CharacterPatcher.After_doEmote))
         );
         harmony.Patch(
             original: this.RequireMethod<NPC>(nameof(NPC.update), [typeof(GameTime), typeof(GameLocation)]),
@@ -72,33 +75,50 @@ internal class CharacterPatcher : BasePatcher
     /// </summary>
     private static bool Before_ChooseAppearance(NPC __instance, LocalizedContentManager content)
     {
-        if (__instance.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX))
-            return false;
-
-        return true;
+        return !__instance.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX);
     }
 
-    private static void After_doEmote(Character __instance, int whichEmote, bool playSound, bool nextEventCommand)
+    private static void After_Game1WarpCharacter(NPC character, string targetLocationName, Vector2 position)
     {
-        // Check if emoting as a customer, then msg to clients
-        if (Context.IsMainPlayer)
+        if (Mod.Cafe.NpcCustomers.Contains(character.Name))
         {
-            // send emote command to clients
+            CustomerGroup? group = character.get_Group();
+            Table? table = group?.ReservedTable;
+            if (table == null)
+                return;
+
+            if (targetLocationName.Equals(table.CurrentLocation))
+            {
+                // Set visit dialogue
+                Dictionary<string, string> dialogueAsset = Game1.content.Load<Dictionary<string, string>>($"{ModKeys.MODASSET_DIALOGUE}/{character.Name}");
+                if (!dialogueAsset.ContainsKey(ModKeys.MODASSET_DIALOGUE_ENTRY_CAFEVISIT))
+                    dialogueAsset = Game1.content.Load<Dictionary<string, string>>($"{ModKeys.MODASSET_DIALOGUE}/Generic");
+
+                KeyValuePair<string, string> entry = dialogueAsset.Where(pair => pair.Key.StartsWith(ModKeys.MODASSET_DIALOGUE_ENTRY_CAFEVISIT)).ToList().PickRandom();
+
+                character.CurrentDialogue.Push(
+                    new Dialogue(character, $"{ModKeys.MODASSET_DIALOGUE}:{entry.Key}", entry.Value)
+                    {
+                        removeOnNextMove = true,
+                        dontFaceFarmer = true
+                    }
+                );
+            }
         }
     }
 
     private static void After_update(NPC __instance, GameTime time, GameLocation location)
     {
         // Run only if either villager customer (in the hashset) or random customer (name starts with a prefix)
-        if ((Mod.Cafe.NpcCustomers.Contains(__instance.Name) || __instance.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX)) && !__instance.IsInvisible)
+        if ((Mod.Cafe.NpcCustomers.Contains(__instance.Name) || __instance.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX)))
         {
-            // If they are in Bus Stop, warp them to the next location in their route
+            // If they are in Bus Stop or town and there's no farmers there, warp them to the next location in their route
             if (__instance.controller != null
                 && !__instance.currentLocation.farmers.Any()
-                && __instance.currentLocation.Name.Equals("BusStop")
+                && (__instance.currentLocation.Name.Equals("BusStop") || __instance.currentLocation.Name.Equals("Town"))
                 && (bool?) AccessTools.Field(typeof(Character), "freezeMotion").GetValue(__instance) is false)
             {
-                while (__instance.currentLocation.Name.Equals("BusStop") && __instance.controller.pathToEndPoint?.Count > 2)
+                while ((__instance.currentLocation.Name.Equals("BusStop") || __instance.currentLocation.Name.Equals("Town")) && __instance.controller.pathToEndPoint?.Count > 2)
                 {
                     __instance.controller.pathToEndPoint.Pop();
                     __instance.controller.handleWarps(new Rectangle(__instance.controller.pathToEndPoint.Peek().X * 64, __instance.controller.pathToEndPoint.Peek().Y * 64, 64, 64));

@@ -48,7 +48,7 @@ internal class FurniturePatcher : BasePatcher
     /// </summary>
     private static void After_GetAdditionalFurniturePlacementStatus(Furniture __instance, GameLocation location, int x, int y, Farmer who, ref int __result)
     {
-        if (ModUtility.IsTable(__instance))
+        if (__instance.IsTable())
         {
             Furniture table = location.GetFurnitureAt(new Vector2(x, y));
             if (Mod.Cafe.IsRegisteredTable(table, out FurnitureTable? trackedTable) && trackedTable.IsReserved)
@@ -77,7 +77,7 @@ internal class FurniturePatcher : BasePatcher
     /// </summary>
     private static bool Before_PerformObjectDropInAction(Furniture __instance, Item dropInItem, bool probe, Farmer who, ref bool __result)
     {
-        if (ModUtility.IsTable(__instance))
+        if (__instance.IsTable())
         {
             if (Mod.Cafe.IsRegisteredTable(__instance, out FurnitureTable? trackedTable)
                 && trackedTable.IsReserved)
@@ -96,7 +96,7 @@ internal class FurniturePatcher : BasePatcher
         if (__result is false)
             return;
 
-        if (ModUtility.IsTable(__instance))
+        if (__instance.IsTable())
         {
             if (Mod.Cafe.IsRegisteredTable(__instance, out FurnitureTable? trackedTable) && trackedTable.IsReserved)
             {

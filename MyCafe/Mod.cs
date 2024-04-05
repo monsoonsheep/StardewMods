@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -26,9 +27,11 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Buildings;
+using StardewValley.Delegates;
 using StardewValley.GameData.Buildings;
 using StardewValley.Inventories;
 using StardewValley.Locations;
+using StardewValley.TokenizableStrings;
 using xTile;
 
 namespace MyCafe;
@@ -40,6 +43,7 @@ public class Mod : StardewModdingAPI.Mod
     private Cafe _cafe = null!;
 
     private Texture2D _sprites = null!;
+
     private ConfigModel _loadedConfig = null!;
 
     private CharacterFactory _characterFactory = null!;
@@ -82,7 +86,8 @@ public class Mod : StardewModdingAPI.Mod
                 new NetFieldPatcher(),
                 new CharacterPatcher(),
                 new FurniturePatcher(),
-                new SignboardPatcher()
+                new SignboardPatcher(),
+                new DialoguePatcher()
             ) is false)
             return;
 
@@ -101,6 +106,8 @@ public class Mod : StardewModdingAPI.Mod
         events.Display.RenderedWorld += this.OnRenderedWorld;
         events.World.FurnitureListChanged += this.OnFurnitureListChanged;
         events.Input.ButtonPressed += Debug.ButtonPress;
+
+        Cafe.CustomerSpawned += this.OnCustomerSpawned;
     }
 
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
@@ -121,8 +128,20 @@ public class Mod : StardewModdingAPI.Mod
             "MyCafe Fake Content Pack",
             "Default content for MyCafe",
             this.ModManifest.Author,
-            this.ModManifest.Version)
-        );
+            this.ModManifest.Version
+            ));
+
+        TokenParser.RegisterParser(
+            ModKeys.TOKEN_RANDOM_MENU_ITEM,
+            (string[] query, out string replacement, Random random, Farmer player) =>
+            {
+                replacement = Cafe.Menu.ItemDictionary.Values.SelectMany(i => i).ToList().PickRandom()?.DisplayName ?? "Special";
+                return true;
+            });
+
+        GameStateQuery.Register(
+            ModKeys.GAMESTATEQUERY_ISINDOORCAFE,
+            (query, context) => Game1.currentLocation.Equals(Cafe.Indoor));
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
@@ -132,6 +151,11 @@ public class Mod : StardewModdingAPI.Mod
 
         Cafe.InitializeForHost(this.Helper);
         LoadCafeData();
+
+        foreach (var model in this.VillagerCustomerModels)
+            if (!Cafe.VillagerData.ContainsKey(model.Key))
+                Cafe.VillagerData[model.Key] = new VillagerCustomerData(model.Key);
+        
         Pathfinding.AddRoutesToFarm();
         ModUtility.CleanUpCustomers();
     }
@@ -276,6 +300,15 @@ public class Mod : StardewModdingAPI.Mod
             {
                 Log.Debug($"Invalid message from host\n{ex}", LogLevel.Error);
             }
+        }
+    }
+
+    internal void OnCustomerSpawned(object? sender, CustomerSpawnedEventArgs e)
+    {
+        if (e.IsVillager)
+        {
+            Cafe.NpcCustomers.Add(e.Npc.Name);
+            Cafe.VillagerData[e.Npc.Name].LastVisitedDate = Game1.Date;
         }
     }
 
@@ -452,8 +485,6 @@ public class Mod : StardewModdingAPI.Mod
         return substituted;
     }
 
-    
-
     internal void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
     {
         // NPC Schedules
@@ -527,7 +558,7 @@ public class Mod : StardewModdingAPI.Mod
 
             if (failed)
             {
-                // Either provide premade error texture or just load null and let the NPC.draw method handle it
+                // Either provide premade error texture or just load null and let the NPC.draw method handle it TODO test the error
                 //e.LoadFrom(() => Game1.content.Load<Texture2D>(FarmAnimal.ErrorTextureName), AssetLoadPriority.Medium);
                 e.LoadFrom(() => null!, AssetLoadPriority.Medium);
             }
@@ -555,6 +586,12 @@ public class Mod : StardewModdingAPI.Mod
                     data[$"{ModKeys.MODASSET_EVENTS.Replace('/', '_')}_{ModKeys.EVENT_CAFEINTRODUCTION}/M 100"] = @event;
                 });
             }
+        }
+
+        // Custom dialogue assets
+        else if (e.NameWithoutLocale.StartsWith(ModKeys.MODASSET_DIALOGUE))
+        {
+            e.LoadFrom(() => new Dictionary<string, string>(), AssetLoadPriority.Medium);
         }
     }
 

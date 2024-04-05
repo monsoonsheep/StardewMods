@@ -48,7 +48,7 @@ internal class LocationPatcher : BasePatcher
 
     private static void After_GameLocationLoadMap(GameLocation __instance, string mapPath, bool force_reload)
     {
-        if (__instance is Farm farm)
+        if (__instance is Farm)
         {
             Layer layer = __instance.Map.GetLayer("Back");
 

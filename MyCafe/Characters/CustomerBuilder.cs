@@ -53,20 +53,14 @@ internal abstract class CustomerBuilder
     {
         this._group = null;
         this._table = tableToUse;
-        bool failed = false;
 
         if (this.SpawnSteps() == false)
         {
             Log.Trace("Error spawning customers");
             this.RevertChanges();
-            failed = true;
-        }
-
-        if (failed)
-        {
             return null;
         }
-
+       
         return this._group;
     }
 
