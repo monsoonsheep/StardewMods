@@ -3,7 +3,7 @@ using MyCafe.Locations.Objects;
 using MyCafe.Netcode;
 using StardewValley;
 
-namespace MyCafe.Characters;
+namespace MyCafe.Characters.Factory;
 
 internal abstract class CustomerBuilder
 {
@@ -32,7 +32,7 @@ internal abstract class CustomerBuilder
         return true;
     }
 
-    #nullable disable
+#nullable disable
     internal bool ReserveTable()
     {
         if (this._group!.ReserveTable(this._table!) == false)
@@ -60,13 +60,13 @@ internal abstract class CustomerBuilder
             this.RevertChanges();
             return null;
         }
-       
+
         return this._group;
     }
 
     private bool SpawnSteps()
     {
-        CustomerGroup? g = this.BuildGroup();
+        CustomerGroup g = this.BuildGroup();
         if (g == null)
         {
             this._group = null;
@@ -75,10 +75,10 @@ internal abstract class CustomerBuilder
 
         this._group = g;
 
-        return (this.SetupGroup() &&
+        return this.SetupGroup() &&
                 this.ReserveTable() &&
                 this.PreMove() &&
                 this.MoveToTable() &&
-                this.PostMove());
+                this.PostMove();
     }
 }

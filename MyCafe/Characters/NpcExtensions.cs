@@ -70,6 +70,10 @@ public static class NpcExtensions
                 };
                 c.Sprite.setCurrentAnimation([new FarmerSprite.AnimationFrame(frame, int.MaxValue)]);
             }
+            else
+            {
+                Mod.Instance.AddDialoguesOnArrivingAtCafe(c);
+            }
             
             if (!group.Members.Any(other => !other.get_IsSittingDown()))
                 group.ReservedTable.State.Set(TableState.CustomersThinkingOfOrder);

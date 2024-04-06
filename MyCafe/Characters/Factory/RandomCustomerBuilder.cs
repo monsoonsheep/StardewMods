@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MyCafe.Characters.Factory;
 using MyCafe.Data.Models;
 using MyCafe.Enums;
 using MyCafe.Netcode;
@@ -21,7 +22,7 @@ internal class RandomCustomerBuilder : CustomerBuilder
 
         for (int i = 0; i < base._table!.Seats.Count; i++)
         {
-            CustomerModel model = Mod.CharacterFactory.GenerateRandomCustomer(); // Generate from CharGen
+            CustomerModel model = Mod.RandomCharacterGenerator.GenerateRandomCustomer(); // Generate from CharGen
 
             Texture2D portrait = Game1.content.Load<Texture2D>(model.Portrait);
             AnimatedSprite sprite = new AnimatedSprite(model.Spritesheet, 0, 16, 32);

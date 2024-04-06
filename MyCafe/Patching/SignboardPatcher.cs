@@ -27,7 +27,7 @@ internal class SignboardPatcher : BasePatcher
     private static void After_SetUpForBuildingPlacement(CarpenterMenu __instance)
     {
         Building? building = (Building?)AccessTools.Field(typeof(CarpenterMenu), "currentBuilding")?.GetValue(__instance);
-        if (building != null && building.GetData()?.CustomFields.TryGetValue(ModKeys.CAFE_SIGNBOARD_CUSTOMFIELD, out string? value) is true && value == "true")
+        if (building != null && building.GetData()?.CustomFields?.TryGetValue(ModKeys.CAFE_SIGNBOARD_CUSTOMFIELD, out string? value) is true && value == "true")
             Mod.Instance.IsPlacingSignBoard = true;
     }
 

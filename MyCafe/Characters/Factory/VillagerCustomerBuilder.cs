@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MyCafe.Data.Customers;
+using MyCafe.Data.Models;
 using MyCafe.Enums;
 using MyCafe.Netcode;
 using StardewValley;
+using SUtility = StardewValley.Utility;
 
 namespace MyCafe.Characters.Factory;
 
@@ -18,7 +20,7 @@ internal class VillagerCustomerBuilder : CustomerBuilder
 
     internal override CustomerGroup? BuildGroup()
     {
-        this.npcVisitData = Mod.Cafe.GetAvailableVillagerCustomers(1);
+        this.npcVisitData = GetAvailableVillagerCustomers(1);
         if (this.npcVisitData.Count == 0)
         {
             Log.Debug("No villager customers can be created");
@@ -38,7 +40,6 @@ internal class VillagerCustomerBuilder : CustomerBuilder
     {
         foreach (NPC c in this._group!.Members)
         {
-            c.ignoreScheduleToday = true;
             Log.Trace($"{c.Name} is coming.");
         }
 
@@ -62,6 +63,12 @@ internal class VillagerCustomerBuilder : CustomerBuilder
 
     internal override bool PostMove()
     {
+        foreach (NPC c in this._group!.Members)
+        {
+            c.ignoreScheduleToday = true;
+            Mod.Cafe.NpcCustomers.Add(c.Name);
+        }
+
         return true;
     }
 
@@ -75,4 +82,76 @@ internal class VillagerCustomerBuilder : CustomerBuilder
             Mod.Cafe.ReturnVillagerToSchedule(c);
         }
     }
+
+    internal static List<VillagerCustomerData> GetAvailableVillagerCustomers(int count)
+    {
+        List<VillagerCustomerData> list = [];
+
+        foreach (KeyValuePair<string, VillagerCustomerData> data in Mod.Instance.VillagerData.OrderBy(_ => Game1.random.Next()))
+        {
+            if (list.Count == count)
+                break;
+
+            if (CanVillagerVisit(data.Value, Game1.timeOfDay))
+                list.Add(data.Value);
+        }
+
+        return list;
+    }
+
+    private static bool CanVillagerVisit(VillagerCustomerData data, int timeOfDay)
+    {
+        NPC npc = data.GetNpc();
+
+        int daysSinceLastVisit = Game1.Date.TotalDays - data.LastVisitedDate.TotalDays;
+
+        #if DEBUG
+        int daysAllowed = 1;
+        #else
+        int daysAllowed = model.VisitFrequency switch
+        {
+            0 => 200,
+            1 => 27,
+            2 => 13,
+            3 => 7,
+            4 => 3,
+            5 => 1,
+            _ => 9999999
+        };
+        #endif
+
+        if (Mod.Cafe.NpcCustomers.Contains(data.NpcName) ||
+            npc.isSleeping.Value == true ||
+            npc.ScheduleKey == null ||
+            daysSinceLastVisit < daysAllowed)
+            return false;
+
+        #if DEBUG
+        return true;
+        #endif
+
+        VillagerCustomerModel model = Mod.Instance.VillagerCustomerModels[data.NpcName];
+        // If no busy period for today, they're free all day
+        if (!model.BusyTimes.TryGetValue(npc.ScheduleKey, out List<BusyPeriod>? busyPeriods))
+            return false;
+        if (busyPeriods.Count == 0)
+            return true;
+
+        // Check their busy periods for their current schedule key
+        foreach (BusyPeriod busyPeriod in busyPeriods)
+        {
+            if (SUtility.CalculateMinutesBetweenTimes(timeOfDay, busyPeriod.From) <= 120
+                && SUtility.CalculateMinutesBetweenTimes(timeOfDay, busyPeriod.To) > 0)
+            {
+                if (!(busyPeriod.Priority <= 3 && Game1.random.Next(6 * busyPeriod.Priority) == 0) &&
+                    !(busyPeriod.Priority == 4 && Game1.random.Next(50) == 0))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
 }

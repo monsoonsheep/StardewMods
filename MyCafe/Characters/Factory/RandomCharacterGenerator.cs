@@ -13,7 +13,7 @@ using Netcode;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace MyCafe.Characters.Factory;
-internal sealed class CharacterFactory
+internal sealed class RandomCharacterGenerator
 {
     private readonly IModHelper _modHelper;
 
@@ -34,7 +34,7 @@ internal sealed class CharacterFactory
     internal List<AppearancePaint> PantsColors = [];
     internal List<AppearancePaint> OutfitColors = [];
 
-    internal CharacterFactory(IModHelper helper)
+    internal RandomCharacterGenerator(IModHelper helper)
     {
         this._modHelper = helper;
     }

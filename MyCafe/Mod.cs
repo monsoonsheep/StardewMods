@@ -46,11 +46,13 @@ public class Mod : StardewModdingAPI.Mod
 
     private ConfigModel _loadedConfig = null!;
 
-    private CharacterFactory _characterFactory = null!;
+    private RandomCharacterGenerator _randomCharacterGenerator = null!;
 
     internal bool IsPlacingSignBoard;
 
     internal Dictionary<string, VillagerCustomerModel> VillagerCustomerModels = [];
+
+    internal Dictionary<string, VillagerCustomerData> VillagerData = [];
 
     internal static Texture2D Sprites
         => Instance._sprites;
@@ -64,8 +66,8 @@ public class Mod : StardewModdingAPI.Mod
     internal static ConfigModel Config
         => Instance._loadedConfig;
 
-    internal static CharacterFactory CharacterFactory
-        => Instance._characterFactory;
+    internal static RandomCharacterGenerator RandomCharacterGenerator
+        => Instance._randomCharacterGenerator;
 
     public Mod() => Instance = this;
 
@@ -76,7 +78,7 @@ public class Mod : StardewModdingAPI.Mod
         I18n.Init(helper.Translation);
         this._loadedConfig = helper.ReadConfig<ConfigModel>();
         this._cafe = new Cafe();
-        this._characterFactory = new CharacterFactory(helper);
+        this._randomCharacterGenerator = new RandomCharacterGenerator(helper);
         this._sprites = helper.ModContent.Load<Texture2D>(Path.Combine("assets", "sprites.png"));
 
         // Harmony patches
@@ -106,8 +108,6 @@ public class Mod : StardewModdingAPI.Mod
         events.Display.RenderedWorld += this.OnRenderedWorld;
         events.World.FurnitureListChanged += this.OnFurnitureListChanged;
         events.Input.ButtonPressed += Debug.ButtonPress;
-
-        Cafe.CustomerSpawned += this.OnCustomerSpawned;
     }
 
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
@@ -150,11 +150,11 @@ public class Mod : StardewModdingAPI.Mod
             return;
 
         Cafe.InitializeForHost(this.Helper);
-        LoadCafeData();
+        this.LoadCafeData();
 
         foreach (var model in this.VillagerCustomerModels)
-            if (!Cafe.VillagerData.ContainsKey(model.Key))
-                Cafe.VillagerData[model.Key] = new VillagerCustomerData(model.Key);
+            if (!this.VillagerData.ContainsKey(model.Key))
+                this.VillagerData[model.Key] = new VillagerCustomerData(model.Key);
         
         Pathfinding.AddRoutesToFarm();
         ModUtility.CleanUpCustomers();
@@ -181,7 +181,7 @@ public class Mod : StardewModdingAPI.Mod
         if (!Context.IsMainPlayer)
             return;
 
-        SaveCafeData();
+        this.SaveCafeData();
     }
 
     internal void OnDayEnding(object? sender, DayEndingEventArgs e)
@@ -303,16 +303,7 @@ public class Mod : StardewModdingAPI.Mod
         }
     }
 
-    internal void OnCustomerSpawned(object? sender, CustomerSpawnedEventArgs e)
-    {
-        if (e.IsVillager)
-        {
-            Cafe.NpcCustomers.Add(e.Npc.Name);
-            Cafe.VillagerData[e.Npc.Name].LastVisitedDate = Game1.Date;
-        }
-    }
-
-    internal static void LoadCafeData()
+    internal void LoadCafeData()
     {
         // Load cafe data
         if (!Game1.IsMasterGame || string.IsNullOrEmpty(Constants.CurrentSavePath) || !File.Exists(Path.Combine(Constants.CurrentSavePath, "MyCafe", "cafedata")))
@@ -320,13 +311,13 @@ public class Mod : StardewModdingAPI.Mod
 
         string cafeDataFile = Path.Combine(Constants.CurrentSavePath, "MyCafe", "cafedata");
 
-        CafeArchiveData cafeData;
+        CafeArchiveData loaded;
         XmlSerializer serializer = new XmlSerializer(typeof(CafeArchiveData));
 
         try
         {
             using StreamReader reader = new StreamReader(cafeDataFile);
-            cafeData = (CafeArchiveData) serializer.Deserialize(reader)!;
+            loaded = (CafeArchiveData) serializer.Deserialize(reader)!;
         }
         catch (InvalidOperationException e)
         {
@@ -335,24 +326,25 @@ public class Mod : StardewModdingAPI.Mod
             return;
         }
 
-        Cafe.OpeningTime = cafeData.OpeningTime;
-        Cafe.ClosingTime = cafeData.ClosingTime;
-        Cafe.Menu.MenuObject.Set(cafeData.MenuItemLists);
-        foreach (VillagerCustomerData data in cafeData.VillagerCustomersData)
+        Cafe.OpeningTime = loaded.OpeningTime;
+        Cafe.ClosingTime = loaded.ClosingTime;
+        Cafe.Menu.MenuObject.Set(loaded.MenuItemLists);
+
+        foreach (var data in loaded.VillagerCustomersData)
         {
-            if (!Instance.VillagerCustomerModels.TryGetValue(data.NpcName, out VillagerCustomerModel? model))
+            if (!this.VillagerCustomerModels.TryGetValue(data.Key, out VillagerCustomerModel? model))
             {
                 Log.Debug("Loading NPC customer data but not model found. Skipping...");
                 continue;
             }
 
             Log.Trace($"Loading customer data from save file {model.NpcName}");
-            data.NpcName = model.NpcName;
-            Cafe.VillagerData[data.NpcName] = data;
+            data.Value.NpcName = model.NpcName;
+            this.VillagerData[data.Key] = data.Value;
         }
     }
 
-    internal static void SaveCafeData()
+    internal void SaveCafeData()
     {
         if (string.IsNullOrEmpty(Constants.CurrentSavePath))
             return;
@@ -365,7 +357,7 @@ public class Mod : StardewModdingAPI.Mod
             OpeningTime = Cafe.OpeningTime,
             ClosingTime = Cafe.ClosingTime,
             MenuItemLists = new SerializableDictionary<FoodCategory, Inventory>(Cafe.Menu.ItemDictionary),
-            VillagerCustomersData = Cafe.VillagerData.Values.ToList()
+            VillagerCustomersData = new SerializableDictionary<string, VillagerCustomerData>(this.VillagerData)
         };
 
         XmlSerializer serializer = new(typeof(CafeArchiveData));
@@ -468,7 +460,7 @@ public class Mod : StardewModdingAPI.Mod
         return Instance.Helper.ModRegistry.GetApi<IBusSchedulesApi>("MonsoonSheep.BusSchedules");
     }
 
-    internal static string GetCafeIntroductionEvent()
+    internal string GetCafeIntroductionEvent()
     {
         GameLocation eventLocation = Game1.locations.First(l => l.isBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID));
         Building signboard = eventLocation.getBuildingByType(ModKeys.CAFE_SIGNBOARD_BUILDING_ID);
@@ -579,7 +571,7 @@ public class Mod : StardewModdingAPI.Mod
             GameLocation eventLocation = Game1.locations.First(l => l.isBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID));
             if (e.NameWithoutLocale.IsEquivalentTo($"Data/Events/{eventLocation.Name}"))
             {
-                string @event = Mod.GetCafeIntroductionEvent();
+                string @event = this.GetCafeIntroductionEvent();
                 e.Edit((asset) =>
                 {
                     IDictionary<string, string> data = asset.AsDictionary<string, string>().Data;
@@ -589,9 +581,38 @@ public class Mod : StardewModdingAPI.Mod
         }
 
         // Custom dialogue assets
-        else if (e.NameWithoutLocale.StartsWith(ModKeys.MODASSET_DIALOGUE))
+        else if (e.NameWithoutLocale.StartsWith(ModKeys.MODASSET_CUSTOM_DIALOGUE))
         {
             e.LoadFrom(() => new Dictionary<string, string>(), AssetLoadPriority.Medium);
+        }
+    }
+
+    internal void AddDialoguesOnArrivingAtCafe(NPC npc)
+    {
+        // Add the first time visit dialogues if their data's Last Visited value is the Spring 1, year 1
+        string key = this.VillagerData[npc.Name].LastVisitedDate.TotalDays <= 1
+            ? ModKeys.MODASSET_DIALOGUE_ENTRY_CAFEFIRSTTIMEVISIT
+            : ModKeys.MODASSET_DIALOGUE_ENTRY_CAFEVISIT;
+
+        KeyValuePair<string, string> entry = ModUtility.GetCustomDialogueAssetOrGeneric(npc.Name, key);
+
+        npc.CurrentDialogue.Push(
+            new Dialogue(npc, $"{ModKeys.MODASSET_CUSTOM_DIALOGUE}:{entry.Key}", TokenParser.ParseText(entry.Value, Game1.random, null, Game1.player))
+            {
+                removeOnNextMove = true,
+                dontFaceFarmer = true
+            }
+        );
+    }
+
+    internal void TryAddDialogueLastAteComment(VillagerCustomerData npcData, Stack<Dialogue> dialogue)
+    {
+        KeyValuePair<string, string>? entry = ModUtility.GetCustomDialogueAsset(npcData.NpcName, ModKeys.MODASSET_DIALOGUE_ENTRY_LASTATECOMMENT);
+
+        if (entry.HasValue)
+        {
+            string text = TokenParser.ParseText(string.Format(entry.Value.Value, ItemRegistry.GetData(npcData.LastAteFood)?.DisplayName ?? "thing"), Game1.random, null, Game1.player);
+            dialogue.Push(new Dialogue(npcData.GetNpc(), $"{ModKeys.MODASSET_CUSTOM_DIALOGUE}:{entry.Value.Key}", text));
         }
     }
 
@@ -615,13 +636,13 @@ public class Mod : StardewModdingAPI.Mod
         foreach (IContentPack contentPack in this.Helper.ContentPacks.GetOwned())
             this.LoadContentPack(contentPack);
 
-        Mod.CharacterFactory.BodyBase = this.Helper.ModContent.Load<IRawTextureData>(Path.Combine("assets", "CharGen", "base.png"));
-        Mod.CharacterFactory.Eyes = this.Helper.ModContent.Load<IRawTextureData>(Path.Combine("assets", "CharGen", "eyes.png"));
-        Mod.CharacterFactory.SkinTones = this.Helper.ModContent.Load<List<int[]>>(Path.Combine("assets", "CharGen", "skintones.json"));
-        Mod.CharacterFactory.EyeColors = this.Helper.ModContent.Load<List<int[]>>(Path.Combine("assets", "CharGen", "eyecolors.json"));
-        Mod.CharacterFactory.HairColors = this.Helper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "haircolors.json"));
-        Mod.CharacterFactory.ShirtColors = this.Helper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "shirtcolors.json"));
-        Mod.CharacterFactory.PantsColors = this.Helper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "pantscolors.json"));
+        Mod.RandomCharacterGenerator.BodyBase = this.Helper.ModContent.Load<IRawTextureData>(Path.Combine("assets", "CharGen", "base.png"));
+        Mod.RandomCharacterGenerator.Eyes = this.Helper.ModContent.Load<IRawTextureData>(Path.Combine("assets", "CharGen", "eyes.png"));
+        Mod.RandomCharacterGenerator.SkinTones = this.Helper.ModContent.Load<List<int[]>>(Path.Combine("assets", "CharGen", "skintones.json"));
+        Mod.RandomCharacterGenerator.EyeColors = this.Helper.ModContent.Load<List<int[]>>(Path.Combine("assets", "CharGen", "eyecolors.json"));
+        Mod.RandomCharacterGenerator.HairColors = this.Helper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "haircolors.json"));
+        Mod.RandomCharacterGenerator.ShirtColors = this.Helper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "shirtcolors.json"));
+        Mod.RandomCharacterGenerator.PantsColors = this.Helper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "pantscolors.json"));
     }
 
     internal void LoadContentPack(IContentPack contentPack)
@@ -660,7 +681,7 @@ public class Mod : StardewModdingAPI.Mod
                     : this.Helper.ModContent.GetInternalAssetName(Path.Combine("assets", "CharGen", "Portraits", (string.IsNullOrEmpty(model.Portrait) ? "cat" : model.Portrait) + ".png")).Name;
 
                 Log.Trace($"Customer model added: {model.Name}");
-                Mod.CharacterFactory.Customers[$"{contentPack.Manifest.UniqueID}/{model.Name}"] = model;
+                Mod.RandomCharacterGenerator.Customers[$"{contentPack.Manifest.UniqueID}/{model.Name}"] = model;
             }
         }
 
@@ -671,7 +692,7 @@ public class Mod : StardewModdingAPI.Mod
             {
                 HairModel? model = LoadAppearanceModel<HairModel>(contentPack, modelFolder.Name);
                 if (model != null) 
-                    Mod.CharacterFactory.Hairstyles[model.Id] = model;
+                    Mod.RandomCharacterGenerator.Hairstyles[model.Id] = model;
             }
         }
 
@@ -682,7 +703,7 @@ public class Mod : StardewModdingAPI.Mod
             {
                 ShirtModel? model = LoadAppearanceModel<ShirtModel>(contentPack, modelFolder.Name);
                 if (model != null) 
-                    Mod.CharacterFactory.Shirts[model.Id] = model;
+                    Mod.RandomCharacterGenerator.Shirts[model.Id] = model;
             }
         }
 
@@ -693,7 +714,7 @@ public class Mod : StardewModdingAPI.Mod
             {
                 PantsModel? model = LoadAppearanceModel<PantsModel>(contentPack, modelFolder.Name);
                 if (model != null) 
-                    Mod.CharacterFactory.Pants[model.Id] = model;
+                    Mod.RandomCharacterGenerator.Pants[model.Id] = model;
             }
         }
 
@@ -704,7 +725,7 @@ public class Mod : StardewModdingAPI.Mod
             {
                 ShoesModel? model = LoadAppearanceModel<ShoesModel>(contentPack, modelFolder.Name);
                 if (model != null) 
-                    Mod.CharacterFactory.Shoes[model.Id] = model;
+                    Mod.RandomCharacterGenerator.Shoes[model.Id] = model;
             }
         }
 
@@ -715,7 +736,7 @@ public class Mod : StardewModdingAPI.Mod
             {
                 AccessoryModel? model = LoadAppearanceModel<AccessoryModel>(contentPack, modelFolder.Name);
                 if (model != null) 
-                    Mod.CharacterFactory.Accessories[model.Id] = model;
+                    Mod.RandomCharacterGenerator.Accessories[model.Id] = model;
             }
         }
 
@@ -727,7 +748,7 @@ public class Mod : StardewModdingAPI.Mod
             {
                 OutfitModel? model = LoadAppearanceModel<OutfitModel>(contentPack, modelFolder.Name);
                 if (model != null) 
-                    Mod.CharacterFactory.Outfits[model.Id] = model;
+                    Mod.RandomCharacterGenerator.Outfits[model.Id] = model;
             }
         }
     }

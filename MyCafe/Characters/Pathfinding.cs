@@ -28,8 +28,6 @@ public static class Pathfinding
     public static bool PathTo(this NPC me, GameLocation targetLocation, Point targetTile, int finalFacingDirection = 0,
         PathFindController.endBehavior? endBehavior = null)
     {
-        me.controller = null;
-
         Stack<Point>? path = PathfindFromLocationToLocation(me.currentLocation, me.TilePoint, targetLocation, targetTile, me);
         if (path == null || path.Count == 0)
         {
@@ -37,6 +35,9 @@ public static class Pathfinding
             throw new PathNotFoundException($"Error finding route to cafe. Couldn't find warp point for {me.Name}", me.TilePoint, targetTile,
                 me.currentLocation.Name, targetLocation.Name, me);
         }
+
+        me.temporaryController = null;
+        AccessTools.Method(typeof(NPC), "prepareToDisembarkOnNewSchedulePath").Invoke(me, null);
 
         me.controller = new PathFindController(path, me.currentLocation, me, path.Last())
         {

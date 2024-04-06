@@ -10,5 +10,5 @@ public class CafeArchiveData
     public int OpeningTime = 900;
     public int ClosingTime = 2100;
     public SerializableDictionary<FoodCategory, Inventory> MenuItemLists = [];
-    public List<VillagerCustomerData> VillagerCustomersData = [];
+    public SerializableDictionary<string, VillagerCustomerData> VillagerCustomersData = [];
 }

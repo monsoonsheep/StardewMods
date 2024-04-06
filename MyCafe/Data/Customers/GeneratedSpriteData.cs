@@ -35,7 +35,7 @@ public class GeneratedSpriteData : INetObject<NetFields>, IDisposable
     private Texture2D? _cachedTexture;
 
     internal Texture2D? Sprite
-        => this._cachedTexture ??= Mod.CharacterFactory.GenerateTexture(this);
+        => this._cachedTexture ??= Mod.RandomCharacterGenerator.GenerateTexture(this);
 
     public GeneratedSpriteData()
     {

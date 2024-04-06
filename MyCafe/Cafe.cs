@@ -37,11 +37,8 @@ public class Cafe
 
     private readonly List<CustomerGroup> Groups = [];
 
-    internal readonly Dictionary<string, VillagerCustomerData> VillagerData = [];
 
     private readonly int LastTimeCustomersArrived = 0;
-
-    internal event EventHandler<CustomerSpawnedEventArgs> CustomerSpawned = null!;
 
     private CafeNetObject Fields
         => Game1.player.team.get_CafeNetFields().Value;
@@ -496,79 +493,10 @@ public class Cafe
         if (group == null)
             return;
 
-        foreach (NPC c in group.Members)
-            this.CustomerSpawned.Invoke(null, new CustomerSpawnedEventArgs(
-                c,
-                group.ReservedTable!,
-                type == GroupType.Villager));
-
         this.Groups.Add(group);
     }
 
-    internal List<VillagerCustomerData> GetAvailableVillagerCustomers(int count)
-    {
-        List<VillagerCustomerData> list = [];
-
-        foreach (KeyValuePair<string, VillagerCustomerData> data in this.VillagerData.OrderBy(_ => Game1.random.Next()))
-        {
-            if (list.Count == count)
-                break;
-
-            if (CanVillagerVisit(data.Value, Game1.timeOfDay))
-                list.Add(data.Value);
-        }
-
-        return list;
-    }
-
-    private static bool CanVillagerVisit(VillagerCustomerData data, int timeOfDay)
-    {
-        if (data.NpcName == "Abigail") return true;
-
-        NPC npc = data.GetNpc();
-        VillagerCustomerModel model = Mod.Instance.VillagerCustomerModels[data.NpcName];
-
-        int daysSinceLastVisit = Game1.Date.TotalDays - data.LastVisitedDate.TotalDays;
-        int daysAllowed = model.VisitFrequency switch
-        {
-            0 => 200,
-            1 => 27,
-            2 => 13,
-            3 => 7,
-            4 => 3,
-            5 => 1,
-            _ => 9999999
-        };
-
-        if (Mod.Cafe.NpcCustomers.Contains(data.NpcName) ||
-            npc.isSleeping.Value == true ||
-            npc.ScheduleKey == null ||
-            daysSinceLastVisit < daysAllowed)
-            return false;
-
-        // If no busy period for today, they're free all day
-        if (!model.BusyTimes.TryGetValue(npc.ScheduleKey, out List<BusyPeriod>? busyPeriods))
-            return false;
-        if (busyPeriods.Count == 0)
-            return true;
-
-        // Check their busy periods for their current schedule key
-        foreach (BusyPeriod busyPeriod in busyPeriods)
-        {
-            if (SUtility.CalculateMinutesBetweenTimes(timeOfDay, busyPeriod.From) <= 120
-                && SUtility.CalculateMinutesBetweenTimes(timeOfDay, busyPeriod.To) > 0)
-            {
-                if (!(busyPeriod.Priority <= 3 && Game1.random.Next(6 * busyPeriod.Priority) == 0) &&
-                    !(busyPeriod.Priority == 4 && Game1.random.Next(50) == 0))
-                {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
+    
     private Item? GetMenuItemForCustomer(NPC npc)
     {
         SortedDictionary<int, List<Item>> tastesItems = [];
@@ -639,6 +567,12 @@ public class Cafe
         }
         else
         {
+            foreach (NPC c in group.Members)
+            {
+                Mod.Instance.VillagerData[c.Name].LastAteFood = c.get_OrderItem().Value.QualifiedItemId;
+                Mod.Instance.VillagerData[c.Name].LastVisitedDate = Game1.Date;
+            }
+
             try
             {
                 group.MoveTo(Game1.getLocationFromName("BusStop"), new Point(12, 23), (c, _) => this.ReturnVillagerToSchedule((c as NPC)!));
@@ -657,12 +591,14 @@ public class Cafe
 
     internal void ReturnVillagerToSchedule(NPC npc)
     {
-        this.NpcCustomers.Remove(npc.Name);
         npc.ignoreScheduleToday = false;
         npc.get_OrderItem().Set(null!);
         npc.get_IsSittingDown().Set(false);
         npc.set_Seat(null);
 
+        if (this.NpcCustomers.Remove(npc.Name) == false)
+            return;
+        
         List<int> activityTimes = npc.Schedule.Keys.OrderBy(i => i).ToList();
         int timeOfCurrent = activityTimes.LastOrDefault(t => t <= Game1.timeOfDay);
         int timeOfNext = activityTimes.FirstOrDefault(t => t > Game1.timeOfDay);

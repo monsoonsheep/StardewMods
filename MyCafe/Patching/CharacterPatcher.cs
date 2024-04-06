@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework.Graphics;
 using MonsoonSheep.Stardew.Common;
 using MonsoonSheep.Stardew.Common.Patching;
 using MyCafe.Characters;
+using MyCafe.Data.Customers;
 using MyCafe.Locations.Objects;
 using MyCafe.Netcode;
 using Netcode;
@@ -22,10 +23,6 @@ internal class CharacterPatcher : BasePatcher
 {
     public override void Apply(Harmony harmony, IMonitor monitor)
     {
-        harmony.Patch(
-            original: this.RequireMethod<Game1>(nameof(Game1.warpCharacter), [typeof(NPC), typeof(string), typeof(Vector2)]),
-            postfix: this.GetHarmonyMethod(nameof(CharacterPatcher.After_Game1WarpCharacter))
-        );
         harmony.Patch(
             original: this.RequireMethod<NPC>(nameof(NPC.draw), [typeof(SpriteBatch), typeof(float)]),
             transpiler: this.GetHarmonyMethod(nameof(CharacterPatcher.Transpile_NpcDraw))
@@ -78,35 +75,6 @@ internal class CharacterPatcher : BasePatcher
         return !__instance.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX);
     }
 
-    private static void After_Game1WarpCharacter(NPC character, string targetLocationName, Vector2 position)
-    {
-        if (Mod.Cafe.NpcCustomers.Contains(character.Name))
-        {
-            CustomerGroup? group = character.get_Group();
-            Table? table = group?.ReservedTable;
-            if (table == null)
-                return;
-
-            if (targetLocationName.Equals(table.CurrentLocation))
-            {
-                // Set visit dialogue
-                Dictionary<string, string> dialogueAsset = Game1.content.Load<Dictionary<string, string>>($"{ModKeys.MODASSET_DIALOGUE}/{character.Name}");
-                if (!dialogueAsset.ContainsKey(ModKeys.MODASSET_DIALOGUE_ENTRY_CAFEVISIT))
-                    dialogueAsset = Game1.content.Load<Dictionary<string, string>>($"{ModKeys.MODASSET_DIALOGUE}/Generic");
-
-                KeyValuePair<string, string> entry = dialogueAsset.Where(pair => pair.Key.StartsWith(ModKeys.MODASSET_DIALOGUE_ENTRY_CAFEVISIT)).ToList().PickRandom();
-
-                character.CurrentDialogue.Push(
-                    new Dialogue(character, $"{ModKeys.MODASSET_DIALOGUE}:{entry.Key}", entry.Value)
-                    {
-                        removeOnNextMove = true,
-                        dontFaceFarmer = true
-                    }
-                );
-            }
-        }
-    }
-
     private static void After_update(NPC __instance, GameTime time, GameLocation location)
     {
         // Run only if either villager customer (in the hashset) or random customer (name starts with a prefix)
@@ -155,7 +123,7 @@ internal class CharacterPatcher : BasePatcher
     private static void After_draw(NPC __instance, SpriteBatch b, float alpha)
     {
         // Run only if either villager customer (in the hashset) or random customer (name starts with a prefix)
-        if ((Mod.Cafe.NpcCustomers.Contains(__instance.Name) || __instance.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX)) && !__instance.IsInvisible)
+        if ((Mod.Cafe.NpcCustomers.Contains(__instance.Name) || __instance.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX)))
         {
             float layerDepth = Math.Max(0f, __instance.StandingPixel.Y / 10000f);
             Vector2 drawPosition = __instance.getLocalPosition(Game1.viewport);

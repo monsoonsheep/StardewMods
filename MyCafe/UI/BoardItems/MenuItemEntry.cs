@@ -53,32 +53,34 @@ internal class MenuItemEntry : MenuEntry
             SpriteEffects.None,
             1f);
 
-        int right = slotX + Bounds.Width;
+        if (Mod.Config.ShowPricesInFoodMenu) {
+            int right = slotX + Bounds.Width;
 
-        // price
-        b.DrawString(
-            Game1.tinyFont,
-            this.Price + " ",
-            new Vector2(right - Game1.tinyFont.MeasureString(this.Price + " ").X - 39, slotY - 8),
-            Color.White,
-            0f, Vector2.Zero,
-            1.5f,
-            SpriteEffects.None,
-            1f
+            // price
+            b.DrawString(
+                Game1.tinyFont,
+                this.Price + " ",
+                new Vector2(right - Game1.tinyFont.MeasureString(this.Price + " ").X - 39, slotY - 8),
+                Color.White,
+                0f, Vector2.Zero,
+                1.5f,
+                SpriteEffects.None,
+                1f
             );
 
-        // coin sprite
-        StardewValley.Utility.drawWithShadow(
-            b,
-            Game1.mouseCursors,
-            new Vector2(right - 30, slotY + 4),
-            new Rectangle(193, 373, 9, 10),
-            Color.White,
-            0f,
-            Vector2.Zero,
-            2f,
-            flipped: false,
-            1f
+            // coin sprite
+            StardewValley.Utility.drawWithShadow(
+                b,
+                Game1.mouseCursors,
+                new Vector2(right - 30, slotY + 4),
+                new Rectangle(193, 373, 9, 10),
+                Color.White,
+                0f,
+                Vector2.Zero,
+                2f,
+                flipped: false,
+                1f
             );
+        }
     }
 }

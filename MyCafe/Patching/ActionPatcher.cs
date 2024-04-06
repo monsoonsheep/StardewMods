@@ -3,6 +3,7 @@ using System.Linq;
 using HarmonyLib;
 using MonsoonSheep.Stardew.Common.Patching;
 using MyCafe.Characters;
+using MyCafe.Enums;
 using MyCafe.Locations.Objects;
 using MyCafe.Netcode;
 using StardewModdingAPI;
@@ -29,7 +30,8 @@ internal class ActionPatcher : BasePatcher
 
     private static bool Before_NpcCheckAction(NPC __instance, Farmer who, GameLocation l, ref bool __result)
     {
-        if (((Mod.Cafe.NpcCustomers.Contains(__instance.Name) || __instance.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX)) && !__instance.IsInvisible) && (l.Equals(Mod.Cafe.Indoor) || l.Equals(Mod.Cafe.Outdoor)))
+        if (((Mod.Cafe.NpcCustomers.Contains(__instance.Name) || __instance.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX)) && !__instance.IsInvisible) &&
+            (l.Equals(Mod.Cafe.Indoor) || l.Equals(Mod.Cafe.Outdoor)))
         {
             // TODO this doesn't work for multiplayer client
             CustomerGroup? group = __instance.get_Group();
@@ -37,7 +39,7 @@ internal class ActionPatcher : BasePatcher
             if (table == null)
                 return true;
             
-            if (Cafe.InteractWithTable(table, who))
+            if (table.State.Value == TableState.CustomersWaitingForFood && Cafe.InteractWithTable(table, who))
             {
                 __result = true;
                 return false;

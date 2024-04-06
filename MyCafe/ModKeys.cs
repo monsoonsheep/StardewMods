@@ -9,7 +9,9 @@ internal static class ModKeys
     internal const string EVENT_CAFEINTRODUCTION = "CafeIntroduction";
     internal const string MODASSET_EVENTS = "MonsoonSheep.MyCafe/Events";
     internal const string MODASSET_DIALOGUE_ENTRY_CAFEVISIT = "CafeVisit";
-    internal const string MODASSET_DIALOGUE = "Data/MonsoonSheep.MyCafe/Dialogue";
+    internal const string MODASSET_DIALOGUE_ENTRY_CAFEFIRSTTIMEVISIT = "CafeFirstTimeVisit";
+    internal const string MODASSET_DIALOGUE_ENTRY_LASTATECOMMENT = "LastAteComment";
+    internal const string MODASSET_CUSTOM_DIALOGUE = "Data/MonsoonSheep.MyCafe/Dialogue";
     internal const string MODASSET_CONVERSATION_TOPIC_CAFE_OPENED = "MonsoonSheep.MyCafe_Dialogue_CafeOpened";
     internal const string SIGNBOARD_BUILDING_CLICK_EVENT_KEY = "MonsoonSheep.MyCafe_OpenCafeMenu";
 

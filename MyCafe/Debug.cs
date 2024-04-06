@@ -31,7 +31,7 @@ internal static class Debug
 
                 break;
             case SButton.NumPad2:
-                SpawnCustomers(GroupType.Random);
+                Mod.Cafe.SpawnCustomers(GroupType.Random);
 
                 break;
             case SButton.NumPad3:
@@ -39,7 +39,7 @@ internal static class Debug
 
                 break;
             case SButton.NumPad4:
-                SpawnCustomers(GroupType.Villager);
+                Mod.Cafe.SpawnCustomers(GroupType.Villager);
 
                 break;
             case SButton.NumPad5:
@@ -72,11 +72,6 @@ internal static class Debug
     {
         GameLocation eventLocation = Game1.locations.First(l => l.isBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID));
         Mod.Instance.Helper.GameContent.InvalidateCache($"Data/Events/{eventLocation.Name}");
-    }
-
-    internal static void SpawnCustomers(GroupType type)
-    {
-        Mod.Cafe.SpawnCustomers(type);
     }
 
     internal static void OpenCafeMenu()

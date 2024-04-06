@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
+using MonsoonSheep.Stardew.Common;
 using MyCafe.Data.Models.Appearances;
 using MyCafe.Enums;
 using StardewValley;
@@ -198,4 +200,25 @@ internal static class ModUtility
         });
     }
 
+    internal static KeyValuePair<string, string> GetCustomDialogueAssetOrGeneric(string name, string key)
+    {
+        Dictionary<string, string> dialogueAsset = Game1.content.Load<Dictionary<string, string>>($"{ModKeys.MODASSET_CUSTOM_DIALOGUE}/{name}");
+        if (!dialogueAsset.ContainsKey(key))
+            dialogueAsset = Game1.content.Load<Dictionary<string, string>>($"{ModKeys.MODASSET_CUSTOM_DIALOGUE}/Generic");
+
+        return dialogueAsset.Where(pair => pair.Key.StartsWith(key)).ToList().PickRandom();
+    }
+
+    internal static KeyValuePair<string, string>? GetCustomDialogueAsset(string name, string key)
+    {
+        Dictionary<string, string>? dialogueAsset;
+        try
+        {
+            return Game1.content.Load<Dictionary<string, string>>($"{ModKeys.MODASSET_CUSTOM_DIALOGUE}/{name}").Where(pair => pair.Key.StartsWith(key)).ToList().PickRandom();
+        }
+        catch
+        {
+            return null;
+        }
+    }
 }

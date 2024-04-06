@@ -29,15 +29,22 @@ internal class LocationPatcher : BasePatcher
         );
     }
 
+    /// <summary>
+    /// For pathfinding, when NPCs try to path to a building on the farm, the game checks for the interior's uniqueName instead of the Name
+    /// We replace it with Name
+    /// </summary>
     private static void After_GetWarpPointTo(GameLocation __instance, string location, Character? character, ref Point __result)
     {
         if (__result == Point.Zero && location == Mod.Cafe.Indoor?.Name)
         {
-            Log.Trace("Replacing name with uniquename");
             __result = __instance.getWarpPointTo(Mod.Cafe.Indoor.uniqueName.Value, character);
         }
     }
 
+    /// <summary>
+    /// For pathfinding, when NPCs try to path to a building on the farm, the game checks for the interior's uniqueName instead of the Name
+    /// We replace it with Name
+    /// </summary>
     private static void After_BuildingHasIndoorsName(Building __instance, string name, ref bool __result)
     {
         if (Context.IsMainPlayer && __result == false && name == Mod.Cafe.Indoor?.Name && __instance.indoors.Value?.Name == name)
@@ -46,6 +53,7 @@ internal class LocationPatcher : BasePatcher
         }
     }
 
+    // TODO probably find a way to work around this
     private static void After_GameLocationLoadMap(GameLocation __instance, string mapPath, bool force_reload)
     {
         if (__instance is Farm)
