@@ -29,6 +29,8 @@ using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Delegates;
 using StardewValley.GameData.Buildings;
+using StardewValley.GameData.Pets;
+using StardewValley.GameData.Tools;
 using StardewValley.Inventories;
 using StardewValley.Locations;
 using StardewValley.TokenizableStrings;
@@ -54,14 +56,14 @@ public class Mod : StardewModdingAPI.Mod
 
     internal Dictionary<string, VillagerCustomerData> VillagerData = [];
 
-    internal static Texture2D Sprites
-        => Instance._sprites;
-
     internal static string UniqueId
         => Instance.ModManifest.UniqueID;
 
     internal static Cafe Cafe
         => Instance._cafe;
+
+    internal static Texture2D Sprites
+        => Instance._sprites;
 
     internal static ConfigModel Config
         => Instance._loadedConfig;
@@ -79,7 +81,6 @@ public class Mod : StardewModdingAPI.Mod
         this._loadedConfig = helper.ReadConfig<ConfigModel>();
         this._cafe = new Cafe();
         this._randomCharacterGenerator = new RandomCharacterGenerator(helper);
-        this._sprites = helper.ModContent.Load<Texture2D>(Path.Combine("assets", "sprites.png"));
 
         // Harmony patches
         if (HarmonyPatcher.TryApply(this,
@@ -112,6 +113,8 @@ public class Mod : StardewModdingAPI.Mod
 
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
     {
+        this._sprites = Game1.content.Load<Texture2D>(ModKeys.MODASSET_SPRITES);
+
         this.InitializeGmcm(this.Helper, this.ModManifest);
 
         GameLocation.RegisterTileAction(ModKeys.SIGNBOARD_BUILDING_CLICK_EVENT_KEY, CafeMenu.Action_OpenCafeMenu);
@@ -455,18 +458,13 @@ public class Mod : StardewModdingAPI.Mod
             );
     }
 
-    internal static IBusSchedulesApi? GetBusSchedulesApi()
-    {
-        return Instance.Helper.ModRegistry.GetApi<IBusSchedulesApi>("MonsoonSheep.BusSchedules");
-    }
-
     internal string GetCafeIntroductionEvent()
     {
         GameLocation eventLocation = Game1.locations.First(l => l.isBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID));
         Building signboard = eventLocation.getBuildingByType(ModKeys.CAFE_SIGNBOARD_BUILDING_ID);
         Point signboardTile = new Point(signboard.tileX.Value, signboard.tileY.Value + signboard.tilesHigh.Value);
 
-        string eventString = Game1.content.Load<Dictionary<string, string>>($"Data/{ModKeys.MODASSET_EVENTS}")[ModKeys.EVENT_CAFEINTRODUCTION];
+        string eventString = Game1.content.Load<Dictionary<string, string>>($"{ModKeys.MODASSET_EVENTS}")[ModKeys.EVENT_CAFEINTRODUCTION];
 
         // Replace the encoded coordinates with the position of the signboard building
         string substituted = Regex.Replace(
@@ -479,59 +477,13 @@ public class Mod : StardewModdingAPI.Mod
 
     internal void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
     {
-        // NPC Schedules
-        if (e.NameWithoutLocale.IsEquivalentTo(ModKeys.ASSETS_NPCSCHEDULE))
-        {
-            Dictionary<string, VillagerCustomerModel> data = [];
-
-            DirectoryInfo schedulesFolder = new DirectoryInfo(Path.Combine(this.Helper.DirectoryPath, "assets", "VillagerSchedules"));
-            foreach (FileInfo file in schedulesFolder.GetFiles())
-            {
-                VillagerCustomerModel model = this.Helper.ModContent.Load<VillagerCustomerModel>(file.FullName);
-                string npcName = file.Name.Replace(".json", "");
-                model.NpcName = npcName;
-                data[npcName] = model;
-            }
-
-            e.LoadFrom(() => data, AssetLoadPriority.Medium);
-        }
-
-        // Buildings data (Cafe and signboard)
-        else if (e.NameWithoutLocale.IsEquivalentTo("Data/Buildings"))
-        {
-            e.Edit(asset =>
-            {
-                var data = asset.AsDictionary<string, BuildingData>();
-                data.Data[ModKeys.CAFE_BUILDING_BUILDING_ID] = this.Helper.ModContent.Load<BuildingData>(Path.Combine("assets", "Buildings", "Cafe", "cafebuilding.json"));
-                data.Data[ModKeys.CAFE_SIGNBOARD_BUILDING_ID] = this.Helper.ModContent.Load<BuildingData>(Path.Combine("assets", "Buildings", "Signboard", "signboard.json"));
-            }, AssetEditPriority.Early);
-        }
-
-        // Cafe building texture
-        else if (e.NameWithoutLocale.IsEquivalentTo(ModKeys.CAFE_BUILDING_TEXTURE_NAME))
-        {
-            e.LoadFromModFile<Texture2D>(Path.Combine("assets", "Buildings", "Cafe", "cafebuilding.png"), AssetLoadPriority.Low);
-        }
-
-        // Cafe map tmx
-        else if (e.NameWithoutLocale.IsEquivalentTo($"Maps/{ModKeys.CAFE_MAP_NAME}"))
-        {
-            e.LoadFromModFile<Map>(Path.Combine("assets", "Buildings", "Cafe", "cafemap.tmx"), AssetLoadPriority.Low);
-        }
-
-        // Signboard building texture
-        else if (e.NameWithoutLocale.IsEquivalentTo(ModKeys.CAFE_SIGNBOARD_TEXTURE_NAME))
-        {
-            e.LoadFromModFile<Texture2D>(Path.Combine("assets", "Buildings", "Signboard", "signboard.png"), AssetLoadPriority.Low);
-        }
-
         // Random generated sprite (with a GUID after the initial asset name)
-        else if (e.NameWithoutLocale.StartsWith(ModKeys.GENERATED_SPRITE_PREFIX))
+        if (e.NameWithoutLocale.StartsWith(ModKeys.GENERATED_SPRITE_PREFIX))
         {
             string id = e.NameWithoutLocale.Name[(ModKeys.GENERATED_SPRITE_PREFIX.Length + 1)..];
             bool failed = false;
 
-            if (Mod.Cafe.GeneratedSprites.TryGetValue(id, out GeneratedSpriteData data))
+            if (Cafe.GeneratedSprites.TryGetValue(id, out GeneratedSpriteData data))
             {
                 Texture2D? sprite = data.Sprite;
                 if (sprite == null)
@@ -555,14 +507,8 @@ public class Mod : StardewModdingAPI.Mod
                 e.LoadFrom(() => null!, AssetLoadPriority.Medium);
             }
         }
-
-        // Custom events (Added by CP component)
-        else if (e.NameWithoutLocale.IsEquivalentTo($"Data/{ModKeys.MODASSET_EVENTS}"))
-        {
-            e.LoadFrom(() => new Dictionary<string, string>(), AssetLoadPriority.Low);
-        }
-
-        // Cafe introduction event (Inject into Data/Events/<cafelocation> only when we need to, the game triggers the event and the event sets a mail flag that disables this
+        
+        // Injecting cafe introduction event (Inject into Data/Events/<cafelocation> only when we need to, the game triggers the event and the event sets a mail flag that disables this
         else if (e.NameWithoutLocale.IsDirectlyUnderPath("Data/Events") &&
                  Context.IsMainPlayer &&
                  Game1.MasterPlayer.mailReceived.Contains(ModKeys.MAILFLAG_HAS_BUILT_SIGNBOARD) &&
@@ -572,18 +518,57 @@ public class Mod : StardewModdingAPI.Mod
             if (e.NameWithoutLocale.IsEquivalentTo($"Data/Events/{eventLocation.Name}"))
             {
                 string @event = this.GetCafeIntroductionEvent();
+
                 e.Edit((asset) =>
                 {
                     IDictionary<string, string> data = asset.AsDictionary<string, string>().Data;
-                    data[$"{ModKeys.MODASSET_EVENTS.Replace('/', '_')}_{ModKeys.EVENT_CAFEINTRODUCTION}/M 100"] = @event;
+                    data[$"{ModKeys.EVENT_CAFEINTRODUCTION}/"] = @event;
                 });
             }
+        }
+
+        // Mod sprites
+        else if (e.NameWithoutLocale.IsEquivalentTo(ModKeys.MODASSET_SPRITES))
+        {
+            e.LoadFromModFile<Texture2D>(Path.Combine("assets", "sprites.png"), AssetLoadPriority.Medium);
+        }
+
+        // Custom events (Added by CP component)
+        else if (e.NameWithoutLocale.IsEquivalentTo($"Data/{ModKeys.MODASSET_EVENTS}"))
+        {
+            e.LoadFrom(() => new Dictionary<string, string>(), AssetLoadPriority.Low);
         }
 
         // Custom dialogue assets
         else if (e.NameWithoutLocale.StartsWith(ModKeys.MODASSET_CUSTOM_DIALOGUE))
         {
             e.LoadFrom(() => new Dictionary<string, string>(), AssetLoadPriority.Medium);
+        }
+
+        // NPC Schedules
+        else if (e.NameWithoutLocale.IsEquivalentTo(ModKeys.MODASSET_NPC_VISITING_DATA))
+        {
+            Dictionary<string, VillagerCustomerModel> data = [];
+
+            DirectoryInfo schedulesFolder = new DirectoryInfo(Path.Combine(this.Helper.DirectoryPath, "assets", "VillagerSchedules"));
+            foreach (FileInfo file in schedulesFolder.GetFiles())
+            {
+                VillagerCustomerModel model = this.Helper.ModContent.Load<VillagerCustomerModel>(file.FullName);
+                string npcName = file.Name.Replace(".json", "");
+                model.NpcName = npcName;
+                data[npcName] = model;
+            }
+
+            e.LoadFrom(() => data, AssetLoadPriority.Medium);
+        }
+    }
+
+    internal void OnAssetReady(object? sender, AssetReadyEventArgs e)
+    {
+        // NPC Schedules
+        if (e.NameWithoutLocale.IsEquivalentTo(ModKeys.MODASSET_NPC_VISITING_DATA))
+        {
+            this.VillagerCustomerModels = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(ModKeys.MODASSET_NPC_VISITING_DATA);
         }
     }
 
@@ -616,18 +601,9 @@ public class Mod : StardewModdingAPI.Mod
         }
     }
 
-    internal void OnAssetReady(object? sender, AssetReadyEventArgs e)
-    {
-        // NPC Schedules
-        if (e.NameWithoutLocale.IsEquivalentTo(ModKeys.ASSETS_NPCSCHEDULE))
-        {
-            this.VillagerCustomerModels = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(ModKeys.ASSETS_NPCSCHEDULE);
-        }
-    }
-
     internal void LoadContent(IContentPack defaultContent)
     {
-        this.VillagerCustomerModels = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(ModKeys.ASSETS_NPCSCHEDULE);
+        this.VillagerCustomerModels = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(ModKeys.MODASSET_NPC_VISITING_DATA);
 
         // Load default content pack included in assets folder
         this.LoadContentPack(defaultContent);
@@ -773,6 +749,11 @@ public class Mod : StardewModdingAPI.Mod
         Log.Trace($"{folderName} model added: {model.Id}");
 
         return model;
+    }
+
+    internal static IBusSchedulesApi? GetBusSchedulesApi()
+    {
+        return Instance.Helper.ModRegistry.GetApi<IBusSchedulesApi>("MonsoonSheep.BusSchedules");
     }
 
 #if YOUTUBE || TWITCH

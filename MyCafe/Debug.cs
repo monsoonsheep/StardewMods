@@ -9,6 +9,7 @@ using MyCafe.UI;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.Characters;
 using StardewValley.Menus;
 #pragma warning disable IDE0060
 
@@ -47,7 +48,7 @@ internal static class Debug
 
                 break;
             case SButton.NumPad6:
-               
+
                 break;
             case SButton.NumPad7:
                 SetMenuItems();

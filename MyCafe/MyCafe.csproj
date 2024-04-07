@@ -74,7 +74,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Leclair.Stardew.ModManifestBuilder" Version="2.1.0" />
+		<PackageReference Include="Leclair.Stardew.ModManifestBuilder" Version="2.2.0" />
 		<PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.0.1" />
 		<PackageReference Include="Mono.Cecil" Version="0.11.5.0" />
     <Reference Include="Newtonsoft.Json" HintPath="$(GamePath)\smapi-internal\Newtonsoft.Json.dll" private="false" />

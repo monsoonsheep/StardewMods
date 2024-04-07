@@ -37,7 +37,6 @@ public class Cafe
 
     private readonly List<CustomerGroup> Groups = [];
 
-
     private readonly int LastTimeCustomersArrived = 0;
 
     private CafeNetObject Fields
@@ -496,7 +495,6 @@ public class Cafe
         this.Groups.Add(group);
     }
 
-    
     private Item? GetMenuItemForCustomer(NPC npc)
     {
         SortedDictionary<int, List<Item>> tastesItems = [];
