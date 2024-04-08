@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HarmonyLib;
+using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common.Patching;
 using MyCafe.Characters;
 using MyCafe.Enums;
@@ -10,6 +11,7 @@ using StardewModdingAPI;
 using StardewValley;
 using xTile.Dimensions;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
+using SObject = StardewValley.Object;
 
 namespace MyCafe.Patching;
 
@@ -18,6 +20,18 @@ internal class ActionPatcher : BasePatcher
 {
     public override void Apply(Harmony harmony, IMonitor monitor)
     {
+        harmony.Patch(
+            original: this.RequireMethod<SObject>(nameof(SObject.performRemoveAction)),
+            postfix: this.GetHarmonyMethod(nameof(ActionPatcher.After_ObjectPerformRemoveAction))
+        );
+        //harmony.Patch(
+        //    original: this.RequireMethod<Farmer>(nameof(Farmer.OnItemReceived)),
+        //    postfix: this.GetHarmonyMethod(nameof(ActionPatcher.After_FarmerOnItemReceived))
+        //);
+        harmony.Patch(
+            original: this.RequireMethod<SObject>(nameof(SObject.placementAction)),
+            postfix: this.GetHarmonyMethod(nameof(ActionPatcher.After_ObjectPlacementAction))
+        );
         harmony.Patch(
             original: this.RequireMethod<GameLocation>(nameof(GameLocation.checkAction)),
             prefix: this.GetHarmonyMethod(nameof(ActionPatcher.Before_GameLocationCheckAction))
@@ -28,18 +42,41 @@ internal class ActionPatcher : BasePatcher
         );
     }
 
+    private static void After_ObjectPlacementAction(SObject __instance, GameLocation location, int x, int y, Farmer who, ref bool __result)
+    {
+        if (__instance is { QualifiedItemId: $"(BC){ModKeys.CAFE_SIGNBOARD_OBJECT_ID}" })
+        {
+            Log.Trace("Placed down signboard");
+            Mod.Cafe.OnPlacedDownSignboard(__instance);
+        }
+    }
+
+    private static void After_ObjectPerformRemoveAction(SObject __instance)
+    {
+        if (__instance is { QualifiedItemId: $"(BC){ModKeys.CAFE_SIGNBOARD_OBJECT_ID}" })
+        {
+            Log.Trace("Removed signboard");
+            Mod.Cafe.OnRemovedSignboard(__instance);
+        }
+    }
+
+    private static void After_FarmerOnItemReceived(Farmer __instance, Item? item, int countAdded, Item? mergedIntoStack, bool hideHudNotification)
+    {
+        Item? actualItem = mergedIntoStack ?? item;
+        if (actualItem is { QualifiedItemId: $"(BC){ModKeys.CAFE_SIGNBOARD_OBJECT_ID}" })
+        {
+            actualItem.specialItem = true;
+        }
+    }
+
     private static bool Before_NpcCheckAction(NPC __instance, Farmer who, GameLocation l, ref bool __result)
     {
-        if (((Mod.Cafe.NpcCustomers.Contains(__instance.Name) || __instance.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX)) && !__instance.IsInvisible) &&
-            (l.Equals(Mod.Cafe.Indoor) || l.Equals(Mod.Cafe.Outdoor)))
+        if ((Mod.Cafe.NpcCustomers.Contains(__instance.Name) || __instance.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX))
+            && (l.Equals(Mod.Cafe.BuildingInterior) || l.Equals(Mod.Cafe.Signboard?.Location)))
         {
-            // TODO this doesn't work for multiplayer client
-            CustomerGroup? group = __instance.get_Group();
-            Table? table = group?.ReservedTable;
-            if (table == null)
-                return true;
+            Table? table = Mod.Cafe.GetTableFromCustomer(__instance);
             
-            if (table.State.Value == TableState.CustomersWaitingForFood && Cafe.InteractWithTable(table, who))
+            if (table is { State.Value: TableState.CustomersWaitingForFood } && Cafe.InteractWithTable(table, who))
             {
                 __result = true;
                 return false;
@@ -51,17 +88,14 @@ internal class ActionPatcher : BasePatcher
 
     private static bool Before_GameLocationCheckAction(GameLocation __instance, Location tileLocation, Rectangle viewport, Farmer who, ref bool __result)
     {
-        if ((__instance.Equals(Mod.Cafe.Indoor) || __instance.Equals(Mod.Cafe.Outdoor)))
+        if ((__instance.Equals(Mod.Cafe.BuildingInterior) || __instance.Equals(Mod.Cafe.Signboard?.Location)))
         {
-            foreach (Table table in Mod.Cafe.Tables)
+            Table? table = Mod.Cafe.GetTableAt(__instance, new Point(tileLocation.X, tileLocation.Y));
+
+            if (table is not null && Cafe.InteractWithTable(table, who))
             {
-                if (table.BoundingBox.Value.Contains(tileLocation.X * 64, tileLocation.Y * 64)
-                    && table.CurrentLocation == __instance.Name
-                    && Cafe.InteractWithTable(table, who))
-                {
-                    __result = true;
-                    return false;
-                }
+                __result = true;
+                return false;
             }
         }
 

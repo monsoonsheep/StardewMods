@@ -32,7 +32,7 @@ public abstract class Seat : INetObject<NetFields>
     internal GameLocation Location
         => CommonHelper.GetLocation(this.Table.CurrentLocation)!;
 
-    internal Point Position
+    internal Point TilePosition
     {
         get => this.NetPosition.Value;
         set => this.NetPosition.Set(value);

@@ -50,7 +50,7 @@ public static class NpcExtensions
 
         if (seat != null && group is { ReservedTable: not null })
         {
-            int direction = CommonHelper.DirectionIntFromVectors(c.Tile, seat.Position.ToVector2());
+            int direction = CommonHelper.DirectionIntFromVectors(c.Tile, seat.TilePosition.ToVector2());
             c.faceDirection(seat.SittingDirection);
 
             c.JumpTo(seat.SittingPosition);

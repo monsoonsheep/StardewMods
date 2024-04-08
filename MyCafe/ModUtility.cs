@@ -6,12 +6,85 @@ using MonsoonSheep.Stardew.Common;
 using MyCafe.Data.Models.Appearances;
 using MyCafe.Enums;
 using StardewValley;
+using StardewValley.Buildings;
 using StardewValley.Objects;
+using SUtility = StardewValley.Utility;
+using SObject = StardewValley.Object;
+using MyCafe.Locations.Objects;
 
 namespace MyCafe;
 
 internal static class ModUtility
 {
+    internal static SObject? FindSignboard()
+    {
+        SObject? found = null;
+
+        SUtility.ForEachLocation(delegate(GameLocation loc)
+        {
+            foreach (SObject obj in loc.Objects.Values)
+            {
+                if (obj.QualifiedItemId.Equals($"(BC){ModKeys.CAFE_SIGNBOARD_OBJECT_ID}"))
+                {
+                    found = obj;
+                    return false;
+                }
+            }
+
+            return true;
+        });
+
+        return found;
+    }
+
+    internal static GameLocation? FindCafeBuildingInterior()
+    {
+        GameLocation? found = null;
+
+        SUtility.ForEachLocation(delegate(GameLocation loc)
+        {
+            foreach (Building b in loc.buildings)
+            {
+                if ((b.GetData()?.IndoorMap?.Equals(ModKeys.CAFE_MAP_NAME) ?? false) && b.GetIndoors() is { } indoor)
+                {
+                    found = indoor;
+                    return false;
+                }
+            }
+
+            return true;
+        });
+
+        return found;
+    }
+
+    internal static IEnumerable<Furniture> GetValidFurnitureInCafeLocations()
+    {
+        if (Mod.Cafe.BuildingInterior is { } interior)
+        {
+            foreach (Furniture furniture in interior.furniture.Where(t => t.IsTable()))
+            {
+                yield return furniture;
+            }
+        }
+
+        if (Mod.Cafe.Signboard?.Location is { } signboardLocation)
+        {
+            foreach (Furniture furniture in signboardLocation.furniture.Where(t => t.IsTable()))
+            {
+                if (!Mod.Cafe.IsFurnitureWithinRangeOfSignboard(furniture))
+                    continue;
+
+                yield return furniture;
+            }
+        }
+    }
+
+    internal static bool IsOperatingTime(int timeOfDay)
+    {
+        return timeOfDay >= Mod.Cafe.OpeningTime && timeOfDay <= Mod.Cafe.ClosingTime;
+    }
+
     internal static bool IsChair(Furniture furniture)
     {
         return furniture.furniture_type.Value is 0 or 1 or 2;
@@ -173,7 +246,7 @@ internal static class ModUtility
                 2000f,
                 1,
                 0,
-                position + new Vector2(0f, -64f),
+                position + new Vector2(-13f, -64f),
                 flicker: false,
                 flipped: false,
                 1f, 0f, Color.White, 4f, 0f, 0f, 0f)

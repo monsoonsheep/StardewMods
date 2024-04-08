@@ -15,6 +15,7 @@ using StardewValley.Locations;
 using StardewValley.Network;
 using StardewValley.Objects;
 using SUtility = StardewValley.Utility;
+using SObject = StardewValley.Object;
 using MyCafe.Inventories;
 using MyCafe.Data.Customers;
 using MyCafe.Netcode;
@@ -24,6 +25,8 @@ using StardewValley.Pathfinding;
 using StardewValley.SpecialOrders.Objectives;
 using MyCafe.Characters.Factory;
 using MyCafe.Data;
+using xTile.Layers;
+using xTile.Tiles;
 
 #pragma warning disable IDE0060
 
@@ -35,7 +38,7 @@ public class Cafe
 
     private VillagerCustomerBuilder villagerCustomerBuilder = null!;
 
-    private readonly List<CustomerGroup> Groups = [];
+    internal readonly List<CustomerGroup> Groups = [];
 
     private readonly int LastTimeCustomersArrived = 0;
 
@@ -48,16 +51,16 @@ public class Cafe
         set => this.Fields.CafeEnabled.Set(value);
     }
 
-    internal CafeLocation? Indoor
+    internal GameLocation? BuildingInterior
     {
-        get => this.Fields.CafeIndoor.Value as CafeLocation;
-        set => this.Fields.CafeIndoor.Set(value);
+        get => this.Fields.BuildingInterior.Value;
+        set => this.Fields.BuildingInterior.Set(value);
     }
 
-    internal GameLocation? Outdoor
+    internal SObject? Signboard
     {
-        get => this.Fields.CafeOutdoor.Value;
-        set => this.Fields.CafeOutdoor.Set(value);
+        get => this.Fields.Signboard.Value;
+        set => this.Fields.Signboard.Set(value);
     }
 
     internal int OpeningTime
@@ -99,67 +102,100 @@ public class Cafe
         this.villagerCustomerBuilder = new VillagerCustomerBuilder(this.GetMenuItemForCustomer);
     }
 
-    internal void DayUpdate()
-    {
-        if (this.UpdateCafeLocations() is true)
-        {
-            this.Enabled = true;
-            this.PopulateTables();
-        }
-        else
-        {
-            this.Enabled = false;
-            this.Tables.Clear();
-        }
-    }
-
     #region Tables
 
     private void PopulateTables()
     {
         this.Tables.Clear(); 
-        List<GameLocation> locations = [];
-
-        if (this.Indoor != null)
-            locations.Add(this.Indoor);
-        if (this.Outdoor != null)
-            locations.Add(this.Outdoor);
-
         int count = 0;
-        foreach (GameLocation location in locations)
+
+        if (this.Signboard?.Location != null || this.BuildingInterior != null)
         {
-            foreach (Furniture furniture in location.furniture.Where(t => t.IsTable()))
+            foreach (Furniture f in ModUtility.GetValidFurnitureInCafeLocations())
             {
-                FurnitureTable newTable = new FurnitureTable(furniture, location.Name);
+                FurnitureTable newTable = new FurnitureTable(f);
                 if (newTable.Seats.Count > 0)
                 {
                     this.AddTable(newTable);
                     count++;
                 }
             }
-        }
 
-        if (count > 0)
-        {
             Log.Debug($"{count} furniture tables found in cafe locations.");
-            count = 0;
         }
-
+        
+        count = 0;
+        
         // Populate Map tables for cafe indoors
-        if (this.Indoor != null)
+        if (this.BuildingInterior != null)
         {
-            foreach (var pair in this.Indoor.GetMapTables())
+            foreach (var pair in this.GetIndoorMapTables(this.BuildingInterior))
             {
                 Rectangle newRectangle = new Rectangle(pair.Key.X * 64, pair.Key.Y * 64, pair.Key.Width * 64, pair.Key.Height * 64);
-                LocationTable locationTable = new LocationTable(newRectangle, this.Indoor.Name, pair.Value);
+                LocationTable locationTable = new LocationTable(newRectangle, this.BuildingInterior.Name, pair.Value);
                 if (locationTable.Seats.Count > 0)
                 {
                     this.AddTable(locationTable);
                     count++;
                 }
             }
+
             Log.Debug($"{count} map-based tables found in cafe locations.");
         }
+    }
+
+    private Dictionary<Rectangle, List<Vector2>> GetIndoorMapTables(GameLocation cafeInterior)
+    {
+        Dictionary<Rectangle, List<Vector2>> mapTables = [];
+
+        Layer layer = cafeInterior.Map.GetLayer("Back");
+
+        Dictionary<string, Rectangle> tableRectangles = new();
+
+        for (int i = 0; i < layer.LayerWidth; i++)
+        {
+            for (int j = 0; j < layer.LayerHeight; j++)
+            {
+                Tile tile = layer.Tiles[i, j];
+                if (tile == null)
+                    continue;
+
+                if (tile.TileIndexProperties.TryGetValue(ModKeys.MAPPROPERTY_TABLE, out var val)
+                    || tile.Properties.TryGetValue(ModKeys.MAPPROPERTY_TABLE, out val))
+                {
+                    Rectangle thisTile = new Rectangle(i, j, 1, 1);
+
+                    tableRectangles[val] = tableRectangles.TryGetValue(val, out var existingTileKey)
+                        ? Rectangle.Union(thisTile, existingTileKey)
+                        : thisTile;
+                }
+            }
+        }
+
+        foreach (var rect in tableRectangles)
+        {
+            string[] splitValues = rect.Key.Split(' ');
+            var seats = new List<Vector2>();
+
+            for (int i = 0; i < splitValues.Length; i += 2)
+            {
+                if (i + 1 >= splitValues.Length || !float.TryParse(splitValues[i], out float x) || !float.TryParse(splitValues[i + 1], out float y))
+                {
+                    Console.WriteLine($"Invalid values in Cafe Map's seats at {rect.Value.X}, {rect.Value.Y}", LogLevel.Warn);
+                    return [];
+                }
+
+                Vector2 seatLocation = new(x, y);
+                seats.Add(seatLocation);
+            }
+
+            if (seats.Count > 0)
+            {
+                mapTables.Add(rect.Value, seats);
+            }
+        }
+
+        return mapTables;
     }
 
     internal void AddTable(Table table)
@@ -200,128 +236,6 @@ public class Cafe
                     return true;
             default:
                 return false;
-        }
-    }
-
-    internal bool IsRegisteredTable(Furniture furniture, [NotNullWhen(true)] out FurnitureTable? result)
-    {
-        foreach (Table t in this.Tables)
-        {
-            if (t is FurnitureTable ft && ft.ActualTable.Value == furniture)
-            {
-                result = ft;
-                return true;
-            }
-        }
-
-        result = null;
-        return false;
-    }
-
-    internal bool IsRegisteredChair(Furniture furniture, [NotNullWhen(true)] out FurnitureSeat? result)
-    {
-        foreach (Table t in this.Tables)
-        {
-            if (t is FurnitureTable ft)
-            {
-                foreach (FurnitureSeat fs in ft.Seats.Cast<FurnitureSeat>())
-                {
-                    if (fs.ActualChair.Value == furniture)
-                    {
-                        result = fs;
-                        return true;
-                    }
-                }
-            }
-        }
-
-        result = null;
-        return false;
-    }
-
-    internal void OnFurniturePlaced(Furniture placed, GameLocation location)
-    {
-        Log.Trace("Placed furniture");
-
-        if (ModUtility.IsChair(placed))
-        {
-            Furniture facingTable = location.GetFurnitureAt(placed.TileLocation + CommonHelper.DirectionIntToDirectionVector(placed.currentRotation.Value) * new Vector2(1, -1));
-            if (facingTable == null
-                || facingTable.IsTable() == false
-                || facingTable.GetBoundingBox().Intersects(placed.boundingBox.Value))
-            {
-                return;
-            }
-
-            if (!this.IsRegisteredTable(facingTable, out FurnitureTable? table))
-            {
-                if (location.Equals(this.Outdoor) && IsFurnitureWithinRangeOfSignboard(facingTable, location) == false)
-                    return;
-
-                table = new FurnitureTable(facingTable, location.Name);
-                this.AddTable(table);
-            }
-
-            table.AddChair(placed);
-        }
-        else if (placed.IsTable())
-        {
-            if (location.Equals(this.Outdoor) && IsFurnitureWithinRangeOfSignboard(placed, location) == false)
-                return;
-
-
-            if (!this.IsRegisteredTable(placed, out _))
-            {
-                FurnitureTable table = new(placed, location.Name);
-                if (table.Seats.Count > 0)
-                {
-                    this.AddTable(table);
-                }
-            }
-        }
-    }
-
-    private static bool IsFurnitureWithinRangeOfSignboard(Furniture furniture, GameLocation location)
-    {
-        // Skip if the placed table is outside of the signboard's range
-        Building signboard = location.buildings.First(b => b.buildingType.Value == ModKeys.CAFE_SIGNBOARD_BUILDING_ID);
-        Point signboardTile = new Point(signboard.tileX.Value, signboard.tileY.Value);
-        int distance = int.MaxValue;
-
-        for (int x = (int) furniture.TileLocation.X; x <= furniture.TileLocation.X + furniture.getTilesWide(); x++)
-        {
-            for (int y = (int) furniture.TileLocation.Y; y <= furniture.TileLocation.Y + furniture.getTilesHigh(); y++)
-            {
-                distance = Math.Min(distance, (int) Vector2.Distance(new Vector2(x, y), signboardTile.ToVector2()));
-            }
-        }
-
-        return distance <= Mod.Config.DistanceForSignboardToRegisterTables;
-    }
-
-    internal void OnFurnitureRemoved(Furniture f, GameLocation location)
-    {
-        if (ModUtility.IsChair(f))
-        {
-            FurnitureTable? existingTable = this.Tables
-                .OfType<FurnitureTable>()
-                .FirstOrDefault(t => t.Seats.Any(seat => (seat as FurnitureSeat)?.ActualChair.Value.Equals(f) is true));
-
-            if (existingTable != null)
-            {
-                existingTable.RemoveChair(f);
-                if (existingTable.Seats.Count == 0)
-                {
-                    this.RemoveTable(existingTable);
-                }
-            }
-        }
-        else if (f.IsTable())
-        {
-            if (this.IsRegisteredTable(f, out FurnitureTable? trackedTable))
-            {
-                this.RemoveTable(trackedTable);
-            }
         }
     }
 
@@ -383,58 +297,219 @@ public class Cafe
         }
     }
 
+    internal bool IsRegisteredTable(Furniture furniture, [NotNullWhen(true)] out FurnitureTable? result)
+    {
+        foreach (Table t in this.Tables)
+        {
+            if (t is FurnitureTable ft && ft.ActualTable.Value == furniture)
+            {
+                result = ft;
+                return true;
+            }
+        }
+
+        result = null;
+        return false;
+    }
+
+    internal bool IsRegisteredChair(Furniture furniture, [NotNullWhen(true)] out FurnitureSeat? result)
+    {
+        foreach (Table t in this.Tables)
+        {
+            if (t is FurnitureTable ft)
+            {
+                foreach (FurnitureSeat fs in ft.Seats.Cast<FurnitureSeat>())
+                {
+                    if (fs.ActualChair.Value == furniture)
+                    {
+                        result = fs;
+                        return true;
+                    }
+                }
+            }
+        }
+
+        result = null;
+        return false;
+    }
+
+    internal bool IsFurnitureWithinRangeOfSignboard(Furniture furniture)
+    {
+        // Skip if the placed table is outside of the signboard's range
+        if (furniture.Location.Equals(this.BuildingInterior))
+            return true;
+
+        if (this.Signboard == null || !furniture.Location.Equals(this.Signboard.Location))
+            return false;
+
+        Point signboardTile = new Point((int) this.Signboard.TileLocation.X, (int) this.Signboard.TileLocation.Y);
+        int distance = int.MaxValue;
+
+        for (int x = (int) furniture.TileLocation.X; x <= furniture.TileLocation.X + furniture.getTilesWide(); x++)
+        {
+            for (int y = (int) furniture.TileLocation.Y; y <= furniture.TileLocation.Y + furniture.getTilesHigh(); y++)
+            {
+                distance = Math.Min(distance, (int) Vector2.Distance(new Vector2(x, y), signboardTile.ToVector2()));
+            }
+        }
+
+        return distance <= Mod.Config.DistanceForSignboardToRegisterTables;
+    }
+
+    internal void OnFurniturePlaced(Furniture placed, GameLocation location)
+    {
+        if (ModUtility.IsChair(placed))
+        {
+            Furniture facingTable = location.GetFurnitureAt(placed.TileLocation + CommonHelper.DirectionIntToDirectionVector(placed.currentRotation.Value) * new Vector2(1, -1));
+
+            if (facingTable == null
+                || facingTable.IsTable() == false
+                || facingTable.GetBoundingBox().Intersects(placed.boundingBox.Value)
+                || !this.IsFurnitureWithinRangeOfSignboard(facingTable))
+            {
+                return;
+            }
+
+         
+            if (!this.IsRegisteredTable(facingTable, out FurnitureTable? table))
+            {
+                table = new FurnitureTable(facingTable);
+                this.AddTable(table);
+            }
+
+            table.AddChair(placed);
+        }
+        else if (placed.IsTable())
+        {
+            if (this.IsFurnitureWithinRangeOfSignboard(placed) && !this.IsRegisteredTable(placed, out _))
+            {
+                FurnitureTable table = new(placed);
+                if (table.Seats.Count > 0)
+                {
+                    this.AddTable(table);
+                }
+            }
+        }
+    }
+
+    internal void OnFurnitureRemoved(Furniture f, GameLocation location)
+    {
+        if (ModUtility.IsChair(f))
+        {
+            FurnitureTable? existingTable = this.Tables
+                .OfType<FurnitureTable>()
+                .FirstOrDefault(t => t.Seats.Any(seat => (seat as FurnitureSeat)?.ActualChair.Value.Equals(f) is true));
+
+            if (existingTable != null)
+            {
+                existingTable.RemoveChair(f);
+                if (existingTable.Seats.Count == 0)
+                {
+                    this.RemoveTable(existingTable);
+                }
+            }
+        }
+        else if (f.IsTable())
+        {
+            if (this.IsRegisteredTable(f, out FurnitureTable? trackedTable))
+            {
+                this.RemoveTable(trackedTable);
+            }
+        }
+    }
+
     internal Table? GetFreeTable(int minSeats = 1)
     {
         return this.Tables.PickRandomWhere(t => !t.IsReserved && t.Seats.Count >= minSeats);
+    }
+
+    internal Table? GetTableFromCustomer(NPC npc)
+    {
+        return this.Tables.FirstOrDefault(t => t.Seats.Any(s => s.ReservingCustomer?.Equals(npc) ?? false));
+    }
+
+    internal Table? GetTableAt(GameLocation location, Point tile)
+    {
+        return this.Tables.FirstOrDefault(table => table.CurrentLocation == location.Name && table.BoundingBox.Value.Contains(tile.X * 64, tile.Y * 64));
     }
 
     #endregion
 
     #region Locations
 
+    internal void UpdateLocations()
+    {
+        if (this.UpdateCafeLocations() is true)
+        {
+            this.Enabled = true;
+            this.PopulateTables();
+        }
+        else
+        {
+            this.Enabled = false;
+            this.Tables.Clear();
+        }
+    }
+
     internal bool UpdateCafeLocations()
     {
-        if (this.Outdoor != null && this.Indoor != null && this.Outdoor.buildings.Contains(this.Indoor.GetContainingBuilding()))
-            return true;
+        this.Signboard = ModUtility.FindSignboard();
+        this.BuildingInterior = ModUtility.FindCafeBuildingInterior();
         
-        bool foundIndoor = false, foundSignboard = false;
-        SUtility.ForEachLocation(delegate (GameLocation loc)
+        if (this.BuildingInterior != null)
         {
-            foreach (Building b in loc.buildings)
+            if (!this.Signboard?.Location.Name.Equals(this.BuildingInterior.GetContainingBuilding()?.parentLocationName.Value) ?? false)
             {
-                if (b.GetIndoors() is CafeLocation indoor)
-                {
-                    foundIndoor = true;
-                    this.Indoor = indoor;
-                    this.Outdoor = loc;
-                    Game1._locationLookup.TryAdd(indoor.Name, indoor);
-                    Game1._locationLookup.TryAdd(loc.Name, loc);
-                    if (b.parentLocationName.Value == "Farm")
-                        Pathfinding.AddRoutesToBuildingInFarm(this.Indoor);
-                    return false;
-                }
+                this.Signboard = null;
             }
-
-            return true;
-        });
-
-        if (foundIndoor == false)
-        {
-            SUtility.ForEachLocation(delegate (GameLocation loc)
-            {
-                if (loc.buildings.Any(b => b.GetData() is { DefaultAction: ModKeys.SIGNBOARD_BUILDING_CLICK_EVENT_KEY }))
-                {
-                    foundSignboard = true;
-                    this.Outdoor = loc;
-                    Game1._locationLookup.TryAdd(loc.Name, loc);
-                    return false;
-                }
-
-                return true;
-            });
         }
 
-        return foundSignboard || foundIndoor;
+        if (this.BuildingInterior?.GetContainingBuilding().parentLocationName.Value == "Farm")
+        {
+            Pathfinding.AddRoutesToBuildingInFarm(this.BuildingInterior);
+        }
+        if (this.Signboard?.Location.GetContainingBuilding()?.parentLocationName?.Value == "Farm")
+        {
+            Pathfinding.AddRoutesToBuildingInFarm(this.Signboard.Location);
+        }
+
+        return this.BuildingInterior != null || this.Signboard != null;
+    }
+
+    internal void OnPlacedDownSignboard(SObject signboard)
+    {
+        if (this.Signboard != null)
+        {
+            Log.Error($"There is already a signboard registered in {this.Signboard.Location.DisplayName}");
+            return;
+        }
+
+        if (!ModUtility.IsOperatingTime(Game1.timeOfDay))
+        {
+            if (this.BuildingInterior != null)
+            {
+                Log.Warn("Putting down signboard but not taking effect");
+                return;
+            }
+
+            this.UpdateLocations();
+        }
+    }
+
+    internal void OnRemovedSignboard(SObject signboard) {
+        if (this.Signboard != null)
+        {
+            if (ModUtility.IsOperatingTime(Game1.timeOfDay))
+            {
+                Log.Warn("Player broke the signboard while the cafe was open");
+            }
+
+            Game1.delayedActions.Add(new DelayedAction(500, () =>
+            {
+                this.UpdateLocations();
+                this.RemoveAllCustomers();
+            }));
+        }
     }
 
     #endregion
@@ -443,6 +518,16 @@ public class Cafe
 
     internal void TenMinuteUpdate()
     {
+        bool isOpen = ModUtility.IsOperatingTime(Game1.timeOfDay);
+
+        if (this.Signboard != null)
+        {
+            this.Signboard.Fragility = isOpen ? 2 : 0;
+        }
+
+        if (!isOpen)
+            return;
+
         int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, this.ClosingTime);
         int minutesTillOpens = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, this.OpeningTime);
         int minutesSinceLastVisitors = SUtility.CalculateMinutesBetweenTimes(this.LastTimeCustomersArrived, Game1.timeOfDay);
@@ -569,6 +654,9 @@ public class Cafe
             {
                 Mod.Instance.VillagerData[c.Name].LastAteFood = c.get_OrderItem().Value.QualifiedItemId;
                 Mod.Instance.VillagerData[c.Name].LastVisitedDate = Game1.Date;
+                c.faceTowardFarmerTimer = 0;
+                c.faceTowardFarmer = false;
+                c.movementPause = 0;
             }
 
             try
@@ -677,8 +765,9 @@ public class Cafe
 
     internal void RemoveAllCustomers()
     {
-        foreach (CustomerGroup g in this.Groups)
+        for (int i = this.Groups.Count - 1; i >= 0; i--)
         {
+            var g = this.Groups[i];
             this.EndCustomerGroup(g);
         }
     }

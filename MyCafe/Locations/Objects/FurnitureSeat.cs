@@ -16,7 +16,7 @@ public sealed class FurnitureSeat : Seat
     public FurnitureSeat(Furniture actualChair, Table table) : base(table)
     {
         this.ActualChair.Set(actualChair);
-        this.Position = this.ActualChair.Value.TileLocation.ToPoint();
+        this.TilePosition = this.ActualChair.Value.TileLocation.ToPoint();
     }
 
     protected override void InitNetFields()

@@ -11,6 +11,8 @@ using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Characters;
 using StardewValley.Menus;
+using StardewValley.Objects;
+
 #pragma warning disable IDE0060
 
 namespace MyCafe;
@@ -48,6 +50,7 @@ internal static class Debug
 
                 break;
             case SButton.NumPad6:
+                GivePlayerTheSignboard();
 
                 break;
             case SButton.NumPad7:
@@ -55,24 +58,30 @@ internal static class Debug
 
                 break;
             case SButton.NumPad8:
+                Game1.activeClickableMenu = new CarpenterMenu("Robin");
 
                 break;
             case SButton.NumPad9:
                 ModUtility.DoEmojiSprite(Game1.player.Tile, EmojiSprite.Money);
+
                 break;
             case SButton.U:
                 OpenCafeMenu();
 
                 break;
-            default:
-                return;
         }
+    }
+
+    internal static void GivePlayerTheSignboard()
+    {
+        Object signboard = ItemRegistry.Create<Object>($"(BC){ModKeys.CAFE_SIGNBOARD_OBJECT_ID}");
+        Game1.player.addItemToInventory(signboard);
     }
 
     internal static void InvalidateIntroductionEvent()
     {
-        GameLocation eventLocation = Game1.locations.First(l => l.isBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID));
-        Mod.Instance.Helper.GameContent.InvalidateCache($"Data/Events/{eventLocation.Name}");
+        //GameLocation eventLocation = Game1.locations.First(l => l.isBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID));
+        //Mod.Instance.Helper.GameContent.InvalidateCache($"Data/Events/{eventLocation.Name}");
     }
 
     internal static void OpenCafeMenu()

@@ -7,6 +7,8 @@ using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.Pathfinding;
 using StardewValley.TerrainFeatures;
+using xTile.Layers;
+using xTile.Tiles;
 using Location = xTile.Dimensions.Location;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
@@ -14,8 +16,10 @@ namespace MyCafe.Characters;
 
 public static class Pathfinding
 {
-    private static readonly Action<List<string>> AddRoute = (route) => AddRouteMethod?.Invoke(null, [route, null]);
-    private static readonly MethodInfo AddRouteMethod = AccessTools.Method(typeof(WarpPathfindingCache), "AddRoute", [typeof(List<string>), typeof(Gender?)]);
+    private static readonly Dictionary<string, List<LocationWarpRoute>> LocationRoutes = [];
+
+    internal static readonly List<Point> NpcBarrierTiles = [];
+    internal static bool NpcBarrierRemoved = false;
 
     private static readonly sbyte[,] Directions = new sbyte[4 ,2]
     {
@@ -25,10 +29,24 @@ public static class Pathfinding
         { -1, 0 },
     };
 
+    /// <summary>
+    /// Pathfinds the character to the given location and position, and sets its <see cref="Character.controller"/>, disrupting their current schedule behavior
+    /// </summary>
+    /// <exception cref="PathNotFoundException">Thrown when pathfinding failed due to either macro level location routes not found or tile collisions in a location</exception>
     public static bool PathTo(this NPC me, GameLocation targetLocation, Point targetTile, int finalFacingDirection = 0,
         PathFindController.endBehavior? endBehavior = null)
     {
-        Stack<Point>? path = PathfindFromLocationToLocation(me.currentLocation, me.TilePoint, targetLocation, targetTile, me);
+        Stack<Point>? path;
+
+        try
+        {
+            path = PathfindFromLocationToLocation(me.currentLocation, me.TilePoint, targetLocation, targetTile, me);
+        }
+        finally
+        {
+            RestoreNpcBarrier();
+        }
+
         if (path == null || path.Count == 0)
         {
             Log.Error("Couldn't pathfind NPC");
@@ -61,14 +79,20 @@ public static class Pathfinding
         }
 
         // Get location route
-        string[] locationsRoute = WarpPathfindingCache.GetLocationRoute(startingLocation.Name, targetLocation.Name, character.Gender)
-            ?? throw new PathNotFoundException($"Location route not found for {character.Name}", startTile, targetTile, startingLocation.Name, targetLocation.Name, character);
+        string[]? locationsRoute = WarpPathfindingCache.GetLocationRoute(startingLocation.Name, targetLocation.Name, character.Gender)
+            ?? GetLocationRoute(startingLocation.Name, targetLocation.Name);
+
+        if (locationsRoute == null)
+            return null;
 
         for (int i = 0; i < locationsRoute.Length; i++)
         {
             GameLocation? current = Game1.getLocationFromName(locationsRoute[i]);
             if (current == null)
                 return null;
+
+            if (current is Farm)
+                RemoveNpcBarrier();
             
             if (i < locationsRoute.Length - 1)
             {
@@ -114,7 +138,7 @@ public static class Pathfinding
         return path;
     }
 
-    public static Stack<Point>? FindPath(Point startTile, Point targetTile, GameLocation location, Character? character, int iterations = 30000)
+    private static Stack<Point>? FindPath(Point startTile, Point targetTile, GameLocation location, Character? character, int iterations = 30000)
     {
         if (location.GetFurnitureAt(targetTile.ToVector2()) != null
             || !location.isTilePassable(new Location(targetTile.X, targetTile.Y), Game1.viewport))
@@ -292,6 +316,33 @@ public static class Pathfinding
         return value;
     }
 
+    private static void AddRoute(List<string> route)
+    {
+        if (!LocationRoutes.ContainsKey(route[0]))
+            LocationRoutes[route[0]] = new List<LocationWarpRoute>();
+        
+        LocationRoutes[route[0]].Add(new LocationWarpRoute(route.ToArray(), null));
+    }
+
+    private static string[]? GetLocationRoute(string startingLocation, string endingLocation)
+    {
+        if (LocationRoutes.TryGetValue(startingLocation, out var routes))
+        {
+            foreach (LocationWarpRoute route in routes)
+            {
+                if (route.LocationNames[^1] == endingLocation)
+                {
+                    Gender? onlyGender = route.OnlyGender;
+                    if (!onlyGender.HasValue)
+                    {
+                        return route.LocationNames;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     /// <summary>
     /// Use <see cref="WarpPathfindingCache"/>.AddRoute to add routes from all locations to the farm and vice versa
     /// </summary>
@@ -323,7 +374,7 @@ public static class Pathfinding
     {
         foreach (GameLocation location in Game1.locations)
         {
-            List<string>? toFarm = WarpPathfindingCache.GetLocationRoute(location.Name, "Farm", Gender.Undefined)?.ToList();
+            List<string>? toFarm = (WarpPathfindingCache.GetLocationRoute(location.Name, "Farm", Gender.Undefined) ?? GetLocationRoute(location.Name, "Farm"))?.ToList();
             if (toFarm is not { Count: > 1 })
             {
                 continue;
@@ -338,6 +389,31 @@ public static class Pathfinding
             AddRoute(reverseRoute);
         }
     }
+
+    private static void RestoreNpcBarrier()
+    {
+        if (NpcBarrierRemoved)
+        {
+            Layer layer = Game1.getFarm().Map.GetLayer("Back");
+
+            foreach (Point point in NpcBarrierTiles)
+            {
+                layer.Tiles[point.X, point.Y]?.Properties.Remove("NPCBarrier");
+            }
+        }
+    }
+
+    private static void RemoveNpcBarrier()
+    {
+        Layer layer = Game1.getFarm().Map.GetLayer("Back");
+        foreach (Point point in NpcBarrierTiles)
+        {
+            layer.Tiles[point.X, point.Y]?.Properties.Remove("NPCBarrier");
+        }
+
+        NpcBarrierRemoved = true;
+    }
+
 }
 
 public class PathNotFoundException : Exception

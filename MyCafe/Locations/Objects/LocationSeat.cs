@@ -16,10 +16,10 @@ public sealed class LocationSeat : Seat
     {
     }
 
-    public LocationSeat(Point position, Table table) : base(table)
+    public LocationSeat(Point tilePosition, Table table) : base(table)
     {
-        this.Position = position;
-        MapSeat? mapSeat = this.Location.mapSeats.FirstOrDefault(m => m.GetSeatBounds().Contains(this.Position));
+        this.TilePosition = tilePosition;
+        MapSeat? mapSeat = this.Location.mapSeats.FirstOrDefault(m => m.GetSeatBounds().Contains(new Vector2(this.TilePosition.X, this.TilePosition.Y)));
         if (mapSeat != null)
         {
             this.NetMapSeat.Set(mapSeat);
@@ -42,11 +42,11 @@ public sealed class LocationSeat : Seat
         {
             if (this.NetMapSeat.Value == null)
             {
-                return this.Position.ToVector2();
+                return this.TilePosition.ToVector2() * 64f;
             }
             else
             {
-                return this.NetMapSeat.Value.GetSeatPositions()[0];
+                return this.NetMapSeat.Value.GetSeatPositions()[0] * 64f;
             }
         }
     }
@@ -58,7 +58,7 @@ public sealed class LocationSeat : Seat
             if (this.Table is LocationTable table)
             {
                 Rectangle tableBox = table.BoundingBox.Value;
-                Vector2 myPos = new Vector2(this.Position.X * 64, this.Position.Y * 64);
+                Vector2 myPos = this.TilePosition.ToVector2() * 64f;
                 if (tableBox.Contains(myPos.X, myPos.Y - 64))
                     return 0;
                 if (tableBox.Contains(myPos.X + 64, myPos.Y))

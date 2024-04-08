@@ -15,6 +15,7 @@ public class CustomerGroup
     internal GroupType Type;
 
     internal List<NPC> Members = [];
+
     internal Table? ReservedTable { get; set; }
 
     internal CustomerGroup(GroupType type)
@@ -46,7 +47,7 @@ public class CustomerGroup
     internal void GoToTable()
     {
         List<Seat> seats = this.GetSeats();
-        List<Point> tiles = seats.Select(s => s!.Position).ToList();
+        List<Point> tiles = seats.Select(s => new Point(s.TilePosition.X, s.TilePosition.Y)).ToList();
         this.MoveTo(CommonHelper.GetLocation(this.ReservedTable!.CurrentLocation)!, tiles, NpcExtensions.SitDownBehavior);
     }
 
@@ -78,6 +79,8 @@ public class CustomerGroup
 
     internal void PayForFood()
     {
-        Game1.MasterPlayer.Money += this.Members.Sum(m => m.get_OrderItem().Value?.salePrice() ?? 0);
+        int money = this.Members.Sum(m => m.get_OrderItem().Value?.salePrice() ?? 0);
+        Game1.MasterPlayer.Money += money;
+        ModUtility.DoEmojiSprite(this.ReservedTable!.Center, EmojiSprite.Money);
     }
 }

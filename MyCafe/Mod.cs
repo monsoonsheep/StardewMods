@@ -50,8 +50,6 @@ public class Mod : StardewModdingAPI.Mod
 
     private RandomCharacterGenerator _randomCharacterGenerator = null!;
 
-    internal bool IsPlacingSignBoard;
-
     internal Dictionary<string, VillagerCustomerModel> VillagerCustomerModels = [];
 
     internal Dictionary<string, VillagerCustomerData> VillagerData = [];
@@ -89,7 +87,6 @@ public class Mod : StardewModdingAPI.Mod
                 new NetFieldPatcher(),
                 new CharacterPatcher(),
                 new FurniturePatcher(),
-                new SignboardPatcher(),
                 new DialoguePatcher()
             ) is false)
             return;
@@ -120,10 +117,8 @@ public class Mod : StardewModdingAPI.Mod
         GameLocation.RegisterTileAction(ModKeys.SIGNBOARD_BUILDING_CLICK_EVENT_KEY, CafeMenu.Action_OpenCafeMenu);
 
         ISpaceCoreApi spaceCore = this.Helper.ModRegistry.GetApi<ISpaceCoreApi>("spacechase0.SpaceCore")!;
-        spaceCore.RegisterSerializerType(typeof(CafeLocation));
-
         // Remove this? It might not be need. Test multiplayer to confirm.
-        FarmerTeamVirtualProperties.Register(spaceCore);
+        //FarmerTeamVirtualProperties.Register(spaceCore);
 
         this.LoadContent(this.Helper.ContentPacks.CreateTemporary(
             Path.Combine(this.Helper.DirectoryPath, "assets", "DefaultContent"),
@@ -144,7 +139,7 @@ public class Mod : StardewModdingAPI.Mod
 
         GameStateQuery.Register(
             ModKeys.GAMESTATEQUERY_ISINDOORCAFE,
-            (query, context) => Game1.currentLocation.Equals(Cafe.Indoor));
+            (query, context) => Game1.currentLocation.Equals(Cafe.BuildingInterior));
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
@@ -169,14 +164,14 @@ public class Mod : StardewModdingAPI.Mod
             return;
 
         // When the signboard is built, check if player has flag, add if not and inject the event with AssetRequested)
-        if (Game1.IsBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID) &&
-            Game1.MasterPlayer.mailReceived.Add(ModKeys.MAILFLAG_HAS_BUILT_SIGNBOARD) == true)
-        {
-            GameLocation eventLocation = Game1.locations.First(l => l.isBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID));
-            this.Helper.GameContent.InvalidateCache($"Data/Events/{eventLocation.Name}");
-        }
+        //if (Game1.IsBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID) &&
+        //    Game1.MasterPlayer.mailReceived.Add(ModKeys.MAILFLAG_HAS_BUILT_SIGNBOARD) == true)
+        //{
+        //    GameLocation eventLocation = Game1.locations.First(l => l.isBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID));
+        //    this.Helper.GameContent.InvalidateCache($"Data/Events/{eventLocation.Name}");
+        //}
 
-        Cafe.DayUpdate();
+        Cafe.UpdateLocations();
     }
 
     internal void OnSaving(object? sender, SavingEventArgs e)
@@ -207,69 +202,93 @@ public class Mod : StardewModdingAPI.Mod
     [SuppressMessage("ReSharper", "PossibleLossOfFraction")]
     internal void OnRenderedWorld(object? sender, RenderedWorldEventArgs e)
     {
-        if (Cafe.Enabled)
+        if (!Cafe.Enabled)
+            return;
+
+        // Get list of reserved tables with center coords
+        foreach (Table table in Cafe.Tables)
         {
-            // Get list of reserved tables with center coords
-            foreach (Table table in Cafe.Tables)
+            if (Game1.currentLocation.Name.Equals(table.CurrentLocation))
             {
-                if (Game1.currentLocation.Name.Equals(table.CurrentLocation))
+                // Table status
+                Vector2 offset = new Vector2(0, (float) Math.Round(4f * Math.Sin(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 250.0)));
+
+                switch (table.State.Value)
                 {
-                    // Table status
-                    Vector2 offset = new Vector2(0, (float) Math.Round(4f * Math.Sin(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 250.0)));
+                    case TableState.CustomersDecidedOnOrder:
+                        // Exclamation mark
+                        e.SpriteBatch.Draw(
+                            Game1.mouseCursors,
+                            Game1.GlobalToLocal(table.Center + new Vector2(-8, -64)) + offset,
+                            new Rectangle(402, 495, 7, 16),
+                            Color.White,
+                            0f,
+                            new Vector2(1f, 4f),
+                            4f,
+                            SpriteEffects.None,
+                            1f);
+                        break;
+                    case TableState.Free:
+                        if (Debug.IsDebug() || Game1.timeOfDay < Cafe.OpeningTime)
+                        {
+                            e.SpriteBatch.DrawString(Game1.tinyFont, table.Seats.Count.ToString(), Game1.GlobalToLocal(table.Center + new Vector2(-12, -112)) + offset, Color.LightBlue, 0f, Vector2.Zero, 5f, SpriteEffects.None, 0.99f);
+                            e.SpriteBatch.DrawString(Game1.tinyFont, table.Seats.Count.ToString(), Game1.GlobalToLocal(table.Center + new Vector2(-10, -96)) + offset, Color.Black, 0f, Vector2.Zero, 4f, SpriteEffects.None, 1f);
+                        }
 
-                    switch (table.State.Value)
-                    {
-                        case TableState.CustomersDecidedOnOrder:
-                            // Exclamation mark
-                            e.SpriteBatch.Draw(
-                                Game1.mouseCursors,
-                                Game1.GlobalToLocal(table.Center + new Vector2(-8, -64)) + offset,
-                                new Rectangle(402, 495, 7, 16),
-                                Color.White,
-                                0f,
-                                new Vector2(1f, 4f),
-                                4f,
-                                SpriteEffects.None,
-                                1f);
-                            break;
-                        case TableState.Free:
-                            if (Debug.IsDebug() || Game1.timeOfDay < Cafe.OpeningTime)
-                            {
-                                e.SpriteBatch.DrawString(Game1.tinyFont, table.Seats.Count.ToString(), Game1.GlobalToLocal(table.Center + new Vector2(-12, -112)) + offset, Color.LightBlue, 0f, Vector2.Zero, 5f, SpriteEffects.None, 0.99f);
-                                e.SpriteBatch.DrawString(Game1.tinyFont, table.Seats.Count.ToString(), Game1.GlobalToLocal(table.Center + new Vector2(-10, -96)) + offset, Color.Black, 0f, Vector2.Zero, 4f, SpriteEffects.None, 1f);
-                            }
-
-                            break;
-
-                    }
+                        break;
                 }
             }
         }
 
-        if (this.IsPlacingSignBoard)
+        foreach (NPC c in Cafe.Groups.SelectMany(g => g.Members))
         {
-            foreach (Vector2 tile in TileHelper.GetCircularTileGrid(
-                         new Vector2((Game1.viewport.X + Game1.getOldMouseX(false)) / 64,
-                             (Game1.viewport.Y + Game1.getOldMouseY(false)) / 64), this._loadedConfig.DistanceForSignboardToRegisterTables))
+            float layerDepth = Math.Max(0f, c.StandingPixel.Y / 10000f);
+            Vector2 drawPosition = c.getLocalPosition(Game1.viewport);
+
+            if (c.get_DrawName().Value == true)
             {
-                // get tile area in screen pixels
-                Rectangle area = new((int)(tile.X * Game1.tileSize - Game1.viewport.X), (int)(tile.Y * Game1.tileSize - Game1.viewport.Y), Game1.tileSize, Game1.tileSize);
+                e.SpriteBatch.DrawString(
+                    Game1.dialogueFont,
+                    c.displayName,
+                    drawPosition - new Vector2(40, 64),
+                    Color.White * 0.75f,
+                    0f,
+                    Vector2.Zero,
+                    new Vector2(0.3f, 0.3f),
+                    SpriteEffects.None,
+                    layerDepth + 0.001f
+                );
+            }
 
-                // choose tile color
-                Color color = Color.LightCyan;
+            // TODO move to the OnRenderedWorld event
+            Item item;
+            if (c.get_DrawOrderItem().Value == true && (item = c.get_OrderItem().Value) != null)
+            {
+                Vector2 offset = new Vector2(0,
+                    (float) Math.Round(4f * Math.Sin(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 250.0)));
 
-                // draw background
-                e.SpriteBatch.DrawLine(area.X, area.Y, new Vector2(area.Width, area.Height), color * 0.2f);
+                drawPosition.Y -= 32 + c.Sprite.SpriteHeight * 3;
 
-                // draw border
-                Color borderColor = color * 0.5f;
-                e.SpriteBatch.DrawLine(area.X, area.Y, new Vector2(area.Width, 1), borderColor); // top
-                e.SpriteBatch.DrawLine(area.X, area.Y, new Vector2(1, area.Height), borderColor); // left
-                e.SpriteBatch.DrawLine(area.X + area.Width, area.Y, new Vector2(1, area.Height), borderColor); // right
-                e.SpriteBatch.DrawLine(area.X, area.Y + area.Height, new Vector2(area.Width, 1), borderColor); // bottom
+                // Draw bubble
+                e.SpriteBatch.Draw(
+                    Sprites,
+                    drawPosition + offset,
+                    new Rectangle(0, 16, 16, 16),
+                    Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None,
+                    0.99f);
+
+                // Item inside the bubble
+                item.drawInMenu(e.SpriteBatch, drawPosition + offset, 0.40f, 1f, 0.992f, StackDrawType.Hide, Color.White, drawShadow: false);
+
+                // Draw item name if hovering over bubble
+                Vector2 mouse = new Vector2(Game1.getMouseX(), Game1.getMouseY());
+                if (Vector2.Distance(drawPosition, mouse) <= Game1.tileSize)
+                {
+                    Vector2 size = Game1.dialogueFont.MeasureString(item.DisplayName) * 0.75f;
+                    e.SpriteBatch.DrawString(Game1.dialogueFont, item.DisplayName, drawPosition + new Vector2(32 - size.X / 2f, -10f), Color.Black, 0f, Vector2.Zero, 0.75f, SpriteEffects.None, 1f);
+                }
             }
         }
-
     }
 
     internal void OnFurnitureListChanged(object? sender, FurnitureListChangedEventArgs e)
@@ -277,7 +296,7 @@ public class Mod : StardewModdingAPI.Mod
         if (!Context.IsMainPlayer || Cafe.Enabled == false)
             return;
 
-        if (e.Location.Equals(Cafe.Indoor) || e.Location.Equals(Cafe.Outdoor))
+        if (e.Location.Equals(Cafe.BuildingInterior) || e.Location.Equals(Cafe.Signboard?.Location))
         {
             foreach (var f in e.Removed)
                 Cafe.OnFurnitureRemoved(f, e.Location);
@@ -460,19 +479,21 @@ public class Mod : StardewModdingAPI.Mod
 
     internal string GetCafeIntroductionEvent()
     {
-        GameLocation eventLocation = Game1.locations.First(l => l.isBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID));
-        Building signboard = eventLocation.getBuildingByType(ModKeys.CAFE_SIGNBOARD_BUILDING_ID);
-        Point signboardTile = new Point(signboard.tileX.Value, signboard.tileY.Value + signboard.tilesHigh.Value);
+        return string.Empty;
 
-        string eventString = Game1.content.Load<Dictionary<string, string>>($"{ModKeys.MODASSET_EVENTS}")[ModKeys.EVENT_CAFEINTRODUCTION];
+        //GameLocation eventLocation = Game1.locations.First(l => l.isBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID));
+        //Building signboard = eventLocation.getBuildingByType(ModKeys.CAFE_SIGNBOARD_BUILDING_ID);
+        //Point signboardTile = new Point(signboard.tileX.Value, signboard.tileY.Value + signboard.tilesHigh.Value);
 
-        // Replace the encoded coordinates with the position of the signboard building
-        string substituted = Regex.Replace(
-            eventString,
-            @"(6\d{2})\s(6\d{2})",
-            (m) => $"{(int.Parse(m.Groups[1].Value) - 650 + signboardTile.X)} {(int.Parse(m.Groups[2].Value) - 650 + signboardTile.Y)}");
+        //string eventString = Game1.content.Load<Dictionary<string, string>>($"{ModKeys.MODASSET_EVENTS}")[ModKeys.EVENT_CAFEINTRODUCTION];
 
-        return substituted;
+        //// Replace the encoded coordinates with the position of the signboard building
+        //string substituted = Regex.Replace(
+        //    eventString,
+        //    @"(6\d{2})\s(6\d{2})",
+        //    (m) => $"{(int.Parse(m.Groups[1].Value) - 650 + signboardTile.X)} {(int.Parse(m.Groups[2].Value) - 650 + signboardTile.Y)}");
+
+        //return substituted;
     }
 
     internal void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
@@ -486,13 +507,15 @@ public class Mod : StardewModdingAPI.Mod
             if (Cafe.GeneratedSprites.TryGetValue(id, out GeneratedSpriteData data))
             {
                 Texture2D? sprite = data.Sprite;
-                if (sprite == null)
+                if (sprite != null)
+                {
+                    e.LoadFrom(() => sprite, AssetLoadPriority.Medium);
+                }
+                else
                 {
                     Log.Error("Couldn't load texture from generated sprite data!");
                     failed = true;
                 }
-                else
-                    e.LoadFrom(() => sprite, AssetLoadPriority.Medium);
             }
             else
             {
@@ -514,7 +537,8 @@ public class Mod : StardewModdingAPI.Mod
                  Game1.MasterPlayer.mailReceived.Contains(ModKeys.MAILFLAG_HAS_BUILT_SIGNBOARD) &&
                  Game1.MasterPlayer.mailReceived.Contains(ModKeys.MAILFLAG_HAS_SEEN_CAFE_INTRODUCTION) == false)
         {
-            GameLocation eventLocation = Game1.locations.First(l => l.isBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID));
+            GameLocation eventLocation = Game1.getFarm();
+            //GameLocation eventLocation = Game1.locations.First(l => l.isBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID));
             if (e.NameWithoutLocale.IsEquivalentTo($"Data/Events/{eventLocation.Name}"))
             {
                 string @event = this.GetCafeIntroductionEvent();
@@ -612,13 +636,13 @@ public class Mod : StardewModdingAPI.Mod
         foreach (IContentPack contentPack in this.Helper.ContentPacks.GetOwned())
             this.LoadContentPack(contentPack);
 
-        Mod.RandomCharacterGenerator.BodyBase = this.Helper.ModContent.Load<IRawTextureData>(Path.Combine("assets", "CharGen", "base.png"));
-        Mod.RandomCharacterGenerator.Eyes = this.Helper.ModContent.Load<IRawTextureData>(Path.Combine("assets", "CharGen", "eyes.png"));
-        Mod.RandomCharacterGenerator.SkinTones = this.Helper.ModContent.Load<List<int[]>>(Path.Combine("assets", "CharGen", "skintones.json"));
-        Mod.RandomCharacterGenerator.EyeColors = this.Helper.ModContent.Load<List<int[]>>(Path.Combine("assets", "CharGen", "eyecolors.json"));
-        Mod.RandomCharacterGenerator.HairColors = this.Helper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "haircolors.json"));
-        Mod.RandomCharacterGenerator.ShirtColors = this.Helper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "shirtcolors.json"));
-        Mod.RandomCharacterGenerator.PantsColors = this.Helper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "pantscolors.json"));
+        RandomCharacterGenerator.BodyBase = this.Helper.ModContent.Load<IRawTextureData>(Path.Combine("assets", "CharGen", "base.png"));
+        RandomCharacterGenerator.Eyes = this.Helper.ModContent.Load<IRawTextureData>(Path.Combine("assets", "CharGen", "eyes.png"));
+        RandomCharacterGenerator.SkinTones = this.Helper.ModContent.Load<List<int[]>>(Path.Combine("assets", "CharGen", "skintones.json"));
+        RandomCharacterGenerator.EyeColors = this.Helper.ModContent.Load<List<int[]>>(Path.Combine("assets", "CharGen", "eyecolors.json"));
+        RandomCharacterGenerator.HairColors = this.Helper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "haircolors.json"));
+        RandomCharacterGenerator.ShirtColors = this.Helper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "shirtcolors.json"));
+        RandomCharacterGenerator.PantsColors = this.Helper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "pantscolors.json"));
     }
 
     internal void LoadContentPack(IContentPack contentPack)
@@ -657,7 +681,7 @@ public class Mod : StardewModdingAPI.Mod
                     : this.Helper.ModContent.GetInternalAssetName(Path.Combine("assets", "CharGen", "Portraits", (string.IsNullOrEmpty(model.Portrait) ? "cat" : model.Portrait) + ".png")).Name;
 
                 Log.Trace($"Customer model added: {model.Name}");
-                Mod.RandomCharacterGenerator.Customers[$"{contentPack.Manifest.UniqueID}/{model.Name}"] = model;
+                RandomCharacterGenerator.Customers[$"{contentPack.Manifest.UniqueID}/{model.Name}"] = model;
             }
         }
 
@@ -668,7 +692,7 @@ public class Mod : StardewModdingAPI.Mod
             {
                 HairModel? model = LoadAppearanceModel<HairModel>(contentPack, modelFolder.Name);
                 if (model != null) 
-                    Mod.RandomCharacterGenerator.Hairstyles[model.Id] = model;
+                    RandomCharacterGenerator.Hairstyles[model.Id] = model;
             }
         }
 
@@ -679,7 +703,7 @@ public class Mod : StardewModdingAPI.Mod
             {
                 ShirtModel? model = LoadAppearanceModel<ShirtModel>(contentPack, modelFolder.Name);
                 if (model != null) 
-                    Mod.RandomCharacterGenerator.Shirts[model.Id] = model;
+                    RandomCharacterGenerator.Shirts[model.Id] = model;
             }
         }
 
@@ -690,7 +714,7 @@ public class Mod : StardewModdingAPI.Mod
             {
                 PantsModel? model = LoadAppearanceModel<PantsModel>(contentPack, modelFolder.Name);
                 if (model != null) 
-                    Mod.RandomCharacterGenerator.Pants[model.Id] = model;
+                    RandomCharacterGenerator.Pants[model.Id] = model;
             }
         }
 
@@ -701,7 +725,7 @@ public class Mod : StardewModdingAPI.Mod
             {
                 ShoesModel? model = LoadAppearanceModel<ShoesModel>(contentPack, modelFolder.Name);
                 if (model != null) 
-                    Mod.RandomCharacterGenerator.Shoes[model.Id] = model;
+                    RandomCharacterGenerator.Shoes[model.Id] = model;
             }
         }
 
@@ -712,7 +736,7 @@ public class Mod : StardewModdingAPI.Mod
             {
                 AccessoryModel? model = LoadAppearanceModel<AccessoryModel>(contentPack, modelFolder.Name);
                 if (model != null) 
-                    Mod.RandomCharacterGenerator.Accessories[model.Id] = model;
+                    RandomCharacterGenerator.Accessories[model.Id] = model;
             }
         }
 
@@ -724,7 +748,7 @@ public class Mod : StardewModdingAPI.Mod
             {
                 OutfitModel? model = LoadAppearanceModel<OutfitModel>(contentPack, modelFolder.Name);
                 if (model != null) 
-                    Mod.RandomCharacterGenerator.Outfits[model.Id] = model;
+                    RandomCharacterGenerator.Outfits[model.Id] = model;
             }
         }
     }

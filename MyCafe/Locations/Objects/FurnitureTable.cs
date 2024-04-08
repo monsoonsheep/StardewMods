@@ -17,7 +17,7 @@ public class FurnitureTable : Table
 
     }
 
-    internal FurnitureTable(Furniture actualTable, string location) : base(location)
+    internal FurnitureTable(Furniture actualTable) : base(actualTable.Location.Name)
     {
         this.ActualTable.Set(actualTable);
         base.BoundingBox.Set(actualTable.boundingBox.Value);
@@ -80,7 +80,7 @@ public class FurnitureTable : Table
         if (this.IsReserved)
             return null;
 
-        if (this.Seats.Any(c => c.Position == chairToAdd.TileLocation.ToPoint()))
+        if (this.Seats.Any(c => c.TilePosition == chairToAdd.TileLocation.ToPoint()))
             return null;
 
         Log.Debug("Adding chair to table");
@@ -94,12 +94,12 @@ public class FurnitureTable : Table
         if (this.IsReserved)
             return false;
 
-        if (!this.Seats.Any(c => c.Position == chairToRemove.TileLocation.ToPoint()))
+        if (!this.Seats.Any(c => c.TilePosition == chairToRemove.TileLocation.ToPoint()))
         {
             Log.Debug("Trying to remove a chair that wasn't tracked");
             return false;
         }
-        this.Seats.RemoveWhere(s => s.Position.X == (int) chairToRemove.TileLocation.X && s.Position.Y == (int) chairToRemove.TileLocation.Y);
+        this.Seats.RemoveWhere(s => s.TilePosition.X == (int) chairToRemove.TileLocation.X && s.TilePosition.Y == (int) chairToRemove.TileLocation.Y);
         //this.Seats.Set(this.Seats.TakeWhile(c => c.Position != chairToRemove.TileLocation.ToPoint()).ToList());
         Log.Debug("Removed chair from table");
         return true;
