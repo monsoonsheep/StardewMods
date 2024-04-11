@@ -42,6 +42,8 @@ public class Cafe
 
     private readonly int LastTimeCustomersArrived = 0;
 
+    internal int MoneyForToday = 0;
+
     private CafeNetObject Fields
         => Game1.player.team.get_CafeNetFields().Value;
 
@@ -49,12 +51,6 @@ public class Cafe
     {
         get => this.Fields.CafeEnabled.Value;
         set => this.Fields.CafeEnabled.Set(value);
-    }
-
-    internal GameLocation? BuildingInterior
-    {
-        get => this.Fields.BuildingInterior.Value;
-        set => this.Fields.BuildingInterior.Set(value);
     }
 
     internal SObject? Signboard
@@ -107,41 +103,40 @@ public class Cafe
     private void PopulateTables()
     {
         this.Tables.Clear(); 
+
+        if (this.Signboard?.Location == null)
+            return;
+
         int count = 0;
 
-        if (this.Signboard?.Location != null || this.BuildingInterior != null)
+        // Furniture tables
+        foreach (Furniture f in ModUtility.GetValidFurnitureInCafeLocations())
         {
-            foreach (Furniture f in ModUtility.GetValidFurnitureInCafeLocations())
+            FurnitureTable newTable = new FurnitureTable(f);
+            if (newTable.Seats.Count > 0)
             {
-                FurnitureTable newTable = new FurnitureTable(f);
-                if (newTable.Seats.Count > 0)
-                {
-                    this.AddTable(newTable);
-                    count++;
-                }
+                this.AddTable(newTable);
+                count++;
             }
-
-            Log.Debug($"{count} furniture tables found in cafe locations.");
         }
-        
+
+        Log.Debug($"{count} furniture tables found in cafe locations.");
+
         count = 0;
-        
-        // Populate Map tables for cafe indoors
-        if (this.BuildingInterior != null)
+            
+        // Map tables
+        foreach (var pair in this.GetIndoorMapTables(this.Signboard.Location))
         {
-            foreach (var pair in this.GetIndoorMapTables(this.BuildingInterior))
+            Rectangle newRectangle = new Rectangle(pair.Key.X * 64, pair.Key.Y * 64, pair.Key.Width * 64, pair.Key.Height * 64);
+            LocationTable locationTable = new LocationTable(newRectangle, this.Signboard.Location.Name, pair.Value);
+            if (locationTable.Seats.Count > 0)
             {
-                Rectangle newRectangle = new Rectangle(pair.Key.X * 64, pair.Key.Y * 64, pair.Key.Width * 64, pair.Key.Height * 64);
-                LocationTable locationTable = new LocationTable(newRectangle, this.BuildingInterior.Name, pair.Value);
-                if (locationTable.Seats.Count > 0)
-                {
-                    this.AddTable(locationTable);
-                    count++;
-                }
+                this.AddTable(locationTable);
+                count++;
             }
-
-            Log.Debug($"{count} map-based tables found in cafe locations.");
         }
+
+        Log.Debug($"{count} map-based tables found in cafe locations.");
     }
 
     private Dictionary<Rectangle, List<Vector2>> GetIndoorMapTables(GameLocation cafeInterior)
@@ -289,8 +284,13 @@ public class Cafe
 
             case TableState.CustomersFinishedEating:
                 Log.Debug("Table finished meal");
-                
-                group!.PayForFood();
+
+                int money = group!.Members.Sum(m => m.get_OrderItem().Value?.salePrice() ?? 0);
+                Game1.MasterPlayer.Money += money;
+                this.MoneyForToday += money;
+                ModUtility.DoEmojiSprite(table.Center, EmojiSprite.Money);
+                Game1.stats.Increment(ModKeys.STATS_MONEY_FROM_CAFE, money);
+
                 this.EndCustomerGroup(group);
 
                 break;
@@ -335,11 +335,11 @@ public class Cafe
 
     internal bool IsFurnitureWithinRangeOfSignboard(Furniture furniture)
     {
-        // Skip if the placed table is outside of the signboard's range
-        if (furniture.Location.Equals(this.BuildingInterior))
-            return true;
+        if (this.Signboard?.Location == null)
+            return false;
 
-        if (this.Signboard == null || !furniture.Location.Equals(this.Signboard.Location))
+        // Skip if the placed table is outside of the signboard's range
+        if (!furniture.Location.Equals(this.Signboard.Location))
             return false;
 
         Point signboardTile = new Point((int) this.Signboard.TileLocation.X, (int) this.Signboard.TileLocation.Y);
@@ -358,6 +358,8 @@ public class Cafe
 
     internal void OnFurniturePlaced(Furniture placed, GameLocation location)
     {
+        Log.Trace($"Furniture placed at {placed.TileLocation}");
+
         if (ModUtility.IsChair(placed))
         {
             Furniture facingTable = location.GetFurnitureAt(placed.TileLocation + CommonHelper.DirectionIntToDirectionVector(placed.currentRotation.Value) * new Vector2(1, -1));
@@ -370,7 +372,6 @@ public class Cafe
                 return;
             }
 
-         
             if (!this.IsRegisteredTable(facingTable, out FurnitureTable? table))
             {
                 table = new FurnitureTable(facingTable);
@@ -394,6 +395,8 @@ public class Cafe
 
     internal void OnFurnitureRemoved(Furniture f, GameLocation location)
     {
+        Log.Trace($"Furniture removed from {f.TileLocation}");
+
         if (ModUtility.IsChair(f))
         {
             FurnitureTable? existingTable = this.Tables
@@ -430,7 +433,7 @@ public class Cafe
 
     internal Table? GetTableAt(GameLocation location, Point tile)
     {
-        return this.Tables.FirstOrDefault(table => table.CurrentLocation == location.Name && table.BoundingBox.Value.Contains(tile.X * 64, tile.Y * 64));
+        return this.Tables.FirstOrDefault(table => table.Location == location.Name && table.BoundingBox.Value.Contains(tile.X * 64, tile.Y * 64));
     }
 
     #endregion
@@ -453,27 +456,15 @@ public class Cafe
 
     internal bool UpdateCafeLocations()
     {
-        this.Signboard = ModUtility.FindSignboard();
-        this.BuildingInterior = ModUtility.FindCafeBuildingInterior();
+        if ((this.Signboard = ModUtility.FindSignboard()) == null)
+            return false;
         
-        if (this.BuildingInterior != null)
-        {
-            if (!this.Signboard?.Location.Name.Equals(this.BuildingInterior.GetContainingBuilding()?.parentLocationName.Value) ?? false)
-            {
-                this.Signboard = null;
-            }
-        }
-
-        if (this.BuildingInterior?.GetContainingBuilding().parentLocationName.Value == "Farm")
-        {
-            Pathfinding.AddRoutesToBuildingInFarm(this.BuildingInterior);
-        }
-        if (this.Signboard?.Location.GetContainingBuilding()?.parentLocationName?.Value == "Farm")
+        if (this.Signboard.Location.GetContainingBuilding()?.parentLocationName?.Value == "Farm")
         {
             Pathfinding.AddRoutesToBuildingInFarm(this.Signboard.Location);
         }
 
-        return this.BuildingInterior != null || this.Signboard != null;
+        return true;
     }
 
     internal void OnPlacedDownSignboard(SObject signboard)
@@ -486,12 +477,6 @@ public class Cafe
 
         if (!ModUtility.IsOperatingTime(Game1.timeOfDay))
         {
-            if (this.BuildingInterior != null)
-            {
-                Log.Warn("Putting down signboard but not taking effect");
-                return;
-            }
-
             this.UpdateLocations();
         }
     }
@@ -518,6 +503,15 @@ public class Cafe
 
     internal void TenMinuteUpdate()
     {
+        this.Groups.ForEach(g => g.MinutesSitting += 10);
+        for (int i = this.Groups.Count - 1; i >= 0; i--)
+        {
+            if (this.Groups[i].MinutesSitting > Mod.Config.MinutesBeforeCustomersLeave)
+            {
+                this.EndCustomerGroup(this.Groups[i]);
+            }
+        }
+
         bool isOpen = ModUtility.IsOperatingTime(Game1.timeOfDay);
 
         if (this.Signboard != null)

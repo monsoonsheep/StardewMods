@@ -10,22 +10,16 @@ public sealed class FurnitureSeat : Seat
 
     public FurnitureSeat() : base()
     {
-
+        this.NetFields.AddField(this.ActualChair);
     }
 
-    public FurnitureSeat(Furniture actualChair, Table table) : base(table)
+    public FurnitureSeat(Furniture actualChair) : this()
     {
         this.ActualChair.Set(actualChair);
         this.TilePosition = this.ActualChair.Value.TileLocation.ToPoint();
     }
 
-    protected override void InitNetFields()
-    {
-        base.InitNetFields();
-        this.NetFields.AddField(this.ActualChair);
-    }
-
-    public override Vector2 SittingPosition
+    internal override Vector2 SittingPosition
     {
         get
         {

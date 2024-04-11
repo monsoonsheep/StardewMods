@@ -60,19 +60,11 @@ internal static class ModUtility
 
     internal static IEnumerable<Furniture> GetValidFurnitureInCafeLocations()
     {
-        if (Mod.Cafe.BuildingInterior is { } interior)
-        {
-            foreach (Furniture furniture in interior.furniture.Where(t => t.IsTable()))
-            {
-                yield return furniture;
-            }
-        }
-
         if (Mod.Cafe.Signboard?.Location is { } signboardLocation)
         {
             foreach (Furniture furniture in signboardLocation.furniture.Where(t => t.IsTable()))
             {
-                if (!Mod.Cafe.IsFurnitureWithinRangeOfSignboard(furniture))
+                if (signboardLocation.IsOutdoors && !Mod.Cafe.IsFurnitureWithinRangeOfSignboard(furniture))
                     continue;
 
                 yield return furniture;

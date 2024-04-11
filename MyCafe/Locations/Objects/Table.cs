@@ -13,48 +13,42 @@ public abstract class Table : INetObject<NetFields>
 {
     public NetFields NetFields { get; }
 
-    public NetEnum<TableState> State = new NetEnum<TableState>(TableState.Free);
+    internal NetEnum<TableState> State = new NetEnum<TableState>(TableState.Free);
 
-    public readonly NetString NetCurrentLocation = [];
+    private readonly NetString _netLocation = [];
 
-    public readonly NetVector2 NetPosition = [];
+    private readonly NetVector2 _netTilePosition = [];
 
-    public virtual NetRectangle BoundingBox { get; set; } = [];
+    internal NetRectangle BoundingBox { get; set; } = [];
 
     internal readonly NetCollection<Seat> Seats = [];
 
-    public virtual Vector2 Position
+    internal virtual Vector2 TilePosition
     {
-        get => this.NetPosition.Value;
-        set => this.NetPosition.Set(value);
+        get => this._netTilePosition.Value;
+        set => this._netTilePosition.Set(value);
     }
 
-    internal string CurrentLocation
+    internal string Location
     {
-        get => this.NetCurrentLocation.Value;
-        set => this.NetCurrentLocation.Set(value);
+        get => this._netLocation.Value;
+        set => this._netLocation.Set(value);
     }
 
-    internal virtual Vector2 Center => this.BoundingBox.Center.ToVector2();
+    internal Vector2 Center => this.BoundingBox.Center.ToVector2();
 
     internal bool IsReserved => this.State.Value != TableState.Free;
 
     protected Table()
     {
         this.NetFields = new NetFields(NetFields.GetNameForInstance(this));
-        // ReSharper disable once VirtualMemberCallInConstructor
-        this.InitNetFields();
+        this.NetFields.SetOwner(this)
+            .AddField(this.State).AddField(this.Seats).AddField(this._netLocation).AddField(this._netTilePosition).AddField(this.BoundingBox);
     }
 
     protected Table(string location) : this()
     {
-        this.CurrentLocation = location;
-    }
-
-    protected virtual void InitNetFields()
-    {
-        this.NetFields.SetOwner(this)
-            .AddField(this.State).AddField(this.Seats).AddField(this.NetCurrentLocation).AddField(this.NetPosition).AddField(this.BoundingBox);
+        this.Location = location;
     }
 
     internal virtual void Free()
@@ -72,7 +66,6 @@ public abstract class Table : INetObject<NetFields>
 
         for (int i = 0; i < customers.Count; i++)
         {
-            customers[i].set_Seat(this.Seats[i]);
             this.Seats[i].Reserve(customers[i]);
         }
 

@@ -12,31 +12,20 @@ public sealed class LocationSeat : Seat
 {
     private readonly NetRef<MapSeat?> NetMapSeat = [null];
 
+    internal MapSeat? MapSeat
+        => this.NetMapSeat.Value ??= base.Location.mapSeats.FirstOrDefault(m => m.GetSeatBounds().Contains(new Vector2(this.TilePosition.X, this.TilePosition.Y)));
+
     public LocationSeat() : base()
     {
-    }
-
-    public LocationSeat(Point tilePosition, Table table) : base(table)
-    {
-        this.TilePosition = tilePosition;
-        MapSeat? mapSeat = this.Location.mapSeats.FirstOrDefault(m => m.GetSeatBounds().Contains(new Vector2(this.TilePosition.X, this.TilePosition.Y)));
-        if (mapSeat != null)
-        {
-            this.NetMapSeat.Set(mapSeat);
-        }
-        else
-        {
-            Log.Error("Couldn't set MapSeat for LocationSeat");
-        }
-    }
-
-    protected override void InitNetFields()
-    {
-        base.InitNetFields();
         this.NetFields.AddField(this.NetMapSeat);
     }
 
-    public override Vector2 SittingPosition
+    public LocationSeat(Point tilePosition) : this()
+    {
+        this.TilePosition = tilePosition;
+    }
+
+    internal override Vector2 SittingPosition
     {
         get
         {

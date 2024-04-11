@@ -22,6 +22,7 @@ internal static class ModKeys
 
     internal const string CAFE_SIGNBOARD_OBJECT_ID = "MonsoonSheep.MyCafe_CafeSignboard";
 
+    internal const string CAFE_BUILDING = "MonsoonSheep.MyCafe_CafeBuilding";
     internal const string CAFE_MAP_NAME = "MonsoonSheep.MyCafe_CafeMap";
 
     internal const string MAPPROPERTY_TABLE = "MonsoonSheep.MyCafe_Table";
@@ -37,4 +38,6 @@ internal static class ModKeys
     internal const string CUSTOMER_NPC_NAME_PREFIX = "CustomerNPC_";
 
     internal const string MODDATA_ITEM_PRICE = "MonsoonSheep.MyCafe_ItemPrice";
+
+    internal const string STATS_MONEY_FROM_CAFE = "MonsoonSheep.MyCafe_MoneyFromCafe";
 }

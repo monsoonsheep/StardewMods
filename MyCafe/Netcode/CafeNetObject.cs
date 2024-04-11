@@ -17,7 +17,6 @@ public class CafeNetObject : INetObject<NetFields>
 
     public readonly NetCollection<Table> NetTables = [];
     public readonly NetBool CafeEnabled = [];
-    public readonly NetLocationRef BuildingInterior = new(null);
     public readonly NetRef<Object> Signboard = new(null);
 
     public readonly NetInt OpeningTime = new(630);
@@ -30,7 +29,7 @@ public class CafeNetObject : INetObject<NetFields>
     public CafeNetObject()
     {
         this.NetFields.SetOwner(this)
-            .AddField(this.OpeningTime, "OpeningTime").AddField(this.ClosingTime, "ClosingTime").AddField(this.NetTables, "NetTables").AddField(this.CafeEnabled, "CafeEnabled").AddField(this.BuildingInterior.NetFields, "BuildingInterior.NetFields")
+            .AddField(this.OpeningTime, "OpeningTime").AddField(this.ClosingTime, "ClosingTime").AddField(this.NetTables, "NetTables").AddField(this.CafeEnabled, "CafeEnabled")
             .AddField(this.Signboard, "Signboard").AddField(this.NetMenu, "NetMenu").AddField(this.NpcCustomers).AddField(this.GeneratedSprites, "GeneratedSprites");
     }
 }

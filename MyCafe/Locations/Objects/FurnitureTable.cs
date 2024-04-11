@@ -14,21 +14,16 @@ public class FurnitureTable : Table
 
     public FurnitureTable() : base()
     {
-
+        this.NetFields.AddField(this.ActualTable);
     }
 
-    internal FurnitureTable(Furniture actualTable) : base(actualTable.Location.Name)
+    internal FurnitureTable(Furniture actualTable) : this()
     {
         this.ActualTable.Set(actualTable);
-        base.BoundingBox.Set(actualTable.boundingBox.Value);
-        base.Position = this.ActualTable.Value.TileLocation;
+        base.BoundingBox.Set(this.ActualTable.Value.boundingBox.Value);
+        base.TilePosition = this.ActualTable.Value.TileLocation;
+        base.Location = this.ActualTable.Value.Location.Name;
         this.PopulateChairs();
-    }
-
-    protected override void InitNetFields()
-    {
-        base.InitNetFields();
-        this.NetFields.AddField(this.ActualTable);
     }
 
     internal void PopulateChairs()
@@ -52,8 +47,8 @@ public class FurnitureTable : Table
                     continue;
                 }
 
-                GameLocation? location = CommonHelper.GetLocation(this.CurrentLocation);
-                Furniture? chairAt = location?.GetFurnitureAt(new Vector2(this.Position.X + i, this.Position.Y + j));
+                GameLocation? location = CommonHelper.GetLocation(this.Location);
+                Furniture? chairAt = location?.GetFurnitureAt(new Vector2(this.TilePosition.X + i, this.TilePosition.Y + j));
                 if (chairAt == null || !ModUtility.IsChair(chairAt))
                     continue;
 
@@ -77,14 +72,14 @@ public class FurnitureTable : Table
 
     internal FurnitureSeat? AddChair(Furniture chairToAdd)
     {
-        if (this.IsReserved)
+        if (this.Seats.Any(c => (c as FurnitureSeat)?.ActualChair.Value.Equals(chairToAdd) is true))
+        {
+            Log.Error("That chair has already been added.");
             return null;
+        }
 
-        if (this.Seats.Any(c => c.TilePosition == chairToAdd.TileLocation.ToPoint()))
-            return null;
-
-        Log.Debug("Adding chair to table");
-        var furnitureChair = new FurnitureSeat(chairToAdd, this);
+        Log.Debug($"Adding chair {chairToAdd.TileLocation}");
+        FurnitureSeat furnitureChair = new FurnitureSeat(chairToAdd);
         this.Seats.Add(furnitureChair);
         return furnitureChair;
     }
@@ -92,16 +87,18 @@ public class FurnitureTable : Table
     internal bool RemoveChair(Furniture chairToRemove)
     {
         if (this.IsReserved)
-            return false;
+            Log.Error("That chair was reserved!");
 
-        if (!this.Seats.Any(c => c.TilePosition == chairToRemove.TileLocation.ToPoint()))
+        for (int i = this.Seats.Count - 1; i >= 0; i--)
         {
-            Log.Debug("Trying to remove a chair that wasn't tracked");
-            return false;
+            if ((this.Seats[i] as FurnitureSeat)?.ActualChair.Value.Equals(chairToRemove) is true)
+            {
+                this.Seats.RemoveAt(i);
+                Log.Debug($"Removed chair at {chairToRemove.TileLocation}");
+                return true;;
+            }
         }
-        this.Seats.RemoveWhere(s => s.TilePosition.X == (int) chairToRemove.TileLocation.X && s.TilePosition.Y == (int) chairToRemove.TileLocation.Y);
-        //this.Seats.Set(this.Seats.TakeWhile(c => c.Position != chairToRemove.TileLocation.ToPoint()).ToList());
-        Log.Debug("Removed chair from table");
-        return true;
+
+        return false;
     }
 }

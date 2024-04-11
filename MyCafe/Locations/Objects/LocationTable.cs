@@ -14,11 +14,11 @@ public class LocationTable : Table
     internal LocationTable(Rectangle boundingBox, string location, List<Vector2> seatPositions) : base(location)
     {
         base.BoundingBox.Set(boundingBox);
-        base.Position = boundingBox.Center.ToVector2();
+        base.TilePosition = boundingBox.Center.ToVector2();
 
         foreach (var seat in seatPositions)
         {
-            var locationSeat = new LocationSeat(seat.ToPoint(), this);
+            var locationSeat = new LocationSeat(seat.ToPoint());
             this.Seats.Add(locationSeat);
         }
     }

@@ -36,10 +36,14 @@ internal class LocationPatcher : BasePatcher
     /// </summary>
     private static void After_GetWarpPointTo(GameLocation __instance, string location, Character? character, ref Point __result)
     {
-        if (__result == Point.Zero && location.Equals(Mod.Cafe.BuildingInterior?.Name))
+        if (__result == Point.Zero && location.Contains(ModKeys.CAFE_MAP_NAME))
         {
             // Verify what the above name is and maybe make it constant
-            __result = __instance.getWarpPointTo(Mod.Cafe.BuildingInterior.uniqueName.Value, character);
+            Building? b = __instance.getBuildingByType(ModKeys.CAFE_BUILDING);
+            if (b != null && b.GetIndoors()?.Name.Equals(location) == true && !b.GetIndoors().uniqueName.Value.Equals(location))
+            {
+                __result = __instance.getWarpPointTo(b.GetIndoors().uniqueName.Value, character);
+            }
         }
     }
 
@@ -52,7 +56,7 @@ internal class LocationPatcher : BasePatcher
         // Verify what the above name is and maybe make it constant
         if (Context.IsMainPlayer
             && __result == false
-            && (name == Mod.Cafe.BuildingInterior?.Name || name == Mod.Cafe.Signboard?.Location.Name)
+            && (name == Mod.Cafe.Signboard?.Location.Name)
             && __instance.indoors.Value?.Name == name)
         {
             __result = true;

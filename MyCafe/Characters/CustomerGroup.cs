@@ -14,6 +14,8 @@ public class CustomerGroup
 {
     internal GroupType Type;
 
+    internal int MinutesSitting = 0;
+
     internal List<NPC> Members = [];
 
     internal Table? ReservedTable { get; set; }
@@ -48,7 +50,7 @@ public class CustomerGroup
     {
         List<Seat> seats = this.GetSeats();
         List<Point> tiles = seats.Select(s => new Point(s.TilePosition.X, s.TilePosition.Y)).ToList();
-        this.MoveTo(CommonHelper.GetLocation(this.ReservedTable!.CurrentLocation)!, tiles, NpcExtensions.SitDownBehavior);
+        this.MoveTo(CommonHelper.GetLocation(this.ReservedTable!.Location)!, tiles, NpcExtensions.SitDownBehavior);
     }
 
     internal void MoveTo(GameLocation location, Point tile, PathFindController.endBehavior endBehavior)
@@ -75,12 +77,5 @@ public class CustomerGroup
                 member.set_AfterLerp(c => c.Unfreeze());
             }
         }
-    }
-
-    internal void PayForFood()
-    {
-        int money = this.Members.Sum(m => m.get_OrderItem().Value?.salePrice() ?? 0);
-        Game1.MasterPlayer.Money += money;
-        ModUtility.DoEmojiSprite(this.ReservedTable!.Center, EmojiSprite.Money);
     }
 }

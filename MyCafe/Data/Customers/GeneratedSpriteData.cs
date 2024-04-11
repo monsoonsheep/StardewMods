@@ -32,13 +32,11 @@ public class GeneratedSpriteData : INetObject<NetFields>, IDisposable
     internal string Guid = string.Empty;
     internal Gender Gender = Gender.Undefined;
 
-    private Texture2D? _cachedTexture;
-
-    internal Texture2D Sprite
-        => this._cachedTexture ??= Mod.RandomCharacterGenerator.GenerateTexture(this);
+    internal Lazy<Texture2D> Sprite;
 
     public GeneratedSpriteData()
     {
+        this.Sprite = new Lazy<Texture2D>(() => Mod.RandomCharacterGenerator.GenerateTexture(this));
         this.NetFields.SetOwner(this).AddField(this.SkinTone).AddField(this.EyeColor).AddField(this.HairId).AddField(this.HairColors).AddField(this.ShirtId).AddField(this.ShirtColors).AddField(this.PantsId).AddField(this.PantsColors)
             .AddField(this.ShoesId).AddField(this.AccessoryId).AddField(this.OutfitId).AddField(this.OutfitColors);
     }
@@ -83,6 +81,6 @@ public class GeneratedSpriteData : INetObject<NetFields>, IDisposable
 
     public void Dispose()
     {
-        this._cachedTexture?.Dispose();
+        this.Sprite.Value.Dispose();
     }
 }

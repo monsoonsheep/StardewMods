@@ -72,7 +72,7 @@ internal class ActionPatcher : BasePatcher
     private static bool Before_NpcCheckAction(NPC __instance, Farmer who, GameLocation l, ref bool __result)
     {
         if ((Mod.Cafe.NpcCustomers.Contains(__instance.Name) || __instance.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX))
-            && (l.Equals(Mod.Cafe.BuildingInterior) || l.Equals(Mod.Cafe.Signboard?.Location)))
+            && (l.Equals(Mod.Cafe.Signboard?.Location)))
         {
             Table? table = Mod.Cafe.GetTableFromCustomer(__instance);
             
@@ -88,11 +88,11 @@ internal class ActionPatcher : BasePatcher
 
     private static bool Before_GameLocationCheckAction(GameLocation __instance, Location tileLocation, Rectangle viewport, Farmer who, ref bool __result)
     {
-        if ((__instance.Equals(Mod.Cafe.BuildingInterior) || __instance.Equals(Mod.Cafe.Signboard?.Location)))
+        if ((__instance.Equals(Mod.Cafe.Signboard?.Location)))
         {
             Table? table = Mod.Cafe.GetTableAt(__instance, new Point(tileLocation.X, tileLocation.Y));
 
-            if (table is not null && Cafe.InteractWithTable(table, who))
+            if (table != null && Cafe.InteractWithTable(table, who))
             {
                 __result = true;
                 return false;

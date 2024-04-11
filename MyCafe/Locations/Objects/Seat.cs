@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common;
 using MyCafe.Netcode;
 using Netcode;
 using StardewValley;
+// ReSharper disable VirtualMemberCallInConstructor
 
 namespace MyCafe.Locations.Objects;
 
@@ -11,31 +13,26 @@ public abstract class Seat : INetObject<NetFields>
 {
     public NetFields NetFields { get; }
 
-    private readonly NetPoint NetPosition = [];
+    private readonly NetPoint _netTilePosition = [];
 
-    private readonly NetRef<NPC?> NetReservingCustomer = [];
-
-    private Table? TableField;
+    private readonly NetRef<NPC?> _netReservingCustomer = [];
 
     internal Table Table
-    {
-        get => this.TableField ??= Mod.Cafe.Tables.FirstOrDefault(t => t.Seats.Contains(this))!;
-        set => this.TableField = value;
-    }
+        => Mod.Cafe.Tables.FirstOrDefault(t => t.Seats.Contains(this))!;
 
     internal NPC? ReservingCustomer
     {
-        get => this.NetReservingCustomer.Value;
-        set => this.NetReservingCustomer.Set(value);
+        get => this._netReservingCustomer.Value;
+        set => this._netReservingCustomer.Set(value);
     }
 
     internal GameLocation Location
-        => CommonHelper.GetLocation(this.Table.CurrentLocation)!;
+        => CommonHelper.GetLocation(this.Table.Location)!;
 
     internal Point TilePosition
     {
-        get => this.NetPosition.Value;
-        set => this.NetPosition.Set(value);
+        get => this._netTilePosition.Value;
+        set => this._netTilePosition.Set(value);
     }
 
     internal virtual int SittingDirection { get; set; }
@@ -43,33 +40,16 @@ public abstract class Seat : INetObject<NetFields>
     internal bool IsReserved
         => this.ReservingCustomer != null;
 
-    public abstract Vector2 SittingPosition { get; }
+    internal abstract Vector2 SittingPosition { get; }
 
     protected Seat()
     {
         this.NetFields = new NetFields(NetFields.GetNameForInstance(this));
-        // ReSharper disable once VirtualMemberCallInConstructor
-        this.InitNetFields();
-    }
-
-    protected Seat(Table table) : this()
-    {
-        this.Table = table;
-        GameLocation? location = this.Location;
-        if (location == null)
-        {
-            Log.Error("Cannot find location for seat");
-            return;
-        }
-    }
-
-    protected virtual void InitNetFields()
-    {
         this.NetFields.SetOwner(this)
-            .AddField(this.NetPosition).AddField(this.NetReservingCustomer);
+            .AddField(this._netTilePosition).AddField(this._netReservingCustomer);
     }
 
-    internal virtual bool Reserve(NPC customer)
+    internal bool Reserve(NPC customer)
     {
         if (this.ReservingCustomer != null)
             return false;
@@ -79,8 +59,9 @@ public abstract class Seat : INetObject<NetFields>
         return true;
     }
 
-    internal virtual void Free()
+    internal void Free()
     {
+        this.ReservingCustomer?.set_Seat(null);
         this.ReservingCustomer = null;
     }
 }

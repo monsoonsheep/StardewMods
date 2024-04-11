@@ -139,7 +139,7 @@ public class Mod : StardewModdingAPI.Mod
 
         GameStateQuery.Register(
             ModKeys.GAMESTATEQUERY_ISINDOORCAFE,
-            (query, context) => Game1.currentLocation.Equals(Cafe.BuildingInterior));
+            (query, context) => !Game1.currentLocation.IsOutdoors);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
@@ -208,7 +208,7 @@ public class Mod : StardewModdingAPI.Mod
         // Get list of reserved tables with center coords
         foreach (Table table in Cafe.Tables)
         {
-            if (Game1.currentLocation.Name.Equals(table.CurrentLocation))
+            if (Game1.currentLocation.Name.Equals(table.Location))
             {
                 // Table status
                 Vector2 offset = new Vector2(0, (float) Math.Round(4f * Math.Sin(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 250.0)));
@@ -296,7 +296,7 @@ public class Mod : StardewModdingAPI.Mod
         if (!Context.IsMainPlayer || Cafe.Enabled == false)
             return;
 
-        if (e.Location.Equals(Cafe.BuildingInterior) || e.Location.Equals(Cafe.Signboard?.Location))
+        if (e.Location.Equals(Cafe.Signboard?.Location))
         {
             foreach (var f in e.Removed)
                 Cafe.OnFurnitureRemoved(f, e.Location);
@@ -425,6 +425,18 @@ public class Mod : StardewModdingAPI.Mod
 
         configMenu.AddNumberOption(
             mod: manifest,
+            getValue: () => this._loadedConfig.MinutesBeforeCustomersLeave,
+            setValue: (value) => this._loadedConfig.MinutesBeforeCustomersLeave = value,
+            name: () => "Minutes Before Customers Leave",
+            tooltip: () => "How many minutes (game time) customers wait for their order before they leave",
+            min: 20,
+            max: 720,
+            interval: 10,
+            formatValue: (value) => value + "m"
+        );
+
+        configMenu.AddNumberOption(
+            mod: manifest,
             getValue: () => this._loadedConfig.EnableNpcCustomers,
             setValue: (value) => this._loadedConfig.EnableNpcCustomers = value,
             name: () => "NPC Customers",
@@ -432,7 +444,7 @@ public class Mod : StardewModdingAPI.Mod
             min: 0,
             max: 5,
             interval: 1,
-            formatValue: (val) => val == 0 ? "Disabled" : val.ToString()
+            formatValue: (value) => value == 0 ? "Disabled" : value.ToString()
         );
 
         configMenu.AddNumberOption(
@@ -444,7 +456,7 @@ public class Mod : StardewModdingAPI.Mod
             min: 0,
             max: 5,
             interval: 1,
-            formatValue: (val) => val == 0 ? "Disabled" : val.ToString()
+            formatValue: (value) => value == 0 ? "Disabled" : value.ToString()
             );
 
         configMenu.AddNumberOption(
@@ -456,7 +468,7 @@ public class Mod : StardewModdingAPI.Mod
             min: 0,
             max: 5,
             interval: 1,
-            formatValue: (val) => val == 0 ? "Disabled" : val.ToString()
+            formatValue: (value) => value == 0 ? "Disabled" : value.ToString()
             );
 
         configMenu.AddSectionTitle(
@@ -473,7 +485,7 @@ public class Mod : StardewModdingAPI.Mod
             min: 3,
             max: 25,
             interval: 1,
-            formatValue: (val) => val + " tiles"
+            formatValue: (value) => value + " tiles"
             );
     }
 
@@ -501,30 +513,13 @@ public class Mod : StardewModdingAPI.Mod
         // Random generated sprite (with a GUID after the initial asset name)
         if (e.NameWithoutLocale.StartsWith(ModKeys.GENERATED_SPRITE_PREFIX))
         {
-            string id = e.NameWithoutLocale.Name[(ModKeys.GENERATED_SPRITE_PREFIX.Length + 1)..];
-            bool failed = false;
-
-            if (Cafe.GeneratedSprites.TryGetValue(id, out GeneratedSpriteData data))
+            if (Cafe.GeneratedSprites.TryGetValue(e.NameWithoutLocale.Name[(ModKeys.GENERATED_SPRITE_PREFIX.Length + 1)..], out GeneratedSpriteData data))
             {
-                Texture2D? sprite = data.Sprite;
-                if (sprite != null)
-                {
-                    e.LoadFrom(() => sprite, AssetLoadPriority.Medium);
-                }
-                else
-                {
-                    Log.Error("Couldn't load texture from generated sprite data!");
-                    failed = true;
-                }
+                e.LoadFrom(() => data.Sprite.Value, AssetLoadPriority.Medium);
             }
             else
             {
-                Log.Error($"Couldn't find generate sprite data for guid {id}");
-                failed = true;
-            }
-
-            if (failed)
-            {
+                Log.Error($"Couldn't find generate sprite data for guid {e.NameWithoutLocale.Name}");
                 // Either provide premade error texture or just load null and let the NPC.draw method handle it TODO test the error
                 //e.LoadFrom(() => Game1.content.Load<Texture2D>(FarmAnimal.ErrorTextureName), AssetLoadPriority.Medium);
                 e.LoadFrom(() => null!, AssetLoadPriority.Medium);
