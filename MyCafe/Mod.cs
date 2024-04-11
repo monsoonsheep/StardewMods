@@ -163,14 +163,7 @@ public class Mod : StardewModdingAPI.Mod
         if (!Context.IsMainPlayer)
             return;
 
-        // When the signboard is built, check if player has flag, add if not and inject the event with AssetRequested)
-        //if (Game1.IsBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID) &&
-        //    Game1.MasterPlayer.mailReceived.Add(ModKeys.MAILFLAG_HAS_BUILT_SIGNBOARD) == true)
-        //{
-        //    GameLocation eventLocation = Game1.locations.First(l => l.isBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID));
-        //    this.Helper.GameContent.InvalidateCache($"Data/Events/{eventLocation.Name}");
-        //}
-
+        Cafe.UpdateSpouse();
         Cafe.UpdateLocations();
     }
 

@@ -125,7 +125,7 @@ public class Cafe
         count = 0;
             
         // Map tables
-        foreach (var pair in this.GetIndoorMapTables(this.Signboard.Location))
+        foreach (var pair in this.GetMapTables(this.Signboard.Location))
         {
             Rectangle newRectangle = new Rectangle(pair.Key.X * 64, pair.Key.Y * 64, pair.Key.Width * 64, pair.Key.Height * 64);
             LocationTable locationTable = new LocationTable(newRectangle, this.Signboard.Location.Name, pair.Value);
@@ -139,11 +139,11 @@ public class Cafe
         Log.Debug($"{count} map-based tables found in cafe locations.");
     }
 
-    private Dictionary<Rectangle, List<Vector2>> GetIndoorMapTables(GameLocation cafeInterior)
+    private Dictionary<Rectangle, List<Vector2>> GetMapTables(GameLocation cafeLocation)
     {
         Dictionary<Rectangle, List<Vector2>> mapTables = [];
 
-        Layer layer = cafeInterior.Map.GetLayer("Back");
+        Layer layer = cafeLocation.Map.GetLayer("Back");
 
         Dictionary<string, Rectangle> tableRectangles = new();
 
@@ -764,6 +764,15 @@ public class Cafe
             var g = this.Groups[i];
             this.EndCustomerGroup(g);
         }
+    }
+
+    #endregion
+
+    #region Spouse
+
+    internal void UpdateSpouse()
+    {
+        // TODO some design decisions to be made
     }
 
     #endregion
