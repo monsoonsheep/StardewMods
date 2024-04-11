@@ -456,7 +456,7 @@ public class Cafe
 
     internal bool UpdateCafeLocations()
     {
-        if ((this.Signboard = ModUtility.FindSignboard()) == null)
+        if ((this.Signboard = ModUtility.GetSignboard()) == null)
             return false;
         
         if (this.Signboard.Location.GetContainingBuilding()?.parentLocationName?.Value == "Farm")

@@ -16,7 +16,7 @@ namespace MyCafe;
 
 internal static class ModUtility
 {
-    internal static SObject? FindSignboard()
+    internal static SObject? GetSignboard()
     {
         SObject? found = null;
 
@@ -27,27 +27,6 @@ internal static class ModUtility
                 if (obj.QualifiedItemId.Equals($"(BC){ModKeys.CAFE_SIGNBOARD_OBJECT_ID}"))
                 {
                     found = obj;
-                    return false;
-                }
-            }
-
-            return true;
-        });
-
-        return found;
-    }
-
-    internal static GameLocation? FindCafeBuildingInterior()
-    {
-        GameLocation? found = null;
-
-        SUtility.ForEachLocation(delegate(GameLocation loc)
-        {
-            foreach (Building b in loc.buildings)
-            {
-                if ((b.GetData()?.IndoorMap?.Equals(ModKeys.CAFE_MAP_NAME) ?? false) && b.GetIndoors() is { } indoor)
-                {
-                    found = indoor;
                     return false;
                 }
             }
@@ -250,7 +229,7 @@ internal static class ModUtility
 
     internal static void CleanUpCustomers()
     {
-        StardewValley.Utility.ForEachLocation((loc) =>
+        SUtility.ForEachLocation((loc) =>
         {
             for (int i = loc.characters.Count - 1; i >= 0; i--)
             {
@@ -276,7 +255,6 @@ internal static class ModUtility
 
     internal static KeyValuePair<string, string>? GetCustomDialogueAsset(string name, string key)
     {
-        Dictionary<string, string>? dialogueAsset;
         try
         {
             return Game1.content.Load<Dictionary<string, string>>($"{ModKeys.MODASSET_CUSTOM_DIALOGUE}/{name}").Where(pair => pair.Key.StartsWith(key)).ToList().PickRandom();
