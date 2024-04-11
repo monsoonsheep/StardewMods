@@ -18,6 +18,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CleaningMod", "CleaningMod\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CollapseOnFarmFix", "CollapseOnFarmFix\CollapseOnFarmFix.csproj", "{7B8577A5-ED43-40F8-9A56-372C458D36C2}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PanWithHats", "PanWithHats\PanWithHats.csproj", "{6F22240C-28A6-4C88-A01C-47ED21D09860}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,6 +42,10 @@ Global
 		{7B8577A5-ED43-40F8-9A56-372C458D36C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7B8577A5-ED43-40F8-9A56-372C458D36C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7B8577A5-ED43-40F8-9A56-372C458D36C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F22240C-28A6-4C88-A01C-47ED21D09860}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F22240C-28A6-4C88-A01C-47ED21D09860}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F22240C-28A6-4C88-A01C-47ED21D09860}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F22240C-28A6-4C88-A01C-47ED21D09860}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
