@@ -54,6 +54,10 @@ public class Mod : StardewModdingAPI.Mod
 
     internal Dictionary<string, VillagerCustomerData> VillagerData = [];
 
+    internal Dictionary<string, CustomerModel> CustomerModels = [];
+
+    internal Dictionary<string, CustomerData> CustomerData = [];
+
     internal static string UniqueId
         => Instance.ModManifest.UniqueID;
 
@@ -153,6 +157,11 @@ public class Mod : StardewModdingAPI.Mod
         foreach (var model in this.VillagerCustomerModels)
             if (!this.VillagerData.ContainsKey(model.Key))
                 this.VillagerData[model.Key] = new VillagerCustomerData(model.Key);
+
+         
+        foreach (var model in this.CustomerModels)
+            if (!this.CustomerData.ContainsKey(model.Key))
+                this.CustomerData[model.Key] = new CustomerData(model.Key);
         
         Pathfinding.AddRoutesToFarm();
         ModUtility.CleanUpCustomers();
@@ -195,7 +204,7 @@ public class Mod : StardewModdingAPI.Mod
     [SuppressMessage("ReSharper", "PossibleLossOfFraction")]
     internal void OnRenderedWorld(object? sender, RenderedWorldEventArgs e)
     {
-        if (!Cafe.Enabled)
+        if (Cafe.Enabled == 0)
             return;
 
         // Get list of reserved tables with center coords
@@ -220,9 +229,12 @@ public class Mod : StardewModdingAPI.Mod
                             4f,
                             SpriteEffects.None,
                             1f);
+
                         break;
+
                     case TableState.Free:
-                        if (Debug.IsDebug() || Game1.timeOfDay < Cafe.OpeningTime)
+                        // Display number of seats on table
+                        if (Debug.IsDebug() || Cafe.Enabled == 1)
                         {
                             e.SpriteBatch.DrawString(Game1.tinyFont, table.Seats.Count.ToString(), Game1.GlobalToLocal(table.Center + new Vector2(-12, -112)) + offset, Color.LightBlue, 0f, Vector2.Zero, 5f, SpriteEffects.None, 0.99f);
                             e.SpriteBatch.DrawString(Game1.tinyFont, table.Seats.Count.ToString(), Game1.GlobalToLocal(table.Center + new Vector2(-10, -96)) + offset, Color.Black, 0f, Vector2.Zero, 4f, SpriteEffects.None, 1f);
@@ -253,7 +265,6 @@ public class Mod : StardewModdingAPI.Mod
                 );
             }
 
-            // TODO move to the OnRenderedWorld event
             Item item;
             if (c.get_DrawOrderItem().Value == true && (item = c.get_OrderItem().Value) != null)
             {
@@ -286,7 +297,7 @@ public class Mod : StardewModdingAPI.Mod
 
     internal void OnFurnitureListChanged(object? sender, FurnitureListChangedEventArgs e)
     {
-        if (!Context.IsMainPlayer || Cafe.Enabled == false)
+        if (!Context.IsMainPlayer || Cafe.Enabled == 0)
             return;
 
         if (e.Location.Equals(Cafe.Signboard?.Location))
@@ -345,18 +356,33 @@ public class Mod : StardewModdingAPI.Mod
         Cafe.ClosingTime = loaded.ClosingTime;
         Cafe.Menu.MenuObject.Set(loaded.MenuItemLists);
 
-        foreach (var data in loaded.VillagerCustomersData)
+        foreach (var loadedEntry in loaded.VillagerCustomersData)
         {
-            if (!this.VillagerCustomerModels.TryGetValue(data.Key, out VillagerCustomerModel? model))
+            if (!this.VillagerCustomerModels.TryGetValue(loadedEntry.Key, out VillagerCustomerModel? model))
             {
                 Log.Debug("Loading NPC customer data but not model found. Skipping...");
                 continue;
             }
 
             Log.Trace($"Loading customer data from save file {model.NpcName}");
-            data.Value.NpcName = model.NpcName;
-            this.VillagerData[data.Key] = data.Value;
+            loadedEntry.Value.NpcName = model.NpcName;
+            this.VillagerData[loadedEntry.Key] = loadedEntry.Value;
         }
+
+        foreach (var loadedEntry in loaded.CustomersData)
+        {
+            if (!this.CustomerModels.TryGetValue(loadedEntry.Key, out CustomerModel? model))
+            {
+                Log.Debug("Loading custom customer data but not model found. Skipping...");
+                continue;
+            }
+
+            Log.Trace($"Loading custom customer data from save file {model.Name}");
+            loadedEntry.Value.Id = model.Name;
+            this.CustomerData[loadedEntry.Key] = loadedEntry.Value;
+        }
+
+       
     }
 
     internal void SaveCafeData()
@@ -372,7 +398,8 @@ public class Mod : StardewModdingAPI.Mod
             OpeningTime = Cafe.OpeningTime,
             ClosingTime = Cafe.ClosingTime,
             MenuItemLists = new SerializableDictionary<FoodCategory, Inventory>(Cafe.Menu.ItemDictionary),
-            VillagerCustomersData = new SerializableDictionary<string, VillagerCustomerData>(this.VillagerData)
+            VillagerCustomersData = new SerializableDictionary<string, VillagerCustomerData>(this.VillagerData),
+            CustomersData = new SerializableDictionary<string, CustomerData>(this.CustomerData)
         };
 
         XmlSerializer serializer = new(typeof(CafeArchiveData));
@@ -482,25 +509,6 @@ public class Mod : StardewModdingAPI.Mod
             );
     }
 
-    internal string GetCafeIntroductionEvent()
-    {
-        return string.Empty;
-
-        //GameLocation eventLocation = Game1.locations.First(l => l.isBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID));
-        //Building signboard = eventLocation.getBuildingByType(ModKeys.CAFE_SIGNBOARD_BUILDING_ID);
-        //Point signboardTile = new Point(signboard.tileX.Value, signboard.tileY.Value + signboard.tilesHigh.Value);
-
-        //string eventString = Game1.content.Load<Dictionary<string, string>>($"{ModKeys.MODASSET_EVENTS}")[ModKeys.EVENT_CAFEINTRODUCTION];
-
-        //// Replace the encoded coordinates with the position of the signboard building
-        //string substituted = Regex.Replace(
-        //    eventString,
-        //    @"(6\d{2})\s(6\d{2})",
-        //    (m) => $"{(int.Parse(m.Groups[1].Value) - 650 + signboardTile.X)} {(int.Parse(m.Groups[2].Value) - 650 + signboardTile.Y)}");
-
-        //return substituted;
-    }
-
     internal void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
     {
         // Random generated sprite (with a GUID after the initial asset name)
@@ -584,6 +592,25 @@ public class Mod : StardewModdingAPI.Mod
         }
     }
 
+    internal string GetCafeIntroductionEvent()
+    {
+        return string.Empty;
+
+        //GameLocation eventLocation = Game1.locations.First(l => l.isBuildingConstructed(ModKeys.CAFE_SIGNBOARD_BUILDING_ID));
+        //Building signboard = eventLocation.getBuildingByType(ModKeys.CAFE_SIGNBOARD_BUILDING_ID);
+        //Point signboardTile = new Point(signboard.tileX.Value, signboard.tileY.Value + signboard.tilesHigh.Value);
+
+        //string eventString = Game1.content.Load<Dictionary<string, string>>($"{ModKeys.MODASSET_EVENTS}")[ModKeys.EVENT_CAFEINTRODUCTION];
+
+        //// Replace the encoded coordinates with the position of the signboard building
+        //string substituted = Regex.Replace(
+        //    eventString,
+        //    @"(6\d{2})\s(6\d{2})",
+        //    (m) => $"{(int.Parse(m.Groups[1].Value) - 650 + signboardTile.X)} {(int.Parse(m.Groups[2].Value) - 650 + signboardTile.Y)}");
+
+        //return substituted;
+    }
+
     internal void AddDialoguesOnArrivingAtCafe(NPC npc)
     {
         // Add the first time visit dialogues if their data's Last Visited value is the Spring 1, year 1
@@ -659,7 +686,7 @@ public class Mod : StardewModdingAPI.Mod
                     Log.Debug("Couldn't read customer.json for content pack");
                     continue;
                 }
-                model.Name = modelFolder.Name;
+                model.Name = $"{contentPack.Manifest.UniqueID}/{model.Name}";
                 model.Spritesheet = contentPack.ModContent.GetInternalAssetName(Path.Combine(relativePathOfModel, "customer.png")).Name;
 
                 string portraitPath = Path.Combine(relativePathOfModel, "portrait.png");
@@ -669,7 +696,7 @@ public class Mod : StardewModdingAPI.Mod
                     : this.Helper.ModContent.GetInternalAssetName(Path.Combine("assets", "CharGen", "Portraits", (string.IsNullOrEmpty(model.Portrait) ? "cat" : model.Portrait) + ".png")).Name;
 
                 Log.Trace($"Customer model added: {model.Name}");
-                RandomCharacterGenerator.Customers[$"{contentPack.Manifest.UniqueID}/{model.Name}"] = model;
+                this.CustomerModels[model.Name] = model;
             }
         }
 

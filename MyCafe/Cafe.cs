@@ -27,6 +27,7 @@ using MyCafe.Characters.Factory;
 using MyCafe.Data;
 using xTile.Layers;
 using xTile.Tiles;
+using Microsoft.Xna.Framework.Graphics;
 
 #pragma warning disable IDE0060
 
@@ -47,7 +48,7 @@ public class Cafe
     private CafeNetObject Fields
         => Game1.player.team.get_CafeNetFields().Value;
 
-    internal bool Enabled
+    internal byte Enabled
     {
         get => this.Fields.CafeEnabled.Value;
         set => this.Fields.CafeEnabled.Set(value);
@@ -59,17 +60,9 @@ public class Cafe
         set => this.Fields.Signboard.Set(value);
     }
 
-    internal int OpeningTime
-    {
-        get => this.Fields.OpeningTime.Value;
-        set => this.Fields.OpeningTime.Set(value);
-    }
+    internal int OpeningTime;
 
-    internal int ClosingTime
-    {
-        get => this.Fields.ClosingTime.Value;
-        set => this.Fields.ClosingTime.Set(value);
-    }
+    internal int ClosingTime;
 
     internal IList<Table> Tables
         => this.Fields.NetTables as IList<Table>;
@@ -96,6 +89,36 @@ public class Cafe
 
         this.randomCustomerBuilder = new RandomCustomerBuilder(this.GetMenuItemForCustomer);
         this.villagerCustomerBuilder = new VillagerCustomerBuilder(this.GetMenuItemForCustomer);
+    }
+
+    internal void TenMinuteUpdate()
+    {
+        if (this.Enabled == 0)
+            return;
+
+        if (Game1.timeOfDay >= this.OpeningTime && Game1.timeOfDay <= this.ClosingTime)
+            this.Enabled = 2;
+        else
+            this.Enabled = 1;
+        
+        for (int i = this.Groups.Count - 1; i >= 0; i--)
+        {
+            this.Groups[i].MinutesSitting += 10;
+            Table? table = this.Groups[i].ReservedTable;
+            if (table is { State.Value: not TableState.CustomersEating } && this.Groups[i].MinutesSitting > Mod.Config.MinutesBeforeCustomersLeave)
+            {
+                this.EndCustomerGroup(this.Groups[i]);
+            }
+        }
+
+        if (this.Signboard != null)
+        {
+            // Fragility 2 is unbreakable, we set it when cafe is operating
+            this.Signboard.Fragility = this.Enabled == 2 ? 2 : 0;
+        }
+
+        if (this.Enabled == 2)
+            this.CustomerSpawningUpdate();
     }
 
     #region Tables
@@ -377,8 +400,6 @@ public class Cafe
                 table = new FurnitureTable(facingTable);
                 this.AddTable(table);
             }
-
-            table.AddChair(placed);
         }
         else if (placed.IsTable())
         {
@@ -444,12 +465,12 @@ public class Cafe
     {
         if (this.UpdateCafeLocations() is true)
         {
-            this.Enabled = true;
+            this.Enabled = 1;
             this.PopulateTables();
         }
         else
         {
-            this.Enabled = false;
+            this.Enabled = 0;
             this.Tables.Clear();
         }
     }
@@ -475,16 +496,17 @@ public class Cafe
             return;
         }
 
-        if (!ModUtility.IsOperatingTime(Game1.timeOfDay))
+        if (this.Enabled != 2)
         {
             this.UpdateLocations();
         }
     }
 
-    internal void OnRemovedSignboard(SObject signboard) {
+    internal void OnRemovedSignboard(SObject signboard)
+    {
         if (this.Signboard != null)
         {
-            if (ModUtility.IsOperatingTime(Game1.timeOfDay))
+            if (this.Enabled == 2)
             {
                 Log.Warn("Player broke the signboard while the cafe was open");
             }
@@ -501,29 +523,9 @@ public class Cafe
 
     #region Customers
 
-    internal void TenMinuteUpdate()
+    internal void CustomerSpawningUpdate()
     {
-        this.Groups.ForEach(g => g.MinutesSitting += 10);
-        for (int i = this.Groups.Count - 1; i >= 0; i--)
-        {
-            if (this.Groups[i].MinutesSitting > Mod.Config.MinutesBeforeCustomersLeave)
-            {
-                this.EndCustomerGroup(this.Groups[i]);
-            }
-        }
-
-        bool isOpen = ModUtility.IsOperatingTime(Game1.timeOfDay);
-
-        if (this.Signboard != null)
-        {
-            this.Signboard.Fragility = isOpen ? 2 : 0;
-        }
-
-        if (!isOpen)
-            return;
-
         int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, this.ClosingTime);
-        int minutesTillOpens = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, this.OpeningTime);
         int minutesSinceLastVisitors = SUtility.CalculateMinutesBetweenTimes(this.LastTimeCustomersArrived, Game1.timeOfDay);
         float percentageOfTablesFree = (float) this.Tables.Count(t => !t.IsReserved) / this.Tables.Count;
 
@@ -552,7 +554,20 @@ public class Cafe
 
         // slight chance to spawn if last hour of open time
         if (minutesTillCloses <= 60)
-            prob += Game1.random.Next(20 + Math.Max(0, minutesTillCloses / 3)) >= 28 ? 0.2f : -0.5f;
+            prob += Game1.random.Next(20 + Math.Max(0, minutesTillCloses / 3)) >= 28 ? 0.1f : -0.5f;
+
+
+        // Try chance
+        if (Game1.random.NextDouble() > prob)
+            return;
+
+        int weightForVillagers = Mod.Config.EnableNpcCustomers;
+        int weightForCustom = Math.Max(Mod.Config.EnableCustomCustomers, Mod.Config.EnableRandomlyGeneratedCustomers);
+
+        int random = Game1.random.Next(weightForVillagers + weightForCustom);
+        random -= weightForVillagers;
+        GroupType type = random < 0 ? GroupType.Random : GroupType.Villager;
+        this.SpawnCustomers(type);
     }
 
     internal void SpawnCustomers(GroupType type)
@@ -626,6 +641,14 @@ public class Cafe
 
         if (group.Type != GroupType.Villager)
         {
+            foreach (NPC c in group.Members)
+            {
+                if (Mod.Instance.CustomerData.TryGetValue(c.Name, out CustomerData? data))
+                {
+                    data.LastVisitedData = Game1.Date;
+                }
+            }
+
             try
             {
                 group.MoveTo(

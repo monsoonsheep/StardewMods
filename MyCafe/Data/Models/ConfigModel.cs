@@ -12,7 +12,6 @@ internal class ConfigModel
     public int EnableNpcCustomers { get; set; } = 5;
     public List<MenuCategoryArchive> MenuCategories { get; set; } = [];
     public int MinutesBeforeCustomersLeave { get; set; } = 160;
-
     public bool ShowPricesInFoodMenu { get; set; } = true;
 
 #if YOUTUBE

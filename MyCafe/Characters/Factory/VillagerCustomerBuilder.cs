@@ -102,13 +102,10 @@ internal class VillagerCustomerBuilder : CustomerBuilder
     private static bool CanVillagerVisit(VillagerCustomerData data, int timeOfDay)
     {
         NPC npc = data.GetNpc();
+        VillagerCustomerModel model = Mod.Instance.VillagerCustomerModels[data.NpcName];
 
         int daysSinceLastVisit = Game1.Date.TotalDays - data.LastVisitedDate.TotalDays;
-
-        #if DEBUG
-        int daysAllowed = 1;
-        #else
-        int daysAllowed = model.VisitFrequency switch
+        int daysAllowed = Debug.IsDebug() ? 1 : model.VisitFrequency switch
         {
             0 => 200,
             1 => 27,
@@ -118,7 +115,6 @@ internal class VillagerCustomerBuilder : CustomerBuilder
             5 => 1,
             _ => 9999999
         };
-        #endif
 
         if (Mod.Cafe.NpcCustomers.Contains(data.NpcName) ||
             npc.isSleeping.Value == true ||
@@ -126,15 +122,10 @@ internal class VillagerCustomerBuilder : CustomerBuilder
             daysSinceLastVisit < daysAllowed)
             return false;
 
-        #if DEBUG
-        return true;
-        #endif
-
-        VillagerCustomerModel model = Mod.Instance.VillagerCustomerModels[data.NpcName];
         // If no busy period for today, they're free all day
         if (!model.BusyTimes.TryGetValue(npc.ScheduleKey, out List<BusyPeriod>? busyPeriods))
             return false;
-        if (busyPeriods.Count == 0)
+        if (Debug.IsDebug() || busyPeriods.Count == 0)
             return true;
 
         // Check their busy periods for their current schedule key

@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MonsoonSheep.Stardew.Common;
 using MyCafe.Characters.Factory;
+using MyCafe.Data.Customers;
 using MyCafe.Data.Models;
 using MyCafe.Enums;
 using MyCafe.Netcode;
@@ -16,17 +19,57 @@ internal class RandomCustomerBuilder : CustomerBuilder
     {
     }
 
+    private List<CustomerModel>? GetCustomModels(int count)
+    {
+        List<CustomerModel> list = [];
+        List<CustomerData> data = Mod.Instance.CustomerData.Values.OrderBy(i => i.LastVisitedData.TotalDays).Take(count).ToList();
+        if (data.Count < count)
+            return null;
+
+        return data.Select(i => Mod.Instance.CustomerModels[i.Id]).ToList();
+    }
+
+    private List<CustomerModel> GetGeneratedModels(int count)
+    {
+        List<CustomerModel> list = [];
+        for (int i = 0; i < count; i++)
+            list.Add(Mod.RandomCharacterGenerator.GenerateRandomCustomer());
+
+        return list;
+    }
+
     internal override CustomerGroup? BuildGroup()
     {
         List<NPC> customers = [];
 
-        for (int i = 0; i < base._table!.Seats.Count; i++)
-        {
-            CustomerModel model = Mod.RandomCharacterGenerator.GenerateRandomCustomer(); // Generate from CharGen
+        int count = base._table!.Seats.Count;
+        int random = Game1.random.Next(count);
 
+        count = (count) switch
+        {
+            1 => 1,
+            2 or 3 => random == 0 ? count : count - 1,
+            >=4 => random == 0 ? count : Game1.random.Next(2, count),
+            _ => random == 0 ? count : Game1.random.Next(3, count)
+        };
+
+        int weightForCustom = Mod.Config.EnableCustomCustomers;
+        int weightForGenerated = Mod.Config.EnableRandomlyGeneratedCustomers;
+        int r = Game1.random.Next(weightForCustom + weightForGenerated);
+        r -= weightForGenerated;
+
+        List<CustomerModel> models;
+        if (r < 0)
+            models = this.GetGeneratedModels(count);
+        else
+            models = this.GetCustomModels(count) ?? this.GetGeneratedModels(count);
+
+        for (int i = 0; i < count; i++)
+        {
+            CustomerModel model = models[i];
             Texture2D portrait = Game1.content.Load<Texture2D>(model.Portrait);
             AnimatedSprite sprite = new AnimatedSprite(model.Spritesheet, 0, 16, 32);
-            NPC c = new NPC(sprite, new Vector2(10, 12) * 64f, "BusStop", 2, model.Name, false, portrait);
+            NPC c = new NPC(sprite, new Vector2(10, 12) * 64f, "BusStop", 2, ModKeys.CUSTOMER_NPC_NAME_PREFIX + model.Name, false, portrait);
             customers.Add(c);
         }
 

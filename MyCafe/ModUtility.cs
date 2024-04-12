@@ -51,11 +51,6 @@ internal static class ModUtility
         }
     }
 
-    internal static bool IsOperatingTime(int timeOfDay)
-    {
-        return timeOfDay >= Mod.Cafe.OpeningTime && timeOfDay <= Mod.Cafe.ClosingTime;
-    }
-
     internal static bool IsChair(Furniture furniture)
     {
         return furniture.furniture_type.Value is 0 or 1 or 2;

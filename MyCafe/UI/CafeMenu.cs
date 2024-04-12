@@ -57,6 +57,7 @@ public sealed class CafeMenu : IClickableMenu
 #if YOUTUBE || TWITCH
         this._pages.Add(new ChatIntegrationPage(this, this.sideBoxBounds, this.Sprites));
 #endif
+
         this.PopulateTabs();
         this._menuBoard.populateClickableComponentList();
         this._menuBoard.snapToDefaultClickableComponent();

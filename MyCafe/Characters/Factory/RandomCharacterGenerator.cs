@@ -17,7 +17,6 @@ internal sealed class RandomCharacterGenerator
 {
     private readonly IModHelper _modHelper;
 
-    internal Dictionary<string, CustomerModel> Customers = [];
     internal Dictionary<string, HairModel> Hairstyles = [];
     internal Dictionary<string, ShirtModel> Shirts = [];
     internal Dictionary<string, PantsModel> Pants = [];
@@ -53,15 +52,13 @@ internal sealed class RandomCharacterGenerator
         CustomerModel model = new CustomerModel
         {
             Gender = ModUtility.GameGenderToCustomGender(sprite.Gender),
-            Name = $"{ModKeys.CUSTOMER_NPC_NAME_PREFIX}Random{sprite.Guid}",
+            Name = $"Random{sprite.Guid}",
             Spritesheet = $"{ModKeys.GENERATED_SPRITE_PREFIX}/{sprite.Guid}",
             Portrait = this._modHelper.ModContent.GetInternalAssetName(Path.Combine("assets", "CharGen", "Portraits", "cat.png")).Name
         };
 
         return model;
     }
-
-
 
     /// <summary>
     /// Create a randomized <see cref="GeneratedSpriteData"/> containing info for appearance parts, to be added to a netsynced list

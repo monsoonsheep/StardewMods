@@ -7,10 +7,9 @@ namespace MyCafe.Data.Customers;
 /// </summary>
 public class VillagerCustomerData
 {
-    public string NpcName { get; set; } = null!;
+    internal string NpcName { get; set; } = null!;
     public WorldDate LastVisitedDate = new(1, Season.Spring, 1);
     public string? LastAteFood;
-
 
     public VillagerCustomerData()
     {
