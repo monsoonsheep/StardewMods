@@ -9,12 +9,6 @@ internal abstract class CustomerBuilder
 {
     protected Table? _table;
     protected CustomerGroup? _group;
-    protected Func<NPC, Item?> MenuItemSelector;
-
-    internal CustomerBuilder(Func<NPC, Item?> menuItemSelector)
-    {
-        this.MenuItemSelector = menuItemSelector;
-    }
 
     internal abstract CustomerGroup? BuildGroup();
 
@@ -22,7 +16,7 @@ internal abstract class CustomerBuilder
     {
         foreach (NPC npc in this._group!.Members)
         {
-            Item? item = this.MenuItemSelector(npc);
+            Item? item = Mod.Cafe.GetMenuItemForCustomer(npc);
             if (item == null)
                 return false;
 
@@ -54,7 +48,7 @@ internal abstract class CustomerBuilder
         this._group = null;
         this._table = tableToUse;
 
-        if (this.SpawnSteps() == false)
+        if (this.DoSpawnSteps() == false)
         {
             Log.Trace("Error spawning customers");
             this.RevertChanges();
@@ -64,7 +58,7 @@ internal abstract class CustomerBuilder
         return this._group;
     }
 
-    private bool SpawnSteps()
+    private bool DoSpawnSteps()
     {
         CustomerGroup g = this.BuildGroup();
         if (g == null)

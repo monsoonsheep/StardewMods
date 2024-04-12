@@ -14,10 +14,6 @@ internal class VillagerCustomerBuilder : CustomerBuilder
 {
     private List<VillagerCustomerData> npcVisitData = [];
 
-    internal VillagerCustomerBuilder(Func<NPC, Item?> menuItemSelector) : base(menuItemSelector)
-    {
-    }
-
     internal override CustomerGroup? BuildGroup()
     {
         this.npcVisitData = GetAvailableVillagerCustomers(1);

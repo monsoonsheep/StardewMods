@@ -3,22 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MonsoonSheep.Stardew.Common;
-using MyCafe.Characters.Factory;
 using MyCafe.Data.Customers;
 using MyCafe.Data.Models;
 using MyCafe.Enums;
-using MyCafe.Netcode;
 using StardewValley;
 
-namespace MyCafe.Characters;
+namespace MyCafe.Characters.Factory;
 
 internal class RandomCustomerBuilder : CustomerBuilder
 {
-    internal RandomCustomerBuilder(Func<NPC, Item?> menuItemSelector) : base(menuItemSelector)
-    {
-    }
-
     private List<CustomerModel>? GetCustomModels(int count)
     {
         List<CustomerModel> list = [];

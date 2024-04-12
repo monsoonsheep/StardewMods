@@ -87,8 +87,8 @@ public class Cafe
             });
         this.Menu.InitializeForHost();
 
-        this.randomCustomerBuilder = new RandomCustomerBuilder(this.GetMenuItemForCustomer);
-        this.villagerCustomerBuilder = new VillagerCustomerBuilder(this.GetMenuItemForCustomer);
+        this.randomCustomerBuilder = new RandomCustomerBuilder();
+        this.villagerCustomerBuilder = new VillagerCustomerBuilder();
     }
 
     internal void TenMinuteUpdate()
@@ -589,7 +589,7 @@ public class Cafe
         this.Groups.Add(group);
     }
 
-    private Item? GetMenuItemForCustomer(NPC npc)
+    internal Item? GetMenuItemForCustomer(NPC npc)
     {
         SortedDictionary<int, List<Item>> tastesItems = [];
         int count = 0;
