@@ -19,7 +19,7 @@ public static class Pathfinding
     private static readonly Dictionary<string, List<LocationWarpRoute>> LocationRoutes = [];
 
     internal static readonly List<Point> NpcBarrierTiles = [];
-    internal static bool NpcBarrierRemoved = false;
+    internal static bool NpcBarrierRemoved;
 
     private static readonly sbyte[,] Directions = new sbyte[4 ,2]
     {
@@ -83,7 +83,10 @@ public static class Pathfinding
             ?? GetLocationRoute(startingLocation.Name, targetLocation.Name);
 
         if (locationsRoute == null)
+        {
+            Log.Error("Macro-pathing location route not found");
             return null;
+        }
 
         for (int i = 0; i < locationsRoute.Length; i++)
         {
@@ -380,26 +383,13 @@ public static class Pathfinding
                 continue;
             }
 
-            List<string>? route = toFarm.Concat([building.Name]).ToList();
+            List<string> route = toFarm.Concat([building.Name]).ToList();
 
             var reverseRoute = new List<string>(route);
             reverseRoute.Reverse();
 
             AddRoute(route);
             AddRoute(reverseRoute);
-        }
-    }
-
-    private static void RestoreNpcBarrier()
-    {
-        if (NpcBarrierRemoved)
-        {
-            Layer layer = Game1.getFarm().Map.GetLayer("Back");
-
-            foreach (Point point in NpcBarrierTiles)
-            {
-                layer.Tiles[point.X, point.Y]?.Properties.Remove("NPCBarrier");
-            }
         }
     }
 
@@ -414,6 +404,18 @@ public static class Pathfinding
         NpcBarrierRemoved = true;
     }
 
+    private static void RestoreNpcBarrier()
+    {
+        if (NpcBarrierRemoved)
+        {
+            Layer layer = Game1.getFarm().Map.GetLayer("Back");
+
+            foreach (Point point in NpcBarrierTiles)
+            {
+                layer.Tiles[point.X, point.Y]?.Properties.Remove("NPCBarrier");
+            }
+        }
+    }
 }
 
 public class PathNotFoundException : Exception

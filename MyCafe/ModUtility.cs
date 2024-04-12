@@ -56,21 +56,6 @@ internal static class ModUtility
         return furniture.furniture_type.Value is 0 or 1 or 2;
     }
 
-    internal static List<Item> ParseMenuItems(string[] ids)
-    {
-        List<Item> items = [];
-        foreach (string id in ids)
-        {
-            Item? item = ItemRegistry.Create(id);
-            if (item != null)
-            {
-                items.Add(item);
-            }
-        }
-
-        return items;
-    }
-
     internal static Gender GetRandomGender(bool binary = false)
     {
         if (binary)

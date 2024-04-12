@@ -10,7 +10,7 @@ internal abstract class CustomerBuilder
     protected Table? _table;
     protected CustomerGroup? _group;
 
-    internal abstract CustomerGroup? BuildGroup();
+    internal abstract CustomerGroup? CreateGroup();
 
     internal virtual bool SetupGroup()
     {
@@ -60,7 +60,7 @@ internal abstract class CustomerBuilder
 
     private bool DoSpawnSteps()
     {
-        CustomerGroup g = this.BuildGroup();
+        CustomerGroup g = this.CreateGroup();
         if (g == null)
         {
             this._group = null;

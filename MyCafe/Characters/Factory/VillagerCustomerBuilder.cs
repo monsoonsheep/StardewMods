@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Xna.Framework;
 using MyCafe.Data.Customers;
 using MyCafe.Data.Models;
 using MyCafe.Enums;
@@ -14,7 +15,7 @@ internal class VillagerCustomerBuilder : CustomerBuilder
 {
     private List<VillagerCustomerData> npcVisitData = [];
 
-    internal override CustomerGroup? BuildGroup()
+    internal override CustomerGroup? CreateGroup()
     {
         this.npcVisitData = GetAvailableVillagerCustomers(1);
         if (this.npcVisitData.Count == 0)
@@ -37,6 +38,7 @@ internal class VillagerCustomerBuilder : CustomerBuilder
         foreach (NPC c in this._group!.Members)
         {
             Log.Trace($"{c.Name} is coming.");
+            Game1.addHUDMessage(new HUDMessage($"{c.Name} is coming."));
         }
 
         return true;

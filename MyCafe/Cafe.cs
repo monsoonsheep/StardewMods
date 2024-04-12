@@ -41,9 +41,13 @@ public class Cafe
 
     internal readonly List<CustomerGroup> Groups = [];
 
-    private readonly int LastTimeCustomersArrived = 0;
+    private int LastTimeCustomersArrived;
 
-    internal int MoneyForToday = 0;
+    private int MoneyForToday;
+
+    internal int OpeningTime;
+
+    internal int ClosingTime;
 
     private CafeNetObject Fields
         => Game1.player.team.get_CafeNetFields().Value;
@@ -59,10 +63,6 @@ public class Cafe
         get => this.Fields.Signboard.Value;
         set => this.Fields.Signboard.Set(value);
     }
-
-    internal int OpeningTime;
-
-    internal int ClosingTime;
 
     internal IList<Table> Tables
         => this.Fields.NetTables as IList<Table>;
@@ -100,7 +100,8 @@ public class Cafe
             this.Enabled = 2;
         else
             this.Enabled = 1;
-        
+
+        // Customers waiting for too long are forced to leave
         for (int i = this.Groups.Count - 1; i >= 0; i--)
         {
             this.Groups[i].MinutesSitting += 10;
@@ -111,12 +112,14 @@ public class Cafe
             }
         }
 
+        // Update unbreakability of signboard when the cafe opens and closes
         if (this.Signboard != null)
         {
             // Fragility 2 is unbreakable, we set it when cafe is operating
             this.Signboard.Fragility = this.Enabled == 2 ? 2 : 0;
         }
 
+        // If cafe open, try spawn customers
         if (this.Enabled == 2)
             this.CustomerSpawningUpdate();
     }
@@ -400,6 +403,10 @@ public class Cafe
                 table = new FurnitureTable(facingTable);
                 this.AddTable(table);
             }
+            else
+            {
+                table.AddChair(placed);
+            }
         }
         else if (placed.IsTable())
         {
@@ -414,28 +421,28 @@ public class Cafe
         }
     }
 
-    internal void OnFurnitureRemoved(Furniture f, GameLocation location)
+    internal void OnFurnitureRemoved(Furniture removed, GameLocation location)
     {
-        Log.Trace($"Furniture removed from {f.TileLocation}");
+        Log.Trace($"Furniture removed from {removed.TileLocation}");
 
-        if (ModUtility.IsChair(f))
+        if (ModUtility.IsChair(removed))
         {
             FurnitureTable? existingTable = this.Tables
                 .OfType<FurnitureTable>()
-                .FirstOrDefault(t => t.Seats.Any(seat => (seat as FurnitureSeat)?.ActualChair.Value.Equals(f) is true));
+                .FirstOrDefault(t => t.Seats.Any(seat => (seat as FurnitureSeat)?.ActualChair.Value.Equals(removed) is true));
 
             if (existingTable != null)
             {
-                existingTable.RemoveChair(f);
+                existingTable.RemoveChair(removed);
                 if (existingTable.Seats.Count == 0)
                 {
                     this.RemoveTable(existingTable);
                 }
             }
         }
-        else if (f.IsTable())
+        else if (removed.IsTable())
         {
-            if (this.IsRegisteredTable(f, out FurnitureTable? trackedTable))
+            if (this.IsRegisteredTable(removed, out FurnitureTable? trackedTable))
             {
                 this.RemoveTable(trackedTable);
             }
@@ -525,56 +532,62 @@ public class Cafe
 
     internal void CustomerSpawningUpdate()
     {
-        int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, this.ClosingTime);
-        int minutesSinceLastVisitors = SUtility.CalculateMinutesBetweenTimes(this.LastTimeCustomersArrived, Game1.timeOfDay);
-        float percentageOfTablesFree = (float) this.Tables.Count(t => !t.IsReserved) / this.Tables.Count;
+        // Choose between villager spawn and non-villager spawn
+        float weightForVillagers = Mod.Config.EnableNpcCustomers / 5f;
+        float weightForRandom = Math.Max(Mod.Config.EnableCustomCustomers, Mod.Config.EnableRandomlyGeneratedCustomers) / 5f;
+        float typeWeightsSum = (weightForRandom + weightForVillagers);
 
-        if (minutesTillCloses <= 20)
-            return;
+        float prob = ProbabilityToSpawn();
 
-        float prob = 0f;
-
-        // more chance if it's been a while since last Visitors
-        prob += minutesSinceLastVisitors switch
-        {
-            <= 20 => 0f,
-            <= 30 => Game1.random.Next(5) == 0 ? 0.05f : -0.1f,
-            <= 60 => Game1.random.Next(2) == 0 ? 0.1f : 0f,
-            _ => 0.25f
-        };
-
-        // more chance if a higher percent of tables are free
-        prob += percentageOfTablesFree switch
-        {
-            <= 0.2f => 0.0f,
-            <= 0.5f => 0.1f,
-            <= 0.8f => 0.15f,
-            _ => 0.2f
-        };
-
-        // slight chance to spawn if last hour of open time
-        if (minutesTillCloses <= 60)
-            prob += Game1.random.Next(20 + Math.Max(0, minutesTillCloses / 3)) >= 28 ? 0.1f : -0.5f;
-
+        prob += (weightForRandom * 0.8f);
 
         // Try chance
         if (Game1.random.NextDouble() > prob)
+        {
+            Log.Trace("Not spawning");
             return;
+        }
 
-        int weightForVillagers = Mod.Config.EnableNpcCustomers;
-        int weightForCustom = Math.Max(Mod.Config.EnableCustomCustomers, Mod.Config.EnableRandomlyGeneratedCustomers);
+        GroupType groupType = (Game1.random.NextSingle() * typeWeightsSum) < weightForVillagers
+            ? GroupType.Villager
+            : GroupType.Random;
 
-        int random = Game1.random.Next(weightForVillagers + weightForCustom);
-        random -= weightForVillagers;
-        GroupType type = random < 0 ? GroupType.Random : GroupType.Villager;
-        this.SpawnCustomers(type);
+        this.SpawnCustomers(groupType);
+
+        float ProbabilityToSpawn()
+        {
+            int totalTimeIntervalDuringDay = (this.ClosingTime - this.OpeningTime) / 10;
+            int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, this.ClosingTime);
+            int minutesSinceLastVisitors = SUtility.CalculateMinutesBetweenTimes(this.LastTimeCustomersArrived, Game1.timeOfDay);
+            if (minutesTillCloses <= 20)
+                return -10f;
+
+            float p = 1f / (totalTimeIntervalDuringDay * 0.5f);
+
+            // more chance if it's been a while since last Visitors
+            p += minutesSinceLastVisitors switch
+            {
+                <= 20 => -0.05f,
+                <= 30 => Game1.random.Next(5) == 0 ? 0.03f : -0.1f,
+                <= 60 => Game1.random.Next(2) == 0 ? 0.04f : 0f,
+                _ => 0.25f
+            };
+
+            // slight chance to spawn if last hour of open time
+            if (minutesTillCloses <= 60)
+                p += Game1.random.Next(20 + Math.Max(0, minutesTillCloses / 3)) >= 28
+                    ? 0.1f
+                    : -0.5f;
+
+            return p;
+        }
     }
 
-    internal void SpawnCustomers(GroupType type)
+    internal bool SpawnCustomers(GroupType type)
     {
         Table? table = this.GetFreeTable();
         if (table == null)
-            return;
+            return false;
 
         CustomerGroup? group = type switch
         {
@@ -584,9 +597,11 @@ public class Cafe
         };
 
         if (group == null)
-            return;
+            return false;
 
         this.Groups.Add(group);
+        this.LastTimeCustomersArrived = Game1.timeOfDay;
+        return true;
     }
 
     internal Item? GetMenuItemForCustomer(NPC npc)

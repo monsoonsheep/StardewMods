@@ -31,7 +31,7 @@ internal class RandomCustomerBuilder : CustomerBuilder
         return list;
     }
 
-    internal override CustomerGroup? BuildGroup()
+    internal override CustomerGroup? CreateGroup()
     {
         List<NPC> customers = [];
 
