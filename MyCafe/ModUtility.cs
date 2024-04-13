@@ -224,20 +224,20 @@ internal static class ModUtility
         });
     }
 
-    internal static KeyValuePair<string, string> GetCustomDialogueAssetOrGeneric(string name, string key)
+    internal static KeyValuePair<string, string> GetCustomDialogueAssetOrGeneric(NPC npc, string key)
     {
-        Dictionary<string, string> dialogueAsset = Game1.content.Load<Dictionary<string, string>>($"{ModKeys.MODASSET_CUSTOM_DIALOGUE}/{name}");
-        if (!dialogueAsset.ContainsKey(key))
-            dialogueAsset = Game1.content.Load<Dictionary<string, string>>($"{ModKeys.MODASSET_CUSTOM_DIALOGUE}/Generic");
+        Dictionary<string, string>? dialogueAsset = npc.Dialogue;
+        if (!dialogueAsset?.ContainsKey(key) ?? false)
+            dialogueAsset = Game1.content.Load<Dictionary<string, string>>("Data/ExtraDialogue")!;
 
-        return dialogueAsset.Where(pair => pair.Key.StartsWith(key)).ToList().PickRandom();
+        return dialogueAsset!.Where(pair => pair.Key.StartsWith(key)).ToList().PickRandom();
     }
 
-    internal static KeyValuePair<string, string>? GetCustomDialogueAsset(string name, string key)
+    internal static KeyValuePair<string, string>? GetCustomDialogueAsset(NPC npc, string key)
     {
         try
         {
-            return Game1.content.Load<Dictionary<string, string>>($"{ModKeys.MODASSET_CUSTOM_DIALOGUE}/{name}").Where(pair => pair.Key.StartsWith(key)).ToList().PickRandom();
+            return npc.Dialogue.Where(pair => pair.Key.StartsWith(key)).ToList().PickRandom();
         }
         catch
         {

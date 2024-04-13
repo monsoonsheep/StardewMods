@@ -541,6 +541,9 @@ public class Cafe
 
         prob += (weightForRandom * 0.8f);
 
+        #if DEBUG
+        prob += 0.4f;
+        #endif
         // Try chance
         if (Game1.random.NextDouble() > prob)
         {

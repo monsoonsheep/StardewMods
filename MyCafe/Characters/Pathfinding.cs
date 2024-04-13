@@ -38,6 +38,8 @@ public static class Pathfinding
     {
         Stack<Point>? path;
 
+        RemoveNpcBarrier();
+
         try
         {
             path = PathfindFromLocationToLocation(me.currentLocation, me.TilePoint, targetLocation, targetTile, me);
@@ -94,9 +96,6 @@ public static class Pathfinding
             if (current == null)
                 return null;
 
-            if (current is Farm)
-                RemoveNpcBarrier();
-            
             if (i < locationsRoute.Length - 1)
             {
                 Point target = current.getWarpPointTo(locationsRoute[i + 1]);

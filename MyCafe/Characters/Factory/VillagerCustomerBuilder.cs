@@ -1,30 +1,31 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HarmonyLib;
 using Microsoft.Xna.Framework;
 using MyCafe.Data.Customers;
 using MyCafe.Data.Models;
 using MyCafe.Enums;
 using MyCafe.Netcode;
+using Netcode;
 using StardewValley;
+using StardewValley.TerrainFeatures;
 using SUtility = StardewValley.Utility;
 
 namespace MyCafe.Characters.Factory;
 
 internal class VillagerCustomerBuilder : CustomerBuilder
 {
-    private List<VillagerCustomerData> npcVisitData = [];
-
     internal override CustomerGroup? CreateGroup()
     {
-        this.npcVisitData = GetAvailableVillagerCustomers(1);
-        if (this.npcVisitData.Count == 0)
+        List<VillagerCustomerData> data = GetAvailableVillagerCustomers(1);
+        if (data.Count == 0)
         {
             Log.Debug("No villager customers can be created");
             return null;
         }
 
-        List<NPC> npcs = this.npcVisitData.Select(d => d.GetNpc()).ToList();
+        List<NPC> npcs = data.Select(d => d.GetNpc()).ToList();
 
         CustomerGroup group = new CustomerGroup(GroupType.Villager);
         foreach (NPC npc in npcs)
@@ -105,7 +106,6 @@ internal class VillagerCustomerBuilder : CustomerBuilder
         int daysSinceLastVisit = Game1.Date.TotalDays - data.LastVisitedDate.TotalDays;
         int daysAllowed = model.VisitFrequency switch
         {
-            0 => 200,
             1 => 27,
             2 => 13,
             3 => 7,
@@ -113,6 +113,10 @@ internal class VillagerCustomerBuilder : CustomerBuilder
             5 => 1,
             _ => 9999999
         };
+
+        #if DEBUG
+        daysAllowed = 1;
+        #endif
 
         if (Mod.Cafe.NpcCustomers.Contains(data.NpcName) ||
             npc.isSleeping.Value == true ||

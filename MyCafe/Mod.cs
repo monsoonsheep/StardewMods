@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using MonsoonSheep.Stardew.Common;
 using MonsoonSheep.Stardew.Common.Patching;
 using MyCafe.Characters;
@@ -582,12 +583,6 @@ public class Mod : StardewModdingAPI.Mod
             e.LoadFrom(() => new Dictionary<string, string>(), AssetLoadPriority.Low);
         }
 
-        // Custom dialogue assets
-        else if (e.NameWithoutLocale.StartsWith(ModKeys.MODASSET_CUSTOM_DIALOGUE))
-        {
-            e.LoadFrom(() => new Dictionary<string, string>(), AssetLoadPriority.Medium);
-        }
-
         // NPC Schedules
         else if (e.NameWithoutLocale.IsEquivalentTo(ModKeys.MODASSET_NPC_VISITING_DATA))
         {
@@ -641,10 +636,10 @@ public class Mod : StardewModdingAPI.Mod
             ? ModKeys.MODASSET_DIALOGUE_ENTRY_CAFEFIRSTTIMEVISIT
             : ModKeys.MODASSET_DIALOGUE_ENTRY_CAFEVISIT;
 
-        KeyValuePair<string, string> entry = ModUtility.GetCustomDialogueAssetOrGeneric(npc.Name, key);
+        KeyValuePair<string, string> entry = ModUtility.GetCustomDialogueAssetOrGeneric(npc, key);
 
         npc.CurrentDialogue.Push(
-            new Dialogue(npc, $"{ModKeys.MODASSET_CUSTOM_DIALOGUE}:{entry.Key}", TokenParser.ParseText(entry.Value, Game1.random, null, Game1.player))
+            new Dialogue(npc, $"{key}:{entry.Key}", TokenParser.ParseText(entry.Value, Game1.random, null, Game1.player))
             {
                 removeOnNextMove = true,
                 dontFaceFarmer = true
@@ -654,12 +649,12 @@ public class Mod : StardewModdingAPI.Mod
 
     internal void TryAddDialogueLastAteComment(VillagerCustomerData npcData, Stack<Dialogue> dialogue)
     {
-        KeyValuePair<string, string>? entry = ModUtility.GetCustomDialogueAsset(npcData.NpcName, ModKeys.MODASSET_DIALOGUE_ENTRY_LASTATECOMMENT);
+        KeyValuePair<string, string>? entry = ModUtility.GetCustomDialogueAsset(npcData.GetNpc(), ModKeys.MODASSET_DIALOGUE_ENTRY_LASTATECOMMENT);
 
         if (entry.HasValue)
         {
             string text = TokenParser.ParseText(string.Format(entry.Value.Value, ItemRegistry.GetData(npcData.LastAteFood)?.DisplayName ?? "thing"), Game1.random, null, Game1.player);
-            dialogue.Push(new Dialogue(npcData.GetNpc(), $"{ModKeys.MODASSET_CUSTOM_DIALOGUE}:{entry.Value.Key}", text));
+            dialogue.Push(new Dialogue(npcData.GetNpc(), $"{ModKeys.MODASSET_DIALOGUE_ENTRY_LASTATECOMMENT}:{entry.Value.Key}", text));
         }
     }
 
