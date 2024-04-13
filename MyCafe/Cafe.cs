@@ -749,23 +749,7 @@ public class Cafe
 
         Log.Trace($"Schedule description is {originalPathDescription.targetLocationName}: {originalPathDescription.targetTile}, behavior: {originalPathDescription.endOfRouteBehavior}");
 
-        GameLocation targetLocation = Game1.getLocationFromName(originalPathDescription.targetLocationName);
-        Stack<Point>? routeToScheduleItem = Pathfinding.PathfindFromLocationToLocation(
-            npc.currentLocation,
-            npc.TilePoint,
-            targetLocation,
-            originalPathDescription.targetTile,
-            npc);
-
-        if (routeToScheduleItem == null)
-        {
-            Log.Trace("Can't find route back");
-            // TODO: Warp them to their home
-            return;
-        }
-
-        // Can this return null?
-        SchedulePathDescription toInsert = npc.pathfindToNextScheduleLocation(
+        SchedulePathDescription? toInsert = npc.pathfindToNextScheduleLocation(
             npc.ScheduleKey,
             npc.currentLocation.Name,
             npc.TilePoint.X,
@@ -777,6 +761,12 @@ public class Cafe
             originalPathDescription.endOfRouteBehavior,
             originalPathDescription.endOfRouteMessage);
 
+        if (toInsert == null)
+        {
+            // TODO warp them
+            return;
+        }
+        npc.Schedule.Remove(timeOfActivity);
         npc.queuedSchedulePaths.Clear();
         npc.Schedule[Game1.timeOfDay] = toInsert;
         npc.checkSchedule(Game1.timeOfDay);

@@ -23,6 +23,7 @@ using MyCafe.Locations.Objects;
 using MyCafe.Netcode;
 using MyCafe.Patching;
 using MyCafe.UI;
+using SpaceCore.Events;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -35,6 +36,7 @@ using StardewValley.Inventories;
 using StardewValley.Locations;
 using StardewValley.TokenizableStrings;
 using xTile;
+using Object = StardewValley.Object;
 
 namespace MyCafe;
 
@@ -79,10 +81,10 @@ public class Mod : StardewModdingAPI.Mod
     public override void Entry(IModHelper helper)
     {
         Log.Monitor = this.Monitor;
-        I18n.Init(helper.Translation);
-        this._loadedConfig = helper.ReadConfig<ConfigModel>();
+        I18n.Init(this.Helper.Translation);
+        this._loadedConfig = this.Helper.ReadConfig<ConfigModel>();
         this._cafe = new Cafe();
-        this._randomCharacterGenerator = new RandomCharacterGenerator(helper);
+        this._randomCharacterGenerator = new RandomCharacterGenerator(this.Helper);
 
         // Harmony patches
         if (HarmonyPatcher.TryApply(this,
@@ -95,7 +97,7 @@ public class Mod : StardewModdingAPI.Mod
             ) is false)
             return;
 
-        IModEvents events = helper.Events;
+        IModEvents events = this.Helper.Events;
 
         events.GameLoop.GameLaunched += this.OnGameLaunched;
         events.GameLoop.SaveLoaded += this.OnSaveLoaded;
@@ -109,7 +111,10 @@ public class Mod : StardewModdingAPI.Mod
         events.Multiplayer.ModMessageReceived += this.OnModMessageReceived;
         events.Display.RenderedWorld += this.OnRenderedWorld;
         events.World.FurnitureListChanged += this.OnFurnitureListChanged;
+
+        #if DEBUG
         events.Input.ButtonPressed += Debug.ButtonPress;
+        #endif
     }
 
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
@@ -120,7 +125,8 @@ public class Mod : StardewModdingAPI.Mod
 
         GameLocation.RegisterTileAction(ModKeys.SIGNBOARD_BUILDING_CLICK_EVENT_KEY, CafeMenu.Action_OpenCafeMenu);
 
-        ISpaceCoreApi spaceCore = this.Helper.ModRegistry.GetApi<ISpaceCoreApi>("spacechase0.SpaceCore")!;
+        SpaceEvents.OnEventFinished += this.OnEventFinished;
+        //ISpaceCoreApi spaceCore = this.Helper.ModRegistry.GetApi<ISpaceCoreApi>("spacechase0.SpaceCore")!;
         // Remove this? It might not be need. Test multiplayer to confirm.
         //FarmerTeamVirtualProperties.Register(spaceCore);
 
@@ -137,13 +143,15 @@ public class Mod : StardewModdingAPI.Mod
             ModKeys.TOKEN_RANDOM_MENU_ITEM,
             (string[] query, out string replacement, Random random, Farmer player) =>
             {
-                replacement = Cafe.Menu.ItemDictionary.Values.SelectMany(i => i).ToList().PickRandom()?.DisplayName ?? "Special";
+                replacement = Mod.Cafe.Menu.ItemDictionary.Values.SelectMany(i => i).ToList().PickRandom()?.DisplayName ?? "Special";
                 return true;
             });
 
         GameStateQuery.Register(
             ModKeys.GAMESTATEQUERY_ISINDOORCAFE,
             (query, context) => !Game1.currentLocation.IsOutdoors);
+
+        this.Helper.ConsoleCommands.Add("cafe_givesignboard", "Gives you the cafe signboard (if you want to skip the Gus 7-heart event", this.GiveSignboard);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
@@ -234,7 +242,7 @@ public class Mod : StardewModdingAPI.Mod
 
                     case TableState.Free:
                         // Display number of seats on table
-                        if (Debug.IsDebug() || Cafe.Enabled == 1)
+                        if (Cafe.Enabled == 1)
                         {
                             e.SpriteBatch.DrawString(Game1.tinyFont, table.Seats.Count.ToString(), Game1.GlobalToLocal(table.Center + new Vector2(-12, -112)) + offset, Color.LightBlue, 0f, Vector2.Zero, 5f, SpriteEffects.None, 0.99f);
                             e.SpriteBatch.DrawString(Game1.tinyFont, table.Seats.Count.ToString(), Game1.GlobalToLocal(table.Center + new Vector2(-10, -96)) + offset, Color.Black, 0f, Vector2.Zero, 4f, SpriteEffects.None, 1f);
@@ -326,6 +334,14 @@ public class Mod : StardewModdingAPI.Mod
             {
                 Log.Debug($"Invalid message from host\n{ex}", LogLevel.Error);
             }
+        }
+    }
+
+    private void OnEventFinished(object? sender, EventArgs e)
+    {
+        if (Game1.CurrentEvent.id.Equals(ModKeys.EVENT_CAFEINTRODUCTION) && !Game1.player.Items.ContainsId(ModKeys.CAFE_SIGNBOARD_OBJECT_ID))
+        {
+            Game1.player.addItemByMenuIfNecessaryElseHoldUp(ItemRegistry.Create<Object>($"(BC){ModKeys.CAFE_SIGNBOARD_OBJECT_ID}"));
         }
     }
 
@@ -440,8 +456,15 @@ public class Mod : StardewModdingAPI.Mod
 
         configMenu.AddSectionTitle(
             mod: manifest,
-            text: () => "Customer Visits"
+            text: () => "Customers"
             );
+
+        configMenu.AddBoolOption(
+            mod: manifest,
+            getValue: () => this._loadedConfig.WarpCustomers,
+            setValue: (value) => this._loadedConfig.WarpCustomers = value,
+            name: () => "Warp Customers",
+            tooltip: () => "Teleport customers through unloaded locations to save time for their schedules and speed up visits");
 
         configMenu.AddNumberOption(
             mod: manifest,
@@ -638,6 +661,18 @@ public class Mod : StardewModdingAPI.Mod
             string text = TokenParser.ParseText(string.Format(entry.Value.Value, ItemRegistry.GetData(npcData.LastAteFood)?.DisplayName ?? "thing"), Game1.random, null, Game1.player);
             dialogue.Push(new Dialogue(npcData.GetNpc(), $"{ModKeys.MODASSET_CUSTOM_DIALOGUE}:{entry.Value.Key}", text));
         }
+    }
+
+    internal void GiveSignboard(string command, string[] args)
+    {
+        if (Game1.player.Items.ContainsId(ModKeys.CAFE_SIGNBOARD_OBJECT_ID))
+        {
+            Log.Warn("You already have the signboard in your inventory");
+            return;
+        }
+
+        Object signboard = ItemRegistry.Create<Object>($"(BC){ModKeys.CAFE_SIGNBOARD_OBJECT_ID}");
+        Game1.player.addItemToInventory(signboard);
     }
 
     internal void LoadContent(IContentPack defaultContent)

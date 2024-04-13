@@ -1,3 +1,5 @@
+#if DEBUG
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -136,3 +138,5 @@ internal static class Debug
         #endif
     }
 }
+
+#endif

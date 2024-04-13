@@ -79,7 +79,8 @@ internal class CharacterPatcher : BasePatcher
         if ((Mod.Cafe.NpcCustomers.Contains(__instance.Name) || __instance.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX)))
         {
             // If they are in Bus Stop or town and there's no farmers there, warp them to the next location in their route
-            if (__instance.controller != null
+            if (Mod.Config.WarpCustomers
+                && __instance.controller != null
                 && !__instance.currentLocation.farmers.Any()
                 && (__instance.currentLocation.Name.Equals("BusStop") || __instance.currentLocation.Name.Equals("Town"))
                 && (bool?) AccessTools.Field(typeof(Character), "freezeMotion").GetValue(__instance) is false)

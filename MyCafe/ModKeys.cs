@@ -27,7 +27,7 @@ internal static class ModKeys
 
     internal const string MAPPROPERTY_TABLE = "MonsoonSheep.MyCafe_Table";
 
-    internal const string EVENT_CAFEINTRODUCTION = "MonsoonSheep.MyCafe_CafeIntroduction";
+    internal const string EVENT_CAFEINTRODUCTION = "MonsoonSheep.MyCafe_GusStartCafe";
 
     internal const string GENERATED_SPRITE_PREFIX = "MonsoonSheep.MyCafe_GeneratedSprite";
 

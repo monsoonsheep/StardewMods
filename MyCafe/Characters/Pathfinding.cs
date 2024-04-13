@@ -79,8 +79,8 @@ public static class Pathfinding
         }
 
         // Get location route
-        string[]? locationsRoute = WarpPathfindingCache.GetLocationRoute(startingLocation.Name, targetLocation.Name, character.Gender)
-            ?? GetLocationRoute(startingLocation.Name, targetLocation.Name);
+        string[]? locationsRoute = WarpPathfindingCache.GetLocationRoute(startingLocation.NameOrUniqueName, targetLocation.NameOrUniqueName, character.Gender)
+            ?? GetLocationRoute(startingLocation.NameOrUniqueName, targetLocation.NameOrUniqueName);
 
         if (locationsRoute == null)
         {
@@ -383,7 +383,7 @@ public static class Pathfinding
                 continue;
             }
 
-            List<string> route = toFarm.Concat([building.Name]).ToList();
+            List<string> route = toFarm.Concat([building.NameOrUniqueName]).ToList();
 
             var reverseRoute = new List<string>(route);
             reverseRoute.Reverse();

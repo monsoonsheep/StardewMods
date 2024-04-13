@@ -7,6 +7,7 @@ internal class ConfigModel
 {
     public int DistanceForSignboardToRegisterTables { get; set; } = 7;
     public bool EnableScrollbarInMenuBoard { get; set; } = false;
+    public bool WarpCustomers { get; set; } = true;
     public int EnableCustomCustomers { get; set; } = 4;
     public int EnableRandomlyGeneratedCustomers { get; set; } = 4;
     public int EnableNpcCustomers { get; set; } = 2;

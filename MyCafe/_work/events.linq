@@ -1,5 +1,4 @@
 <Query Kind="Statements">
-  <Namespace>Microsoft.Xna.Framework</Namespace>
   <RuntimeVersion>6.0</RuntimeVersion>
 </Query>
 
@@ -7,56 +6,66 @@ int x = 650, y = 650;
 
 string[] commands =
 [
-    $"continue",
-    $"{x} {y + 2}",
-    $"farmer {x} {y + 1} 0 Gus {x + 1} {y} 3 Robin {x - 1} {y} 1",
-    $"ignoreEventTileOffset",
+    $"CloudCountry",
+    $"13 18",
+    $"farmer 13 20 0 Gus 13 18 2",
 	$"skippable",
-    $"ignoreCollisions Gus",
-    $"ignoreCollisions farmer",
-    $"ignoreCollisions Robin",
-	$"makeInvisible {x - 1} {y - 1} 3 3",
-
-    $"pause 1000",
-    $"emote farmer 40",
-
-    $"animate Robin true false 200 24 25 26",
-    $"pause 400",
-    $"playSound axe",
-
-    $"faceDirection Gus 2",
-    $"move Gus 0 1 3",
-    $"faceDirection farmer 1",
-
-    $"pause 200",
-    $"speak Gus \"{{i18n:event-CafeIntroduction.01}}\"",
-    $"faceDirection Robin 2",
-    $"speak Gus \"{{i18n:event-CafeIntroduction.02}}\"",
-	$"pause 200",
-    $"speak Gus \"{{i18n:event-CafeIntroduction.03}}\"",
+    $"showFrame farmer 113",
+	
     $"pause 100",
-
-    $"emote farmer 32",
-
-    $"move Robin 0 1 1",
-    $"faceDirection farmer 3",
-    $"speak Robin \"{{i18n:event-CafeIntroduction.04}}\"",
-    $"pause 1",
-    $"quickQuestion #{{i18n:event-CafeIntroduction.04.answer1}}#{{i18n:event-CafeIntroduction.04.answer2}}#{{i18n:event-CafeIntroduction.04.answer3}}#{{i18n:event-CafeIntroduction.04.answer4}} (break)" +
-        $"speak Robin \"{{i18n:event-CafeIntroduction.04.fork1.01}}\" (break)" +
-        $"speak Robin \"{{i18n:event-CafeIntroduction.04.fork2.01}}\" (break)" +
-        $"speak Robin \"{{i18n:event-CafeIntroduction.04.fork3.01}}\" (break)" +
-        $"speak Robin \"{{i18n:event-CafeIntroduction.04.fork4.01}}\"",
-
-    $"faceDirection farmer 1",
-    $"pause 300",
-    $"faceDirection farmer 3",
-    $"pause 300",
-    $"faceDirection farmer 0",
-    $"pause 300",
-	$"addMailReceived MonsoonSheep.MyCafe_HasSeenCafeIntroductionEvent",
-	$"addConversationTopic MonsoonSheep_MyCafe_Dialogue_CafeOpened 7",
-    $"end"
+	
+	$"move Gus -1 0 2",
+	$"animate Gus false false 500 18 19 20",
+	$"pause 1500",
+	$"move Gus 1 0 2",
+	$"pause 250",
+	
+    $"speak Gus \"It's nice to see you take some time off and have a drink or two.\"",
+	$"emote farmer 32",
+    $"speak Gus \"Tending to the farm must be challenging.\"",
+	$"pause 1",
+	$"quickQuestion #It has its perks.#It's a lot of hard work. (break)" + 
+		$"speak Gus \"I don't think I could handle the physical toll alone.$h\" (break)" +
+		$"speak Gus \"You could really use a change of pace, then.\" (break)",
+	
+	$"pause 500",
+	
+    $"speak Gus \"You know, running this saloon has been gratifying work.\"",
+    $"speak Gus \"Lately, there's been more visitors from Zuzu and other towns.#$b#I'm sorta stretched thin in here. Sometimes I wish there were more places for visitors and tourists.\"",
+	$"pause 1",
+	$"quickQuestion #How about another restaurant?#Food work seems too difficult. (break)" +
+		$"speak Gus \"Are you saying you want to start one?\" (break)" +
+		$"speak Gus \"Oh it's not too bad.#$b#You could open your own saloon or restaurant if you wanted.\"",
+	
+	$"pause 100",
+	$"emote farmer 28",
+	$"pause 1000",
+	
+	$"speak Gus \"You know, you've become an essential part of this community.#$b#I wouldn't be surprised if you were to expand into other work.\"",
+	$"speak Gus \"With the increased traffic into the valley, it could be good for both of us!\"",
+    
+	$"pause 400",
+    $"move Gus 1 0 2",
+	$"animate Gus false false 500 18 19 20",
+	$"emote farmer 40",
+	$"pause 1000",
+	$"move Gus -1 0 2",
+	
+	$"speak Gus \"Besides, a little healthy competition never hurt anyone.$h\"",
+	$"speak Gus \"You probably can't beat my cooking, but you're welcome to try.\"",
+	$"emote farmer 60",
+	$"pause 500",
+	
+	$"move Gus 1 0 0",
+	$"move Gus 0 -1 0",
+	$"pause 500",
+	
+	$"fade",
+	$"pause 10",
+	$"viewport -100 -100",
+	$"message \"You can open your own restaurant.\"",
+	
+	$"end"
 ];
  
 System.Console.WriteLine(string.Join('/', commands).Replace("\"", "\\\"").Replace("{", @"{{").Replace("}", @"}}"));
