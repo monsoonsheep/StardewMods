@@ -81,6 +81,7 @@ public class Mod : StardewModdingAPI.Mod
     /// <inheritdoc/>
     public override void Entry(IModHelper helper)
     {
+        // Why do I keep doing this
         Log.Monitor = this.Monitor;
         I18n.Init(this.Helper.Translation);
         this._loadedConfig = this.Helper.ReadConfig<ConfigModel>();
