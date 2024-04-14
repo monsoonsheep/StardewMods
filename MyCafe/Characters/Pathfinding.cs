@@ -51,7 +51,6 @@ public static class Pathfinding
 
         if (path == null || path.Count == 0)
         {
-            Log.Error("Couldn't pathfind NPC");
             throw new PathNotFoundException($"Error finding route to cafe. Couldn't find warp point for {me.Name}", me.TilePoint, targetTile,
                 me.currentLocation.Name, targetLocation.Name, me);
         }
@@ -372,8 +371,14 @@ public static class Pathfinding
     /// <summary>
     /// Use <see cref="WarpPathfindingCache"/>.AddRoute to add routes from all locations to the given location and vice versa
     /// </summary>
-    internal static void AddRoutesToBuildingInFarm(GameLocation building)
+    internal static void AddRoutesToBuildingInFarm(GameLocation indoorLocation)
     {
+        if (LocationRoutes.Count(pair => pair.Value.Any(route => route.LocationNames[^1].Equals(indoorLocation.NameOrUniqueName))) > 10)
+        {
+            // Already added routes for this target location
+            return;
+        }
+
         foreach (GameLocation location in Game1.locations)
         {
             List<string>? toFarm = (WarpPathfindingCache.GetLocationRoute(location.Name, "Farm", Gender.Undefined) ?? GetLocationRoute(location.Name, "Farm"))?.ToList();
@@ -382,7 +387,7 @@ public static class Pathfinding
                 continue;
             }
 
-            List<string> route = toFarm.Concat([building.NameOrUniqueName]).ToList();
+            List<string> route = toFarm.Concat([indoorLocation.NameOrUniqueName]).ToList();
 
             var reverseRoute = new List<string>(route);
             reverseRoute.Reverse();
@@ -394,13 +399,16 @@ public static class Pathfinding
 
     private static void RemoveNpcBarrier()
     {
-        Layer layer = Game1.getFarm().Map.GetLayer("Back");
-        foreach (Point point in NpcBarrierTiles)
+        if (!NpcBarrierRemoved)
         {
-            layer.Tiles[point.X, point.Y]?.Properties.Remove("NPCBarrier");
-        }
+            Layer layer = Game1.getFarm().Map.GetLayer("Back");
+            foreach (Point point in NpcBarrierTiles)
+            {
+                layer.Tiles[point.X, point.Y]?.Properties.Remove("NPCBarrier");
+            }
 
-        NpcBarrierRemoved = true;
+            NpcBarrierRemoved = true;
+        }
     }
 
     private static void RestoreNpcBarrier()
@@ -413,6 +421,8 @@ public static class Pathfinding
             {
                 layer.Tiles[point.X, point.Y]?.Properties.Remove("NPCBarrier");
             }
+
+            NpcBarrierRemoved = false;
         }
     }
 }

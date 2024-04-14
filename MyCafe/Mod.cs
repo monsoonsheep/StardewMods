@@ -577,12 +577,6 @@ public class Mod : StardewModdingAPI.Mod
             e.LoadFromModFile<Texture2D>(Path.Combine("assets", "sprites.png"), AssetLoadPriority.Medium);
         }
 
-        // Custom events (Added by CP component)
-        else if (e.NameWithoutLocale.IsEquivalentTo($"Data/{ModKeys.MODASSET_EVENTS}"))
-        {
-            e.LoadFrom(() => new Dictionary<string, string>(), AssetLoadPriority.Low);
-        }
-
         // NPC Schedules
         else if (e.NameWithoutLocale.IsEquivalentTo(ModKeys.MODASSET_NPC_VISITING_DATA))
         {
