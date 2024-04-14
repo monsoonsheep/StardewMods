@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
+using MyCafe.Netcode;
 using StardewValley;
 using StardewValley.Pathfinding;
 using StardewValley.TerrainFeatures;
@@ -64,6 +65,11 @@ public static class Pathfinding
             endBehaviorFunction = endBehavior,
             finalFacingDirection = finalFacingDirection
         };
+
+        if (me.get_IsSittingDown().Value)
+        {
+            me.JumpOutOfChair();
+        }
 
         return true;
     }
@@ -141,19 +147,17 @@ public static class Pathfinding
 
     private static Stack<Point>? FindPath(Point startTile, Point targetTile, GameLocation location, Character? character, int iterations = 30000)
     {
-        if (location.GetFurnitureAt(targetTile.ToVector2()) != null
-            || !location.isTilePassable(new Location(targetTile.X, targetTile.Y), Game1.viewport))
-        {
-            return FindShortestPathToChair(location, startTile, targetTile, character);
-        }
-
-        if (location.GetFurnitureAt(startTile.ToVector2()) != null
-            || !location.isTilePassable(new Location(startTile.X, startTile.Y), Game1.viewport))
+        if (ModUtility.IsChairHere(location, startTile))
         {
             return FindShortestPathFromChair(location, startTile, targetTile, character);
         }
 
-        if (location is Farm || location.GetContainingBuilding() != null)
+        if (ModUtility.IsChairHere(location, targetTile))
+        {
+            return FindShortestPathToChair(location, startTile, targetTile, character);
+        }
+
+        if (location is Farm || location.GetContainingBuilding() != null || location.Equals(Mod.Cafe.Signboard?.Location))
         {
             // Experimental
             return Pathfinding.PathfindImpl(location, startTile, targetTile, character, iterations);
@@ -277,10 +281,8 @@ public static class Pathfinding
 
             Stack<Point>? p = FindPath(newTile, targetTile, location, character, iterations: 1500);
 
-            if (p == null || p.Count >= shortestPath?.Count)
-                continue;
-
-            shortestPath = p;
+            if (p != null && !(p.Count >= shortestPath?.Count))
+                shortestPath = p;
         }
         return shortestPath;
     }

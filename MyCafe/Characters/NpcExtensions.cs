@@ -14,6 +14,37 @@ namespace MyCafe.Characters;
 
 public static class NpcExtensions
 {
+    public static void WarpThroughLocationsUntilNoFarmers(this NPC me)
+    {
+        GameLocation location = me.currentLocation;
+
+        while (me.controller.pathToEndPoint?.Count > 2)
+        {
+            if (!me.currentLocation.Equals(location))
+            {
+                location = me.currentLocation;
+                if (location.farmers.Any())
+                {
+                    break;
+                }
+            }
+
+            me.controller.pathToEndPoint.Pop();
+            me.controller.handleWarps(new Rectangle(me.controller.pathToEndPoint.Peek().X * 64, me.controller.pathToEndPoint.Peek().Y * 64, 64, 64));
+            me.Position = new Vector2(me.controller.pathToEndPoint.Peek().X * 64, me.controller.pathToEndPoint.Peek().Y * 64 + 16);
+        }
+    }
+
+    public static void JumpOutOfChair(this NPC me)
+    {
+        me.get_IsSittingDown().Set(false);
+        me.Sprite.ClearAnimation();
+
+        me.JumpTo(me.controller.pathToEndPoint.First().ToVector2() * 64f);
+        //me.Freeze();
+        //me.set_AfterLerp(c => c.Unfreeze());
+    }
+
     public static void Freeze(this NPC me)
     {
         AccessTools.Field(typeof(Character), "freezeMotion").SetValue(me, true);
@@ -38,7 +69,7 @@ public static class NpcExtensions
         me.set_LerpStartPosition(me.Position);
         me.set_LerpEndPosition(pixelPosition);
         me.set_LerpPosition(0f);
-        me.set_LerpDuration(0.2f);
+        me.set_LerpDuration(0.3f);
     }
 
     public static PathFindController.endBehavior SitDownBehavior = delegate (Character ch, GameLocation _)

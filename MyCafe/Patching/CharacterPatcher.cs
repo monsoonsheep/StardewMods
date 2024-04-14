@@ -75,28 +75,20 @@ internal class CharacterPatcher : BasePatcher
 
     private static void After_update(NPC __instance, GameTime time, GameLocation location)
     {
+        __instance.speed = 4;
         // Run only if either villager customer (in the hashset) or random customer (name starts with a prefix)
-        if ((Mod.Cafe.NpcCustomers.Contains(__instance.Name) || __instance.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX)))
+        if (Context.IsMainPlayer && (Mod.Cafe.NpcCustomers.Contains(__instance.Name) || __instance.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX)))
         {
             // If they are in Bus Stop or town and there's no farmers there, warp them to the next location in their route
             if (Mod.Config.WarpCustomers
                 && __instance.controller != null
                 && !__instance.currentLocation.farmers.Any()
-                && (__instance.currentLocation.Name.Equals("BusStop") || __instance.currentLocation.Name.Equals("Town"))
                 && (bool?) AccessTools.Field(typeof(Character), "freezeMotion").GetValue(__instance) is false)
             {
-                while ((__instance.currentLocation.Name.Equals("BusStop") || __instance.currentLocation.Name.Equals("Town")) && __instance.controller.pathToEndPoint?.Count > 2)
-                {
-                    __instance.controller.pathToEndPoint.Pop();
-                    __instance.controller.handleWarps(new Rectangle(__instance.controller.pathToEndPoint.Peek().X * 64, __instance.controller.pathToEndPoint.Peek().Y * 64, 64, 64));
-                    __instance.Position = new Vector2(__instance.controller.pathToEndPoint.Peek().X * 64, __instance.controller.pathToEndPoint.Peek().Y * 64 + 16);
-                }
+                __instance.WarpThroughLocationsUntilNoFarmers();
             }
 
-            __instance.speed = 4;
-
             // Lerping the position of the character (for sitting and getting up)
-            
             if (__instance.get_LerpPosition() >= 0f)
             {
                 __instance.set_LerpPosition(__instance.get_LerpPosition() + (float)time.ElapsedGameTime.TotalSeconds);

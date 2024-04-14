@@ -28,6 +28,8 @@ using MyCafe.Data;
 using xTile.Layers;
 using xTile.Tiles;
 using Microsoft.Xna.Framework.Graphics;
+using xTile.Dimensions;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 #pragma warning disable IDE0060
 
@@ -136,7 +138,7 @@ public class Cafe
         int count = 0;
 
         // Furniture tables
-        foreach (Furniture f in ModUtility.GetValidFurnitureInCafeLocations())
+        foreach (Furniture f in this.GetValidFurnitureInCafeLocations())
         {
             FurnitureTable newTable = new FurnitureTable(f);
             if (newTable.Seats.Count > 0)
@@ -451,7 +453,7 @@ public class Cafe
 
     internal Table? GetFreeTable(int minSeats = 1)
     {
-        return this.Tables.PickRandomWhere(t => !t.IsReserved && t.Seats.Count >= minSeats);
+        return this.Tables.PickRandomWhere(t => !t.IsReserved && t.Seats.Count >= minSeats && (t is not FurnitureTable ft || ft.Seats.Cast<FurnitureSeat>().All(s => !s.ActualChair.Value.HasSittingFarmers())));
     }
 
     internal Table? GetTableFromCustomer(NPC npc)
@@ -464,12 +466,27 @@ public class Cafe
         return this.Tables.FirstOrDefault(table => table.Location == location.Name && table.BoundingBox.Value.Contains(tile.X * 64, tile.Y * 64));
     }
 
+    internal IEnumerable<Furniture> GetValidFurnitureInCafeLocations()
+    {
+        if (this.Signboard?.Location is { } signboardLocation)
+        {
+            foreach (Furniture furniture in signboardLocation.furniture.Where(t => t.IsTable()))
+            {
+                if (signboardLocation.IsOutdoors && !this.IsFurnitureWithinRangeOfSignboard(furniture))
+                    continue;
+
+                yield return furniture;
+            }
+        }
+    }
+
     #endregion
 
     #region Locations
 
     internal void UpdateLocations()
     {
+        this.LastTimeCustomersArrived = 0;
         if (this.UpdateCafeLocations() is true)
         {
             this.Enabled = 1;
@@ -484,7 +501,7 @@ public class Cafe
 
     internal bool UpdateCafeLocations()
     {
-        if ((this.Signboard = ModUtility.GetSignboard()) == null)
+        if ((this.Signboard = GetSignboardObject()) == null)
             return false;
         
         if (this.Signboard.Location.GetContainingBuilding()?.parentLocationName?.Value == "Farm")
@@ -526,6 +543,27 @@ public class Cafe
         }
     }
 
+    internal static SObject? GetSignboardObject()
+    {
+        SObject? found = null;
+
+        SUtility.ForEachLocation(delegate(GameLocation loc)
+        {
+            foreach (SObject obj in loc.Objects.Values)
+            {
+                if (obj.QualifiedItemId.Equals($"(BC){ModKeys.CAFE_SIGNBOARD_OBJECT_ID}"))
+                {
+                    found = obj;
+                    return false;
+                }
+            }
+
+            return true;
+        });
+
+        return found;
+    }
+
     #endregion
 
     #region Customers
@@ -537,17 +575,21 @@ public class Cafe
         float weightForRandom = Math.Max(Mod.Config.EnableCustomCustomers, Mod.Config.EnableRandomlyGeneratedCustomers) / 5f;
         float typeWeightsSum = (weightForRandom + weightForVillagers);
 
-        float prob = ProbabilityToSpawn();
+        float prob = CalculateProbabilityToSpawn();
 
         prob += (weightForRandom * 0.8f);
 
+        if (weightForRandom <= 0.2f)
+            prob += (weightForVillagers * 0.2f);
+
         #if DEBUG
-        prob += 0.4f;
+        prob += 0.0f;
         #endif
+
         // Try chance
         if (Game1.random.NextDouble() > prob)
         {
-            Log.Trace("Not spawning");
+            Log.Trace($"Not spawning (chance was {prob}");
             return;
         }
 
@@ -555,9 +597,9 @@ public class Cafe
             ? GroupType.Villager
             : GroupType.Random;
 
-        this.SpawnCustomers(groupType);
+        this.TrySpawnCustomers(groupType);
 
-        float ProbabilityToSpawn()
+        float CalculateProbabilityToSpawn()
         {
             int totalTimeIntervalDuringDay = (this.ClosingTime - this.OpeningTime) / 10;
             int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, this.ClosingTime);
@@ -586,7 +628,7 @@ public class Cafe
         }
     }
 
-    internal bool SpawnCustomers(GroupType type)
+    internal bool TrySpawnCustomers(GroupType type)
     {
         Table? table = this.GetFreeTable();
         if (table == null)
@@ -653,8 +695,8 @@ public class Cafe
     internal void EndCustomerGroup(CustomerGroup group)
     {
         Log.Debug($"Removing customers");
-        
-        group.ReservedTable?.Free();
+
+        group.ReservedTable!.Free();
         this.Groups.Remove(group);
 
         if (group.Type != GroupType.Villager)
@@ -692,11 +734,24 @@ public class Cafe
                 c.faceTowardFarmerTimer = 0;
                 c.faceTowardFarmer = false;
                 c.movementPause = 0;
+
             }
 
             try
             {
-                group.MoveTo(Game1.getLocationFromName("BusStop"), new Point(12, 23), (c, _) => this.ReturnVillagerToSchedule((c as NPC)!));
+                GameLocation tableLocation = Game1.getLocationFromName(group.ReservedTable!.Location);
+                if (tableLocation is Farm || tableLocation.GetContainingBuilding()?.parentLocationName.Value.Equals("Farm") is true)
+                {
+                    group.MoveTo(
+                        Game1.getLocationFromName("BusStop"),
+                        new Point(12, 23),
+                        (c, _) => this.ReturnVillagerToSchedule((c as NPC)!));
+                }
+                else
+                {
+                    foreach (NPC c in group.Members)
+                        this.ReturnVillagerToSchedule(c);
+                }
             }
             catch (PathNotFoundException e)
             {
@@ -714,12 +769,8 @@ public class Cafe
     {
         npc.ignoreScheduleToday = false;
         npc.get_OrderItem().Set(null!);
-        npc.get_IsSittingDown().Set(false);
         npc.set_Seat(null);
 
-        if (this.NpcCustomers.Remove(npc.Name) == false)
-            return;
-        
         List<int> activityTimes = npc.Schedule.Keys.OrderBy(i => i).ToList();
         int timeOfCurrent = activityTimes.LastOrDefault(t => t <= Game1.timeOfDay);
         int timeOfNext = activityTimes.FirstOrDefault(t => t > Game1.timeOfDay);
@@ -727,52 +778,64 @@ public class Cafe
         int minutesTillNextStarts = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, timeOfNext);
         int timeOfActivity;
 
-        Log.Trace($"[{Game1.timeOfDay}] Returning {npc.Name} to schedule for key \"{npc.ScheduleKey}\". Time of current activity is {timeOfCurrent}, next activity is at {timeOfNext}.");
-
         if (timeOfCurrent == 0) // Means it's the start of the day
-        {
             timeOfActivity = activityTimes.First();
-        }
         else if (timeOfNext == 0) // Means it's the end of the day
-        {
             timeOfActivity = activityTimes.Last();
-        }
         else
         {
+            // If we're very close to the next item, 
             if (minutesTillNextStarts < minutesSinceCurrentStarted && minutesTillNextStarts <= 30)
-                // If we're very close to the next item, 
                 timeOfActivity = timeOfNext;
             else
                 timeOfActivity = timeOfCurrent;
         }
 
-        Log.Trace($"Time of selected activity is {timeOfActivity}");
-
         SchedulePathDescription originalPathDescription = npc.Schedule[timeOfActivity];
 
-        Log.Trace($"Schedule description is {originalPathDescription.targetLocationName}: {originalPathDescription.targetTile}, behavior: {originalPathDescription.endOfRouteBehavior}");
+        Log.Trace(@$"[{Game1.timeOfDay}] Returning {npc.Name} to schedule for key ""{npc.ScheduleKey}"". Time of current activity is {timeOfCurrent}, next activity is at {timeOfNext}.
+            Choosing {timeOfActivity}.
+            Schedule description is {originalPathDescription.targetLocationName}: {originalPathDescription.targetTile}, behavior: {originalPathDescription.endOfRouteBehavior}");
 
-        SchedulePathDescription? toInsert = npc.pathfindToNextScheduleLocation(
-            npc.ScheduleKey,
-            npc.currentLocation.Name,
-            npc.TilePoint.X,
-            npc.TilePoint.Y,
-            originalPathDescription.targetLocationName,
-            originalPathDescription.targetTile.X,
-            originalPathDescription.targetTile.Y,
-            originalPathDescription.facingDirection,
-            originalPathDescription.endOfRouteBehavior,
-            originalPathDescription.endOfRouteMessage);
-
-        if (toInsert == null)
+        SchedulePathDescription? route = null;
+        try
         {
+            npc.PathTo(Game1.getLocationFromName(originalPathDescription.targetLocationName), originalPathDescription.targetTile,
+                originalPathDescription.facingDirection);
+            
+            route = new SchedulePathDescription(npc.controller.pathToEndPoint, originalPathDescription.facingDirection,
+                originalPathDescription.endOfRouteBehavior, originalPathDescription.endOfRouteMessage,
+                originalPathDescription.targetLocationName, originalPathDescription.targetTile)
+            {
+                time = Game1.timeOfDay
+            };
+            npc.controller = null;
+            npc.set_AfterLerp((c) => Mod.Cafe.NpcCustomers.Remove(c.Name));
+
+        }
+        catch (PathNotFoundException e)
+        {
+            route = null;
+        }
+        
+        if (route == null)
+        {
+            this.NpcCustomers.Remove(npc.Name);
+            Log.Error("Couldn't return NPC to schedule");
             // TODO warp them
             return;
         }
+
         npc.Schedule.Remove(timeOfActivity);
+        npc.lastAttemptedSchedule = Game1.timeOfDay - 10;
         npc.queuedSchedulePaths.Clear();
-        npc.Schedule[Game1.timeOfDay] = toInsert;
+        npc.Schedule[Game1.timeOfDay] = route;
         npc.checkSchedule(Game1.timeOfDay);
+
+        if (npc.controller == null)
+        {
+            Log.Error("checkSchedule didn't set the controller");
+        }
     }
 
     internal void DeleteNpcFromExistence(NPC npc)

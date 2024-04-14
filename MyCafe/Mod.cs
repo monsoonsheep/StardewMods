@@ -37,7 +37,8 @@ using StardewValley.Inventories;
 using StardewValley.Locations;
 using StardewValley.TokenizableStrings;
 using xTile;
-using Object = StardewValley.Object;
+using SUtility = StardewValley.Utility;
+using SObject = StardewValley.Object;
 
 namespace MyCafe;
 
@@ -128,9 +129,9 @@ public class Mod : StardewModdingAPI.Mod
         GameLocation.RegisterTileAction(ModKeys.SIGNBOARD_BUILDING_CLICK_EVENT_KEY, CafeMenu.Action_OpenCafeMenu);
 
         SpaceEvents.OnEventFinished += this.OnEventFinished;
-        //ISpaceCoreApi spaceCore = this.Helper.ModRegistry.GetApi<ISpaceCoreApi>("spacechase0.SpaceCore")!;
+        // ISpaceCoreApi spaceCore = this.Helper.ModRegistry.GetApi<ISpaceCoreApi>("spacechase0.SpaceCore")!;
         // Remove this? It might not be need. Test multiplayer to confirm.
-        //FarmerTeamVirtualProperties.Register(spaceCore);
+        // FarmerTeamVirtualProperties.Register(spaceCore);
 
         this.LoadContent(this.Helper.ContentPacks.CreateTemporary(
             Path.Combine(this.Helper.DirectoryPath, "assets", "DefaultContent"),
@@ -174,7 +175,7 @@ public class Mod : StardewModdingAPI.Mod
                 this.CustomerData[model.Key] = new CustomerData(model.Key);
         
         Pathfinding.AddRoutesToFarm();
-        ModUtility.CleanUpCustomers();
+        CleanUpCustomers();
     }
 
     internal void OnDayStarted(object? sender, DayStartedEventArgs e)
@@ -201,7 +202,7 @@ public class Mod : StardewModdingAPI.Mod
 
         // Delete customers
         Cafe.RemoveAllCustomers();
-        ModUtility.CleanUpCustomers();
+        CleanUpCustomers();
     }
 
     internal void OnTimeChanged(object? sender, TimeChangedEventArgs e)
@@ -343,7 +344,7 @@ public class Mod : StardewModdingAPI.Mod
     {
         if (Game1.CurrentEvent.id.Equals(ModKeys.EVENT_CAFEINTRODUCTION) && !Game1.player.Items.ContainsId(ModKeys.CAFE_SIGNBOARD_OBJECT_ID))
         {
-            Game1.player.addItemByMenuIfNecessaryElseHoldUp(ItemRegistry.Create<Object>($"(BC){ModKeys.CAFE_SIGNBOARD_OBJECT_ID}"));
+            Game1.player.addItemByMenuIfNecessaryElseHoldUp(ItemRegistry.Create<SObject>($"(BC){ModKeys.CAFE_SIGNBOARD_OBJECT_ID}"));
         }
     }
 
@@ -631,7 +632,7 @@ public class Mod : StardewModdingAPI.Mod
             ? ModKeys.MODASSET_DIALOGUE_ENTRY_CAFEFIRSTTIMEVISIT
             : ModKeys.MODASSET_DIALOGUE_ENTRY_CAFEVISIT;
 
-        KeyValuePair<string, string> entry = ModUtility.GetCustomDialogueAssetOrGeneric(npc, key);
+        KeyValuePair<string, string> entry = GetCustomDialogueAssetOrGeneric(npc, key);
 
         npc.CurrentDialogue.Push(
             new Dialogue(npc, $"{key}:{entry.Key}", TokenParser.ParseText(entry.Value, Game1.random, null, Game1.player))
@@ -644,7 +645,7 @@ public class Mod : StardewModdingAPI.Mod
 
     internal void TryAddDialogueLastAteComment(VillagerCustomerData npcData, Stack<Dialogue> dialogue)
     {
-        KeyValuePair<string, string>? entry = ModUtility.GetCustomDialogueAsset(npcData.GetNpc(), ModKeys.MODASSET_DIALOGUE_ENTRY_LASTATECOMMENT);
+        KeyValuePair<string, string>? entry = GetCustomDialogueAsset(npcData.GetNpc(), ModKeys.MODASSET_DIALOGUE_ENTRY_LASTATECOMMENT);
 
         if (entry.HasValue)
         {
@@ -661,7 +662,7 @@ public class Mod : StardewModdingAPI.Mod
             return;
         }
 
-        Object signboard = ItemRegistry.Create<Object>($"(BC){ModKeys.CAFE_SIGNBOARD_OBJECT_ID}");
+        SObject signboard = ItemRegistry.Create<SObject>($"(BC){ModKeys.CAFE_SIGNBOARD_OBJECT_ID}");
         Game1.player.addItemToInventory(signboard);
     }
 
@@ -818,6 +819,44 @@ public class Mod : StardewModdingAPI.Mod
     internal static IBusSchedulesApi? GetBusSchedulesApi()
     {
         return Instance.Helper.ModRegistry.GetApi<IBusSchedulesApi>("MonsoonSheep.BusSchedules");
+    }
+
+    internal static void CleanUpCustomers()
+    {
+        SUtility.ForEachLocation((loc) =>
+        {
+            for (int i = loc.characters.Count - 1; i >= 0; i--)
+            {
+                NPC npc = loc.characters[i];
+                if (npc.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX))
+                {
+                    loc.characters.RemoveAt(i);
+                }
+            }
+
+            return true;
+        });
+    }
+
+    internal static KeyValuePair<string, string> GetCustomDialogueAssetOrGeneric(NPC npc, string key)
+    {
+        Dictionary<string, string>? dialogueAsset = npc.Dialogue;
+        if (!dialogueAsset?.ContainsKey(key) ?? false)
+            dialogueAsset = Game1.content.Load<Dictionary<string, string>>("Data/ExtraDialogue")!;
+
+        return dialogueAsset!.Where(pair => pair.Key.StartsWith(key)).ToList().PickRandom();
+    }
+
+    internal static KeyValuePair<string, string>? GetCustomDialogueAsset(NPC npc, string key)
+    {
+        try
+        {
+            return npc.Dialogue.Where(pair => pair.Key.StartsWith(key)).ToList().PickRandom();
+        }
+        catch
+        {
+            return null;
+        }
     }
 
 #if YOUTUBE || TWITCH

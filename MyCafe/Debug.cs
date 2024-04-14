@@ -36,7 +36,7 @@ internal static class Debug
 
                 break;
             case SButton.NumPad2:
-                Mod.Cafe.SpawnCustomers(GroupType.Random);
+                Mod.Cafe.TrySpawnCustomers(GroupType.Random);
 
                 break;
             case SButton.NumPad3:
@@ -44,7 +44,7 @@ internal static class Debug
 
                 break;
             case SButton.NumPad4:
-                Mod.Cafe.SpawnCustomers(GroupType.Villager);
+                Mod.Cafe.TrySpawnCustomers(GroupType.Villager);
 
                 break;
             case SButton.NumPad5:

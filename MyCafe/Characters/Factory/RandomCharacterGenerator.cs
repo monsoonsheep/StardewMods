@@ -146,7 +146,7 @@ internal sealed class RandomCharacterGenerator
         if (accessory != null)
             layers.Add(accessory.Data);
 
-        Color[] finalData = ModUtility.CompositeTextures(layers);
+        Color[] finalData = CompositeTextures(layers);
 
         Texture2D finalTexture = new Texture2D(Game1.graphics.GraphicsDevice, body.Width, body.Height);
         finalTexture.SetData(finalData);
@@ -259,5 +259,39 @@ internal sealed class RandomCharacterGenerator
     {
         ICollection<TAppearance> collection = this.GetModelCollection<TAppearance>();
         return collection.Where(m => m.MatchesGender(gender)).MinBy(_ => Game1.random.Next())!;
+    }
+
+    /// <summary>
+    /// Alpha-blend the given raw texture data arrays over each other in order
+    /// </summary>
+    internal static Color[] CompositeTextures(List<Color[]> textures)
+    {
+        Color[] finalData = new Color[textures[0].Length];
+
+        for (int i = 0; i < textures[0].Length; i++)
+        {
+            Color below = textures[0][i];
+
+            int r = below.R;
+            int g = below.G;
+            int b = below.B;
+            int a = below.A;
+
+            foreach (Color[] layer in textures)
+            {
+                Color above = layer[i];
+
+                float alphaBelow = 1 - (above.A / 255f);
+
+                r = (int) (above.R + (r * alphaBelow));
+                g = (int) (above.G + (g * alphaBelow));
+                b = (int) (above.B + (b * alphaBelow));
+                a = Math.Max(a, above.A);
+            }
+
+            finalData[i] = new Color(r, g, b, a);
+        }
+
+        return finalData;
     }
 }

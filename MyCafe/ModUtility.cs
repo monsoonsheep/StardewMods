@@ -11,46 +11,23 @@ using StardewValley.Objects;
 using SUtility = StardewValley.Utility;
 using SObject = StardewValley.Object;
 using MyCafe.Locations.Objects;
+using xTile.Dimensions;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace MyCafe;
 
 internal static class ModUtility
 {
-    internal static SObject? GetSignboard()
+    internal static bool IsChairHere(GameLocation location, Point tile)
     {
-        SObject? found = null;
+        return Mod.Cafe.Tables.SelectMany(t => t.Seats).Any(seat => seat.TilePosition.X == tile.X && seat.TilePosition.Y == tile.Y);
 
-        SUtility.ForEachLocation(delegate(GameLocation loc)
-        {
-            foreach (SObject obj in loc.Objects.Values)
-            {
-                if (obj.QualifiedItemId.Equals($"(BC){ModKeys.CAFE_SIGNBOARD_OBJECT_ID}"))
-                {
-                    found = obj;
-                    return false;
-                }
-            }
-
-            return true;
-        });
-
-        return found;
+        // either theres a furniture there, or there's a nonpassable tile but not a door
+        //return location.GetFurnitureAt(tile.ToVector2()) != null
+        //       || (!location.isTilePassable(new Location(tile.X, tile.Y), Game1.viewport) &&
+        //           location.isCollidingWithDoors(new Rectangle(tile.X * 64, tile.Y * 64, 64, 64)) == null);
     }
-
-    internal static IEnumerable<Furniture> GetValidFurnitureInCafeLocations()
-    {
-        if (Mod.Cafe.Signboard?.Location is { } signboardLocation)
-        {
-            foreach (Furniture furniture in signboardLocation.furniture.Where(t => t.IsTable()))
-            {
-                if (signboardLocation.IsOutdoors && !Mod.Cafe.IsFurnitureWithinRangeOfSignboard(furniture))
-                    continue;
-
-                yield return furniture;
-            }
-        }
-    }
-
+    
     internal static bool IsChair(Furniture furniture)
     {
         return furniture.furniture_type.Value is 0 or 1 or 2;
@@ -140,40 +117,6 @@ internal static class ModUtility
         return folderName;
     }
 
-    /// <summary>
-    /// Alpha-blend the given raw texture data arrays over each other in order
-    /// </summary>
-    internal static Color[] CompositeTextures(List<Color[]> textures)
-    {
-        Color[] finalData = new Color[textures[0].Length];
-
-        for (int i = 0; i < textures[0].Length; i++)
-        {
-            Color below = textures[0][i];
-
-            int r = below.R;
-            int g = below.G;
-            int b = below.B;
-            int a = below.A;
-
-            foreach (Color[] layer in textures)
-            {
-                Color above = layer[i];
-
-                float alphaBelow = 1 - (above.A / 255f);
-
-                r = (int) (above.R + (r * alphaBelow));
-                g = (int) (above.G + (g * alphaBelow));
-                b = (int) (above.B + (b * alphaBelow));
-                a = Math.Max(a, above.A);
-            }
-
-            finalData[i] = new Color(r, g, b, a);
-        }
-
-        return finalData;
-    }
-
     internal static Rectangle GetEmojiSource(EmojiSprite type)
     {
         return type switch
@@ -205,43 +148,5 @@ internal static class ModUtility
                 motion = new Vector2(0f, -0.5f),
                 alphaFade = 0.01f
             });
-    }
-
-    internal static void CleanUpCustomers()
-    {
-        SUtility.ForEachLocation((loc) =>
-        {
-            for (int i = loc.characters.Count - 1; i >= 0; i--)
-            {
-                NPC npc = loc.characters[i];
-                if (npc.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX))
-                {
-                    loc.characters.RemoveAt(i);
-                }
-            }
-
-            return true;
-        });
-    }
-
-    internal static KeyValuePair<string, string> GetCustomDialogueAssetOrGeneric(NPC npc, string key)
-    {
-        Dictionary<string, string>? dialogueAsset = npc.Dialogue;
-        if (!dialogueAsset?.ContainsKey(key) ?? false)
-            dialogueAsset = Game1.content.Load<Dictionary<string, string>>("Data/ExtraDialogue")!;
-
-        return dialogueAsset!.Where(pair => pair.Key.StartsWith(key)).ToList().PickRandom();
-    }
-
-    internal static KeyValuePair<string, string>? GetCustomDialogueAsset(NPC npc, string key)
-    {
-        try
-        {
-            return npc.Dialogue.Where(pair => pair.Key.StartsWith(key)).ToList().PickRandom();
-        }
-        catch
-        {
-            return null;
-        }
     }
 }

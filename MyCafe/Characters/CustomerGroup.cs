@@ -63,19 +63,7 @@ public class CustomerGroup
     {
         for (int i = 0; i < this.Members.Count; i++)
         {
-            NPC member = this.Members[i];
-            if (!member.PathTo(location, tilePositions[i], 3, endBehavior))
-                return;
-
-            if (member.get_IsSittingDown().Value)
-            {
-                member.get_IsSittingDown().Set(false);
-                member.Sprite.ClearAnimation();
-
-                member.JumpTo(member.controller.pathToEndPoint.First().ToVector2() * 64f);
-                member.Freeze();
-                member.set_AfterLerp(c => c.Unfreeze());
-            }
+            this.Members[i].PathTo(location, tilePositions[i], 3, endBehavior);
         }
     }
 }

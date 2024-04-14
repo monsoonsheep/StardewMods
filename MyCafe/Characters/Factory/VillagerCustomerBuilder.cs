@@ -115,7 +115,7 @@ internal class VillagerCustomerBuilder : CustomerBuilder
         };
 
         #if DEBUG
-        daysAllowed = 1;
+        daysAllowed = 0;
         #endif
 
         if (Mod.Cafe.NpcCustomers.Contains(data.NpcName) ||
