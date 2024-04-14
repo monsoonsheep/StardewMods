@@ -3,8 +3,8 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common;
 using MyCafe.Enums;
+using MyCafe.Game;
 using MyCafe.Locations.Objects;
-using MyCafe.Netcode;
 using StardewValley;
 using StardewValley.Pathfinding;
 

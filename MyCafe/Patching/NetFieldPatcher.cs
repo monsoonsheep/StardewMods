@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using HarmonyLib;
 using MonsoonSheep.Stardew.Common.Patching;
+using MyCafe.Game;
 using MyCafe.Netcode;
 using Netcode;
 using StardewModdingAPI;

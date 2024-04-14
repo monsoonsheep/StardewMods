@@ -30,6 +30,7 @@ using xTile.Tiles;
 using Microsoft.Xna.Framework.Graphics;
 using xTile.Dimensions;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
+using MyCafe.Game;
 
 #pragma warning disable IDE0060
 

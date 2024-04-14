@@ -1,10 +1,11 @@
 using System.Runtime.CompilerServices;
 using HarmonyLib;
 using MyCafe.Interfaces;
+using MyCafe.Netcode;
 using Netcode;
 using StardewValley;
 
-namespace MyCafe.Netcode;
+namespace MyCafe.Game;
 public static class FarmerTeamVirtualProperties
 {
     public class Holder { public NetRef<CafeNetObject> HeldValue = new(new CafeNetObject()); }

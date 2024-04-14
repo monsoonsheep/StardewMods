@@ -21,7 +21,6 @@ using MyCafe.Enums;
 using MyCafe.Interfaces;
 using MyCafe.Inventories;
 using MyCafe.Locations.Objects;
-using MyCafe.Netcode;
 using MyCafe.Patching;
 using MyCafe.UI;
 using SpaceCore.Events;
@@ -39,6 +38,7 @@ using StardewValley.TokenizableStrings;
 using xTile;
 using SUtility = StardewValley.Utility;
 using SObject = StardewValley.Object;
+using MyCafe.Game;
 
 namespace MyCafe;
 

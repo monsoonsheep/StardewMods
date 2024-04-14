@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common;
-using MyCafe.Netcode;
+using MyCafe.Game;
 using Netcode;
 using StardewValley;
 // ReSharper disable VirtualMemberCallInConstructor

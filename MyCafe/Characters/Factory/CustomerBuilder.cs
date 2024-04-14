@@ -1,6 +1,6 @@
 using System;
+using MyCafe.Game;
 using MyCafe.Locations.Objects;
-using MyCafe.Netcode;
 using StardewValley;
 
 namespace MyCafe.Characters.Factory;

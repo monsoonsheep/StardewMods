@@ -7,7 +7,7 @@ using MyCafe.Locations.Objects;
 using Netcode;
 using StardewValley;
 
-namespace MyCafe.Netcode;
+namespace MyCafe.Game;
 internal static class NpcVirtualProperties
 {
     internal class Holder
@@ -25,7 +25,7 @@ internal static class NpcVirtualProperties
         public Vector2 LerpStartPosition;
         public Vector2 LerpEndPosition;
         public float LerpPosition = -1f;
-        public float LerpDuration = -1f; 
+        public float LerpDuration = -1f;
     }
 
     internal static ConditionalWeakTable<NPC, Holder> Values = [];
