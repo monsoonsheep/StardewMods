@@ -14,6 +14,45 @@ namespace MyCafe.Characters;
 
 public static class NpcExtensions
 {
+    public static void SitDownBehavior(Character ch, GameLocation loc)
+    {
+        NPC c = (ch as NPC)!;
+
+        Seat? seat = c.get_Seat();
+        CustomerGroup? group = c.get_Group();
+
+        if (seat != null && group is { ReservedTable: not null })
+        {
+            int direction = CommonHelper.DirectionIntFromVectors(c.Tile, seat.TilePosition.ToVector2());
+            c.faceDirection(seat.SittingDirection);
+
+            c.JumpTo(seat.SittingPosition);
+
+            c.get_IsSittingDown().Set(true);
+
+            // Make them do the sitting frame if they are a customer model
+            if (c.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX))
+            {
+                int frame = seat.SittingDirection switch
+                {
+                    0 => 19,
+                    1 => 17,
+                    2 => 16,
+                    3 => 18,
+                    _ => 15
+                };
+                c.Sprite.setCurrentAnimation([new FarmerSprite.AnimationFrame(frame, int.MaxValue)]);
+            }
+            else
+            {
+                Mod.Instance.AddDialoguesOnArrivingAtCafe(c);
+            }
+            
+            if (!group.Members.Any(other => !other.get_IsSittingDown()))
+                group.ReservedTable.State.Set(TableState.CustomersThinkingOfOrder);
+        }
+    }
+
     public static void WarpThroughLocationsUntilNoFarmers(this NPC me)
     {
         GameLocation location = me.currentLocation;
@@ -71,43 +110,4 @@ public static class NpcExtensions
         me.set_LerpPosition(0f);
         me.set_LerpDuration(0.3f);
     }
-
-    public static PathFindController.endBehavior SitDownBehavior = delegate (Character ch, GameLocation _)
-    {
-        NPC c = (ch as NPC)!;
-
-        Seat? seat = c.get_Seat();
-        CustomerGroup? group = c.get_Group();
-
-        if (seat != null && group is { ReservedTable: not null })
-        {
-            int direction = CommonHelper.DirectionIntFromVectors(c.Tile, seat.TilePosition.ToVector2());
-            c.faceDirection(seat.SittingDirection);
-
-            c.JumpTo(seat.SittingPosition);
-
-            c.get_IsSittingDown().Set(true);
-
-            // Make them do the sitting frame if they are a customer model
-            if (c.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX))
-            {
-                int frame = seat.SittingDirection switch
-                {
-                    0 => 19,
-                    1 => 17,
-                    2 => 16,
-                    3 => 18,
-                    _ => 15
-                };
-                c.Sprite.setCurrentAnimation([new FarmerSprite.AnimationFrame(frame, int.MaxValue)]);
-            }
-            else
-            {
-                Mod.Instance.AddDialoguesOnArrivingAtCafe(c);
-            }
-            
-            if (!group.Members.Any(other => !other.get_IsSittingDown()))
-                group.ReservedTable.State.Set(TableState.CustomersThinkingOfOrder);
-        }
-    };
 }
