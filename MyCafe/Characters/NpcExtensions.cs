@@ -23,16 +23,14 @@ public static class NpcExtensions
 
         if (seat != null && group is { ReservedTable: not null })
         {
-            int direction = CommonHelper.DirectionIntFromVectors(c.Tile, seat.TilePosition.ToVector2());
             c.faceDirection(seat.SittingDirection);
-
             c.JumpTo(seat.SittingPosition);
-
             c.get_IsSittingDown().Set(true);
 
-            // Make them do the sitting frame if they are a customer model
             if (c.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX))
             {
+                // Is a custom customer model.
+                // Make them do the sitting frame
                 int frame = seat.SittingDirection switch
                 {
                     0 => 19,
@@ -45,6 +43,7 @@ public static class NpcExtensions
             }
             else
             {
+                // Is a villager NPC
                 Mod.Instance.AddDialoguesOnArrivingAtCafe(c);
             }
             
@@ -92,15 +91,6 @@ public static class NpcExtensions
     public static void Unfreeze(this NPC me)
     {
         AccessTools.Field(typeof(Character), "freezeMotion").SetValue(me, false);
-    }
-
-    public static void Jump(this NPC me, int direction)
-    {
-        Vector2 sitPosition = me.Position + CommonHelper.DirectionIntToDirectionVector(direction) * 64f;
-        me.set_LerpStartPosition(me.Position);
-        me.set_LerpEndPosition(sitPosition);
-        me.set_LerpPosition(0f);
-        me.set_LerpDuration(0.2f);
     }
 
     public static void JumpTo(this NPC me, Vector2 pixelPosition)
