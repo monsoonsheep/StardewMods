@@ -8,9 +8,16 @@ internal class TimingPage : OptionsPageBase
     {
         int optionNumber = 43430;
         this.Options.Add(new OptionTimeSet(I18n.Menu_OpeningTime(), Mod.Cafe.OpeningTime, 0700, 1800, this.OptionSlotSize, optionNumber,
-            (time) => Mod.Cafe.OpeningTime = time));
+            (time) =>
+            {
+                if (Mod.Cafe.Enabled != 2)
+                    Mod.Cafe.OpeningTime = time;
+            }));
         this.Options.Add(new OptionTimeSet(I18n.Menu_ClosingTime(), Mod.Cafe.ClosingTime, 1100, 2500, this.OptionSlotSize, optionNumber + OptionTimeSet.NumberOfComponents,
-            (time) => Mod.Cafe.ClosingTime = time));
-
+            (time) =>
+            {
+                if (Mod.Cafe.Enabled != 2)
+                    Mod.Cafe.ClosingTime = time;
+            }));
     }
 }

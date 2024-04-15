@@ -31,6 +31,7 @@ using Microsoft.Xna.Framework.Graphics;
 using xTile.Dimensions;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using MyCafe.Game;
+using MyCafe.UI;
 
 #pragma warning disable IDE0060
 
@@ -129,9 +130,19 @@ public class Cafe
             this.Signboard.Fragility = this.Enabled == 2 ? 2 : 0;
         }
 
-        // If cafe open, try spawn customers
         if (this.Enabled == 2)
+        {
+            if (Game1.activeClickableMenu is CafeMenu cafeMenu)
+                cafeMenu.Locked = true;
+
+            // If cafe open, try spawn customers
             this.CustomerSpawningUpdate();
+        }
+        else
+        {
+            if (Game1.activeClickableMenu is CafeMenu cafeMenu)
+                cafeMenu.Locked = false;
+        }
     }
 
     #region Tables

@@ -12,6 +12,8 @@ namespace MyCafe.UI;
 
 public sealed class CafeMenu : IClickableMenu
 {
+    internal bool Locked;
+
     internal Item? HeldItem;
 
     private string? _hoverText;
@@ -55,12 +57,16 @@ public sealed class CafeMenu : IClickableMenu
         ];
 
 #if YOUTUBE || TWITCH
-        this._pages.Add(new ChatIntegrationPage(this, this.sideBoxBounds, this.Sprites));
+        this._pages.Add(new ChatIntegrationPage(this, this.sideBoxBounds));
 #endif
 
         this.PopulateTabs();
         this._menuBoard.populateClickableComponentList();
-        this._menuBoard.snapToDefaultClickableComponent();
+        if (Game1.options.SnappyMenus)
+            this._menuBoard.snapToDefaultClickableComponent();
+
+        if (Mod.Cafe.Enabled == 2)
+            this.Locked = true;
     }
 
     private void PopulateTabs()

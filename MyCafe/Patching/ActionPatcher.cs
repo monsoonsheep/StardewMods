@@ -7,6 +7,7 @@ using MyCafe.Characters;
 using MyCafe.Enums;
 using MyCafe.Locations.Objects;
 using MyCafe.Netcode;
+using MyCafe.UI;
 using StardewModdingAPI;
 using StardewValley;
 using xTile.Dimensions;
@@ -33,6 +34,10 @@ internal class ActionPatcher : BasePatcher
             postfix: this.GetHarmonyMethod(nameof(ActionPatcher.After_ObjectPlacementAction))
         );
         harmony.Patch(
+            original: this.RequireMethod<SObject>(nameof(SObject.checkForAction), [typeof(Farmer), typeof(bool)]),
+            postfix: this.GetHarmonyMethod(nameof(ActionPatcher.After_ObjectCheckForAction))
+            );
+        harmony.Patch(
             original: this.RequireMethod<GameLocation>(nameof(GameLocation.checkAction)),
             prefix: this.GetHarmonyMethod(nameof(ActionPatcher.Before_GameLocationCheckAction))
         );
@@ -40,6 +45,17 @@ internal class ActionPatcher : BasePatcher
             original: this.RequireMethod<NPC>(nameof(NPC.checkAction)),
             prefix: this.GetHarmonyMethod(nameof(ActionPatcher.Before_NpcCheckAction))
         );
+    }
+
+    private static void After_ObjectCheckForAction(SObject __instance, Farmer who, bool justCheckingForActivity, ref bool __result)
+    {
+        if (__instance.QualifiedItemId.Equals($"(BC){ModKeys.CAFE_SIGNBOARD_OBJECT_ID}") && !justCheckingForActivity && __result == false)
+        {
+            if (Game1.activeClickableMenu == null)
+            {
+                Game1.activeClickableMenu = new CafeMenu();
+            }
+        }
     }
 
     private static void After_ObjectPlacementAction(SObject __instance, GameLocation location, int x, int y, Farmer who, ref bool __result)

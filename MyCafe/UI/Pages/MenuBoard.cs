@@ -119,49 +119,54 @@ internal class MenuBoard : MenuPageBase
             }
         }
 
-        for (int slotIndex = 0; slotIndex < this._slots.Count; slotIndex++)
+        // Drop items in
+        if (!this.ParentMenu.Locked)
         {
-            if (this._slots[slotIndex].containsPoint(x, y))
+            for (int slotIndex = 0; slotIndex < this._slots.Count; slotIndex++)
             {
-                int entryIndex = this._currentItemIndex + slotIndex;
-
-                // if held, add
-                // if not held, remove
-
-                if (this.ParentMenu.HeldItem is SObject held)
+                if (this._slots[slotIndex].containsPoint(x, y))
                 {
-                    int insertIndex = entryIndex;
+                    int entryIndex = this._currentItemIndex + slotIndex;
 
-                    while (entryIndex >= 0 && (entryIndex >= this._entries.Count || this._entries[entryIndex] is not MenuCategoryEntry))
-                        entryIndex--;
+                    // if held, add
+                    // if not held, remove
+
+                    if (this.ParentMenu.HeldItem is SObject held)
+                    {
+                        int insertIndex = entryIndex;
+
+                        while (entryIndex >= 0 && (entryIndex >= this._entries.Count || this._entries[entryIndex] is not MenuCategoryEntry))
+                            entryIndex--;
                     
-                    if (this._entries[entryIndex] is MenuCategoryEntry category)
-                    {
-                        if (this.AddItem(held, category.Name, insertIndex - entryIndex))
+                        if (this._entries[entryIndex] is MenuCategoryEntry category)
                         {
-                            this.ParentMenu.HeldItem = null;
-                            if (slotIndex == this._slots.Count - 1)
+                            if (this.AddItem(held, category.Name, insertIndex - entryIndex))
                             {
-                                this.DownArrowPressed();
+                                this.ParentMenu.HeldItem = null;
+                                if (slotIndex == this._slots.Count - 1)
+                                {
+                                    this.DownArrowPressed();
+                                }
                             }
+                            return;
                         }
-                        return;
                     }
-                }
-                else
-                {
-                    if (entryIndex < this._entries.Count)
+                    else
                     {
-                        Item? item = (this._entries[entryIndex] as MenuItemEntry)?.Item;
-                        if (item != null)
+                        if (entryIndex < this._entries.Count)
                         {
-                            this.RemoveItem(entryIndex);
-                            this.ParentMenu.HeldItem = item;
+                            Item? item = (this._entries[entryIndex] as MenuItemEntry)?.Item;
+                            if (item != null)
+                            {
+                                this.RemoveItem(entryIndex);
+                                this.ParentMenu.HeldItem = item;
+                            }
                         }
                     }
                 }
             }
         }
+        
         this._currentItemIndex = Math.Max(0, Math.Min(this._entries.Count - this.slotCount, this._currentItemIndex));
     }
 
