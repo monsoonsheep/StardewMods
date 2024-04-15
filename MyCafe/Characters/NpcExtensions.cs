@@ -56,17 +56,13 @@ public static class NpcExtensions
     {
         GameLocation location = me.currentLocation;
 
-        while (me.controller.pathToEndPoint?.Count > 2)
+        while (!me.currentLocation.Equals(Mod.Cafe.Signboard?.Location) &&
+               !me.currentLocation.Name.Equals("Farm") &&
+               me.controller.pathToEndPoint is { Count: > 2 })
         {
-            if (!me.currentLocation.Equals(location))
-            {
-                location = me.currentLocation;
-                if (location.farmers.Any())
-                {
-                    break;
-                }
-            }
-
+            if (!location.Equals(me.currentLocation))
+                return;
+            
             me.controller.pathToEndPoint.Pop();
             me.controller.handleWarps(new Rectangle(me.controller.pathToEndPoint.Peek().X * 64, me.controller.pathToEndPoint.Peek().Y * 64, 64, 64));
             me.Position = new Vector2(me.controller.pathToEndPoint.Peek().X * 64, me.controller.pathToEndPoint.Peek().Y * 64 + 16);

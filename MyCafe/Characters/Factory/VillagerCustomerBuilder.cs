@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using MyCafe.Data.Customers;
 using MyCafe.Data.Models;
 using MyCafe.Enums;
+using MyCafe.Locations.Objects;
 using MyCafe.Netcode;
 using Netcode;
 using StardewValley;
@@ -16,7 +17,7 @@ namespace MyCafe.Characters.Factory;
 
 internal class VillagerCustomerBuilder : CustomerBuilder
 {
-    internal override CustomerGroup? CreateGroup()
+    internal override CustomerGroup? GenerateGroup()
     {
         List<VillagerCustomerData> data = GetAvailableVillagerCustomers(1);
         if (data.Count == 0)
@@ -38,7 +39,7 @@ internal class VillagerCustomerBuilder : CustomerBuilder
     {
         foreach (NPC c in this._group!.Members)
         {
-            Log.Trace($"{c.Name} is coming.");
+            Log.Info($"{c.Name} is coming.");
             Game1.addHUDMessage(new HUDMessage($"{c.Name} is coming."));
         }
 
@@ -82,7 +83,7 @@ internal class VillagerCustomerBuilder : CustomerBuilder
         }
     }
 
-    internal static List<VillagerCustomerData> GetAvailableVillagerCustomers(int count)
+    private static List<VillagerCustomerData> GetAvailableVillagerCustomers(int count)
     {
         List<VillagerCustomerData> list = [];
 
@@ -115,12 +116,13 @@ internal class VillagerCustomerBuilder : CustomerBuilder
         };
 
         #if DEBUG
-        daysAllowed = 0;
+        daysAllowed = 1;
         #endif
 
         if (Mod.Cafe.NpcCustomers.Contains(data.NpcName) ||
             npc.isSleeping.Value == true ||
             npc.ScheduleKey == null ||
+            npc.controller != null ||
             daysSinceLastVisit < daysAllowed)
             return false;
 

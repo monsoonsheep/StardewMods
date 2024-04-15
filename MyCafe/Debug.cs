@@ -56,7 +56,7 @@ internal static class Debug
 
                 break;
             case SButton.NumPad7:
-                SetMenuItems();
+                //Mod.Cafe.RequestNpcCustomer("Abigail");
 
                 break;
             case SButton.NumPad8:

@@ -40,7 +40,8 @@ public static class Pathfinding
         Stack<Point>? path;
 
         RemoveNpcBarrier();
-
+        PathFindController? originalController = me.controller;
+        me.controller = null;
         try
         {
             path = PathfindFromLocationToLocation(me.currentLocation, me.TilePoint, targetLocation, targetTile, me);
@@ -52,25 +53,27 @@ public static class Pathfinding
 
         if (path == null || path.Count == 0)
         {
+            me.controller = originalController;
             throw new PathNotFoundException($"Error finding route to cafe. Couldn't find warp point for {me.Name}", me.TilePoint, targetTile,
                 me.currentLocation.Name, targetLocation.Name, me);
         }
 
         me.temporaryController = null;
+        me.Halt();
         AccessTools.Method(typeof(NPC), "prepareToDisembarkOnNewSchedulePath").Invoke(me, null);
-
         me.controller = new PathFindController(path, me.currentLocation, me, path.Last())
         {
             NPCSchedule = true,
             endBehaviorFunction = endBehavior,
             finalFacingDirection = finalFacingDirection
         };
-
+        
         if (me.get_IsSittingDown().Value)
         {
             me.JumpOutOfChair();
         }
-
+        Log.Trace($"NPC is at {me.TilePoint}");
+        Log.Trace($"Path: ({(string.Join("-", path.Select(point => $"({point.X},{point.Y}) ")))}");
         return true;
     }
 
@@ -149,16 +152,19 @@ public static class Pathfinding
     {
         if (ModUtility.IsChairHere(location, startTile))
         {
+            Log.Trace($"Pathing {character?.Name} through {location.Name} accounting for starting chair ({startTile} to {targetTile})");
             return FindShortestPathFromChair(location, startTile, targetTile, character);
         }
 
         if (ModUtility.IsChairHere(location, targetTile))
         {
+            Log.Trace($"Pathing {character?.Name} through {location.Name} accounting for ending chair ({startTile} to {targetTile})");
             return FindShortestPathToChair(location, startTile, targetTile, character);
         }
 
         if (location is Farm || location.GetContainingBuilding() != null || location.Equals(Mod.Cafe.Signboard?.Location))
         {
+            Log.Trace($"Pathing {character?.Name} through {location.Name} with custom pathing (avoiding furniture) ({startTile} to {targetTile})");
             // Experimental
             return Pathfinding.PathfindImpl(location, startTile, targetTile, character, iterations);
 
@@ -172,6 +178,7 @@ public static class Pathfinding
         // there's a Passable or NPCPassable property, and not pathing through "NoPath" properties. It also 
         // checks for location.isTerrainFeatureAt(x, y)
         // We do this in NPC's homes because otherwise they can't go through their own doors
+        Log.Trace($"Pathing {character?.Name} through {location.Name} with default schedule pathing ({startTile} to {targetTile})");
         return PathFindController.findPathForNPCSchedules(startTile, targetTile, location, 30000);
     }
 

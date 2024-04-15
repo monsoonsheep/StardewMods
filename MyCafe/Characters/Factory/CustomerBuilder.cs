@@ -10,8 +10,6 @@ internal abstract class CustomerBuilder
     protected Table? _table;
     protected CustomerGroup? _group;
 
-    internal abstract CustomerGroup? CreateGroup();
-
     internal virtual bool SetupGroup()
     {
         foreach (NPC npc in this._group!.Members)
@@ -43,10 +41,21 @@ internal abstract class CustomerBuilder
     internal abstract bool PostMove();
     internal abstract void RevertChanges();
 
-    internal CustomerGroup TrySpawn(Table tableToUse)
+    internal abstract CustomerGroup GenerateGroup();
+
+    internal CustomerGroup TrySpawnRandom(Table table)
     {
-        this._group = null;
-        this._table = tableToUse;
+        CustomerGroup group = this.GenerateGroup();
+        if (group == null)
+            return null;
+
+        return this.TrySpawn(group, table);
+    }
+
+    internal CustomerGroup TrySpawn(CustomerGroup group, Table table)
+    {
+        this._group = group;
+        this._table = table;
 
         if (this.DoSpawnSteps() == false)
         {
@@ -60,15 +69,6 @@ internal abstract class CustomerBuilder
 
     private bool DoSpawnSteps()
     {
-        CustomerGroup g = this.CreateGroup();
-        if (g == null)
-        {
-            this._group = null;
-            return false;
-        }
-
-        this._group = g;
-
         return this.SetupGroup() &&
                 this.ReserveTable() &&
                 this.PreMove() &&

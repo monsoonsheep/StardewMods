@@ -114,7 +114,7 @@ public class Mod : StardewModdingAPI.Mod
         events.Multiplayer.ModMessageReceived += this.OnModMessageReceived;
         events.Display.RenderedWorld += this.OnRenderedWorld;
         events.World.FurnitureListChanged += this.OnFurnitureListChanged;
-
+        events.World.NpcListChanged += this.OnNpcListChanged;
         #if DEBUG
         events.Input.ButtonPressed += Debug.ButtonPress;
         #endif
@@ -183,8 +183,7 @@ public class Mod : StardewModdingAPI.Mod
         if (!Context.IsMainPlayer)
             return;
 
-        Cafe.UpdateSpouse();
-        Cafe.UpdateLocations();
+        Cafe.DayUpdate();
     }
 
     internal void OnSaving(object? sender, SavingEventArgs e)
@@ -338,6 +337,18 @@ public class Mod : StardewModdingAPI.Mod
                 Log.Debug($"Invalid message from host\n{ex}", LogLevel.Error);
             }
         }
+    }
+
+    private void OnNpcListChanged(object? sender, NpcListChangedEventArgs e)
+    {
+        //foreach (NPC c in e.Added)
+        //{
+        //    Log.Trace($"Added {c.Name} to {e.Location.Name}");
+        //}
+        //foreach (NPC c in e.Removed)
+        //{
+        //    Log.Trace($"Removed {c.Name} from {e.Location.Name}");
+        //}
     }
 
     private void OnEventFinished(object? sender, EventArgs e)

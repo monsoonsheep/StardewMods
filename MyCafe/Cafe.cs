@@ -40,7 +40,7 @@ public class Cafe
 {
     private RandomCustomerBuilder randomCustomerBuilder = null!;
 
-    private VillagerCustomerBuilder villagerCustomerBuilder = null!;
+    internal VillagerCustomerBuilder villagerCustomerBuilder = null!;
 
     internal readonly List<CustomerGroup> Groups = [];
 
@@ -89,9 +89,16 @@ public class Cafe
                 NewValue = newValue
             });
         this.Menu.InitializeForHost();
-
         this.randomCustomerBuilder = new RandomCustomerBuilder();
         this.villagerCustomerBuilder = new VillagerCustomerBuilder();
+    }
+
+    internal void DayUpdate()
+    {
+        this.LastTimeCustomersArrived = 0;
+        this.Groups.Clear();
+        this.MoneyForToday = 0;
+        this.UpdateLocations();
     }
 
     internal void TenMinuteUpdate()
@@ -487,9 +494,11 @@ public class Cafe
 
     internal void UpdateLocations()
     {
-        this.LastTimeCustomersArrived = 0;
-        if (this.UpdateCafeLocations() is true)
+        if ((this.Signboard = GetSignboardObject()) != null)
         {
+            if (this.Signboard?.Location.GetContainingBuilding()?.parentLocationName?.Value == "Farm")
+                Pathfinding.AddRoutesToBuildingInFarm(this.Signboard.Location);
+
             this.Enabled = 1;
             this.PopulateTables();
         }
@@ -498,19 +507,6 @@ public class Cafe
             this.Enabled = 0;
             this.Tables.Clear();
         }
-    }
-
-    internal bool UpdateCafeLocations()
-    {
-        if ((this.Signboard = GetSignboardObject()) == null)
-            return false;
-        
-        if (this.Signboard.Location.GetContainingBuilding()?.parentLocationName?.Value == "Farm")
-        {
-            Pathfinding.AddRoutesToBuildingInFarm(this.Signboard.Location);
-        }
-
-        return true;
     }
 
     internal void OnPlacedDownSignboard(SObject signboard)
@@ -590,7 +586,7 @@ public class Cafe
         // Try chance
         if (Game1.random.NextDouble() > prob)
         {
-            Log.Trace($"Not spawning (chance was {prob}");
+            Log.Trace($"Not spawning (chance was {prob})");
             return;
         }
 
@@ -637,13 +633,32 @@ public class Cafe
 
         CustomerGroup? group = type switch
         {
-            GroupType.Random => this.randomCustomerBuilder.TrySpawn(table),
-            GroupType.Villager => this.villagerCustomerBuilder.TrySpawn(table),
+            GroupType.Random => this.randomCustomerBuilder.TrySpawnRandom(table),
+            GroupType.Villager => this.villagerCustomerBuilder.TrySpawnRandom(table),
             _ => null
         };
 
         if (group == null)
             return false;
+
+        this.Groups.Add(group);
+        this.LastTimeCustomersArrived = Game1.timeOfDay;
+        return true;
+    }
+
+    internal bool RequestNpcCustomer(string name)
+    {
+        Table? table = this.GetFreeTable();
+        if (table == null)
+            return false;
+
+        VillagerCustomerData data = Mod.Instance.VillagerData[name];
+        NPC npc = data.GetNpc();
+        CustomerGroup group = new CustomerGroup(GroupType.Villager);
+        group.AddMember(npc);
+        if (this.villagerCustomerBuilder.TrySpawn(group, table) == null)
+            return false;
+        
 
         this.Groups.Add(group);
         this.LastTimeCustomersArrived = Game1.timeOfDay;
@@ -794,25 +809,36 @@ public class Cafe
 
         SchedulePathDescription originalPathDescription = npc.Schedule[timeOfActivity];
 
-        Log.Trace(@$"[{Game1.timeOfDay}] Returning {npc.Name} to schedule for key ""{npc.ScheduleKey}"". Time of current activity is {timeOfCurrent}, next activity is at {timeOfNext}.
-            Choosing {timeOfActivity}.
-            Schedule description is {originalPathDescription.targetLocationName}: {originalPathDescription.targetTile}, behavior: {originalPathDescription.endOfRouteBehavior}");
+        Log.Trace($"[{Game1.timeOfDay}] Returning {npc.Name} to schedule for key {npc.ScheduleKey}. Time of current activity is {timeOfCurrent}, next activity is at {timeOfNext}.\n" +
+                  $"Choosing {timeOfActivity}.\n" +
+                  $"Schedule description is {originalPathDescription.targetLocationName}: {originalPathDescription.targetTile}, behavior: {originalPathDescription.endOfRouteBehavior}");
 
-        SchedulePathDescription? route = null;
+        SchedulePathDescription? route;
         try
         {
-            npc.PathTo(Game1.getLocationFromName(originalPathDescription.targetLocationName), originalPathDescription.targetTile,
-                originalPathDescription.facingDirection);
-            
-            route = new SchedulePathDescription(npc.controller.pathToEndPoint, originalPathDescription.facingDirection,
-                originalPathDescription.endOfRouteBehavior, originalPathDescription.endOfRouteMessage,
-                originalPathDescription.targetLocationName, originalPathDescription.targetTile)
+            if (npc.currentLocation.Equals(this.Signboard?.Location))
             {
-                time = Game1.timeOfDay
-            };
-            npc.controller = null;
-            npc.set_AfterLerp((c) => Mod.Cafe.NpcCustomers.Remove(c.Name));
-
+                npc.PathTo(Game1.getLocationFromName(originalPathDescription.targetLocationName), originalPathDescription.targetTile,
+                    originalPathDescription.facingDirection);
+            
+                route = new SchedulePathDescription(npc.controller.pathToEndPoint, originalPathDescription.facingDirection,
+                    originalPathDescription.endOfRouteBehavior, originalPathDescription.endOfRouteMessage,
+                    originalPathDescription.targetLocationName, originalPathDescription.targetTile)
+                {
+                    time = Game1.timeOfDay
+                };
+                npc.controller = null;
+                npc.set_AfterLerp((c) => Mod.Cafe.NpcCustomers.Remove(c.Name));
+            }
+            else
+            {
+                route = npc.pathfindToNextScheduleLocation(npc.ScheduleKey, npc.currentLocation.Name, npc.TilePoint.X, npc.TilePoint.Y,
+                    originalPathDescription.targetLocationName,
+                    originalPathDescription.targetTile.X, originalPathDescription.targetTile.Y, originalPathDescription.facingDirection,
+                    originalPathDescription.endOfRouteBehavior,
+                    originalPathDescription.endOfRouteMessage);
+                this.NpcCustomers.Remove(npc.Name);
+            }
         }
         catch (PathNotFoundException e)
         {
@@ -836,6 +862,7 @@ public class Cafe
         if (npc.controller == null)
         {
             Log.Error("checkSchedule didn't set the controller");
+            // TODO WARP
         }
     }
 
