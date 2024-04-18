@@ -35,27 +35,14 @@ internal class RandomCustomerBuilder : CustomerBuilder
     {
         List<NPC> customers = [];
 
-        int count = base._table!.Seats.Count;
-        int random = Game1.random.Next(count);
-
-        count = (count) switch
-        {
-            1 => 1,
-            2 or 3 => random == 0 ? count : count - 1,
-            >=4 => random == 0 ? count : Game1.random.Next(2, count),
-            _ => random == 0 ? count : Game1.random.Next(3, count)
-        };
+        int count = ModUtility.RandomNumberOfSeatsForTable(base._table!.Seats.Count);
 
         int weightForCustom = Mod.Config.EnableCustomCustomers;
         int weightForGenerated = Mod.Config.EnableRandomlyGeneratedCustomers;
-        int r = Game1.random.Next(weightForCustom + weightForGenerated);
-        r -= weightForGenerated;
 
-        List<CustomerModel> models;
-        if (r < 0)
-            models = this.GetGeneratedModels(count);
-        else
-            models = this.GetCustomModels(count) ?? this.GetGeneratedModels(count);
+        List<CustomerModel> models = Game1.random.Next(weightForCustom + weightForGenerated) < weightForGenerated
+            ? this.GetGeneratedModels(count)
+            : this.GetCustomModels(count) ?? this.GetGeneratedModels(count);
 
         for (int i = 0; i < count; i++)
         {

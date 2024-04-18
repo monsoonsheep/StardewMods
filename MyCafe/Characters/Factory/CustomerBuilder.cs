@@ -24,7 +24,6 @@ internal abstract class CustomerBuilder
         return true;
     }
 
-#nullable disable
     internal bool ReserveTable()
     {
         if (this._group!.ReserveTable(this._table!) == false)
@@ -41,38 +40,31 @@ internal abstract class CustomerBuilder
     internal abstract bool PostMove();
     internal abstract void RevertChanges();
 
-    internal abstract CustomerGroup GenerateGroup();
+    internal abstract CustomerGroup? GenerateGroup();
 
-    internal CustomerGroup TrySpawnRandom(Table table)
+    internal CustomerGroup? TrySpawn(Table table, CustomerGroup? group = null)
     {
-        CustomerGroup group = this.GenerateGroup();
-        if (group == null)
-            return null;
+        this._table = table;
+        this._group = group ?? this.GenerateGroup();
 
-        return this.TrySpawn(group, table);
+        if (this._group != null)
+            return this.DoSpawnSteps();
+        return null;
     }
 
-    internal CustomerGroup TrySpawn(CustomerGroup group, Table table)
+    private CustomerGroup? DoSpawnSteps()
     {
-        this._group = group;
-        this._table = table;
-
-        if (this.DoSpawnSteps() == false)
+        if (this.SetupGroup() &&
+            this.ReserveTable() &&
+            this.PreMove() &&
+            this.MoveToTable() &&
+            this.PostMove())
         {
-            Log.Trace("Error spawning customers");
-            this.RevertChanges();
-            return null;
+            return this._group;
         }
 
-        return this._group;
-    }
-
-    private bool DoSpawnSteps()
-    {
-        return this.SetupGroup() &&
-                this.ReserveTable() &&
-                this.PreMove() &&
-                this.MoveToTable() &&
-                this.PostMove();
+        Log.Trace("Error spawning customers");
+        this.RevertChanges();
+        return null;
     }
 }

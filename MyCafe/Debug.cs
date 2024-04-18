@@ -21,6 +21,8 @@ namespace MyCafe;
 
 internal static class Debug
 {
+    public static float ExtraProbabilityToSpawn = 0.0f;
+
     public static void ButtonPress(object? sender, ButtonPressedEventArgs e)
     {
         if (!Context.CanPlayerMove)
@@ -36,7 +38,7 @@ internal static class Debug
 
                 break;
             case SButton.NumPad2:
-                Mod.Cafe.TrySpawnCustomers(GroupType.Random);
+                Mod.Cafe.SpawnRandomCustomers();
 
                 break;
             case SButton.NumPad3:
@@ -44,7 +46,7 @@ internal static class Debug
 
                 break;
             case SButton.NumPad4:
-                Mod.Cafe.TrySpawnCustomers(GroupType.Villager);
+                Mod.Cafe.SpawnVillagerCustomers();
 
                 break;
             case SButton.NumPad5:

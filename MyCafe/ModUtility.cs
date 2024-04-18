@@ -18,6 +18,19 @@ namespace MyCafe;
 
 internal static class ModUtility
 {
+    internal static int RandomNumberOfSeatsForTable(int seatCount)
+    {
+        int random = Game1.random.Next(seatCount);
+
+        return (seatCount) switch
+        {
+            1 => 1,
+            2 or 3 => random == 0 ? seatCount : seatCount - 1,
+            >=4 => random == 0 ? seatCount : Game1.random.Next(2, seatCount),
+            _ => random == 0 ? seatCount : Game1.random.Next(3, seatCount)
+        };
+    }
+
     internal static bool IsChairHere(GameLocation location, Point tile)
     {
         return Mod.Cafe.Tables.SelectMany(t => t.Seats).Any(seat => seat.TilePosition.X == tile.X && seat.TilePosition.Y == tile.Y);

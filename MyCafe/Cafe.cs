@@ -581,99 +581,112 @@ public class Cafe
         // Choose between villager spawn and non-villager spawn
         float weightForVillagers = Mod.Config.EnableNpcCustomers / 5f;
         float weightForRandom = Math.Max(Mod.Config.EnableCustomCustomers, Mod.Config.EnableRandomlyGeneratedCustomers) / 5f;
-        float typeWeightsSum = (weightForRandom + weightForVillagers);
 
-        float prob = CalculateProbabilityToSpawn();
-
-        prob += (weightForRandom * 0.8f);
-
-        if (weightForRandom <= 0.2f)
-            prob += (weightForVillagers * 0.2f);
+        float prob = this.ProbabilityToSpawnCustomers(Math.Max(weightForVillagers, weightForRandom));
 
         #if DEBUG
-        prob += 0.0f;
+        prob += Debug.ExtraProbabilityToSpawn;
         #endif
 
+        Log.Trace($"(chance was {prob})");
+
         // Try chance
-        if (Game1.random.NextDouble() > prob)
+        float random;
+
+        while ((random = Game1.random.NextSingle()) <= prob)
         {
-            Log.Trace($"Not spawning (chance was {prob})");
-            return;
-        }
+            if ((random * (weightForRandom + weightForVillagers)) < weightForVillagers)
+                this.SpawnVillagerCustomers();
+            else
+                this.SpawnRandomCustomers();
 
-        GroupType groupType = (Game1.random.NextSingle() * typeWeightsSum) < weightForVillagers
-            ? GroupType.Villager
-            : GroupType.Random;
-
-        this.TrySpawnCustomers(groupType);
-
-        float CalculateProbabilityToSpawn()
-        {
-            int totalTimeIntervalDuringDay = (this.ClosingTime - this.OpeningTime) / 10;
-            int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, this.ClosingTime);
-            int minutesSinceLastVisitors = SUtility.CalculateMinutesBetweenTimes(this.LastTimeCustomersArrived, Game1.timeOfDay);
-            if (minutesTillCloses <= 20)
-                return -10f;
-
-            float p = 1f / (totalTimeIntervalDuringDay * 0.5f);
-
-            // more chance if it's been a while since last Visitors
-            p += minutesSinceLastVisitors switch
-            {
-                <= 20 => -0.05f,
-                <= 30 => Game1.random.Next(5) == 0 ? 0.03f : -0.1f,
-                <= 60 => Game1.random.Next(2) == 0 ? 0.04f : 0f,
-                _ => 0.25f
-            };
-
-            // slight chance to spawn if last hour of open time
-            if (minutesTillCloses <= 60)
-                p += Game1.random.Next(20 + Math.Max(0, minutesTillCloses / 3)) >= 28
-                    ? 0.1f
-                    : -0.5f;
-
-            return p;
+            prob -= 0.25f;
         }
     }
 
-    internal bool TrySpawnCustomers(GroupType type)
+    private float ProbabilityToSpawnCustomers(float baseProb)
     {
-        Table? table = this.GetFreeTable();
-        if (table == null)
-            return false;
+        int totalTimeIntervalsDuringDay = (this.ClosingTime - this.OpeningTime) / 10;
+        int minutesTillCloses = SUtility.CalculateMinutesBetweenTimes(Game1.timeOfDay, this.ClosingTime);
+        int minutesSinceLastVisitors = SUtility.CalculateMinutesBetweenTimes(this.LastTimeCustomersArrived, Game1.timeOfDay);
+        if (minutesTillCloses <= 20)
+            return -10.00f;
 
-        CustomerGroup? group = type switch
+        float prob = 5f / (float) Math.Pow(Math.Max(totalTimeIntervalsDuringDay - 55, 0), 0.5) * 0.30f;
+
+        // more chance if it's been a while since last Visitors
+        // TODO maybe mult this at the end
+        prob += minutesSinceLastVisitors switch
         {
-            GroupType.Random => this.randomCustomerBuilder.TrySpawnRandom(table),
-            GroupType.Villager => this.villagerCustomerBuilder.TrySpawnRandom(table),
-            _ => null
+            <= 30 => -0.1f,
+            <= 60 => Game1.random.Next(5) == 0 ? 0.05f : -0.10f,
+            <= 100 => Game1.random.Next(2) == 0 ? -0.08f : 0.08f,
+            <= 120 => 0.2f,
+            >= 130 => 0.4f,
+            _ => 0.05f
         };
 
-        if (group == null)
-            return false;
+        // slight chance to spawn if last hour of open time
+        if (minutesTillCloses <= 60)
+            prob += Game1.random.Next(20 + Math.Max(0, minutesTillCloses / 3)) >= 28
+                ? 0.10f
+                : -0.20f;
 
-        this.Groups.Add(group);
-        this.LastTimeCustomersArrived = Game1.timeOfDay;
-        return true;
+
+        prob *= ((float)Math.Pow(baseProb, 0.5) * 1.50f);
+
+        prob += (Game1.random.NextSingle() * 0.1f);
+
+#if DEBUG
+        prob += Debug.ExtraProbabilityToSpawn;
+#endif
+
+        return prob;
     }
 
-    internal bool RequestNpcCustomer(string name)
+    internal void SpawnRandomCustomers()
     {
         Table? table = this.GetFreeTable();
-        if (table == null)
-            return false;
+        if (table != null)
+        {
+            CustomerGroup? group = this.randomCustomerBuilder.TrySpawn(table);
+            if (group != null)
+                this.AddGroup(group);
+        }
+    }
 
-        VillagerCustomerData data = Mod.Instance.VillagerData[name];
-        NPC npc = data.GetNpc();
-        CustomerGroup group = new CustomerGroup(GroupType.Villager);
-        group.AddMember(npc);
-        if (this.villagerCustomerBuilder.TrySpawn(group, table) == null)
-            return false;
-        
+    internal void SpawnVillagerCustomers()
+    {
+        Table? table = this.GetFreeTable();
+        if (table != null)
+        {
+            CustomerGroup? group = this.villagerCustomerBuilder.TrySpawn(table);
+            if (group != null)
+                this.AddGroup(group);
+        }
+    }
 
+    internal void RequestNpcCustomer(string name)
+    {
+        Table? table = this.GetFreeTable();
+
+        if (table != null)
+        {
+            VillagerCustomerData data = Mod.Instance.VillagerData[name];
+            NPC npc = data.GetNpc();
+
+            CustomerGroup group = new CustomerGroup(GroupType.Villager);
+            group.AddMember(npc);
+
+            if (this.villagerCustomerBuilder.TrySpawn(table, group) != null)
+                this.AddGroup(group);
+        }
+    }
+
+    internal void AddGroup(CustomerGroup group)
+    {
         this.Groups.Add(group);
         this.LastTimeCustomersArrived = Game1.timeOfDay;
-        return true;
     }
 
     internal Item? GetMenuItemForCustomer(NPC npc)
