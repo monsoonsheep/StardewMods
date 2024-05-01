@@ -90,11 +90,13 @@
   <!-- SMAPI Manifest -->
   <PropertyGroup>
     <Name>My Cafe</Name>
-    <Authorts>MonsoonSheep</Authorts>
+    <Authors>MonsoonSheep</Authors>
     <Description>Start a restaurant in Stardew Valley</Description>
     <UniqueId>MonsoonSheep.MyCafe</UniqueId>
-    <UpdateKeys>"Nexus:20695"</UpdateKeys>
+    <UpdateKeys>Nexus:20695</UpdateKeys>
     <Version>0.1.0</Version>
+    <MinimumApiVersion>4.0.0</MinimumApiVersion>
+    <MinimumGameVersion>1.6</MinimumGameVersion>
   </PropertyGroup>
 
   <ItemGroup>

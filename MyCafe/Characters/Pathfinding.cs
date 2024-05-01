@@ -358,6 +358,8 @@ public static class Pathfinding
     /// </summary>
     internal static void AddRoutesToFarm()
     {
+        Log.Trace("Adding routes to farm");
+
         foreach (GameLocation gameLocation in Game1.locations)
         {
             List<string>? route = gameLocation.Name.Equals("BusStop")
@@ -382,6 +384,7 @@ public static class Pathfinding
     /// </summary>
     internal static void AddRoutesToBuildingInFarm(GameLocation indoorLocation)
     {
+        Log.Trace($"Adding routes to location {indoorLocation.NameOrUniqueName}");
         if (LocationRoutes.Count(pair => pair.Value.Any(route => route.LocationNames[^1].Equals(indoorLocation.NameOrUniqueName))) > 10)
         {
             // Already added routes for this target location

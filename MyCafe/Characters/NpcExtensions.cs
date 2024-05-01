@@ -47,7 +47,7 @@ public static class NpcExtensions
                 Mod.Instance.AddDialoguesOnArrivingAtCafe(c);
             }
             
-            if (!group.Members.Any(other => !other.get_IsSittingDown()))
+            if (!group.Members.Any(other => !other.get_IsSittingDown().Value))
                 group.ReservedTable.State.Set(TableState.CustomersThinkingOfOrder);
         }
     }

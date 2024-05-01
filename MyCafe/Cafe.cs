@@ -866,6 +866,7 @@ public class Cafe
         }
         catch (PathNotFoundException e)
         {
+            Log.Error($"{e.Message}\n{e.StackTrace}");
             route = null;
         }
         

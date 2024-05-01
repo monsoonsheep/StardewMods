@@ -12,6 +12,8 @@
   "Author": "MonsoonSheep",
   "Version": "0.1.0-Debug",
   "Description": "Start a restaurant in Stardew Valley",
+  "MinimumApiVersion": "4.0.0",
+  "MinimumGameVersion": "1.6",
   "EntryDll": "MyCafe.dll",
   "Dependencies": [
     {
@@ -21,11 +23,11 @@
     },
     {
       "UniqueID": "spacechase0.SpaceCore",
-      "MinimumVersion": "1.20.2"
+      "MinimumVersion": "1.23.0"
     }
   ],
   "UpdateKeys": [
-    "\"Nexus:20695\"",
-    "Nexus:20695"
+    "Nexus:20695",
+    "\"Nexus:20695\""
   ]
 }

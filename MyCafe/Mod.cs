@@ -88,7 +88,7 @@ public class Mod : StardewModdingAPI.Mod
         this._loadedConfig = this.Helper.ReadConfig<ConfigModel>();
         this._cafe = new Cafe();
         this._randomCharacterGenerator = new RandomCharacterGenerator(this.Helper);
-
+    
         // Harmony patches
         if (HarmonyPatcher.TryApply(this,
                 new ActionPatcher(),
