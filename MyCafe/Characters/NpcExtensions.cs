@@ -29,7 +29,7 @@ public static class NpcExtensions
 
             if (c.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX))
             {
-                // Is a custom customer model.
+                // Is a custom customer model or randomly generated sprite.
                 // Make them do the sitting frame
                 int frame = seat.SittingDirection switch
                 {
@@ -37,9 +37,11 @@ public static class NpcExtensions
                     1 => 17,
                     2 => 16,
                     3 => 18,
-                    _ => 15
+                    _ => -1
                 };
-                c.Sprite.setCurrentAnimation([new FarmerSprite.AnimationFrame(frame, int.MaxValue)]);
+
+                if (frame != -1)
+                    c.Sprite.setCurrentAnimation([new FarmerSprite.AnimationFrame(frame, int.MaxValue)]);
             }
             else
             {

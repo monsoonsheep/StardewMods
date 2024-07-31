@@ -1,0 +1,18 @@
+{
+	"Name": "Example Cafe Building for MyCafe",
+	"Author": "MonsoonSheep",
+	"Version": "0.1.0",
+	"Description": "Example Cafe Building for MyCafe",
+	"UniqueID": "MonsoonSheep.ExampleCafeBuilding",
+	"MinimumApiVersion": "4.0.0",
+	"UpdateKeys": [ "Nexus:20695" ],
+	"ContentPackFor": {
+		"UniqueID": "Pathoschild.ContentPatcher"
+	},
+	"Dependencies": [
+	 {
+      "UniqueID": "MonsoonSheep.MyCafe",
+      "IsRequired": true,
+	 }
+	]
+}

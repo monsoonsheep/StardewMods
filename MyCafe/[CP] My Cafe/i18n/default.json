@@ -1,0 +1,11 @@
+{
+	"dialogue-Abigail.CafeVisit": "I've been waiting to eat today.",
+	"dialogue-Abigail.CafeFirstTimeVisit": "This place looks great!$h",
+	"dialogue-Abigail.LastAteComment": "I already miss the {0} I had at your restaurant the other day.#$b#I might visit again soon!$h",
+	"dialogue-Abigail.CafeOpened": "I heard you're running a restaurant now.#$b#Usually it's either Mom's cooking or the Saloon for me.#$b#Not that those are bad or anything! Just good to add some variety.$h",
+
+	"dialogue-Generic.CafeVisit": "$c 0.7#So what's the special today?#I felt like eating out today so I made my way over.#$b#Hmm... Maybe I'll get the [MonsoonSheep.MyCafe_GetRandomMenuItem].",
+	"dialogue-Generic.CafeVisit2": "$query MonsoonSheep.MyCafe_IsIndoorCafe#It's nice in here.|It's nice out here.#$e#What's on the menu?#$b#I might try the [MonsoonSheep.MyCafe_GetRandomMenuItem] this time.",
+	"dialogue-Generic.CafeFirstTimeVisit": "$c 0.7#I like what you've done with this place.#This place is pretty great!$h",
+	"dialogue-Generic.LastAteComment": "I liked the {0} I had at your restaurant the other day.",
+}

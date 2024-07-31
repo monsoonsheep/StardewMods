@@ -41,7 +41,7 @@ public class Cafe
 {
     private RandomCustomerBuilder randomCustomerBuilder = null!;
 
-    internal VillagerCustomerBuilder villagerCustomerBuilder = null!;
+    private VillagerCustomerBuilder villagerCustomerBuilder = null!;
 
     internal readonly List<CustomerGroup> Groups = [];
 
@@ -53,37 +53,37 @@ public class Cafe
 
     internal int ClosingTime;
 
-    private CafeNetObject Fields
+    private CafeNetObject fields
         => Game1.player.team.get_CafeNetFields().Value;
 
     internal byte Enabled
     {
-        get => this.Fields.CafeEnabled.Value;
-        set => this.Fields.CafeEnabled.Set(value);
+        get => this.fields.CafeEnabled.Value;
+        set => this.fields.CafeEnabled.Set(value);
     }
 
     internal SObject? Signboard
     {
-        get => this.Fields.Signboard.Value;
-        set => this.Fields.Signboard.Set(value);
+        get => this.fields.Signboard.Value;
+        set => this.fields.Signboard.Set(value);
     }
 
     internal IList<Table> Tables
-        => this.Fields.NetTables as IList<Table>;
+        => this.fields.NetTables as IList<Table>;
 
     internal FoodMenuInventory Menu
-        => this.Fields.NetMenu.Value;
+        => this.fields.NetMenu.Value;
 
     internal NetStringDictionary<GeneratedSpriteData, NetRef<GeneratedSpriteData>> GeneratedSprites
-        => this.Fields.GeneratedSprites;
+        => this.fields.GeneratedSprites;
 
     internal ICollection<string> NpcCustomers
-        => this.Fields.NpcCustomers;
+        => this.fields.NpcCustomers;
 
     internal void InitializeForHost(IModHelper helper)
     {
-        this.Fields.GeneratedSprites.OnValueRemoved += (id, data) => data.Dispose();
-        this.Fields.NetTables.OnValueAdded += table =>
+        this.fields.GeneratedSprites.OnValueRemoved += (id, data) => data.Dispose();
+        this.fields.NetTables.OnValueAdded += table =>
             table.State.fieldChangeVisibleEvent += (_, oldValue, newValue) => this.OnTableStateChange(table, new TableStateChangedEventArgs()
             {
                 OldValue = oldValue,

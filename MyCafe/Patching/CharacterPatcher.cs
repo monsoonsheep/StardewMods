@@ -75,37 +75,41 @@ internal class CharacterPatcher : BasePatcher
 
     private static void After_update(NPC __instance, GameTime time, GameLocation location)
     {
-        __instance.speed = 4;
         // Run only if either villager customer (in the hashset) or random customer (name starts with a prefix)
-        if (Context.IsMainPlayer && (Mod.Cafe.NpcCustomers.Contains(__instance.Name) || __instance.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX)))
+        if (!Context.IsMainPlayer || !(Mod.Cafe.NpcCustomers.Contains(__instance.Name) || __instance.Name.StartsWith(ModKeys.CUSTOMER_NPC_NAME_PREFIX)))
+            return;
+
+        #if DEBUG
+        __instance.speed = 4;
+        #endif
+
+        // If they are in Bus Stop or town and there's no farmers there, warp them to the next location in their route
+        if (Mod.Config.WarpCustomers
+            && __instance.controller != null
+            && !__instance.currentLocation.farmers.Any()
+            && (bool?) AccessTools.Field(typeof(Character), "freezeMotion").GetValue(__instance) is false)
         {
-            // If they are in Bus Stop or town and there's no farmers there, warp them to the next location in their route
-            if (Mod.Config.WarpCustomers
-                && __instance.controller != null
-                && !__instance.currentLocation.farmers.Any()
-                && (bool?) AccessTools.Field(typeof(Character), "freezeMotion").GetValue(__instance) is false)
+            __instance.WarpThroughLocationsUntilNoFarmers();
+        }
+
+        // Lerping the position of the character (for sitting and getting up)
+        if (__instance.get_LerpPosition() >= 0f)
+        {
+            __instance.set_LerpPosition(__instance.get_LerpPosition() + (float)time.ElapsedGameTime.TotalSeconds);
+
+            if (__instance.get_LerpPosition() >= __instance.get_LerpDuration())
             {
-                __instance.WarpThroughLocationsUntilNoFarmers();
+                __instance.set_LerpPosition(__instance.get_LerpDuration());
             }
 
-            // Lerping the position of the character (for sitting and getting up)
-            if (__instance.get_LerpPosition() >= 0f)
+            __instance.Position = new Vector2(SUtility.Lerp(__instance.get_LerpStartPosition().X, __instance.get_LerpEndPosition().X, __instance.get_LerpPosition() / __instance.get_LerpDuration()), StardewValley.Utility.Lerp(__instance.get_LerpStartPosition().Y, __instance.get_LerpEndPosition().Y, __instance.get_LerpPosition() / __instance.get_LerpDuration()));
+            if (__instance.get_LerpPosition() >= __instance.get_LerpDuration())
             {
-                __instance.set_LerpPosition(__instance.get_LerpPosition() + (float)time.ElapsedGameTime.TotalSeconds);
-
-                if (__instance.get_LerpPosition() >= __instance.get_LerpDuration())
-                {
-                    __instance.set_LerpPosition(__instance.get_LerpDuration());
-                }
-
-                __instance.Position = new Vector2(SUtility.Lerp(__instance.get_LerpStartPosition().X, __instance.get_LerpEndPosition().X, __instance.get_LerpPosition() / __instance.get_LerpDuration()), StardewValley.Utility.Lerp(__instance.get_LerpStartPosition().Y, __instance.get_LerpEndPosition().Y, __instance.get_LerpPosition() / __instance.get_LerpDuration()));
-                if (__instance.get_LerpPosition() >= __instance.get_LerpDuration())
-                {
-                    __instance.get_AfterLerp()?.Invoke(__instance);
-                    __instance.set_AfterLerp(null);
-                    __instance.set_LerpPosition(-1f);
-                }
+                __instance.get_AfterLerp()?.Invoke(__instance);
+                __instance.set_AfterLerp(null);
+                __instance.set_LerpPosition(-1f);
             }
         }
+       
     }
 }

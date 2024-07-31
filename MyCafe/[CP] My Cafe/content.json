@@ -1,0 +1,108 @@
+{
+	"Format": "2.0.0",
+	"Changes": [
+		{
+			"LogName": "Signboard item",
+			"Action": "EditData",
+			"Target": "Data/BigCraftables",
+			"Entries": {
+				"MonsoonSheep.MyCafe_CafeSignboard": {
+					"Name": "MonsoonSheep.MyCafe_CafeSignboard", 
+                    "Displayname": "Cafe Signboard",
+                    "Description": "A signboard to start your cafe",
+                    "Price": 1200,
+                    "Texture": "MonsoonSheep.MyCafe_CafeSignboardTexture",
+                    "SpriteIndex": 0
+				}
+			}
+		},
+
+		{
+			"LogName": "Signboard item extra data for SpaceCore extension",
+			"Action": "EditData",
+			"Target": "spacechase0.SpaceCore/ObjectExtensionData",
+			"Entries": {
+				"MonsoonSheep.MyCafe_CafeSignboard": {
+					"CanBeTrashed": false,
+					"CanBeShipped": false,
+					"MaxStackSizeOverride": 1
+				}
+			}
+		},
+
+		{
+			"LogName": "Cafe signboard texture",
+			"Action": "Load",
+			"Target": "MonsoonSheep.MyCafe_CafeSignboardTexture",
+			"FromFile": "assets/signboard.png"
+		},
+
+
+
+		// Custom events (cafe introduction etc)
+		{
+			"LogName": "Custom Events",
+			"Action": "EditData",
+			"Target": "Data/Events/Saloon",
+			"Entries": {
+				//  After having finished the Community Center and earned at least 500000g and 7 hearts with Gus and 1 free slot in the inventory
+				"MonsoonSheep.MyCafe_GusStartCafe/f Gus 1750/c 1/m 500000/C": "CloudCountry/13 18/farmer 13 20 0 Gus 13 18 2/skippable/showFrame farmer 113/pause 100/move Gus -1 0 2/animate Gus false false 500 18 19 20/pause 1500/move Gus 1 0 2/pause 250/speak Gus \"It's nice to see you take some time off and have a drink or two.\"/emote farmer 32/speak Gus \"Tending to the farm must be challenging.\"/pause 1/quickQuestion #It has its perks.#It's a lot of hard work. (break)speak Gus \"I don't think I could handle the physical toll alone.$h\" (break)speak Gus \"You could really use a change of pace, then.\" (break)/pause 500/speak Gus \"You know, running this saloon has been gratifying work.\"/speak Gus \"Lately, there's been more visitors from Zuzu and other towns.#$b#I'm sorta stretched thin in here. Sometimes I wish there were more places for visitors and tourists.\"/pause 1/quickQuestion #How about another restaurant?#Food work seems too difficult. (break)speak Gus \"Are you saying you want to start one?\" (break)speak Gus \"Oh it's not too bad.#$b#You could open your own saloon or restaurant if you wanted.\"/pause 100/emote farmer 28/pause 1000/speak Gus \"You know, you've become an essential part of this community.#$b#I wouldn't be surprised if you were to expand into other work.\"/speak Gus \"With the increased traffic into the valley, it could be good for both of us!\"/pause 400/move Gus 1 0 2/animate Gus false false 500 18 19 20/emote farmer 40/pause 1000/move Gus -1 0 2/speak Gus \"Besides, a little healthy competition never hurt anyone.$h\"/speak Gus \"You probably can't beat my cooking, but you're welcome to try.\"/emote farmer 60/pause 500/move Gus 1 0 0/move Gus 0 -1 0/pause 500/fade/pause 10/viewport -100 -100/message \"You can open your own restaurant.\"/end"
+			}
+		},
+
+
+
+		// Conversation topic for when cafe is opened
+		{
+			"LogName": "NPC Customer Dialogue Conversation Topics",
+			"Action": "EditData",
+			"Target": "Characters/Dialogue/Abigail",
+			"Entries": {
+				"MonsoonSheep.MyCafe_CafeOpened": "{{i18n:dialogue-{{TargetWithoutPath}}.CafeOpened}}"
+			}
+		},
+
+		// Dialogues for cafe first time visiting
+		{
+			"LogName": "NPC Custom Dialogue for customers",
+			"Action": "EditData",
+			"Target": "Characters/Dialogue/Abigail",
+			"Entries": {
+				"MonsoonSheep.MyCafe_CafeFirstTimeVisit": "{{i18n:dialogue-{{TargetWithoutPath}}.CafeFirstTimeVisit}}"
+			}
+		},
+
+		// Dialogues for cafe visiting
+		{
+			"LogName": "NPC Custom Dialogue for customers",
+			"Action": "EditData",
+			"Target": "Characters/Dialogue/Abigail",
+			"Entries": {
+				"MonsoonSheep.MyCafe_CafeVisit": "{{i18n:dialogue-{{TargetWithoutPath}}.CafeVisit}}",
+			}
+		},
+
+		// Dialogues for last ate comment
+		{
+			"LogName": "NPC Custom Dialogue for customers",
+			"Action": "EditData",
+			"Target": "Characters/Dialogue/Abigail",
+			"Entries": {
+				"MonsoonSheep.MyCafe_LastAteComment": "{{i18n:dialogue-{{TargetWithoutPath}}.LastAteComment}}",
+			}
+		},
+
+		// Generic dialogue
+		{
+			"LogName": "Generic Customer Dialogue (Custom Data asset)",
+			"Action": "EditData",
+			"Target": "Data/ExtraDialogue",
+			"Entries": {
+				"MonsoonSheep.MyCafe_CafeFirstTimeVisit": "{{i18n:dialogue-Generic.CafeFirstTimeVisit}}",
+				"MonsoonSheep.MyCafe_CafeVisit": "{{i18n:dialogue-Generic.CafeVisit}}",
+				"MonsoonSheep.MyCafe_CafeVisit2": "{{i18n:dialogue-Generic.CafeVisit2}}",
+				"MonsoonSheep.MyCafe_LastAteComment": "{{i18n:dialogue-Generic.LastAteComment}}",
+			}
+		}
+	]
+}
