@@ -1,0 +1,26 @@
+{
+    "Location": "Forest",
+    "Actors": [
+        {
+            "Name": "AshCamper",
+            "TilePosition": {
+                "X": 14,
+                "Y": 11
+            },
+            "FacingDirection": 1,
+        },
+        {
+            "Name": "VinnyCamper",
+            "TilePosition": {
+                "X": 16,
+                "Y": 11
+            },
+            "FacingDirection": 3,
+        }
+    ],
+    "Schedule": "05_fall",
+    "TimeRange": [1700, 1900],
+    "ForRandomVisitors": false,
+    "Duration": "Medium",
+    "ArriveBy": [ "Bus" ]
+}

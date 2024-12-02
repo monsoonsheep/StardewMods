@@ -1,13 +1,13 @@
 using System.Diagnostics.CodeAnalysis;
 using HarmonyLib;
 using MonsoonSheep.Stardew.Common.Patching;
-using MyCafe.Game;
-using MyCafe.Netcode;
+using Monsoonsheep.StardewMods.MyCafe.Game;
+using Monsoonsheep.StardewMods.MyCafe.Netcode;
 using Netcode;
 using StardewModdingAPI;
 using StardewValley;
 
-namespace MyCafe.Patching;
+namespace Monsoonsheep.StardewMods.MyCafe.Patching;
 
 internal class NetFieldPatcher : BasePatcher
 {

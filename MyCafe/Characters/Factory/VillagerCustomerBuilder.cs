@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
-using MyCafe.Data.Customers;
-using MyCafe.Data.Models;
-using MyCafe.Enums;
-using MyCafe.Locations.Objects;
-using MyCafe.Netcode;
+using Monsoonsheep.StardewMods.MyCafe.Data.Customers;
+using Monsoonsheep.StardewMods.MyCafe.Data.Models;
+using Monsoonsheep.StardewMods.MyCafe.Enums;
+using Monsoonsheep.StardewMods.MyCafe.Locations.Objects;
+using Monsoonsheep.StardewMods.MyCafe.Netcode;
 using Netcode;
 using StardewValley;
 using StardewValley.TerrainFeatures;
 using SUtility = StardewValley.Utility;
 
-namespace MyCafe.Characters.Factory;
+namespace Monsoonsheep.StardewMods.MyCafe.Characters.Factory;
 
 internal class VillagerCustomerBuilder : CustomerBuilder
 {

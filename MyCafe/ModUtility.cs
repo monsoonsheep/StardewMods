@@ -3,18 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common;
-using MyCafe.Data.Models.Appearances;
-using MyCafe.Enums;
+using Monsoonsheep.StardewMods.MyCafe.Data.Models.Appearances;
+using Monsoonsheep.StardewMods.MyCafe.Enums;
 using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Objects;
 using SUtility = StardewValley.Utility;
 using SObject = StardewValley.Object;
-using MyCafe.Locations.Objects;
+using Monsoonsheep.StardewMods.MyCafe.Locations.Objects;
 using xTile.Dimensions;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
-namespace MyCafe;
+namespace Monsoonsheep.StardewMods.MyCafe;
 
 internal static class ModUtility
 {

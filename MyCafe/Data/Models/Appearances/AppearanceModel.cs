@@ -4,7 +4,7 @@ using StardewValley;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MyCafe.Data.Models.Appearances;
+namespace Monsoonsheep.StardewMods.MyCafe.Data.Models.Appearances;
 
 public abstract class AppearanceModel
 {

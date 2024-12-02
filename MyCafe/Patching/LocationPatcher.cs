@@ -2,14 +2,14 @@ using System.Diagnostics.CodeAnalysis;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common.Patching;
-using MyCafe.Characters;
+using Monsoonsheep.StardewMods.MyCafe.Characters;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Buildings;
 using xTile.Layers;
 using xTile.Tiles;
 
-namespace MyCafe.Patching;
+namespace Monsoonsheep.StardewMods.MyCafe.Patching;
 
 [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony patching requirement")]
 internal class LocationPatcher : BasePatcher

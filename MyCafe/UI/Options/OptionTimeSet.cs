@@ -5,7 +5,7 @@ using StardewValley;
 using StardewValley.Menus;
 using SUtility = StardewValley.Utility;
 
-namespace MyCafe.UI.Options;
+namespace Monsoonsheep.StardewMods.MyCafe.UI.Options;
 
 internal class OptionTimeSet : OptionsElementBase
 {

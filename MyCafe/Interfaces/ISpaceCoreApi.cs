@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using StardewValley;
 
-namespace MyCafe.Interfaces;
+namespace Monsoonsheep.StardewMods.MyCafe.Interfaces;
 public interface ISpaceCoreApi
 {
     string[] GetCustomSkills();

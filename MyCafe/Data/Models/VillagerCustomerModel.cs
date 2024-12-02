@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace MyCafe.Data.Models;
+namespace Monsoonsheep.StardewMods.MyCafe.Data.Models;
 public class VillagerCustomerModel
 {
     public string NpcName { get; set; } = null!;

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 
 
-namespace MyCafe.Locations.Objects;
+namespace Monsoonsheep.StardewMods.MyCafe.Locations.Objects;
 
 public class LocationTable : Table
 {

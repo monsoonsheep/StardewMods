@@ -4,9 +4,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common;
-using MyCafe.Characters;
-using MyCafe.Enums;
-using MyCafe.Locations.Objects;
+using Monsoonsheep.StardewMods.MyCafe.Characters;
+using Monsoonsheep.StardewMods.MyCafe.Enums;
+using Monsoonsheep.StardewMods.MyCafe.Locations.Objects;
 using Netcode;
 using StardewModdingAPI;
 using StardewValley;
@@ -16,26 +16,26 @@ using StardewValley.Network;
 using StardewValley.Objects;
 using SUtility = StardewValley.Utility;
 using SObject = StardewValley.Object;
-using MyCafe.Inventories;
-using MyCafe.Data.Customers;
-using MyCafe.Netcode;
-using MyCafe.Data.Models;
+using Monsoonsheep.StardewMods.MyCafe.Inventories;
+using Monsoonsheep.StardewMods.MyCafe.Data.Customers;
+using Monsoonsheep.StardewMods.MyCafe.Netcode;
+using Monsoonsheep.StardewMods.MyCafe.Data.Models;
 using System.Text.RegularExpressions;
 using StardewValley.Pathfinding;
 using StardewValley.SpecialOrders.Objectives;
-using MyCafe.Characters.Factory;
-using MyCafe.Data;
+using Monsoonsheep.StardewMods.MyCafe.Characters.Factory;
+using Monsoonsheep.StardewMods.MyCafe.Data;
 using xTile.Layers;
 using xTile.Tiles;
 using Microsoft.Xna.Framework.Graphics;
 using xTile.Dimensions;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
-using MyCafe.Game;
-using MyCafe.UI;
+using Monsoonsheep.StardewMods.MyCafe.Game;
+using Monsoonsheep.StardewMods.MyCafe.UI;
 
 #pragma warning disable IDE0060
 
-namespace MyCafe;
+namespace Monsoonsheep.StardewMods.MyCafe;
 
 public class Cafe
 {
@@ -69,7 +69,7 @@ public class Cafe
     }
 
     internal IList<Table> Tables
-        => this.fields.NetTables as IList<Table>;
+        => this.fields.NetTables;
 
     internal FoodMenuInventory Menu
         => this.fields.NetMenu.Value;
@@ -774,7 +774,6 @@ public class Cafe
                 c.faceTowardFarmerTimer = 0;
                 c.faceTowardFarmer = false;
                 c.movementPause = 0;
-
             }
 
             try

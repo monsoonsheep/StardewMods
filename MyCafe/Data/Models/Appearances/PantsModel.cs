@@ -1,4 +1,4 @@
-namespace MyCafe.Data.Models.Appearances;
+namespace Monsoonsheep.StardewMods.MyCafe.Data.Models.Appearances;
 
 public class PantsModel : AppearanceModel
 {

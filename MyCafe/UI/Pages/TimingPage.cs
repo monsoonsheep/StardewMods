@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
-using MyCafe.UI.Options;
+using Monsoonsheep.StardewMods.MyCafe.UI.Options;
 
-namespace MyCafe.UI.Pages;
+namespace Monsoonsheep.StardewMods.MyCafe.UI.Pages;
 internal class TimingPage : OptionsPageBase
 {
     public TimingPage(CafeMenu parent, Rectangle bounds) : base("Timings", bounds, parent)

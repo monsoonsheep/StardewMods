@@ -1,6 +1,6 @@
 using StardewModdingAPI;
 
-namespace MyCafe;
+namespace Monsoonsheep.StardewMods.MyCafe;
 
 internal static class Log
 {

@@ -1,0 +1,26 @@
+{
+    "Location": "Beach",
+    "Actors": [
+        {
+            "TilePosition": {
+                "X": 41,
+                "Y": 25
+            },
+            "Behavior": "look_2",
+            "Animation": "Fishing"
+        },
+        {
+            "TilePosition": {
+                "X": 42,
+                "Y": 25
+            },
+            "Behavior": "look_2_2_1_3",
+            "Animation": ""
+        },
+    ],
+    "TimeRange": [610, 700],
+    "Schedule": "",
+    "ForRandomVisitors": true,
+    "Duration": "Medium",
+    "ArriveBy": [ "Warp" ]
+}

@@ -7,13 +7,13 @@ using HarmonyLib;
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common;
 using MonsoonSheep.Stardew.Common.Patching;
-using MyCafe.Characters;
-using MyCafe.Locations.Objects;
-using MyCafe.Netcode;
+using Monsoonsheep.StardewMods.MyCafe.Characters;
+using Monsoonsheep.StardewMods.MyCafe.Locations.Objects;
+using Monsoonsheep.StardewMods.MyCafe.Netcode;
 using StardewModdingAPI;
 using StardewValley;
 
-namespace MyCafe.Patching;
+namespace Monsoonsheep.StardewMods.MyCafe.Patching;
 internal class DialoguePatcher : BasePatcher
 {
     public override void Apply(Harmony harmony, IMonitor monitor)

@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Input;
 using StardewValley;
 using StardewValley.Menus;
 
-namespace MyCafe.UI;
+namespace Monsoonsheep.StardewMods.MyCafe.UI;
 public abstract class MenuPageBase : IClickableMenu
 {
     internal Rectangle Bounds;

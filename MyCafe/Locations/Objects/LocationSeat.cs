@@ -6,7 +6,7 @@ using MonsoonSheep.Stardew.Common;
 using Netcode;
 using StardewValley;
 
-namespace MyCafe.Locations.Objects;
+namespace Monsoonsheep.StardewMods.MyCafe.Locations.Objects;
 
 public sealed class LocationSeat : Seat
 {

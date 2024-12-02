@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using StardewValley;
 
-namespace MyCafe.Data.Customers;
+namespace Monsoonsheep.StardewMods.MyCafe.Data.Customers;
 public class CustomerData
 {
     public string Id { get; set; } = null!;

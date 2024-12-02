@@ -8,7 +8,7 @@ using StardewValley;
 using StardewValley.ItemTypeDefinitions;
 using StardewValley.Menus;
 using SObject = StardewValley.Object;
-namespace MyCafe.UI.Pages;
+namespace Monsoonsheep.StardewMods.MyCafe.UI.Pages;
 internal class ItemsPage : MenuPageBase
 {
     private static readonly Rectangle sourceSaveButton = new(62, 32, 31, 32);

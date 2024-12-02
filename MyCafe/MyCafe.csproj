@@ -2,24 +2,25 @@
 
 	<PropertyGroup>
 		<!-- Metadata -->
-		<RootNamespace>MyCafe</RootNamespace> 
+		<RootNamespace>Monsoonsheep.Stardew.MyCafe</RootNamespace>
 		<Version>0.1.2</Version>
 
 		<!-- Build Settings -->
 		<Configurations>Debug;Release</Configurations>
-    <EnableHarmony>true</EnableHarmony>
-    <IgnoreModFilePatterns>
-      townInterior.png,
-      townInterior_2.png,
-      walls_and_floors.png,
-      \.ase$,
-      \.aseprite$
-    </IgnoreModFilePatterns>
-    <EnableChatIntegration>disabled</EnableChatIntegration>
+		<EnableHarmony>true</EnableHarmony>
+		<IgnoreModFilePatterns>
+			townInterior.png,
+			townInterior_2.png,
+			walls_and_floors.png,
+			\.ase$,
+			\.aseprite$
+		</IgnoreModFilePatterns>
+		<EnableChatIntegration>disabled</EnableChatIntegration>
 
-    <!-- SMAPI Paths -->
+		<!-- SMAPI Paths -->
 		<ModFolderName>My Cafe</ModFolderName>
 		<GamePath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley</GamePath>
+
 	</PropertyGroup>
 
 	<!-- Enable/disable Live Chat Integration with StreamingClientLibrary -->
@@ -27,27 +28,27 @@
 		<Compile Remove="LiveChatIntegration.cs" />
 	</ItemGroup>
 	<Choose>
-		<When Condition="'$(EnableChatIntegration)' == 'youtube'">  
+		<When Condition="'$(EnableChatIntegration)' == 'youtube'">
 			<PropertyGroup>
 				<DefineConstants>YOUTUBE</DefineConstants>
 			</PropertyGroup>
 			<ItemGroup>
 				<PackageReference Include="StreamingClientLibrary.YouTube" Version="1.0.0.21" />
 			</ItemGroup>
-		</When>  
-		<When Condition="'$(EnableChatIntegration)' == 'twitch'">  
+		</When>
+		<When Condition="'$(EnableChatIntegration)' == 'twitch'">
 			<PropertyGroup>
 				<DefineConstants>TWITCH</DefineConstants>
 			</PropertyGroup>
 			<ItemGroup>
 				<PackageReference Include="StreamingClientLibrary.Twitch" Version="1.0.0.77" />
 			</ItemGroup>
-		</When> 
-		<Otherwise>  
+		</When>
+		<Otherwise>
 			<ItemGroup>
 				<Compile Remove="LiveChatIntegration.cs" />
 			</ItemGroup>
-		</Otherwise>  
+		</Otherwise>
 	</Choose>
 	<PropertyGroup Condition="$(EnableChatIntegration) != 'disabled'">
 		<BundleExtraAssemblies>ThirdParty</BundleExtraAssemblies>
@@ -56,16 +57,17 @@
 		<Compile Include="LiveChatIntegration.cs" />
 	</ItemGroup>
 
+  <!-- Exclude WIP assets from compile -->
 	<ItemGroup>
-    <Compile Remove="_work\**" />
-    <EmbeddedResource Remove="_work\**" />
-    <None Remove="_work\**" />
-    <None Remove="**\*.ase" />
-    <None Remove="**\*.aseprite" />
-	  <None Remove="assets\Buildings\Cafe\townInterior.png" />
-	  <None Remove="assets\Buildings\Cafe\townInterior_2.png" />
-	  <None Remove="assets\Buildings\Cafe\walls_and_floors.png" />
-	  <None Remove="_names.txt" />
+		<Compile Remove="_work\**" />
+		<EmbeddedResource Remove="_work\**" />
+		<None Remove="_work\**" />
+		<None Remove="**\*.ase" />
+		<None Remove="**\*.aseprite" />
+		<None Remove="assets\Buildings\Cafe\townInterior.png" />
+		<None Remove="assets\Buildings\Cafe\townInterior_2.png" />
+		<None Remove="assets\Buildings\Cafe\walls_and_floors.png" />
+		<None Remove="_names.txt" />
 	</ItemGroup>
 
 	<!-- Translations -->
@@ -73,34 +75,36 @@
 		<AdditionalFiles Include="i18n/default.json" />
 	</ItemGroup>
 
+	<!-- Packages and References -->
 	<ItemGroup>
-		<PackageReference Include="Leclair.Stardew.ModManifestBuilder" Version="2.3.1" />
-		<PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.0.1" />
 		<PackageReference Include="Mono.Cecil" Version="0.11.5.0" />
-    <Reference Include="Newtonsoft.Json" HintPath="$(GamePath)\smapi-internal\Newtonsoft.Json.dll" private="false" />
-    <Reference Include="SpaceCore">
-      <HintPath>$(GameModsPath)\SpaceCore\SpaceCore.dll</HintPath>
+    <PackageReference Include="SimpleInjector">
+      <HintPath>$(GameModsPath)\FauxCore\SimpleInjector.dll</HintPath>
+      <Version>5.4.2</Version>
       <Private>false</Private>
-    </Reference>
+    </PackageReference>
+		<Reference Include="Newtonsoft.Json" HintPath="$(GamePath)\smapi-internal\Newtonsoft.Json.dll" private="false" />
+		
 	</ItemGroup>
 
-	<Import Project="..\Common.Patching\Common.Patching.projitems" Label="Shared" />
-	<Import Project="..\Common\Common.projitems" Label="Shared" />
+  <Import Project="..\Common\Common.projitems" Label="Shared" />
 
   <!-- SMAPI Manifest -->
-  <PropertyGroup>
-    <Name>My Cafe</Name>
-    <Authors>MonsoonSheep</Authors>
-    <Description>Start a restaurant in Stardew Valley</Description>
-    <UniqueId>MonsoonSheep.MyCafe</UniqueId>
-    <UpdateKeys>Nexus:20695</UpdateKeys>
-    <Version>0.1.0</Version>
-    <MinimumApiVersion>4.0.0</MinimumApiVersion>
-    <MinimumGameVersion>1.6</MinimumGameVersion>
-  </PropertyGroup>
+	<PropertyGroup>
+		<Name>My Cafe</Name>
+		<Authors>MonsoonSheep</Authors>
+		<Description>Start a restaurant in Stardew Valley</Description>
+		<UniqueId>MonsoonSheep.MyCafe</UniqueId>
+		<UpdateKeys>Nexus:20695</UpdateKeys>
+		<Version>0.1.0</Version>
+		<MinimumApiVersion>4.0.0</MinimumApiVersion>
+		<MinimumGameVersion>1.6</MinimumGameVersion>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <SMAPIDependency Include="spacechase0.SpaceCore" Version="1.19" Reference="true" />
-    <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
+	<ItemGroup>
+		<SMAPIDependency Include="spacechase0.SpaceCore" Version="1.24" Reference="true" />
+		<SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
+    <SMAPIDependency Include="furyx639.FauxCore" Version="1.0.0" required="true" />
   </ItemGroup>
+
 </Project>

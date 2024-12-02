@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>ExtraNpcBehaviors</RootNamespace>
+    <Version>0.1.0</Version>
+    <EnableHarmony>true</EnableHarmony>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SimpleInjector">
+      <HintPath>$(GameModsPath)\FauxCore\SimpleInjector.dll</HintPath>
+      <Version>5.4.2</Version>
+      <Private>false</Private>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- Translations -->
+  <ItemGroup>
+    <AdditionalFiles Include="i18n/default.json" />
+  </ItemGroup>
+
+  <Import Project="..\Common\Common.projitems" Label="Shared" />
+
+  <!-- SMAPI Manifest -->
+  <PropertyGroup>
+    <Name>ExtraNpcBehaviors</Name>
+    <Authors>MonsoonSheep</Authors>
+    <Description>Description</Description>
+    <UniqueId>MonsoonSheep.ExtraNpcBehaviors</UniqueId>
+    <UpdateKeys>Nexus:idhere</UpdateKeys>
+    <Version>0.1.0</Version>
+    <MinimumApiVersion>4.0.0</MinimumApiVersion>
+    <MinimumGameVersion>1.6</MinimumGameVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SMAPIDependency Include="furyx639.FauxCore" Version="1.0.0" required="true" />
+  </ItemGroup>
+    
+</Project>

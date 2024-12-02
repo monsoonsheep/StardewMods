@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonsoonSheep.Stardew.Common;
-using MyCafe.Data.Models.Appearances;
+using Monsoonsheep.StardewMods.MyCafe.Data.Models.Appearances;
 using Netcode;
 using StardewModdingAPI;
 using StardewValley;
 
-namespace MyCafe.Data.Customers;
+namespace Monsoonsheep.StardewMods.MyCafe.Data.Customers;
 public class GeneratedSpriteData : INetObject<NetFields>, IDisposable
 {
     public NetFields NetFields { get; } = new NetFields("GeneratedSpriteData");

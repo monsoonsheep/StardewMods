@@ -3,14 +3,14 @@ using System.Linq;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common;
-using MyCafe.Enums;
-using MyCafe.Game;
-using MyCafe.Locations.Objects;
+using Monsoonsheep.StardewMods.MyCafe.Enums;
+using Monsoonsheep.StardewMods.MyCafe.Game;
+using Monsoonsheep.StardewMods.MyCafe.Locations.Objects;
 using StardewValley;
 using StardewValley.Network;
 using StardewValley.Pathfinding;
 
-namespace MyCafe.Characters;
+namespace Monsoonsheep.StardewMods.MyCafe.Characters;
 
 public static class NpcExtensions
 {

@@ -1,9 +1,9 @@
 using System;
-using MyCafe.Game;
-using MyCafe.Locations.Objects;
+using Monsoonsheep.StardewMods.MyCafe.Game;
+using Monsoonsheep.StardewMods.MyCafe.Locations.Objects;
 using StardewValley;
 
-namespace MyCafe.Characters.Factory;
+namespace Monsoonsheep.StardewMods.MyCafe.Characters.Factory;
 
 internal abstract class CustomerBuilder
 {

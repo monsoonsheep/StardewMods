@@ -1,17 +1,50 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-	<PropertyGroup>
-		<ModFolderName>BusSchedules</ModFolderName>
-		<TargetFramework>net6.0</TargetFramework>
-		<GamePath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley</GamePath>
-		<GameModsPath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley\Mods\My Mods</GameModsPath>
-		<Configurations>Debug;Release</Configurations>
-	</PropertyGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-		<PackageReference Include="Mono.Cecil" Version="0.11.5.0" />
-	</ItemGroup>
+  <PropertyGroup>
+    <RootNamespace>StardewMods.BusSchedules</RootNamespace>
+    <Version>0.1.0</Version>
+    <EnableHarmony>true</EnableHarmony>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
 
-	<Import Project="..\Common.Patching\Common.Patching.projitems" Label="Shared" />
+  <ItemGroup>
+    <PackageReference Include="SimpleInjector">
+      <HintPath>$(GameModsPath)\FauxCore\SimpleInjector.dll</HintPath>
+      <Version>5.4.2</Version>
+      <Private>false</Private>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- Translations -->
+  <ItemGroup>
+    <AdditionalFiles Include="i18n/default.json" />
+  </ItemGroup>
+
+  <Import Project="..\Common\Common.projitems" Label="Shared" />
+
+  <!-- SMAPI Manifest -->
+  <PropertyGroup>
+    <Name>BusSchedules</Name>
+    <Authors>MonsoonSheep</Authors>
+    <Description>Description</Description>
+    <UniqueId>MonsoonSheep.BusSchedules</UniqueId>
+    <UpdateKeys>Nexus:idhere</UpdateKeys>
+    <Version>0.1.0</Version>
+    <MinimumApiVersion>4.0.0</MinimumApiVersion>
+    <MinimumGameVersion>1.6</MinimumGameVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
+    <SMAPIDependency Include="furyx639.FauxCore" Version="1.0.0" required="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Leclair.Stardew.ModManifestBuilder" Version="2.4.0" />
+    <PackageReference Update="Pathoschild.Stardew.ModBuildConfig" Version="4.3.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Framework\Interfaces\" />
+  </ItemGroup>
 </Project>

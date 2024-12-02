@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 using StardewValley.BellsAndWhistles;
 
-namespace MyCafe.UI.BoardItems;
+namespace Monsoonsheep.StardewMods.MyCafe.UI.BoardItems;
 
 internal class MenuItemEntry : MenuEntry
 {

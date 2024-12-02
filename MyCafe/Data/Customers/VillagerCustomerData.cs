@@ -1,6 +1,6 @@
 using StardewValley;
 
-namespace MyCafe.Data.Customers;
+namespace Monsoonsheep.StardewMods.MyCafe.Data.Customers;
 
 /// <summary>
 /// Keeps track of the villager as a customer. 

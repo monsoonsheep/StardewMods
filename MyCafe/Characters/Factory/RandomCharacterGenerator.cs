@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.Xna.Framework;
-using MyCafe.Data.Customers;
-using MyCafe.Data.Models.Appearances;
-using MyCafe.Data.Models;
+using Monsoonsheep.StardewMods.MyCafe.Data.Customers;
+using Monsoonsheep.StardewMods.MyCafe.Data.Models.Appearances;
+using Monsoonsheep.StardewMods.MyCafe.Data.Models;
 using StardewModdingAPI;
 using MonsoonSheep.Stardew.Common;
 using StardewValley;
 using Netcode;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace MyCafe.Characters.Factory;
+namespace Monsoonsheep.StardewMods.MyCafe.Characters.Factory;
 internal sealed class RandomCharacterGenerator
 {
     private readonly IModHelper _modHelper;

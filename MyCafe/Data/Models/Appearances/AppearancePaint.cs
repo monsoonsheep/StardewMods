@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common;
 
-namespace MyCafe.Data.Models.Appearances;
+namespace Monsoonsheep.StardewMods.MyCafe.Data.Models.Appearances;
 public class AppearancePaint
 {
     public int[] Main = [255, 255, 255];

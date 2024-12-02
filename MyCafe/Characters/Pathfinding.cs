@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
-using MyCafe.Game;
+using Monsoonsheep.StardewMods.MyCafe.Game;
 using StardewValley;
 using StardewValley.Pathfinding;
 using StardewValley.TerrainFeatures;
@@ -13,7 +13,7 @@ using xTile.Tiles;
 using Location = xTile.Dimensions.Location;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
-namespace MyCafe.Characters;
+namespace Monsoonsheep.StardewMods.MyCafe.Characters;
 
 public static class Pathfinding
 {

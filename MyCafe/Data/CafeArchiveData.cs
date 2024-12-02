@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using MyCafe.Data.Customers;
-using MyCafe.Inventories;
+using Monsoonsheep.StardewMods.MyCafe.Data.Customers;
+using Monsoonsheep.StardewMods.MyCafe.Inventories;
 using StardewValley;
 using StardewValley.Inventories;
 
-namespace MyCafe.Data;
+namespace Monsoonsheep.StardewMods.MyCafe.Data;
 public class CafeArchiveData
 {
     public int OpeningTime = 900;

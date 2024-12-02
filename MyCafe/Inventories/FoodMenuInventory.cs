@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MyCafe.Data.Models;
-using MyCafe.Enums;
-using MyCafe.Netcode;
+using Monsoonsheep.StardewMods.MyCafe.Data.Models;
+using Monsoonsheep.StardewMods.MyCafe.Enums;
+using Monsoonsheep.StardewMods.MyCafe.Netcode;
 using Netcode;
 using StardewValley;
 using StardewValley.Inventories;
 
-namespace MyCafe.Inventories;
+namespace Monsoonsheep.StardewMods.MyCafe.Inventories;
 
 public class FoodMenuInventory : INetObject<NetFields>
 {

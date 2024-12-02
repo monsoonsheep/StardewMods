@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MyCafe.UI.Options;
+using Monsoonsheep.StardewMods.MyCafe.UI.Options;
 using StardewValley;
 using StardewValley.Menus;
 
-namespace MyCafe.UI;
+namespace Monsoonsheep.StardewMods.MyCafe.UI;
 internal abstract class OptionsPageBase : MenuPageBase
 {
     protected int OptionSlotsCount = 3;

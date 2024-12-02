@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 using Netcode;
 using StardewValley.Objects;
 
-namespace MyCafe.Locations.Objects;
+namespace Monsoonsheep.StardewMods.MyCafe.Locations.Objects;
 
 public sealed class FurnitureSeat : Seat
 {

@@ -3,17 +3,18 @@
   <PropertyGroup>
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
     <HasSharedItems>true</HasSharedItems>
-    <SharedGUID>b9e9edfc-e98a-4370-994f-40a9f39a0284</SharedGUID>
+    <SharedGUID>d21f41bb-18e5-433a-b741-bc76b13d8336</SharedGUID>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
     <Import_RootNamespace>Common</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)CollectionExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ILogger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ISpaceCoreApi.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LocationProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Logger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MapExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ObjectExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\IInvariantSet.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\MutableInvariantSet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CommonHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DrawHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GameI18n.cs" />
@@ -21,6 +22,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Items\ItemRepository.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ModDataDictionaryExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SpriteInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TileHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UI\BaseOverlay.cs" />
@@ -28,9 +30,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)UI\DropdownList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UI\Dropdown.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Cached.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\InvariantDictionary.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\InvariantSet.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\ObjectReferenceComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SetExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patching\BasePatcher.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patching\HarmonyPatcher.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patching\IPatcher.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patching\PatchHelper.cs" />
   </ItemGroup>
 </Project>

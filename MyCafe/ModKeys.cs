@@ -1,6 +1,6 @@
 // ReSharper disable InconsistentNaming
 
-namespace MyCafe;
+namespace Monsoonsheep.StardewMods.MyCafe;
 
 internal static class ModKeys
 {

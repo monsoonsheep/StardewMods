@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 using StardewValley.Menus;
 
-namespace MyCafe.UI.Options;
+namespace Monsoonsheep.StardewMods.MyCafe.UI.Options;
 
 
 internal class OptionItemSlider : OptionsElementBase

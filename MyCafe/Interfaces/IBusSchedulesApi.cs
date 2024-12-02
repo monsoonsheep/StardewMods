@@ -1,6 +1,6 @@
 ﻿using StardewValley;
 
-namespace MyCafe.Interfaces;
+namespace Monsoonsheep.StardewMods.MyCafe.Interfaces;
 public interface IBusSchedulesApi
 {
     public int GetMinutesTillNextBus();

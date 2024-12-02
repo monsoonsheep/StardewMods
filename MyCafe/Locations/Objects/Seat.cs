@@ -2,12 +2,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common;
-using MyCafe.Game;
+using Monsoonsheep.StardewMods.MyCafe.Game;
 using Netcode;
 using StardewValley;
 // ReSharper disable VirtualMemberCallInConstructor
 
-namespace MyCafe.Locations.Objects;
+namespace Monsoonsheep.StardewMods.MyCafe.Locations.Objects;
 
 public abstract class Seat : INetObject<NetFields>
 {

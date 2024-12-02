@@ -1,4 +1,4 @@
-namespace MyCafe.Enums;
+namespace Monsoonsheep.StardewMods.MyCafe.Enums;
 
 public enum TableState
 {

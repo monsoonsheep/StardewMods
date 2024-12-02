@@ -1,13 +1,13 @@
 using System;
 using System.Runtime.CompilerServices;
 using Microsoft.Xna.Framework;
-using MyCafe.Characters;
-using MyCafe.Interfaces;
-using MyCafe.Locations.Objects;
+using Monsoonsheep.StardewMods.MyCafe.Characters;
+using Monsoonsheep.StardewMods.MyCafe.Interfaces;
+using Monsoonsheep.StardewMods.MyCafe.Locations.Objects;
 using Netcode;
 using StardewValley;
 
-namespace MyCafe.Game;
+namespace Monsoonsheep.StardewMods.MyCafe.Game;
 internal static class NpcVirtualProperties
 {
     internal class Holder

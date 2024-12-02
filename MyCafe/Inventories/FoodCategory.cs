@@ -1,10 +1,10 @@
 using System;
 using System.Text.Json.Serialization;
 using System.Xml.Serialization;
-using MyCafe.Enums;
+using Monsoonsheep.StardewMods.MyCafe.Enums;
 using Netcode;
 
-namespace MyCafe.Inventories;
+namespace Monsoonsheep.StardewMods.MyCafe.Inventories;
 
 [XmlRoot("Category")]
 public class FoodCategory : INetObject<NetFields>

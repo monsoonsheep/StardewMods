@@ -1,4 +1,4 @@
-namespace MyCafe.Data.Models;
+namespace Monsoonsheep.StardewMods.MyCafe.Data.Models;
 
 public class BusyPeriod
 {

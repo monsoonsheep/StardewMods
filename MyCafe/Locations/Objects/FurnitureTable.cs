@@ -6,7 +6,7 @@ using StardewValley;
 using StardewValley.Objects;
 
 
-namespace MyCafe.Locations.Objects;
+namespace Monsoonsheep.StardewMods.MyCafe.Locations.Objects;
 
 public class FurnitureTable : Table
 {

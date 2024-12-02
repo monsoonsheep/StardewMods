@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 
-namespace MyCafe.UI.BoardItems;
+namespace Monsoonsheep.StardewMods.MyCafe.UI.BoardItems;
 
 internal class MenuCategoryEntry : MenuEntry
 {

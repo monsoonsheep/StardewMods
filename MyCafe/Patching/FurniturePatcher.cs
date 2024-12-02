@@ -2,12 +2,12 @@ using System.Diagnostics.CodeAnalysis;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common.Patching;
-using MyCafe.Locations.Objects;
+using Monsoonsheep.StardewMods.MyCafe.Locations.Objects;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Objects;
 
-namespace MyCafe.Patching;
+namespace Monsoonsheep.StardewMods.MyCafe.Patching;
 
 [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony patching requirement")]
 internal class FurniturePatcher : BasePatcher

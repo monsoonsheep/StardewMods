@@ -5,7 +5,7 @@ using StardewModdingAPI;
 using StardewModdingAPI.Utilities;
 using StardewValley;
 
-namespace MyCafe.Interfaces;
+namespace Monsoonsheep.StardewMods.MyCafe.Interfaces;
 
 public interface IGenericModConfigMenuApi
 {

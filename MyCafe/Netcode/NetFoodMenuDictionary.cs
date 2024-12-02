@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using MyCafe.Enums;
-using MyCafe.Inventories;
+using Monsoonsheep.StardewMods.MyCafe.Enums;
+using Monsoonsheep.StardewMods.MyCafe.Inventories;
 using Netcode;
 using StardewValley;
 using StardewValley.Inventories;
 
 #nullable disable
-namespace MyCafe.Netcode;
+namespace Monsoonsheep.StardewMods.MyCafe.Netcode;
 public class NetFoodMenuDictionary : NetFieldDictionary<FoodCategory, Inventory, NetRef<Inventory>, SerializableDictionary<FoodCategory, Inventory>, NetFoodMenuDictionary>
 {
     public NetFoodMenuDictionary()

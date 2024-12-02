@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MyCafe.Data.Customers;
-using MyCafe.Data.Models;
-using MyCafe.Enums;
+using Monsoonsheep.StardewMods.MyCafe.Data.Customers;
+using Monsoonsheep.StardewMods.MyCafe.Data.Models;
+using Monsoonsheep.StardewMods.MyCafe.Enums;
 using StardewValley;
 
-namespace MyCafe.Characters.Factory;
+namespace Monsoonsheep.StardewMods.MyCafe.Characters.Factory;
 
 internal class RandomCustomerBuilder : CustomerBuilder
 {

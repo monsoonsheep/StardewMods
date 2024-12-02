@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using MyCafe.Enums;
-using MyCafe.Netcode;
+using Monsoonsheep.StardewMods.MyCafe.Enums;
+using Monsoonsheep.StardewMods.MyCafe.Netcode;
 using Netcode;
 using StardewValley;
 
 
-namespace MyCafe.Locations.Objects;
+namespace Monsoonsheep.StardewMods.MyCafe.Locations.Objects;
 
 public abstract class Table : INetObject<NetFields>
 {

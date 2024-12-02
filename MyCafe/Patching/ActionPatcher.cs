@@ -3,18 +3,18 @@ using System.Linq;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using MonsoonSheep.Stardew.Common.Patching;
-using MyCafe.Characters;
-using MyCafe.Enums;
-using MyCafe.Locations.Objects;
-using MyCafe.Netcode;
-using MyCafe.UI;
+using Monsoonsheep.StardewMods.MyCafe.Characters;
+using Monsoonsheep.StardewMods.MyCafe.Enums;
+using Monsoonsheep.StardewMods.MyCafe.Locations.Objects;
+using Monsoonsheep.StardewMods.MyCafe.Netcode;
+using Monsoonsheep.StardewMods.MyCafe.UI;
 using StardewModdingAPI;
 using StardewValley;
 using xTile.Dimensions;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using SObject = StardewValley.Object;
 
-namespace MyCafe.Patching;
+namespace Monsoonsheep.StardewMods.MyCafe.Patching;
 
 [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony patching requirement")]
 internal class ActionPatcher : BasePatcher

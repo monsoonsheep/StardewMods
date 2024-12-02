@@ -1,7 +1,7 @@
 using System;
 using StardewValley;
 
-namespace MyCafe.Inventories;
+namespace Monsoonsheep.StardewMods.MyCafe.Inventories;
 internal class MenuItem
 {
     /// <summary>A sample item instance.</summary>

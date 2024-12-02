@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MyCafe.Inventories;
-using MyCafe.UI.BoardItems;
+using Monsoonsheep.StardewMods.MyCafe.Inventories;
+using Monsoonsheep.StardewMods.MyCafe.UI.BoardItems;
 using StardewValley;
 using StardewValley.Inventories;
 using StardewValley.Menus;
 using SObject = StardewValley.Object;
 // ReSharper disable InconsistentNaming
 
-namespace MyCafe.UI.Pages;
+namespace Monsoonsheep.StardewMods.MyCafe.UI.Pages;
 internal class MenuBoard : MenuPageBase
 {
     // Menu board

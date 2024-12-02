@@ -1,0 +1,27 @@
+{
+  /*
+   | This file is automatically updated by ModManifestBuilder
+   | when the project is compiled.
+   | 
+   | Changes made to this file may be overwritten.
+   | 
+   */
+  "$schema": "https://smapi.io/schemas/manifest.json",
+  "UniqueID": "MonsoonSheep.ExtraNpcBehaviors",
+  "Name": "ExtraNpcBehaviors",
+  "Author": "MonsoonSheep",
+  "Version": "0.1.0-Debug",
+  "Description": "Description",
+  "MinimumApiVersion": "4.0.0",
+  "MinimumGameVersion": "1.6",
+  "EntryDll": "ExtraNpcBehaviors.dll",
+  "Dependencies": [
+    {
+      "UniqueID": "furyx639.FauxCore",
+      "MinimumVersion": "1.0.0"
+    }
+  ],
+  "UpdateKeys": [
+    "Nexus:idhere"
+  ]
+}

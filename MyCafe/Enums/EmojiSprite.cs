@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MyCafe.Enums;
+namespace Monsoonsheep.StardewMods.MyCafe.Enums;
 internal enum EmojiSprite
 {
     Smiley,

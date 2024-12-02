@@ -1,0 +1,16 @@
+{
+    "Location": "AdventureGuild",
+    "Actors": [
+        {
+            "TilePosition": {
+                "X": 7,
+                "Y": 12
+            }
+        }
+    ],
+    "Schedule": "",
+    "TimeRange": [700, 900],
+    "ForRandomVisitors": true,
+    "Duration": "Medium",
+    "ArriveBy": [ "Train" ]
+}

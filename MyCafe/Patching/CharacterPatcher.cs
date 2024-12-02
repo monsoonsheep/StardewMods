@@ -8,16 +8,16 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonsoonSheep.Stardew.Common;
 using MonsoonSheep.Stardew.Common.Patching;
-using MyCafe.Characters;
-using MyCafe.Data.Customers;
-using MyCafe.Game;
-using MyCafe.Locations.Objects;
+using Monsoonsheep.StardewMods.MyCafe.Characters;
+using Monsoonsheep.StardewMods.MyCafe.Data.Customers;
+using Monsoonsheep.StardewMods.MyCafe.Game;
+using Monsoonsheep.StardewMods.MyCafe.Locations.Objects;
 using Netcode;
 using StardewModdingAPI;
 using StardewValley;
 using SUtility = StardewValley.Utility;
 
-namespace MyCafe.Patching;
+namespace Monsoonsheep.StardewMods.MyCafe.Patching;
 
 [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony patching requirement")]
 internal class CharacterPatcher : BasePatcher

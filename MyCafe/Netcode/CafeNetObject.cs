@@ -1,14 +1,14 @@
 using System.Xml.Serialization;
-using MyCafe.Data.Customers;
-using MyCafe.Inventories;
-using MyCafe.Locations.Objects;
+using Monsoonsheep.StardewMods.MyCafe.Data.Customers;
+using Monsoonsheep.StardewMods.MyCafe.Inventories;
+using Monsoonsheep.StardewMods.MyCafe.Locations.Objects;
 using Netcode;
 using StardewValley;
 using StardewValley.Network;
 
 #nullable disable
 
-namespace MyCafe.Netcode;
+namespace Monsoonsheep.StardewMods.MyCafe.Netcode;
 
 [XmlType( "Mods_MonsoonSheep_MyCafe_CafeNetFields" )]
 public class CafeNetObject : INetObject<NetFields>

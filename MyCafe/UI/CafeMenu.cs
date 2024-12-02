@@ -2,13 +2,13 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using MyCafe.UI.Pages;
+using Monsoonsheep.StardewMods.MyCafe.UI.Pages;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Menus;
 // ReSharper disable InconsistentNaming
 
-namespace MyCafe.UI;
+namespace Monsoonsheep.StardewMods.MyCafe.UI;
 
 public sealed class CafeMenu : IClickableMenu
 {

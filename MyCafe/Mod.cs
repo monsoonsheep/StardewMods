@@ -11,18 +11,20 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonsoonSheep.Stardew.Common;
 using MonsoonSheep.Stardew.Common.Patching;
-using MyCafe.Characters;
-using MyCafe.Characters.Factory;
-using MyCafe.Data;
-using MyCafe.Data.Customers;
-using MyCafe.Data.Models;
-using MyCafe.Data.Models.Appearances;
-using MyCafe.Enums;
-using MyCafe.Interfaces;
-using MyCafe.Inventories;
-using MyCafe.Locations.Objects;
-using MyCafe.Patching;
-using MyCafe.UI;
+using Monsoonsheep.StardewMods.MyCafe.Characters;
+using Monsoonsheep.StardewMods.MyCafe.Characters.Factory;
+using Monsoonsheep.StardewMods.MyCafe.Data;
+using Monsoonsheep.StardewMods.MyCafe.Data.Customers;
+using Monsoonsheep.StardewMods.MyCafe.Data.Models;
+using Monsoonsheep.StardewMods.MyCafe.Data.Models.Appearances;
+using Monsoonsheep.StardewMods.MyCafe.Enums;
+using Monsoonsheep.StardewMods.MyCafe.Interfaces;
+using Monsoonsheep.StardewMods.MyCafe.Inventories;
+using Monsoonsheep.StardewMods.MyCafe.Locations.Objects;
+using Monsoonsheep.StardewMods.MyCafe.Patching;
+using Monsoonsheep.StardewMods.MyCafe.UI;
+using Monsoonsheep.StardewMods.MyCafe.Game;
+
 using SpaceCore.Events;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -36,11 +38,13 @@ using StardewValley.Inventories;
 using StardewValley.Locations;
 using StardewValley.TokenizableStrings;
 using xTile;
+using SimpleInjector;
+
 using SUtility = StardewValley.Utility;
 using SObject = StardewValley.Object;
-using MyCafe.Game;
+using HarmonyLib;
 
-namespace MyCafe;
+namespace Monsoonsheep.StardewMods.MyCafe;
 
 public class Mod : StardewModdingAPI.Mod
 {
@@ -62,6 +66,8 @@ public class Mod : StardewModdingAPI.Mod
 
     internal Dictionary<string, CustomerData> CustomerData = [];
 
+    public Mod() => Instance = this;
+
     internal static string UniqueId
         => Instance.ModManifest.UniqueID;
 
@@ -77,32 +83,29 @@ public class Mod : StardewModdingAPI.Mod
     internal static RandomCharacterGenerator RandomCharacterGenerator
         => Instance._randomCharacterGenerator;
 
-    public Mod() => Instance = this;
-
     /// <inheritdoc/>
     public override void Entry(IModHelper helper)
     {
-        // Why do I keep doing this
         Log.Monitor = this.Monitor;
-        I18n.Init(this.Helper.Translation);
+        // I18n.Init(this.Helper.Translation);
         this._loadedConfig = this.Helper.ReadConfig<ConfigModel>();
         this._cafe = new Cafe();
         this._randomCharacterGenerator = new RandomCharacterGenerator(this.Helper);
     
         // Harmony patches
         if (HarmonyPatcher.TryApply(this,
-                new ActionPatcher(),
-                new LocationPatcher(),
-                new NetFieldPatcher(),
-                new CharacterPatcher(),
-                new FurniturePatcher(),
-                new DialoguePatcher()
-            ) is false)
-            return;
+               new ActionPatcher(),
+               new LocationPatcher(),
+               new NetFieldPatcher(),
+               new CharacterPatcher(),
+               new FurniturePatcher(),
+               new DialoguePatcher()
+           ) is false)
+           return;
 
         IModEvents events = this.Helper.Events;
-
         events.GameLoop.GameLaunched += this.OnGameLaunched;
+
         events.GameLoop.SaveLoaded += this.OnSaveLoaded;
         events.GameLoop.DayStarted += this.OnDayStarted;
         events.GameLoop.TimeChanged += this.OnTimeChanged;
@@ -123,36 +126,33 @@ public class Mod : StardewModdingAPI.Mod
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
     {
         this._sprites = Game1.content.Load<Texture2D>(ModKeys.MODASSET_SPRITES);
-
         this.InitializeGmcm(this.Helper, this.ModManifest);
-
         GameLocation.RegisterTileAction(ModKeys.SIGNBOARD_BUILDING_CLICK_EVENT_KEY, CafeMenu.Action_OpenCafeMenu);
-
         SpaceEvents.OnEventFinished += this.OnEventFinished;
         // ISpaceCoreApi spaceCore = this.Helper.ModRegistry.GetApi<ISpaceCoreApi>("spacechase0.SpaceCore")!;
         // Remove this? It might not be need. Test multiplayer to confirm.
         // FarmerTeamVirtualProperties.Register(spaceCore);
 
         this.LoadContent(this.Helper.ContentPacks.CreateTemporary(
-            Path.Combine(this.Helper.DirectoryPath, "assets", "DefaultContent"),
-            $"{this.ModManifest.Author}.DefaultContent",
-            "MyCafe Fake Content Pack",
-            "Default content for MyCafe",
-            this.ModManifest.Author,
-            this.ModManifest.Version
-            ));
+           Path.Combine(this.Helper.DirectoryPath, "assets", "DefaultContent"),
+           $"{this.ModManifest.Author}.DefaultContent",
+           "MyCafe Fake Content Pack",
+           "Default content for MyCafe",
+           this.ModManifest.Author,
+           this.ModManifest.Version
+           ));
 
         TokenParser.RegisterParser(
-            ModKeys.TOKEN_RANDOM_MENU_ITEM,
-            (string[] query, out string replacement, Random random, Farmer player) =>
-            {
-                replacement = Mod.Cafe.Menu.ItemDictionary.Values.SelectMany(i => i).ToList().PickRandom()?.DisplayName ?? "Special";
-                return true;
-            });
+           ModKeys.TOKEN_RANDOM_MENU_ITEM,
+           (string[] query, out string replacement, Random random, Farmer player) =>
+           {
+               replacement = Mod.Cafe.Menu.ItemDictionary.Values.SelectMany(i => i).ToList().PickRandom()?.DisplayName ?? "Special";
+               return true;
+           });
 
         GameStateQuery.Register(
-            ModKeys.GAMESTATEQUERY_ISINDOORCAFE,
-            (query, context) => !Game1.currentLocation.IsOutdoors);
+           ModKeys.GAMESTATEQUERY_ISINDOORCAFE,
+           (query, context) => !Game1.currentLocation.IsOutdoors);
 
         this.Helper.ConsoleCommands.Add("cafe_givesignboard", "Gives you the cafe signboard (if you want to skip the Gus 7-heart event", this.GiveSignboard);
     }
@@ -246,8 +246,24 @@ public class Mod : StardewModdingAPI.Mod
                         // Display number of seats on table
                         if (Cafe.Enabled == 1)
                         {
-                            e.SpriteBatch.DrawString(Game1.tinyFont, table.Seats.Count.ToString(), Game1.GlobalToLocal(table.Center + new Vector2(-12, -112)) + offset, Color.LightBlue, 0f, Vector2.Zero, 5f, SpriteEffects.None, 0.99f);
-                            e.SpriteBatch.DrawString(Game1.tinyFont, table.Seats.Count.ToString(), Game1.GlobalToLocal(table.Center + new Vector2(-10, -96)) + offset, Color.Black, 0f, Vector2.Zero, 4f, SpriteEffects.None, 1f);
+                            e.SpriteBatch.DrawString(Game1.tinyFont,
+                                                     table.Seats.Count.ToString(),
+                                                     Game1.GlobalToLocal(table.Center + new Vector2(-12, -112)) + offset,
+                                                     Color.LightBlue,
+                                                     0f,
+                                                     Vector2.Zero,
+                                                     5f,
+                                                     SpriteEffects.None,
+                                                     0.99f);
+                            e.SpriteBatch.DrawString(Game1.tinyFont,
+                                                     table.Seats.Count.ToString(),
+                                                     Game1.GlobalToLocal(table.Center + new Vector2(-10, -96)) + offset,
+                                                     Color.Black,
+                                                     0f,
+                                                     Vector2.Zero,
+                                                     4f,
+                                                     SpriteEffects.None,
+                                                     1f);
                         }
 
                         break;
@@ -411,8 +427,6 @@ public class Mod : StardewModdingAPI.Mod
             loadedEntry.Value.Id = model.Name;
             this.CustomerData[loadedEntry.Key] = loadedEntry.Value;
         }
-
-       
     }
 
     internal void SaveCafeData()

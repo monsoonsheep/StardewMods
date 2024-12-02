@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using MyCafe.Inventories;
+using Monsoonsheep.StardewMods.MyCafe.Inventories;
 
-namespace MyCafe.Data.Models;
+namespace Monsoonsheep.StardewMods.MyCafe.Data.Models;
 
 internal class ConfigModel
 {

@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 
-namespace MyCafe.Data.Customers;
+namespace Monsoonsheep.StardewMods.MyCafe.Data.Customers;
 internal class RawTextureData : IRawTextureData
 {
     public int Width { get; set; }

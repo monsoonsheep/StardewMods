@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
-using MyCafe.Data.Customers;
-using MyCafe.Enums;
-using MyCafe.Locations.Objects;
-using MyCafe.UI;
+using Monsoonsheep.StardewMods.MyCafe.Data.Customers;
+using Monsoonsheep.StardewMods.MyCafe.Enums;
+using Monsoonsheep.StardewMods.MyCafe.Locations.Objects;
+using Monsoonsheep.StardewMods.MyCafe.UI;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -17,7 +17,7 @@ using StardewValley.Objects;
 
 #pragma warning disable IDE0060
 
-namespace MyCafe;
+namespace Monsoonsheep.StardewMods.MyCafe;
 
 internal static class Debug
 {
