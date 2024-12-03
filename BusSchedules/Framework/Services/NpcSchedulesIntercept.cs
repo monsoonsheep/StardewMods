@@ -106,7 +106,7 @@ internal class NpcSchedulesIntercept : Service
     {
         if (__result == null && Instance.visitorsData.ContainsKey(__instance.Name) && __instance.Schedule != null && behaviorName == "BoardBus")
         {
-            __result = Mod.VisitorReachBusEndBehavior;
+            __result = ModEntry.VisitorReachBusEndBehavior;
         }
     }
 

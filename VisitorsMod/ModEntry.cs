@@ -17,13 +17,13 @@ using StardewMods.VisitorsMod.Framework.Services.Visitors.Activities;
 
 namespace StardewMods.VisitorsMod;
 
-public class Mod : StardewModdingAPI.Mod
+public class ModEntry : Mod
 {
-    internal static Mod Instance = null!;
+    internal static ModEntry Instance = null!;
     private SimpleInjector.Container _container = null!;
 
     
-    public Mod() => Instance = this;
+    public ModEntry() => Instance = this;
 
     public override void Entry(IModHelper helper)
     {

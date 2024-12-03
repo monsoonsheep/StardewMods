@@ -15,12 +15,12 @@ using StardewMods.BusSchedules.Framework.Api;
 using StardewMods.BusSchedules.Framework.Data;
 
 namespace StardewMods.BusSchedules;
-public class Mod : StardewModdingAPI.Mod
+public class ModEntry : Mod
 {
-    internal static Mod Instance = null!;
+    internal static ModEntry Instance = null!;
     private Container _container = null!;
 
-    public Mod() => Instance = this;
+    public ModEntry() => Instance = this;
 
     // Services
     internal readonly Dictionary<string, VisitorData> VisitorsData = [];
