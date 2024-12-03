@@ -1,4 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <Import Project="$(SolutionDir)\Common\Common.projitems" Label="Shared"/>
+
   <!-- common build settings -->
   <PropertyGroup>
     <Authors>MonsoonSheep</Authors>
@@ -9,7 +12,11 @@
     <TargetFramework>net6.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <WarningsAsErrors>Nullable</WarningsAsErrors>
+    <EnableModZip Condition="'$(Configuration)' == 'Debug'">False</EnableModZip>
     <ModZipPath>$(SolutionDir)\_releases</ModZipPath>
+    
 
     <!-- For ModManifestBuilder -->
     <Version_AppendConfiguration>false</Version_AppendConfiguration>
@@ -18,7 +25,6 @@
   <!-- mod build package -->
   <ItemGroup>
     <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.3.0" />
-    <PackageReference Include="Leclair.Stardew.ModManifestBuilder" Version="2.3.1" />
     <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.0" />
   </ItemGroup>
 </Project>

@@ -1,10 +1,10 @@
 using System.Security.Cryptography;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MonsoonSheep.Stardew.Common.UI;
+using StardewMods.Common.UI;
 using StardewValley.Locations;
 
-namespace MonsoonSheep.Stardew.Common;
+namespace StardewMods.Common;
 /// <summary>Provides common utility methods for interacting with the game code shared by my various mods.</summary>
 internal static class CommonHelper
 {

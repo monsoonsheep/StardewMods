@@ -1,4 +1,4 @@
-namespace MonsoonSheep.Stardew.Common;
+namespace StardewMods.Common;
 
 public interface ILogger
 {

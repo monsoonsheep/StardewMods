@@ -1,6 +1,6 @@
 using StardewValley.ItemTypeDefinitions;
 
-namespace MonsoonSheep.Stardew.Common.Items;
+namespace StardewMods.Common.Items;
 /// <summary>A game item with metadata.</summary>
 /// <remarks>This is copied from the SMAPI source code and should be kept in sync with it.</remarks>
 internal class SearchableItem

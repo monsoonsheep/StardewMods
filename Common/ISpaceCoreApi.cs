@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace MonsoonSheep.Stardew.Common;
+namespace StardewMods.Common;
 public interface ISpaceCoreApi
 {
     string[] GetCustomSkills();

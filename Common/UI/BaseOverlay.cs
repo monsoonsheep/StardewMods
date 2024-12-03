@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Rectangle = xTile.Dimensions.Rectangle;
 
-namespace MonsoonSheep.Stardew.Common.UI;
+namespace StardewMods.Common.UI;
 /// <summary>An interface which supports user interaction and overlays the active menu (if any).</summary>
 internal abstract class BaseOverlay : IDisposable
 {

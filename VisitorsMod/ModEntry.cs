@@ -1,7 +1,7 @@
 global using StardewValley;
 global using StardewModdingAPI;
 global using StardewModdingAPI.Events;
-global using MonsoonSheep.Stardew.Common;
+global using StardewMods.Common;
 
 using SimpleInjector;
 using HarmonyLib;
@@ -14,15 +14,15 @@ using StardewMods.VisitorsMod.Framework;
 using StardewMods.VisitorsMod.Framework.Interfaces;
 using StardewMods.VisitorsMod.Framework.Visitors;
 using StardewMods.VisitorsMod.Framework.Services.Visitors.Activities;
+using StardewMods.SheepCore.Framework.Services;
 
 namespace StardewMods.VisitorsMod;
 
 public class ModEntry : Mod
 {
     internal static ModEntry Instance = null!;
-    private SimpleInjector.Container _container = null!;
+    private Container _container = null!;
 
-    
     public ModEntry() => Instance = this;
 
     public override void Entry(IModHelper helper)
@@ -38,7 +38,7 @@ public class ModEntry : Mod
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
     {
         // Init
-        SimpleInjector.Container c = new SimpleInjector.Container();
+        Container c = new Container();
         this._container = c;
 
         c.RegisterSingleton(() => new Harmony(this.ModManifest.UniqueID));
@@ -63,8 +63,9 @@ public class ModEntry : Mod
         c.RegisterSingleton<MultiplayerMessaging>();
         c.RegisterSingleton<NetState>();
 
-        c.RegisterSingleton<VisitorManager>();
         c.RegisterSingleton<NpcMovement>();
+
+        c.RegisterSingleton<VisitorManager>();
         c.RegisterSingleton<RandomVisitorBuilder>();
         c.RegisterSingleton<RandomSprites>();
         c.RegisterSingleton<Colors>();

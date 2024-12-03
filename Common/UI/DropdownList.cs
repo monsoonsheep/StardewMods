@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley.Menus;
 
-namespace MonsoonSheep.Stardew.Common.UI;
+namespace StardewMods.Common.UI;
 /// <summary>A dropdown UI component which lets the player choose from a list of values.</summary>
 /// <typeparam name="TValue">The item value type.</typeparam>
 internal class DropdownList<TValue> : ClickableComponent

@@ -1,7 +1,7 @@
 using System.Reflection;
 using HarmonyLib;
 
-namespace MonsoonSheep.Stardew.Common.Patching;
+namespace StardewMods.Common.Patching;
 /// <summary>Provides base implementation logic for <see cref="IPatcher"/> instances.</summary>
 internal abstract class BasePatcher : IPatcher
 {

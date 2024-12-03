@@ -1,7 +1,7 @@
 using HarmonyLib;
 using Microsoft.Xna.Framework;
+using StardewMods.SheepCore.Framework.Services;
 using StardewMods.VisitorsMod.Framework.Data;
-using StardewMods.VisitorsMod.Framework.Services.Visitors;
 
 namespace StardewMods.VisitorsMod.Framework.Visitors;
 internal abstract class LocationSpawner : ISpawner

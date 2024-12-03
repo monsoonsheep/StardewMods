@@ -1,4 +1,4 @@
-namespace MonsoonSheep.Stardew.Common;
+namespace StardewMods.Common;
 public abstract class Service
 {
     public Service(ILogger logger, IManifest manifest)

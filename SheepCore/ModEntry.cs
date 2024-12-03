@@ -5,25 +5,23 @@ global using System.Text;
 global using System.Threading.Tasks;
 global using HarmonyLib;
 global using Microsoft.Xna.Framework;
-global using SheepCore.Framework.Interfaces;
 global using StardewModdingAPI;
 global using StardewModdingAPI.Events;
 global using StardewValley;
-using SheepCore.Framework.Services;
-using SimpleInjector;
-using ILogger = SheepCore.Framework.Interfaces.ILogger;
+global using StardewMods.Common;
 
-namespace SheepCore;
+using SimpleInjector;
+
+namespace StardewMods.SheepCore;
 public class ModEntry : Mod
 {
-    internal static ModEntry Instance = null!;
+    private static ModEntry Instance = null!;
     private Container _container = null!;
 
     public ModEntry() => Instance = this;
 
     public override void Entry(IModHelper helper)
     {
-        I18n.Init(this.Helper.Translation);
         this.Helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
     }
 
@@ -48,11 +46,6 @@ public class ModEntry : Mod
         c.RegisterInstance(this.Helper.Multiplayer);
 
         c.RegisterSingleton<ILogger, Logger>();
-
-        c.RegisterSingleton<ModEvents>();
-        c.RegisterSingleton<AssetHandler>();
-        c.RegisterSingleton<LocationProvider>();
-        c.RegisterSingleton<MultiplayerManager>();
 
         c.Verify();
     }

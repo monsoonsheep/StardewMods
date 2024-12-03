@@ -5,7 +5,7 @@ using StardewValley.ItemTypeDefinitions;
 using StardewValley.Objects;
 using SObject = StardewValley.Object;
 
-namespace MonsoonSheep.Stardew.Common.Items;
+namespace StardewMods.Common.Items;
 /// <summary>Provides methods for searching and constructing items.</summary>
 /// <remarks>This is copied from the SMAPI source code and should be kept in sync with it.</remarks>
 internal class ItemRepository

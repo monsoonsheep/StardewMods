@@ -1,6 +1,6 @@
 using StardewValley.Locations;
 
-namespace MonsoonSheep.Stardew.Common;
+namespace StardewMods.Common;
 internal class LocationProvider : Service
 {
     private readonly Dictionary<string, WeakReference<GameLocation>> Cache = [];

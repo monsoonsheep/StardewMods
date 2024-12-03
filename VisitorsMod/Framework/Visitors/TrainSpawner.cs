@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
-using StardewMods.VisitorsMod.Framework.Services.Visitors;
 using StardewMods.VisitorsMod.Framework.Data;
+using StardewMods.SheepCore.Framework.Services;
 
 namespace StardewMods.VisitorsMod.Framework.Visitors;
 internal class TrainSpawner : LocationSpawner, ISpawner

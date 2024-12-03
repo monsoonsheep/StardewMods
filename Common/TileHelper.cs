@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using xTile.Layers;
 
-namespace MonsoonSheep.Stardew.Common;
+namespace StardewMods.Common;
 /// <summary>Provides extension methods for working with tiles.</summary>
 internal static class TileHelper
 {

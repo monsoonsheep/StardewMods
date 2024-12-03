@@ -7,26 +7,18 @@
    | 
    */
   "$schema": "https://smapi.io/schemas/manifest.json",
-  "UniqueID": "MonsoonSheep.VisitorsMod",
-  "Name": "VisitorsMod",
+  "UniqueID": "MonsoonSheep.SheepCore",
+  "Name": "SheepCore",
   "Author": "MonsoonSheep",
   "Version": "0.1.0",
-  "Description": "Visitors arrive in Stardew Valley",
-  "MinimumApiVersion": "4.0.0",
+  "Description": "Description",
+  "MinimumApiVersion": "4.1.7",
   "MinimumGameVersion": "1.6",
-  "EntryDll": "VisitorsMod.dll",
+  "EntryDll": "SheepCore.dll",
   "Dependencies": [
     {
       "UniqueID": "furyx639.FauxCore",
-      "MinimumVersion": "1.0.0"
-    },
-    {
-      "UniqueID": "MonsoonSheep.ExtraNpcBehaviors",
-      "MinimumVersion": "0.1.0"
-    },
-    {
-      "UniqueID": "MonsoonSheep.SheepCore",
-      "MinimumVersion": "0.1.0"
+      "MinimumVersion": "1.1.1"
     },
     {
       "UniqueID": "spacechase0.GenericModConfigMenu",
@@ -35,10 +27,10 @@
     },
     {
       "UniqueID": "spacechase0.SpaceCore",
-      "MinimumVersion": "1.24"
+      "MinimumVersion": "1.26"
     }
   ],
   "UpdateKeys": [
-    "Nexus:20695"
+    "Nexus:idhere"
   ]
 }

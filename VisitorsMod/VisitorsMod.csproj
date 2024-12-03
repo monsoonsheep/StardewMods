@@ -7,12 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="Framework\Services\Visitors\Behaviors\**" />
-    <EmbeddedResource Remove="Framework\Services\Visitors\Behaviors\**" />
-    <None Remove="Framework\Services\Visitors\Behaviors\**" />
-  </ItemGroup>
-
+  <!-- Dependencies -->
   <ItemGroup>
     <PackageReference Include="SimpleInjector">
       <HintPath>$(GameModsPath)\FauxCore\SimpleInjector.dll</HintPath>
@@ -20,13 +15,21 @@
       <Private>false</Private>
     </PackageReference>
   </ItemGroup>
-
+  
+  <ItemGroup>
+    <ProjectReference Include="..\SheepCore\SheepCore.csproj">
+      <Private>false</Private>
+    </ProjectReference>
+    
+    <PackageReference Update="Leclair.Stardew.ModManifestBuilder" Version="2.4.0" />
+    <PackageReference Update="Pathoschild.Stardew.ModBuildConfig" Version="4.3.2" />
+  </ItemGroup>
+  
   <!-- Translations -->
   <ItemGroup>
     <AdditionalFiles Include="i18n/default.json" />
+    <Folder Include="i18n\" />
   </ItemGroup>
-
-  <Import Project="..\Common\Common.projitems" Label="Shared" />
 
   <!-- SMAPI Manifest -->
   <PropertyGroup>
@@ -39,21 +42,12 @@
     <MinimumApiVersion>4.0.0</MinimumApiVersion>
     <MinimumGameVersion>1.6</MinimumGameVersion>
   </PropertyGroup>
-
   <ItemGroup>
     <SMAPIDependency Include="spacechase0.SpaceCore" Version="1.24" Reference="false" />
     <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
     <SMAPIDependency Include="furyx639.FauxCore" Version="1.0.0" required="true" />
     <SMAPIDependency Include="MonsoonSheep.ExtraNpcBehaviors" Version="0.1.0" required="true" />
+    <SMAPIDependency Include="MonsoonSheep.SheepCore" Version="0.1.0" required="true" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="i18n\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Update="Leclair.Stardew.ModManifestBuilder" Version="2.4.0" />
-    <PackageReference Update="Pathoschild.Stardew.ModBuildConfig" Version="4.3.2" />
-  </ItemGroup>
-  
 </Project>

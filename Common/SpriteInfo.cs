@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace MonsoonSheep.Stardew.Common;
+namespace StardewMods.Common;
 /// <summary>A single sprite in a spritesheet.</summary>
 internal class SpriteInfo
 {

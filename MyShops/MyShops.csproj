@@ -20,8 +20,6 @@
     <AdditionalFiles Include="i18n/default.json" />
   </ItemGroup>
 
-  <Import Project="..\Common\Common.projitems" Label="Shared" />
-
   <!-- SMAPI Manifest -->
   <PropertyGroup>
     <Name>MyShops</Name>

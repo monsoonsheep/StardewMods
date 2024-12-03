@@ -1,4 +1,4 @@
-namespace MonsoonSheep.Stardew.Common.Utilities;
+namespace StardewMods.Common.Utilities;
 
 /// <summary>Maintains a cached value which is updated automatically when the cache key changes.</summary>
 internal class Cached<TKey, TValue>

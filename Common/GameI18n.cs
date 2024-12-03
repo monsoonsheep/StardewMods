@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using StardewValley.GameData.Buildings;
 using StardewValley.TokenizableStrings;
 
-namespace MonsoonSheep.Stardew.Common;
+namespace StardewMods.Common;
 /// <summary>Provides access to the game's translations.</summary>
 [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Deliberately named to match convention.")]
 internal static class GameI18n

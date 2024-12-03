@@ -2,8 +2,8 @@ using HarmonyLib;
 using Microsoft.Xna.Framework;
 using StardewValley.Pathfinding;
 
-namespace StardewMods.VisitorsMod.Framework.Services.Visitors;
-internal class NpcMovement : Service
+namespace StardewMods.SheepCore.Framework.Services;
+public class NpcMovement : Service
 {
     public NpcMovement(
         Harmony harmony,
@@ -14,12 +14,12 @@ internal class NpcMovement : Service
 
     }
 
-    internal bool NpcPathTo(NPC npc, GameLocation location, Point tilePosition)
+    public bool NpcPathTo(NPC npc, GameLocation location, Point tilePosition)
     {
         return this.NpcPathToFrom(npc, npc.currentLocation, npc.TilePoint, location, tilePosition);
     }
 
-    internal bool NpcPathToFrom(NPC npc, GameLocation startingLocation, Point startingTile, GameLocation targetLocation, Point targetTile)
+    public bool NpcPathToFrom(NPC npc, GameLocation startingLocation, Point startingTile, GameLocation targetLocation, Point targetTile)
     {
         SchedulePathDescription sched = npc.pathfindToNextScheduleLocation("",
         startingLocation.Name, startingTile.X, startingTile.Y,

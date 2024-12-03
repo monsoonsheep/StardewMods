@@ -1,4 +1,4 @@
-namespace MonsoonSheep.Stardew.Common;
+namespace StardewMods.Common;
 internal class Logger : ILogger
 {
     private readonly IMonitor monitor;

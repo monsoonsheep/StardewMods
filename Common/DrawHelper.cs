@@ -1,9 +1,9 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MonsoonSheep.Stardew.Common.UI;
+using StardewMods.Common.UI;
 using StardewValley.Menus;
 
-namespace MonsoonSheep.Stardew.Common;
+namespace StardewMods.Common;
 /// <summary>Provides utility methods for drawing to the screen.</summary>
 internal static class DrawHelper
 {

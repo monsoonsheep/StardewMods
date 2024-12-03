@@ -1,4 +1,4 @@
-namespace MonsoonSheep.Stardew.Common;
+namespace StardewMods.Common;
 
 /// <summary>Provides extension methods for <see cref="ISet{T}"/>.</summary>
 internal static class SetExtensions

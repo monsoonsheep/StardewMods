@@ -1,4 +1,3 @@
-
 namespace StardewMods.VisitorsMod.Framework.Services;
 internal class SaveDataManager : Service
 {

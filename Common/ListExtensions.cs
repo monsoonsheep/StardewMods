@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace MonsoonSheep.Stardew.Common;
+namespace StardewMods.Common;
 /// <summary>Provides extension methods for <see cref="IList{T}"/>.</summary>
 internal static class ListExtensions
 {

@@ -7,7 +7,7 @@ global using Microsoft.Xna.Framework;
 global using StardewModdingAPI;
 global using StardewModdingAPI.Events;
 global using StardewValley;
-global using MonsoonSheep.Stardew.Common;
+global using StardewMods.Common;
 using SimpleInjector;
 using StardewMods.ExtraNpcBehaviors.Framework.Services.Visitors;
 

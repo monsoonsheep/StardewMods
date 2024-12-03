@@ -81,6 +81,9 @@ dotnet_naming_rule.most_identifiers_should_be_pascal_case.symbols=pascal_types
 dotnet_naming_rule.most_identifiers_should_be_pascal_case.style=pascal_case_style
 dotnet_naming_rule.most_identifiers_should_be_pascal_case.severity=suggestion
 
+# CS0436: Type conflicts with imported type
+dotnet_diagnostic.CS0436.severity = none
+
 ##########
 ## Column guidelines
 ## documentation: https://marketplace.visualstudio.com/items?itemName=PaulHarrington.EditorGuidelines

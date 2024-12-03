@@ -1,7 +1,7 @@
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using StardewMods.VisitorsMod.Framework.Data;
-using StardewMods.VisitorsMod.Framework.Services.Visitors;
+using StardewMods.SheepCore.Framework.Services;
 
 namespace StardewMods.VisitorsMod.Framework.Visitors;
 internal class WarpSpawner : LocationSpawner, ISpawner

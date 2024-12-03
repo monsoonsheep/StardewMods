@@ -1,7 +1,7 @@
 global using StardewValley;
 global using StardewModdingAPI;
 global using StardewModdingAPI.Events;
-global using MonsoonSheep.Stardew.Common;
+global using StardewMods.Common;
 global using System;
 global using System.Collections.Generic;
 global using System.Linq;

@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley.Menus;
 
-namespace MonsoonSheep.Stardew.Common.UI;
+namespace StardewMods.Common.UI;
 /// <summary>A button UI component which lets the player trigger a dropdown list.</summary>
 internal class Dropdown<TItem> : ClickableComponent
 {

@@ -1,6 +1,6 @@
 using HarmonyLib;
 
-namespace MonsoonSheep.Stardew.Common.Patching;
+namespace StardewMods.Common.Patching;
 /// <summary>A set of Harmony patches to apply.</summary>
 internal interface IPatcher
 {

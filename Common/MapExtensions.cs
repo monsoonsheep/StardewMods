@@ -2,7 +2,7 @@ using xTile;
 using xTile.Dimensions;
 using xTile.Layers;
 
-namespace MonsoonSheep.Stardew.Common;
+namespace StardewMods.Common;
 /// <summary>Provides extension methods for <see cref="Map"/>.</summary>
 internal static class MapExtensions
 {

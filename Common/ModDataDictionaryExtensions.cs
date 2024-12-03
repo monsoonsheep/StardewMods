@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using StardewValley.Mods;
 
-namespace MonsoonSheep.Stardew.Common;
+namespace StardewMods.Common;
 /// <summary>Provides extension methods for reading and writing values in <see cref="ModDataDictionary"/> fields.</summary>
 internal static class ModDataDictionaryExtensions
 {
