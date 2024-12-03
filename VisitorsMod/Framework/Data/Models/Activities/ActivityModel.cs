@@ -1,5 +1,11 @@
 #nullable disable
-namespace StardewMods.VisitorsMod.Framework.Models.Activities;
+using StardewMods;
+
+
+#nullable disable
+using StardewMods.VisitorsMod.Framework.Data.Models.Activities;
+
+namespace StardewMods.VisitorsMod.Framework.Data.Models.Activities;
 
 public class ActivityModel
 {

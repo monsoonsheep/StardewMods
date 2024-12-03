@@ -1,12 +1,12 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using StardewMods.VisitorsMod.Framework.Models;
-using StardewMods.VisitorsMod.Framework.Models.Activities;
 using StardewMods.VisitorsMod.Framework.Visitors;
 using StardewMods.VisitorsMod.Framework.Data;
 using StardewMods.VisitorsMod.Framework.Enums;
 using StardewMods.VisitorsMod.Framework.Services.Visitors.Activities;
 using HarmonyLib;
+using StardewMods.VisitorsMod.Framework.Data.Models;
+using StardewMods.VisitorsMod.Framework.Data.Models.Activities;
 
 namespace StardewMods.VisitorsMod.Framework.Services.Visitors;
 

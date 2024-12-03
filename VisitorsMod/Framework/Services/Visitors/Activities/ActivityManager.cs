@@ -1,5 +1,5 @@
 using System.Text.RegularExpressions;
-using StardewMods.VisitorsMod.Framework.Models.Activities;
+using StardewMods.VisitorsMod.Framework.Data.Models.Activities;
 
 namespace StardewMods.VisitorsMod.Framework.Services.Visitors.Activities;
 

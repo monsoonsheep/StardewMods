@@ -1,4 +1,4 @@
-namespace StardewMods.VisitorsMod.Framework.Models.Appearances;
+namespace StardewMods.VisitorsMod.Framework.Data.Models.Appearances;
 
 internal class OutfitModel : AppearanceModel
 {

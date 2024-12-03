@@ -1,7 +1,7 @@
 ﻿#nullable disable
 using Microsoft.Xna.Framework;
 
-namespace StardewMods.VisitorsMod.Framework.Models.Activities;
+namespace StardewMods.VisitorsMod.Framework.Data.Models.Activities;
 
 public class ActivityActorModel
 {

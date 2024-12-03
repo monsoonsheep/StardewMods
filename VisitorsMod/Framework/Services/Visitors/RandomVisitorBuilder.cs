@@ -1,5 +1,5 @@
 using StardewMods.VisitorsMod.Framework.Data;
-using StardewMods.VisitorsMod.Framework.Models;
+using StardewMods.VisitorsMod.Framework.Data.Models;
 using StardewMods.VisitorsMod.Framework.Services.Visitors.RandomVisitors;
 
 namespace StardewMods.VisitorsMod.Framework.Services.Visitors;

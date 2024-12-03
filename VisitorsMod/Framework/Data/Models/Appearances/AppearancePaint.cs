@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 
-namespace StardewMods.VisitorsMod.Framework.Models.Appearances;
+namespace StardewMods.VisitorsMod.Framework.Data.Models.Appearances;
 
 public class AppearancePaint
 {

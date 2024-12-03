@@ -1,6 +1,6 @@
-using StardewMods.VisitorsMod.Framework.Models;
-using StardewMods.VisitorsMod.Framework.Models.Activities;
-using StardewMods.VisitorsMod.Framework.Models.Appearances;
+using StardewMods.VisitorsMod.Framework.Data.Models;
+using StardewMods.VisitorsMod.Framework.Data.Models.Activities;
+using StardewMods.VisitorsMod.Framework.Data.Models.Appearances;
 
 namespace StardewMods.VisitorsMod.Framework.Services;
 

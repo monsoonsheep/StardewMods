@@ -1,5 +1,5 @@
+using StardewMods.VisitorsMod.Framework.Data.Models.Activities;
 using StardewMods.VisitorsMod.Framework.Enums;
-using StardewMods.VisitorsMod.Framework.Models.Activities;
 using StardewMods.VisitorsMod.Framework.Visitors;
 
 namespace StardewMods.VisitorsMod.Framework.Data;

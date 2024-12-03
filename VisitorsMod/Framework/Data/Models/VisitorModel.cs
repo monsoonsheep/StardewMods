@@ -1,4 +1,4 @@
-namespace StardewMods.VisitorsMod.Framework.Models;
+namespace StardewMods.VisitorsMod.Framework.Data.Models;
 
 internal class VisitorModel
 {

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <RootNamespace>StardewMods.MyShops</RootNamespace>
+    <RootNamespace>SheepCore</RootNamespace>
     <Version>0.1.0</Version>
     <EnableHarmony>true</EnableHarmony>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -24,10 +24,10 @@
 
   <!-- SMAPI Manifest -->
   <PropertyGroup>
-    <Name>MyShops</Name>
+    <Name>SheepCore</Name>
     <Authors>MonsoonSheep</Authors>
     <Description>Description</Description>
-    <UniqueId>MonsoonSheep.MyShops</UniqueId>
+    <UniqueId>MonsoonSheep.SheepCore</UniqueId>
     <UpdateKeys>Nexus:idhere</UpdateKeys>
     <Version>0.1.0</Version>
     <MinimumApiVersion>4.0.0</MinimumApiVersion>
@@ -42,11 +42,7 @@
 
   <ItemGroup>
     <Folder Include="Framework\Interfaces\" />
-    <Folder Include="Framework\Data\" />
-    <Folder Include="Framework\Netcode\" />
-    <Folder Include="Framework\Game\" />
-    <Folder Include="Framework\Enums\" />
-    <Folder Include="Framework\Data\Models\" />
+    <Folder Include="Framework\Services\" />
   </ItemGroup>
     
 </Project>

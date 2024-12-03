@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Netcode;
-using StardewMods.VisitorsMod.Framework.Models.Appearances;
+using StardewMods.VisitorsMod.Framework.Data.Models.Appearances;
 
 namespace StardewMods.VisitorsMod.Framework.Data;
 
