@@ -49,47 +49,47 @@ internal class EndBehaviors : Service
 
     private static void After_update(NPC __instance, GameTime time, GameLocation location)
     {
-        if (NpcState.values.TryGetValue(__instance, out var holder))
+        if (NpcState.table.TryGetValue(__instance, out var values))
         {
             // Lerping the position of the character (for sitting and getting up)
-            if (holder.lerpPosition >= 0f)
+            if (values.lerpPosition >= 0f)
             {
-                holder.lerpPosition = holder.lerpPosition + (float)time.ElapsedGameTime.TotalSeconds;
+                values.lerpPosition = values.lerpPosition + (float)time.ElapsedGameTime.TotalSeconds;
 
-                if (holder.lerpPosition >= holder.lerpDuration)
+                if (values.lerpPosition >= values.lerpDuration)
                 {
-                    holder.lerpPosition = holder.lerpDuration;
+                    values.lerpPosition = values.lerpDuration;
                 }
 
                 __instance.Position = new Vector2(
-                    Utility.Lerp(holder.lerpStartPosition.X, holder.lerpEndPosition.X, holder.lerpPosition / holder.lerpDuration),
-                    Utility.Lerp(holder.lerpStartPosition.Y, holder.lerpEndPosition.Y, holder.lerpPosition / holder.lerpDuration));
+                    Utility.Lerp(values.lerpStartPosition.X, values.lerpEndPosition.X, values.lerpPosition / values.lerpDuration),
+                    Utility.Lerp(values.lerpStartPosition.Y, values.lerpEndPosition.Y, values.lerpPosition / values.lerpDuration));
 
-                if (holder.lerpPosition >= holder.lerpDuration)
+                if (values.lerpPosition >= values.lerpDuration)
                 {
-                    holder.afterLerp?.Invoke(__instance);
-                    holder.afterLerp = null;
-                    holder.lerpPosition = -1f;
+                    values.afterLerp?.Invoke(__instance);
+                    values.afterLerp = null;
+                    values.lerpPosition = -1f;
                 }
             }
-            else if (holder.isLookingAround)
+            else if (values.isLookingAround)
             {
-                holder.behaviorTimerAccumulation += time.ElapsedGameTime.Milliseconds;
+                values.behaviorTimerAccumulation += time.ElapsedGameTime.Milliseconds;
 
-                if (holder.behaviorTimerAccumulation >= holder.behaviorTimeTotal)
+                if (values.behaviorTimerAccumulation >= values.behaviorTimeTotal)
                 {
                     int dominantDirection = -1;
 
-                    if (holder.lookDirections.Count(i => i == 0) > 1)
+                    if (values.lookDirections.Count(i => i == 0) > 1)
                         dominantDirection = 0;
-                    if (holder.lookDirections.Count(i => i == 1) > 1)
+                    if (values.lookDirections.Count(i => i == 1) > 1)
                         dominantDirection = 1;
-                    if (holder.lookDirections.Count(i => i == 2) > 1)
+                    if (values.lookDirections.Count(i => i == 2) > 1)
                         dominantDirection = 2;
-                    if (holder.lookDirections.Count(i => i == 3) > 1)
+                    if (values.lookDirections.Count(i => i == 3) > 1)
                         dominantDirection = 3;
 
-                    int direction = holder.lookDirections.OrderBy(_ => Game1.random.Next()).First(i => i != dominantDirection);
+                    int direction = values.lookDirections.OrderBy(_ => Game1.random.Next()).First(i => i != dominantDirection);
 
                     if (Game1.random.NextDouble() < 0.5f)
                     {
@@ -97,8 +97,8 @@ internal class EndBehaviors : Service
                     }
 
                     __instance.faceDirection(direction);
-                    holder.behaviorTimerAccumulation = 0;
-                    holder.behaviorTimeTotal = Game1.random.Next(
+                    values.behaviorTimerAccumulation = 0;
+                    values.behaviorTimeTotal = Game1.random.Next(
                         (direction == dominantDirection) ? 6000 : 1000,
                         (direction == dominantDirection) ? 12000 : 5000);
                 }
@@ -108,17 +108,17 @@ internal class EndBehaviors : Service
 
     private static bool Before_finishEndOfRouteAnimation(NPC __instance)
     {
-        if (NpcState.values.TryGetValue(__instance, out var holder))
+        if (NpcState.table.TryGetValue(__instance, out var values))
         {
-            if (holder.isSitting)
+            if (values.isSitting)
             {
                 // Get up from chair
-                holder.isSitting = false;
-                holder.lerpStartPosition = __instance.Position;
-                holder.lerpEndPosition = holder.sittingOriginalPosition;
-                holder.lerpPosition = 0f;
-                holder.lerpDuration = 0.3f;
-                holder.afterLerp = delegate (NPC n)
+                values.isSitting = false;
+                values.lerpStartPosition = __instance.Position;
+                values.lerpEndPosition = values.sittingOriginalPosition;
+                values.lerpPosition = 0f;
+                values.lerpDuration = 0.3f;
+                values.afterLerp = delegate (NPC n)
                 {
                     AccessTools.Method(typeof(NPC), "routeEndAnimationFinished", [typeof(Farmer)]).Invoke(n, [null]);
                 };
