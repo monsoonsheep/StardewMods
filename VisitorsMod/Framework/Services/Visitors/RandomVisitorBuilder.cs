@@ -1,5 +1,3 @@
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using StardewMods.VisitorsMod.Framework.Data;
 using StardewMods.VisitorsMod.Framework.Models;
 using StardewMods.VisitorsMod.Framework.Services.Visitors.RandomVisitors;

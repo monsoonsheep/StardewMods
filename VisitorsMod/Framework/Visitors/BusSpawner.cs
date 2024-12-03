@@ -1,13 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using StardewMods.VisitorsMod.Framework.Data;
 using StardewMods.VisitorsMod.Framework.Interfaces;
-using StardewMods.VisitorsMod.Framework.Models.Activities;
 using StardewMods.VisitorsMod.Framework.Services.Visitors;
 
 namespace StardewMods.VisitorsMod.Framework.Visitors;
@@ -29,7 +23,7 @@ internal class BusSpawner : LocationSpawner, ISpawner
     public override bool IsAvailable()
         => this.api.IsAvailable();
     
-    protected override (GameLocation, Point) GetSpawnLocation()
+    protected override (GameLocation, Point) GetSpawnLocation(Visit visit)
     {
         return (Game1.getLocationFromName("BusStop"), this.api.BusTilePosition);
     }

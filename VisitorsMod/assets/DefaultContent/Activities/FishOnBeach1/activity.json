@@ -1,26 +1,26 @@
 {
-    "Location": "Beach",
+    "Location": "Saloon",
     "Actors": [
         {
             "TilePosition": {
-                "X": 41,
-                "Y": 25
+                "X": 20,
+                "Y": 19
             },
-            "Behavior": "look_2",
+            "Behavior": "sit_0_3",
             "Animation": "Fishing"
         },
         {
             "TilePosition": {
-                "X": 42,
-                "Y": 25
+                "X": 20,
+                "Y": 20
             },
-            "Behavior": "look_2_2_1_3",
+            "Behavior": "look_2_3_3",
             "Animation": ""
         },
     ],
     "TimeRange": [610, 700],
     "Schedule": "",
     "ForRandomVisitors": true,
-    "Duration": "Medium",
+    "Duration": "Short",
     "ArriveBy": [ "Warp" ]
 }

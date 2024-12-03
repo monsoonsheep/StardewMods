@@ -1,8 +1,6 @@
-using System.Diagnostics;
-using StardewValley.Pathfinding;
-using StardewValley;
 using Microsoft.Xna.Framework;
 using StardewMods.VisitorsMod.Framework.Services.Visitors;
+using StardewMods.VisitorsMod.Framework.Data;
 
 namespace StardewMods.VisitorsMod.Framework.Visitors;
 internal class TrainSpawner : LocationSpawner, ISpawner
@@ -20,7 +18,7 @@ internal class TrainSpawner : LocationSpawner, ISpawner
     public override string Id
         => "Train";
 
-    protected override (GameLocation, Point) GetSpawnLocation()
+    protected override (GameLocation, Point) GetSpawnLocation(Visit visit)
     {
         return (Game1.getLocationFromName("Railroad"), new Point(30, 40));
     }

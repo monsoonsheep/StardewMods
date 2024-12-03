@@ -1,5 +1,3 @@
-using Microsoft.Xna.Framework;
-
 namespace StardewMods.BusSchedules.Framework;
 
 internal static class Values

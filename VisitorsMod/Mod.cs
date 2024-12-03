@@ -9,14 +9,11 @@ using StardewMods.VisitorsMod.Framework.Services;
 using StardewMods.VisitorsMod.Framework.Services.Visitors;
 using StardewMods.VisitorsMod.Framework.Data;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework;
 using StardewMods.VisitorsMod.Framework.Services.Visitors.RandomVisitors;
 using StardewMods.VisitorsMod.Framework;
 using StardewMods.VisitorsMod.Framework.Interfaces;
 using StardewMods.VisitorsMod.Framework.Visitors;
 using StardewMods.VisitorsMod.Framework.Services.Visitors.Activities;
-using System.Reflection;
-using System.ComponentModel;
 
 namespace StardewMods.VisitorsMod;
 

@@ -2,18 +2,11 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewMods.VisitorsMod.Framework.Models;
 using StardewMods.VisitorsMod.Framework.Models.Activities;
-using System.Text.RegularExpressions;
-
-using StardewValley.Pathfinding;
-using StardewValley;
-using Microsoft.CodeAnalysis.Text;
 using StardewMods.VisitorsMod.Framework.Visitors;
 using StardewMods.VisitorsMod.Framework.Data;
 using StardewMods.VisitorsMod.Framework.Enums;
-using System.Diagnostics;
 using StardewMods.VisitorsMod.Framework.Services.Visitors.Activities;
 using HarmonyLib;
-using static StardewValley.Menus.ConfirmationDialog;
 
 namespace StardewMods.VisitorsMod.Framework.Services.Visitors;
 
@@ -106,54 +99,63 @@ internal class VisitorManager : Service
 
     private void OnTimeChanged(object? sender, TimeChangedEventArgs e)
     {
-        if (!this.visitSchedule.ContainsKey(Game1.timeOfDay))
-            return;
-
-        foreach (Visit visit in this.visitSchedule[Game1.timeOfDay])
+        // Start scheduled visits
+        if (this.visitSchedule.ContainsKey(Game1.timeOfDay))
         {
-            if (visit.state == VisitState.NotStarted)
+            foreach (Visit visit in this.visitSchedule[Game1.timeOfDay])
             {
-                this.PopulateNpcsForVisit(visit);
-
-                if (this.StartVisit(visit))
+                if (visit.state == VisitState.NotStarted)
                 {
-                    visit.state = VisitState.HeadingToDestination;
+                    this.PopulateNpcsForVisit(visit);
+
+                    if (this.StartVisit(visit))
+                    {
+                        visit.state = VisitState.HeadingToDestination;
+                    }
+                    else
+                    {
+                        visit.state = VisitState.Failed;
+                    }
                 }
             }
-            else if (visit.state == VisitState.Ongoing)
+        }
+
+        // End visits that are due to end
+        foreach (Visit visit in this.OngoingVisits)
+        {
+            if (Game1.timeOfDay >= visit.endTime)
             {
-                if (Game1.timeOfDay >= visit.endTime)
+                if (!visit.spawner.EndVisit(visit))
                 {
-                    if (!visit.spawner.EndVisit(visit))
-                    {
-                        this.Log.Error("NPCs couldn't path back");
-                        for (int i = 0; i < visit.group.Count; i++)
-                        {
-                            NPC npc = visit.group[i];
-                            npc.currentLocation.characters.Remove(npc);
-                            npc.currentLocation = null;
-                            visit.state = VisitState.Ended;
-                        }
-                        continue;
-                    }
-                    
+                    this.Log.Error("NPCs couldn't path back");
                     for (int i = 0; i < visit.group.Count; i++)
                     {
                         NPC npc = visit.group[i];
-                        npc.controller.endBehaviorFunction = delegate (Character c, GameLocation loc)
-                        {
-                            if (c is NPC n)
-                            {
-                                n.currentLocation.characters.Remove(n);
-                                n.currentLocation = null;
-
-                                if (visit.group.All(i => i.currentLocation == null))
-                                {
-                                    visit.state = VisitState.Ended;
-                                }
-                            }
-                        };
+                        npc.currentLocation.characters.Remove(npc);
+                        npc.currentLocation = null;
+                        visit.state = VisitState.Ended;
                     }
+                    continue;
+                }
+
+                visit.state = VisitState.HeadingBack;
+
+                for (int i = 0; i < visit.group.Count; i++)
+                {
+                    NPC npc = visit.group[i];
+                    npc.controller.endBehaviorFunction = delegate (Character c, GameLocation loc)
+                    {
+                        if (c is NPC n)
+                        {
+                            n.currentLocation.characters.Remove(n);
+                            n.currentLocation = null;
+
+                            if (visit.group.All(i => i.currentLocation == null))
+                            {
+                                visit.state = VisitState.Ended;
+                            }
+                        }
+                    };
                 }
             }
         }
@@ -166,22 +168,34 @@ internal class VisitorManager : Service
         // Create NPCs
         foreach (var actor in visit.activity.Actors)
         {
-            VisitorModel model = this.visitorBuilder.GenerateRandomVisitor();
-
-            Texture2D portrait = Game1.content.Load<Texture2D>(model.Portrait);
-            AnimatedSprite sprite = new AnimatedSprite(model.Spritesheet, 0, 16, 32);
-            NPC npc = new NPC(
-                sprite,
-                new Vector2(7, 24) * 64f,
-                "Town",
-                2,
-                Values.RANDOMVISITOR_NAMEPREFIX + model.Name,
-                false,
-                portrait);
-            npc.portraitOverridden = true; // don't load portraits again
+            NPC npc = this.CreateRandomNpc();
 
             visit.group.Add(npc);
         }
+    }
+
+    private NPC CreateRandomNpc()
+    {
+        VisitorModel model = this.visitorBuilder.GenerateRandomVisitor();
+
+        Texture2D portrait = Game1.content.Load<Texture2D>(model.Portrait);
+        AnimatedSprite sprite = new AnimatedSprite(model.Spritesheet, 0, 16, 32);
+        NPC npc = new NPC(
+            sprite,
+            new Vector2(7, 24) * 64f,
+            "Town",
+            2,
+            Values.RANDOMVISITOR_NAMEPREFIX + model.Name,
+            false,
+            portrait);
+
+        // don't load portraits again
+        npc.portraitOverridden = true;
+
+        // for ExtraNpcBehaviors sitting
+        npc.modData[Values.DATA_SITTINGSPRITES] = "19 17 16 18";
+
+        return npc;
     }
 
     private bool StartVisit(Visit visit)
@@ -200,17 +214,20 @@ internal class VisitorManager : Service
             return false;
         }
 
-        // Set end behavior
+        // Set behavior for activity when reached
         for (int i = 0; i < visit.group.Count; i++)
         {
             NPC npc = visit.group[i];
             string behavior = visit.activity.Actors[i].Behavior;
-            npc.controller.endBehaviorFunction = (PathFindController.endBehavior?)
-                AccessTools.Method(
-                    typeof(NPC),
-                    "getRouteEndBehaviorFunction",
-                    [typeof(string), typeof(string)])
-                .Invoke(npc, [behavior, null]);
+            
+            npc.controller.endBehaviorFunction = delegate (Character c, GameLocation loc)
+            {
+                if (c is NPC n)
+                {
+                    n.StartActivityRouteEndBehavior(behavior, null);
+                    visit.state = VisitState.Ongoing;
+                }
+            };   
         }
 
         return true;

@@ -10,6 +10,9 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ModZipPath>$(SolutionDir)\_releases</ModZipPath>
+
+    <!-- For ModManifestBuilder -->
+    <Version_AppendConfiguration>false</Version_AppendConfiguration>
   </PropertyGroup>
 
   <!-- mod build package -->

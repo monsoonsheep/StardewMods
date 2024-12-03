@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using StardewMods.VisitorsMod.Framework.Enums;
 using StardewMods.VisitorsMod.Framework.Models.Activities;
 using StardewMods.VisitorsMod.Framework.Visitors;

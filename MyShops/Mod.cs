@@ -2,16 +2,19 @@ global using System;
 global using System.Collections.Generic;
 global using System.Linq;
 global using System.Text;
+global using System.Threading.Tasks;
 global using HarmonyLib;
 global using Microsoft.Xna.Framework;
+global using StardewMods.MyShops.Framework;
 global using StardewModdingAPI;
 global using StardewModdingAPI.Events;
 global using StardewValley;
 global using MonsoonSheep.Stardew.Common;
-using SimpleInjector;
-using StardewMods.ExtraNpcBehaviors.Framework.Services.Visitors;
 
-namespace StardewMods.ExtraNpcBehaviors;
+using SimpleInjector;
+using StardewMods.MyShops.Framework.Services;
+
+namespace StardewMods.MyShops;
 public class Mod : StardewModdingAPI.Mod
 {
     internal static Mod Instance = null!;
@@ -21,6 +24,7 @@ public class Mod : StardewModdingAPI.Mod
 
     public override void Entry(IModHelper helper)
     {
+        I18n.Init(this.Helper.Translation);
         this.Helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
     }
 
@@ -46,7 +50,9 @@ public class Mod : StardewModdingAPI.Mod
 
         c.RegisterSingleton<ILogger, Logger>();
 
-        c.RegisterSingleton<EndBehaviors>();
+        c.RegisterSingleton<ModEvents>();
+        c.RegisterSingleton<LocationProvider>();
+
         c.Verify();
     }
 }

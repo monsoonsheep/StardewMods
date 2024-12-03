@@ -1,5 +1,3 @@
-using StardewModdingAPI;
-
 namespace MonsoonSheep.Stardew.Common;
 public abstract class Service
 {

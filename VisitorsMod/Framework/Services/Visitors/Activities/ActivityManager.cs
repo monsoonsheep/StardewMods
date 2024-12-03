@@ -1,5 +1,3 @@
-using StardewMods.VisitorsMod.Framework.Data;
-using StardewMods.VisitorsMod.Framework.Interfaces;
 using System.Text.RegularExpressions;
 using StardewMods.VisitorsMod.Framework.Models.Activities;
 

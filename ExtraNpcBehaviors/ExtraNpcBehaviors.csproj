@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <RootNamespace>ExtraNpcBehaviors</RootNamespace>
+    <RootNamespace>StardewMods.ExtraNpcBehaviors</RootNamespace>
     <Version>0.1.0</Version>
     <EnableHarmony>true</EnableHarmony>
     <ImplicitUsings>enable</ImplicitUsings>

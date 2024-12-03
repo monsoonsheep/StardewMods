@@ -1,13 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using StardewMods.VisitorsMod.Framework.Data;
-using StardewMods.VisitorsMod.Framework.Enums;
-using StardewMods.VisitorsMod.Framework.Models.Activities;
 using StardewMods.VisitorsMod.Framework.Services.Visitors;
 
 namespace StardewMods.VisitorsMod.Framework.Visitors;
@@ -21,23 +14,49 @@ internal class WarpSpawner : LocationSpawner, ISpawner
     public override string Id
         => "Warp";
 
-    protected override (GameLocation, Point) GetSpawnLocation()
-        => throw new NotImplementedException();
-    
+    protected override (GameLocation, Point) GetSpawnLocation(Visit visit)
+    {
+        GameLocation location = Game1.getLocationFromName(visit.activity.Location);
+        Point entryPoint = Point.Zero;
+
+        Warp warpOut = location.GetFirstPlayerWarp();
+        GameLocation warpedLocation = Game1.getLocationFromName(warpOut.TargetName);
+        Point warpedOutTile = new Point(warpOut.TargetX, warpOut.TargetY);
+
+        foreach (Warp w in warpedLocation.warps)
+        {
+            if (Math.Abs(w.X - warpedOutTile.X) <= 2 && Math.Abs(w.Y - warpedOutTile.Y) <= 2)
+            {
+                entryPoint = new Point(w.TargetX, w.TargetY);
+                break;
+            }
+        }
+
+        foreach (KeyValuePair<Point, string> door in warpedLocation.doors.Pairs)
+        {
+            if ((door.Value == location.Name || door.Value == location.NameOrUniqueName)
+                && Math.Abs(door.Key.X - warpedOutTile.X) <= 2 && Math.Abs(door.Key.Y - warpedOutTile.Y) <= 2)
+            {
+                entryPoint = warpedLocation.getWarpPointTarget(door.Key);
+                break;
+            }
+        }
+
+        return (location, entryPoint);
+    }
+
     public override bool StartVisit(Visit visit)
     {
-        GameLocation targetLocation = Game1.getLocationFromName(visit.activity.Location);
-        
-        Point? entryPoint = this.GetEntryWarpPoint(targetLocation);
-        if (entryPoint == null)
+        (GameLocation targetLocation, Point entryPoint) = this.GetSpawnLocation(visit);
+
+        if (entryPoint == Point.Zero)
             return false;
 
         for (int i = 0; i < visit.group.Count; i++)
         {
             NPC npc = visit.group[i];
-            int delay = i * 800;
 
-            Vector2 warpPosition = new Vector2(entryPoint.Value.X * 64f, entryPoint.Value.Y * 64f);
+            Vector2 warpPosition = new Vector2(entryPoint.X * 64f, entryPoint.Y * 64f);
 
             Point targetTile = visit.activity.Actors[i].TilePosition;
 
@@ -49,10 +68,12 @@ internal class WarpSpawner : LocationSpawner, ISpawner
             {
                 return false;
             }
-            Vector2 pos = npc.Position;
 
-            npc.Position = new Vector2(-1000f, -1000f);
             AccessTools.Field(typeof(Character), "freezeMotion").SetValue(npc, true);
+            int delay = i * 800;
+
+            Vector2 pos = npc.Position;
+            npc.Position = new Vector2(-1000f, -1000f);
             Game1.delayedActions.Add(new DelayedAction(delay, delegate
             {
                 npc.Position = pos;
@@ -60,20 +81,5 @@ internal class WarpSpawner : LocationSpawner, ISpawner
             }));
         }
         return true;
-    }
-
-    private Point? GetEntryWarpPoint(GameLocation location)
-    {
-        Warp entryWarp = location.GetFirstPlayerWarp();
-        GameLocation warpedLocation = Game1.getLocationFromName(entryWarp.TargetName);
-        Point warpedTile = new Point(entryWarp.TargetX, entryWarp.TargetY);
-
-        foreach (Warp w in warpedLocation.warps)
-        {
-            if (Math.Abs(w.X - warpedTile.X) <= 2 &&  Math.Abs(w.Y - warpedTile.Y) <= 2)
-                return new Point(w.TargetX, w.TargetY);
-        }
-
-        return null;
     }
 }

@@ -1,17 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <RootNamespace>StardewMods.VisitorsMod</RootNamespace>
+    <RootNamespace>StardewMods.MyShops</RootNamespace>
     <Version>0.1.0</Version>
     <EnableHarmony>true</EnableHarmony>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="Framework\Services\Visitors\Behaviors\**" />
-    <EmbeddedResource Remove="Framework\Services\Visitors\Behaviors\**" />
-    <None Remove="Framework\Services\Visitors\Behaviors\**" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="SimpleInjector">
@@ -30,11 +24,11 @@
 
   <!-- SMAPI Manifest -->
   <PropertyGroup>
-    <Name>VisitorsMod</Name>
+    <Name>MyShops</Name>
     <Authors>MonsoonSheep</Authors>
-    <Description>Visitors arrive in Stardew Valley</Description>
-    <UniqueId>MonsoonSheep.VisitorsMod</UniqueId>
-    <UpdateKeys>Nexus:20695</UpdateKeys>
+    <Description>Description</Description>
+    <UniqueId>MonsoonSheep.MyShops</UniqueId>
+    <UpdateKeys>Nexus:idhere</UpdateKeys>
     <Version>0.1.0</Version>
     <MinimumApiVersion>4.0.0</MinimumApiVersion>
     <MinimumGameVersion>1.6</MinimumGameVersion>
@@ -44,16 +38,10 @@
     <SMAPIDependency Include="spacechase0.SpaceCore" Version="1.24" Reference="false" />
     <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
     <SMAPIDependency Include="furyx639.FauxCore" Version="1.0.0" required="true" />
-    <SMAPIDependency Include="MonsoonSheep.ExtraNpcBehaviors" Version="0.1.0" required="true" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="i18n\" />
+    <Folder Include="Framework\Interfaces\" />
   </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Update="Leclair.Stardew.ModManifestBuilder" Version="2.4.0" />
-    <PackageReference Update="Pathoschild.Stardew.ModBuildConfig" Version="4.3.2" />
-  </ItemGroup>
-  
+    
 </Project>

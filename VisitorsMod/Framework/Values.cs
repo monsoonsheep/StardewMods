@@ -1,5 +1,3 @@
-using Microsoft.Xna.Framework;
-
 namespace StardewMods.VisitorsMod.Framework;
 
 internal static class Values
@@ -24,4 +22,7 @@ internal static class Values
     internal const string ACTIVITY_ARRIVEBY_WARP = "Warp";
 
     internal const string RANDOMVISITOR_NAMEPREFIX = "VisitorNPC_";
+
+    internal const string DATA_SITTINGSPRITES = "MonsoonSheep.ExtraNpcBehaviors/SittingSprites";
+
 }
