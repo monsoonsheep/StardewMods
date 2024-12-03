@@ -13,6 +13,7 @@
       <Version>5.4.2</Version>
       <Private>false</Private>
     </PackageReference>
+    <Reference Include="SpaceCore" HintPath="$(GamePath)\Mods\SpaceCore\SpaceCore.dll" Private="false" />
   </ItemGroup>
 
   <!-- Translations -->
@@ -40,11 +41,6 @@
 
   <ItemGroup>
     <Folder Include="Framework\Interfaces\" />
-    <Folder Include="Framework\Data\" />
-    <Folder Include="Framework\Netcode\" />
-    <Folder Include="Framework\Game\" />
-    <Folder Include="Framework\Enums\" />
-    <Folder Include="Framework\Data\Models\" />
   </ItemGroup>
     
 </Project>
