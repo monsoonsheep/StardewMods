@@ -8,7 +8,7 @@ internal class ActivityManager
 {
     internal static ActivityManager Instance = null!;
 
-    internal Dictionary<string, ActivityModel> activities = [];
+    internal Dictionary<string, ActivityModel> Activities = [];
 
     public ActivityManager()
         => Instance = this;
@@ -17,7 +17,7 @@ internal class ActivityManager
     {
         Mod.Events.Content.AssetRequested += this.OnAssetRequested;
 
-        this.activities = Mod.Helper.GameContent.Load<Dictionary<string, ActivityModel>>("Mods/MonsoonSheep.VisitorsMod/Activities");
+        this.Activities = Mod.Helper.GameContent.Load<Dictionary<string, ActivityModel>>("Mods/MonsoonSheep.VisitorsMod/Activities");
     }
 
     private void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
@@ -45,7 +45,7 @@ internal class ActivityManager
     {
         List<ActivityModel> list = [];
 
-        foreach (ActivityModel activity in this.activities.Values)
+        foreach (ActivityModel activity in this.Activities.Values)
         {
             string[] split = activity.Schedule.Split(' ');
 

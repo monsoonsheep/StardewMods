@@ -33,6 +33,8 @@ public class Mod : StardewModdingAPI.Mod
 
     public override void Entry(IModHelper helper)
     {
+        I18n.Init(Helper.Translation);
+
         Log.Monitor = base.Monitor;
 
         Events = base.Helper.Events;
@@ -45,7 +47,7 @@ public class Mod : StardewModdingAPI.Mod
 
         Visitors = new VisitorManager();
         RandomSprites = new RandomSprites(new ColorsManager());
-        I18n.Init(Helper.Translation);
+
         Helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
     }
 
