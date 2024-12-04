@@ -4,13 +4,11 @@
     <RootNamespace>StardewMods.BusSchedules</RootNamespace>
     <Version>0.1.0</Version>
     <EnableHarmony>true</EnableHarmony>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SheepCore\SheepCore.csproj">
-      <Private>true</Private>
-    </ProjectReference>
+    <Reference Include="SheepCore" HintPath="$(GamePath)\Mods\SheepCore\SheepCore.dll" Private="false" />
+    <PackageReference Update="Leclair.Stardew.ModManifestBuilder" Version="2.4.0" />
   </ItemGroup>
   
   <!-- Translations -->
@@ -31,6 +29,7 @@
   </PropertyGroup>
   <ItemGroup>
     <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
+    <SMAPIDependency Include="MonsoonSheep.SheepCore" Version="0.1.0" required="true" />
   </ItemGroup>
   
 </Project>

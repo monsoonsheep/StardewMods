@@ -22,7 +22,7 @@ public class Mod : StardewModdingAPI.Mod
     internal IModEvents Events { get; private set; } = null!;
     internal IManifest Manifest { get; private set; } = null!;
     internal IReflectionHelper Reflection {  get; private set; } = null!;
-    internal IMultiplayerHelper Multiplayer {  get; private set; } = null!;
+    internal IMultiplayerHelper Multiplayer { get; private set; } = null!;
     internal Harmony Harmony { get; private set; } = null!;
     internal LocationProvider Locations { get; private set; } = null!;
     internal ModEvents ModEvents { get; private set; } = null!;
@@ -44,9 +44,13 @@ public class Mod : StardewModdingAPI.Mod
     [EventPriority(EventPriority.High)]
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
     {
+        Log.Monitor = base.Monitor;
+
         this.Harmony = new Harmony(this.ModManifest.UniqueID);
-        this.Events = this.Events;
-        this.Manifest = this.ModManifest;
+        this.Events = base.Helper.Events;
+        this.Manifest = base.ModManifest;
+        this.Reflection = base.Helper.Reflection;
+        this.Multiplayer = base.Helper.Multiplayer;
         this.Locations = new LocationProvider();
         this.ModEvents = new ModEvents();
 

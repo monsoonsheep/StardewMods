@@ -7,31 +7,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
-  <!-- Dependencies -->
-  <!--
+  <!-- Dependencies -->  
   <ItemGroup>
-    <PackageReference Include="SimpleInjector">
-      <HintPath>$(GameModsPath)\FauxCore\SimpleInjector.dll</HintPath>
-      <Version>5.4.2</Version>
-      <Private>false</Private>
-    </PackageReference>
-  </ItemGroup>
-  -->
-  
-  <ItemGroup>
-    <ProjectReference Include="..\SheepCore\SheepCore.csproj">
-      <Private>false</Private>
-    </ProjectReference>
-    
-    <PackageReference Update="Leclair.Stardew.ModManifestBuilder" Version="2.4.0" />
-    <PackageReference Update="Pathoschild.Stardew.ModBuildConfig" Version="4.3.2" />
+    <Reference Include="SheepCore" HintPath="$(GamePath)\Mods\SheepCore\SheepCore.dll" Private="false" />
   </ItemGroup>
   
   <!-- Translations -->
   <ItemGroup>
     <AdditionalFiles Include="i18n/default.json" />
-    <Folder Include="Framework\Visitors\" />
-    <Folder Include="i18n\" />
   </ItemGroup>
 
   <!-- SMAPI Manifest -->

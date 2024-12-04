@@ -93,14 +93,4 @@ internal class ActivityManager
 
         return list;
     }
-
-    internal ActivityModel DebugGetActivity()
-    {
-        return ModEntry.ContentPacks.activities["ShopAdventureGuild1"];
-    }
-
-    internal IEnumerable<ActivityModel> GetActivities()
-    {
-        return ModEntry.ContentPacks.activities.Values;
-    }
 }

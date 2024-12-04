@@ -13,7 +13,7 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <EnableModZip Condition="'$(Configuration)' == 'Debug'">False</EnableModZip>
+    <!-- <EnableModZip Condition="'$(Configuration)' == 'Debug'">False</EnableModZip> -->
     <ModZipPath>$(SolutionDir)\_releases</ModZipPath>
     
 
@@ -23,7 +23,8 @@
 
   <!-- mod build package -->
   <ItemGroup>
-    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.3.0" />
+    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.3.2" />
     <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.0" />
+    <PackageReference Include="Leclair.Stardew.ModManifestBuilder" Version="2.4.0" />
   </ItemGroup>
 </Project>

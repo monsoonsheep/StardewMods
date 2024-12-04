@@ -31,6 +31,7 @@ internal class BusManager
     internal void Initialize()
     {
         this.busMovement = new BusMovement();
+        this.busMovement.Initialize();
         this.Timings = new Timings();
 
         IModEvents events = Mod.Instance.Events;

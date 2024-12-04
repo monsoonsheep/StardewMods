@@ -10,24 +10,20 @@
   "UniqueID": "MonsoonSheep.BusSchedules",
   "Name": "BusSchedules",
   "Author": "MonsoonSheep",
-  "Version": "0.1.0-Debug",
+  "Version": "0.1.0",
   "Description": "Description",
   "MinimumApiVersion": "4.0.0",
   "MinimumGameVersion": "1.6",
   "EntryDll": "BusSchedules.dll",
   "Dependencies": [
     {
-      "UniqueID": "furyx639.FauxCore",
-      "MinimumVersion": "1.0.0"
+      "UniqueID": "MonsoonSheep.SheepCore",
+      "MinimumVersion": "0.1.0"
     },
     {
       "UniqueID": "spacechase0.GenericModConfigMenu",
       "MinimumVersion": "1.12",
       "IsRequired": false
-    },
-    {
-      "UniqueID": "spacechase0.SpaceCore",
-      "MinimumVersion": "1.24"
     }
   ],
   "UpdateKeys": [
