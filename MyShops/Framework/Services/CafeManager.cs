@@ -16,8 +16,10 @@ using StardewValley.Pathfinding;
 using StardewValley.SpecialOrders.Objectives;
 
 namespace StardewMods.MyShops.Framework.Services;
+
 internal class CafeManager : Service
 {
+    internal static CafeManager Instance = null!;
     private readonly NetState netState;
     private readonly TableManager tables;
 
@@ -60,6 +62,8 @@ internal class CafeManager : Service
         IManifest manifest
         ) : base(logger, manifest)
     {
+        Instance = this;
+
         this.netState = netState;
         this.tables = tables;
 

@@ -18,9 +18,13 @@ namespace StardewMods.MyShops;
 public class ModEntry : Mod
 {
     internal static ModEntry Instance = null!;
+
     private Container _container = null!;
 
     public ModEntry() => Instance = this;
+
+    internal CafeManager Cafe
+        => CafeManager.Instance;
 
     public override void Entry(IModHelper helper)
     {
