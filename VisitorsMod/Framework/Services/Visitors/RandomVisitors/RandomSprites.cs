@@ -16,7 +16,7 @@ internal sealed class RandomSprites
 
     internal void Initialize()
     {
-        ModEntry.Events.Content.AssetRequested += this.OnAssetRequested;
+        Mod.Events.Content.AssetRequested += this.OnAssetRequested;
     }
 
     internal void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
@@ -24,7 +24,7 @@ internal sealed class RandomSprites
         // Random generated sprite (with a GUID after the initial asset name)
         if (e.NameWithoutLocale.StartsWith(Values.GENERATED_SPRITE_PREFIX))
         {
-            if (ModEntry.NetState.GeneratedSprites.TryGetValue(e.NameWithoutLocale.Name[(Values.GENERATED_SPRITE_PREFIX.Length + 1)..], out GeneratedSpriteData data))
+            if (Mod.NetState.GeneratedSprites.TryGetValue(e.NameWithoutLocale.Name[(Values.GENERATED_SPRITE_PREFIX.Length + 1)..], out GeneratedSpriteData data))
             {
                 e.LoadFrom(() => data.Sprite.Value, AssetLoadPriority.Medium);
             }
@@ -140,7 +140,7 @@ internal sealed class RandomSprites
     private IRawTextureData? GetTextureDataForPart<TAppearance>(GeneratedSpriteData sprite) where TAppearance : AppearanceModel
     {
         string id = sprite.GetModelId<TAppearance>().Value;
-        AppearanceModel? model = ModEntry.ContentPacks.GetModelCollection<TAppearance>().Values.FirstOrDefault(c => c.Id == id);
+        AppearanceModel? model = Mod.ContentPacks.GetModelCollection<TAppearance>().Values.FirstOrDefault(c => c.Id == id);
         IList<Color>? colors = sprite.GetPaint<TAppearance>();
 
         if (model == null)
@@ -154,7 +154,7 @@ internal sealed class RandomSprites
 
     private TAppearance GetRandomAppearance<TAppearance>(Gender gender = Gender.Undefined) where TAppearance : AppearanceModel
     {
-        ICollection<TAppearance> collection = ModEntry.ContentPacks.GetModelCollection<TAppearance>().Values;
+        ICollection<TAppearance> collection = Mod.ContentPacks.GetModelCollection<TAppearance>().Values;
         return collection.Where(m => m.MatchesGender(gender)).MinBy(_ => Game1.random.Next())!;
     }
 

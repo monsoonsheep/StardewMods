@@ -14,9 +14,9 @@ using StardewMods.SheepCore.Framework.Services;
 
 namespace StardewMods.VisitorsMod;
 
-public class ModEntry : Mod
+public class Mod : StardewModdingAPI.Mod
 {
-    internal static ModEntry Instance = null!;
+    internal static Mod Instance = null!;
 
     internal static IModEvents Events { get; private set; } = null!;
     internal static IManifest Manifest { get; private set; } = null!;
@@ -28,7 +28,7 @@ public class ModEntry : Mod
     internal static NpcMovement NpcMovement { get; private set; } = null!;
     internal static RandomSprites RandomSprites { get; private set; } = null!;
 
-    public ModEntry()
+    public Mod()
         => Instance = this;
 
     public override void Entry(IModHelper helper)

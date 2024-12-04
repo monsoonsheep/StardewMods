@@ -60,7 +60,7 @@ internal class WarpSpawner : LocationSpawner, ISpawner
             npc.currentLocation = targetLocation;
             npc.Position = warpPosition;
 
-            if (!ModEntry.NpcMovement.NpcPathTo(npc, targetLocation, targetTile))
+            if (!Mod.NpcMovement.NpcPathTo(npc, targetLocation, targetTile))
             {
                 return false;
             }

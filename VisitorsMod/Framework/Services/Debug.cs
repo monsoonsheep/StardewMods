@@ -6,7 +6,7 @@ internal class Debug
 {
     internal void Initialize()
     {
-        ModEntry.Events.Input.ButtonPressed += this.OnButtonPressed;
+        Mod.Events.Input.ButtonPressed += this.OnButtonPressed;
     }
 
     private void OnButtonPressed(object? sender, ButtonPressedEventArgs e)

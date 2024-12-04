@@ -29,8 +29,8 @@ internal class VisitorManager
 
     internal void Initialize()
     {
-        ModEntry.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
-        ModEntry.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
+        Mod.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
+        Mod.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
@@ -48,20 +48,20 @@ internal class VisitorManager
             new WarpSpawner(),
             ];
 
-        IBusSchedulesApi? busSchedules = ModEntry.Helper.ModRegistry.GetApi<IBusSchedulesApi>("MonsoonSheep.BusSchedules");
+        IBusSchedulesApi? busSchedules = Mod.Helper.ModRegistry.GetApi<IBusSchedulesApi>("MonsoonSheep.BusSchedules");
         if (busSchedules != null)
         {
             this.spawners.Add(new BusSpawner(busSchedules));
         }
 
-        ModEntry.Events.GameLoop.DayStarted += this.OnDayStarted;
-        ModEntry.Events.GameLoop.TimeChanged += this.OnTimeChanged;
+        Mod.Events.GameLoop.DayStarted += this.OnDayStarted;
+        Mod.Events.GameLoop.TimeChanged += this.OnTimeChanged;
     }
 
     private void OnReturnedToTitle(object? sender, ReturnedToTitleEventArgs e)
     {
-        ModEntry.Events.GameLoop.DayStarted -= this.OnDayStarted;
-        ModEntry.Events.GameLoop.TimeChanged -= this.OnTimeChanged;
+        Mod.Events.GameLoop.DayStarted -= this.OnDayStarted;
+        Mod.Events.GameLoop.TimeChanged -= this.OnTimeChanged;
     }
 
     private void OnDayStarted(object? sender, DayStartedEventArgs e)

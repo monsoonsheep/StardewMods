@@ -12,13 +12,14 @@ internal class ActivityManager
 
     internal void Initialize()
     {
+
     }
 
     internal List<ActivityModel> GetActivitiesForToday()
     {
         List<ActivityModel> list = [];
 
-        foreach (ActivityModel activity in ModEntry.ContentPacks.activities.Values)
+        foreach (ActivityModel activity in Mod.ContentPacks.activities.Values)
         {
             string[] split = activity.Schedule.Split(' ');
 

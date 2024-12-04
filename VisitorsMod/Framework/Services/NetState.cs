@@ -22,7 +22,7 @@ internal class NetState
 
     internal void Initialize()
     {
-        ModEntry.Harmony.Patch(
+        Mod.Harmony.Patch(
             original: AccessTools.Constructor(typeof(FarmerTeam)),
             postfix: new HarmonyMethod(AccessTools.Method(this.GetType(), nameof(After_FarmerTeamConstructor)))
         );

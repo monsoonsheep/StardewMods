@@ -12,16 +12,16 @@ internal class RandomVisitorBuilder
     /// </summary>
     internal VisitorModel GenerateRandomVisitor()
     {
-        GeneratedSpriteData spriteData = ModEntry.RandomSprites.GenerateRandomSpriteData();
+        GeneratedSpriteData spriteData = Mod.RandomSprites.GenerateRandomSpriteData();
 
-        ModEntry.NetState.GeneratedSprites[spriteData.Guid] = spriteData;
+        Mod.NetState.GeneratedSprites[spriteData.Guid] = spriteData;
 
         VisitorModel model = new VisitorModel
         {
             Gender = ModUtility.GameGenderToCustomGender(spriteData.Gender),
             Name = $"Random{spriteData.Guid}",
             Spritesheet = $"{Values.GENERATED_SPRITE_PREFIX}/{spriteData.Guid}",
-            Portrait = ModEntry.Helper.ModContent.GetInternalAssetName(Path.Combine("assets", "CharGen", "Portraits", "cat.png")).Name
+            Portrait = Mod.Helper.ModContent.GetInternalAssetName(Path.Combine("assets", "CharGen", "Portraits", "cat.png")).Name
         };
 
         return model;

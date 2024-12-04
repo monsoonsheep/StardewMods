@@ -27,20 +27,20 @@ internal class Content
 
     internal void Initialize()
     {
-        IContentPack defaultContent = ModEntry.Helper.ContentPacks.CreateTemporary(
-                   Path.Combine(ModEntry.Helper.DirectoryPath, "assets", "DefaultContent"),
-                   $"{ModEntry.Manifest.Author}.DefaultContent",
+        IContentPack defaultContent = Mod.Helper.ContentPacks.CreateTemporary(
+                   Path.Combine(Mod.Helper.DirectoryPath, "assets", "DefaultContent"),
+                   $"{Mod.Manifest.Author}.DefaultContent",
                    "VisitorsMod Fake Content Pack",
                    "Default content for VisitorsMod",
-                   ModEntry.Manifest.Author,
-                   ModEntry.Manifest.Version
+                   Mod.Manifest.Author,
+                   Mod.Manifest.Version
                 );
 
         // Load default content pack included in assets folder
         this.LoadContentPack(defaultContent);
 
         // Load content packs
-        foreach (IContentPack contentPack in ModEntry.Helper.ContentPacks.GetOwned())
+        foreach (IContentPack contentPack in Mod.Helper.ContentPacks.GetOwned())
             this.LoadContentPack(contentPack);
     }
 
@@ -80,7 +80,7 @@ internal class Content
 
                 model.Portrait = contentPack.HasFile(portraitPath)
                     ? contentPack.ModContent.GetInternalAssetName(portraitPath).Name
-                    : ModEntry.Helper.ModContent.GetInternalAssetName(Path.Combine("assets", "CharGen", "Portraits", (string.IsNullOrEmpty(model.Portrait) ? "cat" : model.Portrait) + ".png")).Name;
+                    : Mod.Helper.ModContent.GetInternalAssetName(Path.Combine("assets", "CharGen", "Portraits", (string.IsNullOrEmpty(model.Portrait) ? "cat" : model.Portrait) + ".png")).Name;
 
                 Log.Trace($"Visitor model added: {model.Name}");
                 this.visitorModels[model.Name] = model;

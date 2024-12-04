@@ -37,7 +37,7 @@ internal abstract class LocationSpawner : ISpawner
             npc.currentLocation = location;
             npc.Position = tilePoint.ToVector2() * 64f;
 
-            if (!ModEntry.NpcMovement.NpcPathTo(npc, Game1.getLocationFromName(targetLocation), targetTile))
+            if (!Mod.NpcMovement.NpcPathTo(npc, Game1.getLocationFromName(targetLocation), targetTile))
                 return false;
         }
 
@@ -54,7 +54,7 @@ internal abstract class LocationSpawner : ISpawner
             AccessTools.Method(typeof(NPC), "prepareToDisembarkOnNewSchedulePath").Invoke(npc, []);
 
             Point activityPosition = visit.activity.Actors[i].TilePosition;
-            if (!ModEntry.NpcMovement.NpcPathToFrom(npc, npc.currentLocation, activityPosition, location, tilePoint))
+            if (!Mod.NpcMovement.NpcPathToFrom(npc, npc.currentLocation, activityPosition, location, tilePoint))
                 return false;
         }
 
