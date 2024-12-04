@@ -57,35 +57,4 @@ internal static class ModUtility
 
         return 0.2126f * channels[0] + 0.7152f * channels[1] + 0.0722f * channels[2];
     }
-
-    internal static string GetFileNameForAppearanceType<T>()
-    {
-        string filename = typeof(T).Name switch
-        {
-            nameof(HairModel) => "hair",
-            nameof(ShirtModel) => "shirt",
-            nameof(PantsModel) => "pants",
-            nameof(OutfitModel) => "outfit",
-            nameof(ShoesModel) => "shoes",
-            nameof(AccessoryModel) => "accessory",
-            _ => throw new ArgumentOutOfRangeException()
-        };
-        return filename;
-    }
-
-    internal static string GetFolderNameForAppearance<T>()
-    {
-        string folderName = typeof(T).Name switch
-        {
-            nameof(HairModel) => "Hairstyles",
-            nameof(ShirtModel) => "Shirts",
-            nameof(PantsModel) => "Pants",
-            nameof(OutfitModel) => "Outfits",
-            nameof(ShoesModel) => "Shoes",
-            nameof(AccessoryModel) => "Accessories",
-            _ => throw new ArgumentOutOfRangeException()
-        };
-
-        return folderName;
-    }
 }

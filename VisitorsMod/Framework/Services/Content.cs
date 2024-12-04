@@ -4,9 +4,9 @@ using StardewMods.VisitorsMod.Framework.Data.Models.Appearances;
 
 namespace StardewMods.VisitorsMod.Framework.Services;
 
-internal class ContentPacks
+internal class Content
 {
-    internal static ContentPacks Instance = null!;
+    internal static Content Instance = null!;
 
     // Custom visitors
     internal Dictionary<string, VisitorModel> visitorModels = [];
@@ -22,7 +22,7 @@ internal class ContentPacks
     internal Dictionary<string, AccessoryModel> Accessories = [];
     internal Dictionary<string, OutfitModel> Outfits = [];
 
-    internal ContentPacks()
+    internal Content()
         => Instance = this;
 
     internal void Initialize()
@@ -135,8 +135,27 @@ internal class ContentPacks
 
         TAppearance? LoadAppearanceModel<TAppearance>(IContentPack contentPack, string modelName) where TAppearance : AppearanceModel
         {
-            string filename = ModUtility.GetFileNameForAppearanceType<TAppearance>();
-            string folderName = ModUtility.GetFolderNameForAppearance<TAppearance>();
+            string filename = typeof(TAppearance).Name switch
+            {
+                nameof(HairModel) => "hair",
+                nameof(ShirtModel) => "shirt",
+                nameof(PantsModel) => "pants",
+                nameof(OutfitModel) => "outfit",
+                nameof(ShoesModel) => "shoes",
+                nameof(AccessoryModel) => "accessory",
+                _ => throw new ArgumentOutOfRangeException()
+            };
+
+            string folderName = typeof(TAppearance).Name switch
+            {
+                nameof(HairModel) => "Hairstyles",
+                nameof(ShirtModel) => "Shirts",
+                nameof(PantsModel) => "Pants",
+                nameof(OutfitModel) => "Outfits",
+                nameof(ShoesModel) => "Shoes",
+                nameof(AccessoryModel) => "Accessories",
+                _ => throw new ArgumentOutOfRangeException()
+            };
 
             string relativePathOfModel = Path.Combine(folderName, modelName);
             TAppearance? model = contentPack.ReadJsonFile<TAppearance>(Path.Combine(relativePathOfModel, $"{filename}.json"));

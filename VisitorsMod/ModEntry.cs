@@ -23,7 +23,7 @@ public class ModEntry : Mod
     internal new static IModHelper Helper { get; private set; } = null!;
     internal static Harmony Harmony { get; private set; } = null!;
     internal static NetState NetState { get; private set; } = null!;
-    internal static ContentPacks ContentPacks { get; private set; } = null!;
+    internal static Content ContentPacks { get; private set; } = null!;
     internal static VisitorManager Visitors { get; private set; } = null!;
     internal static NpcMovement NpcMovement { get; private set; } = null!;
     internal static RandomSprites RandomSprites { get; private set; } = null!;
@@ -41,7 +41,7 @@ public class ModEntry : Mod
         Harmony = new Harmony(this.ModManifest.UniqueID);
 
         NetState = new NetState();
-        ContentPacks = new ContentPacks();
+        ContentPacks = new Content();
 
         Visitors = new VisitorManager();
         RandomSprites = new RandomSprites(new ColorsManager());
