@@ -11,9 +11,6 @@ internal class Content
     // Custom visitors
     internal Dictionary<string, VisitorModel> visitorModels = [];
 
-    // Activities
-    internal Dictionary<string, ActivityModel> activities = [];
-
     // Appearance parts
     internal Dictionary<string, HairModel> Hairstyles = [];
     internal Dictionary<string, ShirtModel> Shirts = [];
@@ -87,27 +84,27 @@ internal class Content
             }
         }
 
-        if (activitiesRoot.Exists)
-        {
-            DirectoryInfo[] activityFolders = activitiesRoot.GetDirectories("*", SearchOption.TopDirectoryOnly);
+        //if (activitiesRoot.Exists)
+        //{
+        //    DirectoryInfo[] activityFolders = activitiesRoot.GetDirectories("*", SearchOption.TopDirectoryOnly);
 
-            // Load visitor models
-            foreach (DirectoryInfo folder in activityFolders)
-            {
-                string relativePathOfModel = Path.Combine("Activities", folder.Name);
+        //    // Load visitor models
+        //    foreach (DirectoryInfo folder in activityFolders)
+        //    {
+        //        string relativePathOfModel = Path.Combine("Activities", folder.Name);
 
-                ActivityModel? activity = contentPack.ReadJsonFile<ActivityModel>(Path.Combine(relativePathOfModel, "activity.json"));
-                if (activity == null)
-                {
-                    Log.Debug("Couldn't read activity.json for content pack");
-                    continue;
-                }
-                activity.Id = folder.Name;
+        //        ActivityModel? activity = contentPack.ReadJsonFile<ActivityModel>(Path.Combine(relativePathOfModel, "activity.json"));
+        //        if (activity == null)
+        //        {
+        //            Log.Debug("Couldn't read activity.json for content pack");
+        //            continue;
+        //        }
+        //        activity.Id = folder.Name;
 
-                Log.Trace($"Activity model added: {activity.Id}");
-                this.activities[activity.Id] = activity;
-            }
-        }
+        //        Log.Trace($"Activity model added: {activity.Id}");
+        //        this.activities[activity.Id] = activity;
+        //    }
+        //}
 
         if (hairsRoot.Exists)
             ReadAppearanceFolder<HairModel>(contentPack, hairsRoot);

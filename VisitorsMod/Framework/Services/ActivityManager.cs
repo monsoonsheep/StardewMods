@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using StardewMods.SheepCore;
 using StardewMods.VisitorsMod.Framework.Data.Models.Activities;
 
 namespace StardewMods.VisitorsMod.Framework.Services;
@@ -7,19 +8,44 @@ internal class ActivityManager
 {
     internal static ActivityManager Instance = null!;
 
+    internal Dictionary<string, ActivityModel> activities = [];
+
     public ActivityManager()
         => Instance = this;
 
     internal void Initialize()
     {
+        Mod.Events.Content.AssetRequested += this.OnAssetRequested;
 
+        this.activities = Mod.Helper.GameContent.Load<Dictionary<string, ActivityModel>>("Mods/MonsoonSheep.VisitorsMod/Activities");
+    }
+
+    private void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
+    {
+        if (e.NameWithoutLocale.IsEquivalentTo("Mods/MonsoonSheep.VisitorsMod/Activities"))
+        {
+            e.LoadFrom(() => {
+                Dictionary<string, ActivityModel> activities = new Dictionary<string, ActivityModel>();
+
+                DirectoryInfo folder = new DirectoryInfo(Path.Combine(Mod.Helper.DirectoryPath, "assets", "Activities"));
+
+                foreach (FileInfo f in folder.GetFiles())
+                {
+                    string id = f.Name.Replace(".json", "");
+                    activities[id] = Mod.Helper.ModContent.Load<ActivityModel>(Path.Combine("assets", "Activities", $"{f.Name}"));
+                    activities[id].Id = id;
+                }
+
+                return activities;
+            }, AssetLoadPriority.Medium);
+        }
     }
 
     internal List<ActivityModel> GetActivitiesForToday()
     {
         List<ActivityModel> list = [];
 
-        foreach (ActivityModel activity in Mod.ContentPacks.activities.Values)
+        foreach (ActivityModel activity in this.activities.Values)
         {
             string[] split = activity.Schedule.Split(' ');
 
