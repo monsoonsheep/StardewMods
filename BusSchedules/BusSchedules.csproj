@@ -8,13 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SimpleInjector">
-      <HintPath>$(GameModsPath)\FauxCore\SimpleInjector.dll</HintPath>
-      <Version>5.4.2</Version>
-      <Private>false</Private>
-    </PackageReference>
+    <ProjectReference Include="..\SheepCore\SheepCore.csproj">
+      <Private>true</Private>
+    </ProjectReference>
   </ItemGroup>
-
+  
   <!-- Translations -->
   <ItemGroup>
     <AdditionalFiles Include="i18n/default.json" />
@@ -31,18 +29,8 @@
     <MinimumApiVersion>4.0.0</MinimumApiVersion>
     <MinimumGameVersion>1.6</MinimumGameVersion>
   </PropertyGroup>
-
   <ItemGroup>
     <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
-    <SMAPIDependency Include="furyx639.FauxCore" Version="1.0.0" required="true" />
   </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Update="Leclair.Stardew.ModManifestBuilder" Version="2.4.0" />
-    <PackageReference Update="Pathoschild.Stardew.ModBuildConfig" Version="4.3.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Framework\Interfaces\" />
-  </ItemGroup>
+  
 </Project>

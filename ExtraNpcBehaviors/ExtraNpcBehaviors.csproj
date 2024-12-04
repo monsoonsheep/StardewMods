@@ -7,14 +7,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="SimpleInjector">
-      <HintPath>$(GameModsPath)\FauxCore\SimpleInjector.dll</HintPath>
-      <Version>5.4.2</Version>
-      <Private>false</Private>
-    </PackageReference>
-  </ItemGroup>
-
   <!-- Translations -->
   <ItemGroup>
     <AdditionalFiles Include="i18n/default.json" />
@@ -32,8 +24,4 @@
     <MinimumGameVersion>1.6</MinimumGameVersion>
   </PropertyGroup>
 
-  <ItemGroup>
-    <SMAPIDependency Include="furyx639.FauxCore" Version="1.0.0" required="true" />
-  </ItemGroup>
-    
 </Project>

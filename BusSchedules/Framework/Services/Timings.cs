@@ -3,8 +3,10 @@ namespace StardewMods.BusSchedules.Framework.Services;
 /// <summary>
 /// The scheduled departure and arrival times of the bus
 /// </summary>
-public class Timings : Service
+public class Timings
 {
+    internal static Timings Instance = null!;
+
     internal byte BusArrivalsToday;
 
     internal int NextArrivalTime
@@ -19,12 +21,8 @@ public class Timings : Service
     internal int TimeSinceLastArrival
         => Utility.CalculateMinutesBetweenTimes(this.LastArrivalTime, Game1.timeOfDay);
 
-    public Timings(
-        ILogger logger,
-        IManifest manifest)
-        : base(logger, manifest)
-    {
-    }
+    internal Timings()
+        => Instance = this;
 
     internal bool CheckLeaveTime(int time)
     {

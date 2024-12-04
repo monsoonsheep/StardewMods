@@ -178,7 +178,6 @@ internal class VisitorManager
         }
     }
 
-
     private ISpawner? GetSpawner(string name)
         => this.spawners.FirstOrDefault(s => s.Id.Equals(name));
 

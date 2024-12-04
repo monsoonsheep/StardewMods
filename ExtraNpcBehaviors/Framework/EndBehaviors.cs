@@ -1,20 +1,19 @@
+using HarmonyLib;
 using StardewMods.ExtraNpcBehaviors.Framework.Data;
 using StardewValley.GameData.Characters;
 using StardewValley.Pathfinding;
 
-namespace StardewMods.ExtraNpcBehaviors.Framework.Services.Visitors;
-internal class EndBehaviors : Service
+namespace StardewMods.ExtraNpcBehaviors.Framework;
+internal class EndBehaviors
 {
     private static EndBehaviors instance = null!;
 
-    public EndBehaviors(
-        Harmony harmony,
-        IModEvents events,
-        ILogger logger,
-        IManifest manifest
-        ) : base(logger, manifest)
+    public EndBehaviors()
+        => instance = this;
+
+    internal void Initialize()
     {
-        instance = this;
+        Harmony harmony = ModEntry.Instance.Harmony;
 
         harmony.Patch(
             original: AccessTools.Method(typeof(NPC), "getRouteEndBehaviorFunction", [typeof(string), typeof(string)]),
@@ -30,6 +29,9 @@ internal class EndBehaviors : Service
         );
     }
 
+    /// <summary>
+    /// Return a <see cref="PathFindController.endBehavior"/> method if the requested behavior name matches a pattern for a modded behavior
+    /// </summary>
     private static void After_getRouteEndBehaviorFunction(NPC __instance, string behaviorName, string endMessage, ref PathFindController.endBehavior __result)
     {
         if (__result == null && behaviorName != null)
@@ -47,6 +49,9 @@ internal class EndBehaviors : Service
         }
     }
 
+    /// <summary>
+    /// Update states every tick for modded behaviors
+    /// </summary>
     private static void After_update(NPC __instance, GameTime time, GameLocation location)
     {
         if (NpcState.table.TryGetValue(__instance, out var values))
@@ -99,13 +104,16 @@ internal class EndBehaviors : Service
                     __instance.faceDirection(direction);
                     values.behaviorTimerAccumulation = 0;
                     values.behaviorTimeTotal = Game1.random.Next(
-                        (direction == dominantDirection) ? 6000 : 1000,
-                        (direction == dominantDirection) ? 12000 : 5000);
+                        direction == dominantDirection ? 6000 : 1000,
+                        direction == dominantDirection ? 12000 : 5000);
                 }
             }
         }
     }
 
+    /// <summary>
+    /// Block finishEndOfRouteAnimation for an NPC at the end of a modded behavior
+    /// </summary>
     private static bool Before_finishEndOfRouteAnimation(NPC __instance)
     {
         if (NpcState.table.TryGetValue(__instance, out var values))
@@ -132,6 +140,10 @@ internal class EndBehaviors : Service
         return true;
     }
 
+    /// <summary>
+    /// Start the "look_" behavior, set the custom states that'll be managed in the update tick patch
+    /// This is called by the PathfindController, at the end of a route
+    /// </summary>
     public void startLookAroundBehavior(Character c, GameLocation loc)
     {
         if (c is NPC npc)
@@ -153,6 +165,10 @@ internal class EndBehaviors : Service
         }
     }
 
+    /// <summary>
+    /// Start the "sit_" behavior, set the custom states that'll be managed in the update tick patch
+    /// This is called by the PathfindController, at the end of a route
+    /// </summary>
     public void startSitBehavior(Character c, GameLocation loc)
     {
         if (c is NPC npc)
@@ -162,7 +178,7 @@ internal class EndBehaviors : Service
 
             int jumpDirection = int.Parse(split[1]);
 
-            Vector2 seatPosition = npc.Position + (jumpDirection) switch
+            Vector2 seatPosition = npc.Position + jumpDirection switch
             {
                 0 => new Vector2(0f, -64f),
                 1 => new Vector2(64f, 0f),
@@ -183,7 +199,7 @@ internal class EndBehaviors : Service
             AccessTools.Field(typeof(NPC), "freezeMotion").SetValue(npc, true);
 
             CharacterData? data = npc.GetData();
-            if ((data?.CustomFields != null && data.CustomFields.TryGetValue(Values.DATA_SITTINGSPRITES, out string? val))
+            if (data?.CustomFields != null && data.CustomFields.TryGetValue(Values.DATA_SITTINGSPRITES, out string? val)
                 || npc.modData.TryGetValue(Values.DATA_SITTINGSPRITES, out val))
             {
                 string[] frames = val.Split(' ');

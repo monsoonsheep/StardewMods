@@ -34,6 +34,5 @@ internal class NetState
     private static void After_FarmerTeamConstructor(FarmerTeam __instance)
     {
         __instance.NetFields.AddField(__instance.get_VisitorNetState());
-        Log.Info("Adding netfields to FarmerTeam");
     }
 }

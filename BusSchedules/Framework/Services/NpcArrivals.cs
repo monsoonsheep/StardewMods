@@ -1,30 +1,26 @@
+using StardewModdingAPI.Events;
 using StardewMods.BusSchedules.Framework.Data;
 
 namespace StardewMods.BusSchedules.Framework.Services;
-public class NpcArrivals : Service
+public class NpcArrivals
 {
+    internal static NpcArrivals Instance = null!;
+
     // Dependencies
-    private readonly Timings busTimings;
-    private readonly Dictionary<string, VisitorData> busVisitorsData;
+    private Timings busTimings = null!;
 
     // State
-    private readonly PriorityQueue<NPC, int> busVisitorsQueue = new();
+    private PriorityQueue<NPC, int> busVisitorsQueue = new();
 
-    public NpcArrivals(
-        Timings busTimings,
-        Dictionary<string, VisitorData> visitorsData,
-        ModEvents modEvents,
-        IModEvents events,
-        ILogger logger,
-        IManifest manifest)
-        : base(logger, manifest)
+    internal NpcArrivals()
+        => Instance = this;
+
+    internal void Initialize()
     {
-        this.busTimings = busTimings;
-        this.busVisitorsData = visitorsData;
+        this.busTimings = Mod.Instance.BusManager.Timings;
 
-        events.GameLoop.TimeChanged += this.OnTimeChanged;
-
-        modEvents.BusArrive += this.OnBusArrive;
+        Mod.Instance.Events.GameLoop.TimeChanged += this.OnTimeChanged;
+        Mod.Instance.ModEvents.BusArrive += this.OnBusArrive;
     }
 
     internal void AddVisitor(NPC npc)
@@ -36,7 +32,7 @@ public class NpcArrivals : Service
     {
         if (Utility.CalculateMinutesBetweenTimes(e.NewTime, this.busTimings.NextArrivalTime) == 10)
         {
-            foreach (var pair in this.busVisitorsData)
+            foreach (var pair in Mod.Instance.VisitorsData)
             {
                 NPC npc = Game1.getCharacterFromName(pair.Key);
                 if (npc?.ScheduleKey != null
@@ -73,7 +69,7 @@ public class NpcArrivals : Service
                     visitor.checkSchedule(this.busTimings.LastArrivalTime);
                 }
 
-                this.Log.Debug($"Visitor {visitor.displayName} arrived at {Game1.timeOfDay}");
+                Log.Debug($"Visitor {visitor.displayName} arrived at {Game1.timeOfDay}");
             }));
             count++;
         }

@@ -4,6 +4,8 @@ using StardewMods.BusSchedules.Framework.Enums;
 using Microsoft.Xna.Framework.Graphics;
 using System.Reflection.Emit;
 using System.Reflection;
+using StardewMods.SheepCore.Framework.Services;
+using StardewModdingAPI.Events;
 
 namespace StardewMods.BusSchedules.Framework.Services;
 
@@ -11,52 +13,33 @@ namespace StardewMods.BusSchedules.Framework.Services;
 /// The main modifications to the bus. Make it drive away and back and handle the drawing and other
 /// changes.
 /// </summary>
-internal class BusManager : Service
+internal class BusManager
 {
     private static BusManager Instance = null!;
 
-    // SMAPI Services
-    private readonly Harmony harmony;
-    private readonly IReflectionHelper reflection;
-    private readonly IModEvents events;
-
     // Mod Services
-    private readonly MultiplayerMessaging multiplayer;
-    private readonly BusMovement busMovement;
-    private readonly Timings timings;
-    private readonly LocationProvider locations;
+    internal Timings Timings = null!;
+
+    private BusMovement busMovement = null!;
 
     // State
     internal bool BusEnabled;
 
-    public BusManager(
-        IManifest manifest,
-        ILogger log,
-        Harmony harmony,
-        IModEvents events,
-        IReflectionHelper reflection,
-        ModEvents modEvents,
-        Timings timings,
-        BusMovement busMovement,
-        MultiplayerMessaging multiplayer,
-        LocationProvider locations)
-        : base(log, manifest)
+    public BusManager()
+        => Instance = this;
+
+    internal void Initialize()
     {
-        Instance = this;
+        this.busMovement = new BusMovement();
+        this.Timings = new Timings();
 
-        this.harmony = harmony;
-        this.events = events;
-        this.multiplayer = multiplayer;
-        this.reflection = reflection;
-        this.busMovement = busMovement;
-        this.locations = locations;
-        this.timings = timings;
-
+        IModEvents events = Mod.Instance.Events;
         events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
         events.GameLoop.DayStarted += this.OnDayStarted;
         events.Multiplayer.ModMessageReceived += this.OnModMessageReceived;
-        modEvents.BusArrive += this.OnBusArrive;
+        Mod.Instance.ModEvents.BusArrive += this.OnBusArrive;
 
+        Harmony harmony = Mod.Instance.Harmony;
         harmony.Patch(
             original: AccessTools.Method(typeof(BusStop), "answerDialogue", [typeof(Response)]),
             prefix: new HarmonyMethod(AccessTools.Method(this.GetType(), nameof(Before_answerDialogue))),
@@ -76,7 +59,7 @@ internal class BusManager : Service
     private static bool Before_answerDialogue(BusStop __instance, Response answer, ref bool __result)
     {
         // If bus is currently moving in the location or it's about to arrive in 20 minutes or it's only been 20 minutes since it left
-        if (Instance.busMovement.IsMoving || Instance.busMovement.State is BusState.Gone && (Instance.timings.TimeUntilNextArrival <= 20 || Instance.timings.TimeSinceLastArrival <= 20))
+        if (Instance.busMovement.IsMoving || Instance.busMovement.State is BusState.Gone && (Instance.Timings.TimeUntilNextArrival <= 20 || Instance.Timings.TimeSinceLastArrival <= 20))
         {
             Game1.chatBox.addMessage("The bus will arrive shortly.", Color.White);
             __result = false;
@@ -133,7 +116,7 @@ internal class BusManager : Service
             }
             else
             {
-                if (Instance.timings.TimeUntilNextArrival <= 20 || Instance.timings.TimeSinceLastArrival <= 20)
+                if (Instance.Timings.TimeUntilNextArrival <= 20 || Instance.Timings.TimeSinceLastArrival <= 20)
                     return;
 
                 PathFindController controller = Game1.player.controller;
@@ -165,18 +148,18 @@ internal class BusManager : Service
 
     private void OnDayStarted(object? sender, DayStartedEventArgs e)
     {
-        this.locations.UpdateLocation("BusStop");
+        Mod.Instance.Locations.UpdateLocation("BusStop");
 
         if (Context.IsMainPlayer)
         {
             if (!this.BusEnabled && Game1.MasterPlayer.mailReceived.Contains("ccVault"))
             {
-                this.Log.Debug("Enabling bus");
+                Log.Debug("Enabling bus");
                 this.BusEnabled = true;
-                this.events.GameLoop.TimeChanged += this.OnTimeChanged;
+                Mod.Instance.Events.GameLoop.TimeChanged += this.OnTimeChanged;
             }
 
-            this.timings.BusArrivalsToday = 0;
+            this.Timings.BusArrivalsToday = 0;
         }
 
         // Early morning bus departure
@@ -188,20 +171,20 @@ internal class BusManager : Service
 
     private void OnReturnedToTitle(object? sender, ReturnedToTitleEventArgs e)
     {
-        this.events.GameLoop.TimeChanged -= this.OnTimeChanged;
+        Mod.Instance.Events.GameLoop.TimeChanged -= this.OnTimeChanged;
         this.BusEnabled = false;
         this.busMovement.State = BusState.Parked;
     }
 
     private void OnTimeChanged(object? sender, TimeChangedEventArgs e)
     {
-        if (this.timings.CheckReturnTime(e.NewTime))
+        if (this.Timings.CheckReturnTime(e.NewTime))
         {
-            this.timings.BusArrivalsToday++;
+            this.Timings.BusArrivalsToday++;
             this.busMovement.DriveIn();
         }
 
-        else if (this.timings.CheckLeaveTime(e.NewTime) && this.busMovement.State == BusState.Parked)
+        else if (this.Timings.CheckLeaveTime(e.NewTime) && this.busMovement.State == BusState.Parked)
         {
             this.BusLeave();
         }
@@ -210,7 +193,7 @@ internal class BusManager : Service
     // For synchronizing bus door closing and arriving in the location to multiplayer clients
     private void OnModMessageReceived(object? sender, ModMessageReceivedEventArgs e)
     {
-        if (!Context.IsWorldReady || !e.FromModID.Equals(this.ModManifest.UniqueID))
+        if (!Context.IsWorldReady || !e.FromModID.Equals(Mod.Instance.Manifest.UniqueID))
             return;
 
         string? data = e.ReadAs<string>();
@@ -221,13 +204,13 @@ internal class BusManager : Service
             switch (data)
             {
                 case "BusDoorClose":
-                    this.Log.Debug("Received message to close door and drive away");
-                    this.locations.UpdateLocation("BusStop");
+                    Log.Debug("Received message to close door and drive away");
+                    Mod.Instance.Locations.UpdateLocation("BusStop");
                     this.busMovement.DriveOut();
                     return;
                 case "BusDriveBack":
-                    this.Log.Debug("Received message to drive bus in");
-                    this.locations.UpdateLocation("BusStop");
+                    Log.Debug("Received message to drive bus in");
+                    Mod.Instance.Locations.UpdateLocation("BusStop");
                     this.busMovement.DriveIn();
                     return;
             }
@@ -246,11 +229,11 @@ internal class BusManager : Service
     internal void BusLeave()
     {
         NPC pam = Game1.getCharacterFromName("Pam");
-        if (!this.locations.BusStop.characters.Contains(pam) || pam.TilePoint is not { X: 21, Y: 10 })
+        if (!Mod.Instance.Locations.BusStop.characters.Contains(pam) || pam.TilePoint is not { X: 21, Y: 10 })
             this.busMovement.DriveOut();
         else
         {
-            pam.temporaryController = new PathFindController(pam, this.locations.BusStop, Values.BusDoorTile, 3,
+            pam.temporaryController = new PathFindController(pam, Mod.Instance.Locations.BusStop, Values.BusDoorTile, 3,
                 delegate (Character c, GameLocation _)
             {
                 c.Position = new Vector2(-1000f, -1000f);
@@ -266,11 +249,11 @@ internal class BusManager : Service
     internal void PamBackToSchedule()
     {
         NPC pam = Game1.getCharacterFromName("Pam");
-        if (!this.locations.BusStop.characters.Contains(pam))
+        if (!Mod.Instance.Locations.BusStop.characters.Contains(pam))
             return;
 
         pam.Position = Values.BusDoorTile.ToVector2() * 64f;
-        pam.temporaryController = new PathFindController(pam, this.locations.BusStop, new Point(21, 10), 2,
+        pam.temporaryController = new PathFindController(pam, Mod.Instance.Locations.BusStop, new Point(21, 10), 2,
             delegate (Character c, GameLocation location)
         {
             if (c is NPC p)

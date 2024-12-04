@@ -1,31 +1,24 @@
 using StardewValley.Locations;
 
-namespace StardewMods.Common;
-internal class LocationProvider : Service
+namespace StardewMods.SheepCore.Framework.Services;
+public class LocationProvider
 {
     private readonly Dictionary<string, WeakReference<GameLocation>> Cache = [];
 
-    internal BusStop BusStop
+    public BusStop BusStop
         => (BusStop)this.Get("BusStop");
 
-    internal Farm Farm
+    public Farm Farm
         => (Farm)this.Get("Farm");
 
-    internal Town Town
+    public Town Town
         => (Town)this.Get("Town");
 
-    internal Beach Beach
+    public Beach Beach
         => (Beach)this.Get("Beach");
 
-    internal FarmHouse FarmHouse
+    public FarmHouse FarmHouse
         => (FarmHouse)this.Get("FarmHouse");
-
-    public LocationProvider(
-        ILogger logger,
-        IManifest manifest)
-        : base(logger, manifest)
-    {
-    }
 
     internal GameLocation Get(string key)
     {
@@ -38,7 +31,7 @@ internal class LocationProvider : Service
         return this.UpdateLocation(key);
     }
 
-    internal GameLocation UpdateLocation(string name)
+    public GameLocation UpdateLocation(string name)
     {
         GameLocation result = Game1.getLocationFromName(name);
 

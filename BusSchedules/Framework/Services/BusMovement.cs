@@ -1,4 +1,7 @@
+using HarmonyLib;
+using StardewModdingAPI.Events;
 using StardewMods.BusSchedules.Framework.Enums;
+using StardewValley;
 using StardewValley.Locations;
 using xTile.Tiles;
 
@@ -8,18 +11,9 @@ namespace StardewMods.BusSchedules.Framework.Services;
 /// Handle the movement of the bus sprite and the door closing opening 
 /// in the bus stop location by patching update methods
 /// </summary>
-internal class BusMovement : Service
+internal class BusMovement
 {
     private static BusMovement instance = null!;
-
-    // SMAPI services
-    private readonly IReflectionHelper reflection;
-    private readonly Harmony harmony;
-
-    // Mod Services
-    private readonly ModEvents modEvents;
-    private readonly MultiplayerMessaging multiplayer;
-    private readonly LocationProvider locations;
 
     // State
     internal BusState State;
@@ -37,24 +31,12 @@ internal class BusMovement : Service
     internal bool IsMoving
         => this.State is BusState.DrivingIn or BusState.DrivingOut;
 
-    public BusMovement(
-        Harmony harmony,
-        ModEvents modEvents,
-        MultiplayerMessaging multiplayer,
-        LocationProvider locations,
-        IReflectionHelper reflection,
-        ILogger logger,
-        IManifest manifest)
-        : base(logger, manifest)
+    internal BusMovement()
+        => instance = this;
+
+    internal void Initialize()
     {
-        instance = this;
-
-        this.harmony = harmony;
-        this.multiplayer = multiplayer;
-        this.reflection = reflection;
-        this.locations = locations;
-        this.modEvents = modEvents;
-
+        Harmony harmony = Mod.Instance.Harmony;
         harmony.Patch(
             original: AccessTools.Method(typeof(BusStop), "doorOpenAfterReturn", [typeof(int)]),
             postfix: new HarmonyMethod(AccessTools.Method(this.GetType(), nameof(After_doorOpenAfterReturn)))
@@ -71,7 +53,6 @@ internal class BusMovement : Service
             original: AccessTools.Method(typeof(BusStop), "resetLocalState", []),
             postfix: new HarmonyMethod(AccessTools.Method(this.GetType(), nameof(After_resetLocalState)))
         );
-
     }
 
     /// <summary>
@@ -91,11 +72,11 @@ internal class BusMovement : Service
     /// </summary>
     private static void After_resetLocalState(BusStop __instance)
     {
-        instance.BusDoorField = instance.reflection.GetField<TemporaryAnimatedSprite>(__instance, "busDoor");
+        instance.BusDoorField = Mod.Instance.Reflection.GetField<TemporaryAnimatedSprite>(__instance, "busDoor");
 
         if (!Context.IsMainPlayer)
         {
-            instance.locations.UpdateLocation("BusStop");
+            Mod.Instance.Locations.UpdateLocation("BusStop");
         }
 
         TileArray tiles = __instance.Map.GetLayer("Buildings").Tiles;
@@ -166,18 +147,18 @@ internal class BusMovement : Service
     internal void DriveIn()
     {
         if (Context.IsMainPlayer)
-            this.multiplayer.SendMessage("BusDriveBack");
+            Mod.Instance.Multiplayer.SendMessage("BusDriveBack", "BusMovement", [Mod.Instance.Manifest.UniqueID]);
 
-        this.Log.Info("Bus is returning");
+        Log.Info("Bus is returning");
         this.ResetDoor(closed: true);
 
-        if (Game1.player.currentLocation.Equals(this.locations.BusStop))
+        if (Game1.player.currentLocation.Equals(Mod.Instance.Locations.BusStop))
         {
             this.MoveOutOfMap();
-            this.locations.BusStop.localSound("busDriveOff");
+            Mod.Instance.Locations.BusStop.localSound("busDriveOff");
             // The UpdateWhenCurrentLocation postfix will handle the movement and call AfterDriveBack
             this.State = BusState.DrivingIn;
-            this.locations.BusStop.busMotion = new Vector2(-12f, 0f);
+            Mod.Instance.Locations.BusStop.busMotion = new Vector2(-12f, 0f);
         }
         else
         {
@@ -190,20 +171,20 @@ internal class BusMovement : Service
     internal void DriveOut()
     {
         if (Context.IsMainPlayer)
-            this.multiplayer.SendMessage("BusDoorClose");
+            Mod.Instance.Multiplayer.SendMessage("BusDoorClose", "BusMovement", [Mod.Instance.Manifest.UniqueID]);
 
-        this.Log.Info("Bus is leaving");
+        Log.Info("Bus is leaving");
 
         this.RemoveTiles();
 
-        if (Game1.player.currentLocation.Equals(this.locations.BusStop))
+        if (Game1.player.currentLocation.Equals(Mod.Instance.Locations.BusStop))
         {
             this.AnimateDoorClose(delegate
             {
                 this.State = BusState.DrivingOut;
                 this.RemoveTiles();
-                this.locations.BusStop.localSound("batFlap");
-                this.locations.BusStop.localSound("busDriveOff");
+                Mod.Instance.Locations.BusStop.localSound("batFlap");
+                Mod.Instance.Locations.BusStop.localSound("busDriveOff");
             });
         }
         else
@@ -219,7 +200,7 @@ internal class BusMovement : Service
         TemporaryAnimatedSprite.endBehavior endFunction = delegate (int a)
         {
             this.ResetDoor(closed: false);
-            this.modEvents.Invoke_BusArrive();
+            Mod.Instance.ModEvents.Invoke_BusArrive();
         };
 
         // Animate bus door to open
@@ -232,22 +213,22 @@ internal class BusMovement : Service
     internal void ParkBus()
     {
         this.State = BusState.Parked;
-        this.locations.BusStop.busMotion = Vector2.Zero;
-        this.locations.BusStop.busPosition.X = 1344f;
+        Mod.Instance.Locations.BusStop.busMotion = Vector2.Zero;
+        Mod.Instance.Locations.BusStop.busPosition.X = 1344f;
         this.RestoreTiles();
     }
 
     internal void MoveOutOfMap()
     {
         this.State = BusState.Gone;
-        this.locations.BusStop.busMotion = Vector2.Zero;
-        this.locations.BusStop.busPosition.X = this.locations.BusStop.map.GetLayer("Back").DisplayWidth;
+        Mod.Instance.Locations.BusStop.busMotion = Vector2.Zero;
+        Mod.Instance.Locations.BusStop.busPosition.X = Mod.Instance.Locations.BusStop.map.GetLayer("Back").DisplayWidth;
         this.RemoveTiles();
     }
 
     internal void RestoreTiles()
     {
-        TileArray tiles = this.locations.BusStop.Map.GetLayer("Buildings").Tiles;
+        TileArray tiles = Mod.Instance.Locations.BusStop.Map.GetLayer("Buildings").Tiles;
         for (int i = 21; i <= 28; i++)
         {
             for (int j = 7; j <= 9; j++)
@@ -265,7 +246,7 @@ internal class BusMovement : Service
 
     internal void RemoveTiles()
     {
-        TileArray tiles = this.locations.BusStop.Map.GetLayer("Buildings").Tiles;
+        TileArray tiles = Mod.Instance.Locations.BusStop.Map.GetLayer("Buildings").Tiles;
         for (int i = 21; i <= 28; i++)
         {
             for (int j = 7; j <= 9; j++)
@@ -283,7 +264,7 @@ internal class BusMovement : Service
         this.BusDoor.currentParentTileIndex = 5;
         this.BusDoor.endFunction = endFunction;
         this.BusDoor.paused = false;
-        this.locations.BusStop.localSound("trashcanlid");
+        Mod.Instance.Locations.BusStop.localSound("trashcanlid");
     }
 
     private void AnimateDoorClose(TemporaryAnimatedSprite.endBehavior endFunction)
@@ -297,16 +278,16 @@ internal class BusMovement : Service
 
     internal void ResetDoor(bool closed = false)
     {
-        this.BusDoorField = this.reflection.GetField<TemporaryAnimatedSprite>(this.locations.BusStop, "busDoor");
+        this.BusDoorField = Mod.Instance.Reflection.GetField<TemporaryAnimatedSprite>(Mod.Instance.Locations.BusStop, "busDoor");
         this.BusDoor = new TemporaryAnimatedSprite(
             "LooseSprites\\Cursors",
-            new Rectangle(closed ? 368 : 288, 1311, 16, 38), this.locations.BusStop.busPosition + new Vector2(16f, 26f) * 4f,
+            new Rectangle(closed ? 368 : 288, 1311, 16, 38), Mod.Instance.Locations.BusStop.busPosition + new Vector2(16f, 26f) * 4f,
             false, 0f, Color.White)
         {
             interval = 999999f,
             animationLength = closed ? 1 : 6,
             holdLastFrame = true,
-            layerDepth = (this.locations.BusStop.busPosition.Y + 192f) / 10000f + 1E-05f,
+            layerDepth = (Mod.Instance.Locations.BusStop.busPosition.Y + 192f) / 10000f + 1E-05f,
             scale = 4f
         };
     }

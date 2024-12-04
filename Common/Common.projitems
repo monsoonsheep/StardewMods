@@ -11,7 +11,6 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)ILogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ISpaceCoreApi.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LocationProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Logger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MapExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ObjectExtensions.cs" />

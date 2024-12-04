@@ -1,41 +1,27 @@
 using System.Text.RegularExpressions;
+using HarmonyLib;
 using StardewMods.BusSchedules.Framework.Data;
 using StardewValley.Pathfinding;
 
 namespace StardewMods.BusSchedules.Framework.Services;
 
-internal class NpcSchedulesIntercept : Service
+internal class NpcSchedulesIntercept
 {
     private static NpcSchedulesIntercept Instance = null!;
 
-    private readonly LocationProvider locations;
-    private readonly Timings busTimings;
-
     private readonly Regex busTimeRegex = new Regex(@"b(\d{3,})");
 
-    // State
-    private readonly Dictionary<string, VisitorData> visitorsData;
+    public NpcSchedulesIntercept()
+        => Instance = this;
 
-    public NpcSchedulesIntercept(
-        LocationProvider locations,
-        Timings busTimings,
-        Dictionary<string, VisitorData> visitorsData,
-        IModEvents events,
-        Harmony harmony,
-        ILogger logger,
-        IManifest manifest)
-        : base(logger, manifest)
+    internal void Initialize()
     {
-        Instance = this;
-
-        this.locations = locations;
-        this.busTimings = busTimings;
-        this.visitorsData = visitorsData;
-
+        IModEvents events = Mod.Instance.Events;
         events.GameLoop.SaveLoaded += this.OnSaveLoaded;
         events.GameLoop.DayStarted += this.OnDayStarted;
         events.Content.AssetRequested += this.OnAssetRequested;
 
+        Harmony harmony = Mod.Instance.Harmony;
         harmony.Patch(
             original: AccessTools.Method(typeof(NPC), nameof(NPC.TryLoadSchedule), [typeof(string)]),
             prefix: new HarmonyMethod(AccessTools.Method(this.GetType(), nameof(Before_TryLoadSchedule))),
@@ -57,7 +43,7 @@ internal class NpcSchedulesIntercept : Service
     /// </summary>
     private static bool Before_TryLoadSchedule(NPC __instance, string key, ref bool __result, out (string, Vector2)? __state)
     {
-        if (Instance.visitorsData.ContainsKey(__instance.Name))
+        if (Mod.Instance.VisitorsData.ContainsKey(__instance.Name))
         {
             __state = new(__instance.DefaultMap, __instance.DefaultPosition);
 
@@ -90,7 +76,7 @@ internal class NpcSchedulesIntercept : Service
     {
         if (__instance.Name.Equals("Pam"))
         {
-            if (__instance.currentLocation.Equals(Instance.locations.BusStop) && __instance.controller != null &&
+            if (__instance.currentLocation.Equals(Mod.Instance.Locations.BusStop) && __instance.controller != null &&
                 __instance.controller.pathToEndPoint.TryPeek(out Point result) && result is { X: 22, Y: 9 } &&
                 timeOfDay == __instance.DirectionsToNewLocation.time)
             {
@@ -104,9 +90,9 @@ internal class NpcSchedulesIntercept : Service
     /// </summary>
     private static void After_getRouteEndBehaviorFunction(NPC __instance, string behaviorName, string endMessage, ref PathFindController.endBehavior? __result)
     {
-        if (__result == null && Instance.visitorsData.ContainsKey(__instance.Name) && __instance.Schedule != null && behaviorName == "BoardBus")
+        if (__result == null && Mod.Instance.VisitorsData.ContainsKey(__instance.Name) && __instance.Schedule != null && behaviorName == "BoardBus")
         {
-            __result = ModEntry.VisitorReachBusEndBehavior;
+            __result = Mod.VisitorReachBusEndBehavior;
         }
     }
 
@@ -139,20 +125,20 @@ internal class NpcSchedulesIntercept : Service
                         continue;
 
                     VisitorData visitorData;
-                    if (!this.visitorsData.ContainsKey(npcName))
+                    if (!Mod.Instance.VisitorsData.ContainsKey(npcName))
                     {
                         visitorData = new VisitorData();
-                        this.visitorsData.Add(npcName, visitorData);
+                        Mod.Instance.VisitorsData.Add(npcName, visitorData);
                     }
                     else
                     {
-                        visitorData = this.visitorsData[npcName];
+                        visitorData = Mod.Instance.VisitorsData[npcName];
                     }
 
                     int arrivalTime = int.Parse(arrivalTimeMatch.Groups[1].Value);
                     if (!Values.BusArrivalTimes.Contains(arrivalTime) || arrivalTime == Values.BusArrivalTimes[^1])
                     {
-                        this.Log.Error($"Invalid time given in schdule for {npcName} in key {entry.Key}: {entry.Value}");
+                        Log.Error($"Invalid time given in schdule for {npcName} in key {entry.Key}: {entry.Value}");
                         arrivalTime = Values.BusArrivalTimes[0];
                     }
                     splitCommands[startIndex] = splitCommands[startIndex]
@@ -181,7 +167,7 @@ internal class NpcSchedulesIntercept : Service
                 }
 
                 if (keysEdited.Count > 0)
-                    this.Log.Info($"Edited schedule for {npcName} in keys [{string.Join(',', keysEdited)}]");
+                    Log.Info($"Edited schedule for {npcName} in keys [{string.Join(',', keysEdited)}]");
             },
                 AssetEditPriority.Late
             );
@@ -190,7 +176,7 @@ internal class NpcSchedulesIntercept : Service
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
     {
-        if (Context.IsMainPlayer && this.visitorsData.Count == 0)
+        if (Context.IsMainPlayer && Mod.Instance.VisitorsData.Count == 0)
         {
             // Force load NPC schedules so they can be edited by AssetRequested
             Utility.ForEachCharacter(delegate (NPC n)
@@ -203,7 +189,7 @@ internal class NpcSchedulesIntercept : Service
 
     private void OnDayStarted(object? sender, DayStartedEventArgs e)
     {
-        foreach (var pair in this.visitorsData)
+        foreach (var pair in Mod.Instance.VisitorsData)
         {
             var npc = Game1.getCharacterFromName(pair.Key);
             if (npc == null)
@@ -221,19 +207,19 @@ internal class NpcSchedulesIntercept : Service
             if (npc.GetData().Home is { Count: > 0 } &&
                 npc.GetData().Home[0].Location == "BusStop")
             {
-                this.Log.Debug($"Setting character {pair.Key} to their bus stop home out of map");
-                Game1.warpCharacter(npc, this.locations.BusStop, new Vector2(-10000f / 64, -10000f / 64));
+                Log.Debug($"Setting character {pair.Key} to their bus stop home out of map");
+                Game1.warpCharacter(npc, Mod.Instance.Locations.BusStop, new Vector2(-10000f / 64, -10000f / 64));
             }
 
             // If NPC will arrive by bus today, warp them to a hidden place in bus stop
             if (pair.Value.BusVisitSchedules.ContainsKey(npc.ScheduleKey))
             {
-                this.Log.Debug($"Setting character {pair.Key} to the bus stop");
-                Game1.warpCharacter(npc, this.locations.BusStop, new Vector2(-10000f / 64, -10000f / 64));
+                Log.Debug($"Setting character {pair.Key} to the bus stop");
+                Game1.warpCharacter(npc, Mod.Instance.Locations.BusStop, new Vector2(-10000f / 64, -10000f / 64));
             }
             else
             {
-                this.Log.Debug($"Letting the game warp character {pair.Key} to their home");
+                Log.Debug($"Letting the game warp character {pair.Key} to their home");
                 // Otherwise let the game warp them to their home
                 npc.dayUpdate(Game1.dayOfMonth);
             }
