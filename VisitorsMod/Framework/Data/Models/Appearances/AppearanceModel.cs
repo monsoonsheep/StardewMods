@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using StardewMods.VisitorsMod.Framework.Services;
 
 namespace StardewMods.VisitorsMod.Framework.Data.Models.Appearances;
 

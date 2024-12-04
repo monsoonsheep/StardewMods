@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <!-- Dependencies -->
+  <!--
   <ItemGroup>
     <PackageReference Include="SimpleInjector">
       <HintPath>$(GameModsPath)\FauxCore\SimpleInjector.dll</HintPath>
@@ -15,6 +16,7 @@
       <Private>false</Private>
     </PackageReference>
   </ItemGroup>
+  -->
   
   <ItemGroup>
     <ProjectReference Include="..\SheepCore\SheepCore.csproj">
@@ -28,6 +30,7 @@
   <!-- Translations -->
   <ItemGroup>
     <AdditionalFiles Include="i18n/default.json" />
+    <Folder Include="Framework\Visitors\" />
     <Folder Include="i18n\" />
   </ItemGroup>
 
@@ -45,7 +48,6 @@
   <ItemGroup>
     <SMAPIDependency Include="spacechase0.SpaceCore" Version="1.24" Reference="false" />
     <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
-    <SMAPIDependency Include="furyx639.FauxCore" Version="1.0.0" required="true" />
     <SMAPIDependency Include="MonsoonSheep.ExtraNpcBehaviors" Version="0.1.0" required="true" />
     <SMAPIDependency Include="MonsoonSheep.SheepCore" Version="0.1.0" required="true" />
   </ItemGroup>

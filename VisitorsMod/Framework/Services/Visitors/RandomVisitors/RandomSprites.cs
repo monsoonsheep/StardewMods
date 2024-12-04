@@ -5,30 +5,18 @@ using StardewMods.VisitorsMod.Framework.Data.Models.Appearances;
 
 namespace StardewMods.VisitorsMod.Framework.Services.Visitors.RandomVisitors;
 
-internal sealed class RandomSprites : Service
+internal sealed class RandomSprites
 {
-    private readonly IModContentHelper modContent;
-    private readonly NetState netState;
-    private readonly ContentPacks contentPacks;
-    private readonly Colors colors;
+    private ColorsManager colors;
 
-    public RandomSprites(
-        ContentPacks contentPacks,
-        NetState netState,
-        Colors colors,
-        IModEvents events,
-        IModContentHelper modContent,
-        ILogger logger,
-        IManifest manifest)
-        : base(logger, manifest)
+    internal RandomSprites(ColorsManager colors)
     {
-        this.modContent = modContent;
-
-        this.contentPacks = contentPacks;
-        this.netState = netState;
         this.colors = colors;
+    }
 
-        events.Content.AssetRequested += this.OnAssetRequested;
+    internal void Initialize()
+    {
+        ModEntry.Events.Content.AssetRequested += this.OnAssetRequested;
     }
 
     internal void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
@@ -36,13 +24,13 @@ internal sealed class RandomSprites : Service
         // Random generated sprite (with a GUID after the initial asset name)
         if (e.NameWithoutLocale.StartsWith(Values.GENERATED_SPRITE_PREFIX))
         {
-            if (this.netState.GeneratedSprites.TryGetValue(e.NameWithoutLocale.Name[(Values.GENERATED_SPRITE_PREFIX.Length + 1)..], out GeneratedSpriteData data))
+            if (ModEntry.NetState.GeneratedSprites.TryGetValue(e.NameWithoutLocale.Name[(Values.GENERATED_SPRITE_PREFIX.Length + 1)..], out GeneratedSpriteData data))
             {
                 e.LoadFrom(() => data.Sprite.Value, AssetLoadPriority.Medium);
             }
             else
             {
-                this.Log.Error($"Couldn't find generate sprite data for guid {e.NameWithoutLocale.Name}");
+                Log.Error($"Couldn't find generate sprite data for guid {e.NameWithoutLocale.Name}");
                 // Either provide premade error texture or just load null and let the NPC.draw method handle it TODO test the error
                 //e.LoadFrom(() => Game1.content.Load<Texture2D>(FarmAnimal.ErrorTextureName), AssetLoadPriority.Medium);
                 e.LoadFrom(() => null!, AssetLoadPriority.Medium);
@@ -152,7 +140,7 @@ internal sealed class RandomSprites : Service
     private IRawTextureData? GetTextureDataForPart<TAppearance>(GeneratedSpriteData sprite) where TAppearance : AppearanceModel
     {
         string id = sprite.GetModelId<TAppearance>().Value;
-        AppearanceModel? model = this.contentPacks.GetModelCollection<TAppearance>().Values.FirstOrDefault(c => c.Id == id);
+        AppearanceModel? model = ModEntry.ContentPacks.GetModelCollection<TAppearance>().Values.FirstOrDefault(c => c.Id == id);
         IList<Color>? colors = sprite.GetPaint<TAppearance>();
 
         if (model == null)
@@ -166,7 +154,7 @@ internal sealed class RandomSprites : Service
 
     private TAppearance GetRandomAppearance<TAppearance>(Gender gender = Gender.Undefined) where TAppearance : AppearanceModel
     {
-        ICollection<TAppearance> collection = this.contentPacks.GetModelCollection<TAppearance>().Values;
+        ICollection<TAppearance> collection = ModEntry.ContentPacks.GetModelCollection<TAppearance>().Values;
         return collection.Where(m => m.MatchesGender(gender)).MinBy(_ => Game1.random.Next())!;
     }
 

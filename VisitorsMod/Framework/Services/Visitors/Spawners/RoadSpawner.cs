@@ -1,15 +1,11 @@
 using Microsoft.Xna.Framework;
 using StardewMods.VisitorsMod.Framework.Data;
 using StardewMods.SheepCore.Framework.Services;
+using StardewMods.VisitorsMod.Framework.Interfaces;
 
-namespace StardewMods.VisitorsMod.Framework.Visitors;
+namespace StardewMods.VisitorsMod.Framework.Services.Visitors.Spawners;
 internal class RoadSpawner : LocationSpawner, ISpawner
 {
-    public RoadSpawner(NpcMovement npcMovement) : base (npcMovement)
-    {
-
-    }
-
     public override string Id
         => "Road";
 

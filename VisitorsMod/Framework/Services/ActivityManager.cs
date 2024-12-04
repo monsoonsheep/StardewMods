@@ -1,27 +1,24 @@
 using System.Text.RegularExpressions;
 using StardewMods.VisitorsMod.Framework.Data.Models.Activities;
 
-namespace StardewMods.VisitorsMod.Framework.Services.Visitors.Activities;
+namespace StardewMods.VisitorsMod.Framework.Services;
 
-internal class ActivityManager : Service
+internal class ActivityManager
 {
-    internal Dictionary<string, ActivityModel> activities = [];
+    internal static ActivityManager Instance = null!;
 
-    public ActivityManager(
-        ContentPacks contentPacks,
-        IModEvents events,
-        ILogger logger,
-        IManifest manifest)
-        : base(logger, manifest)
+    public ActivityManager()
+        => Instance = this;
+
+    internal void Initialize()
     {
-        this.activities = contentPacks.activities;
     }
 
     internal List<ActivityModel> GetActivitiesForToday()
     {
         List<ActivityModel> list = [];
 
-        foreach (ActivityModel activity in this.activities.Values)
+        foreach (ActivityModel activity in ModEntry.ContentPacks.activities.Values)
         {
             string[] split = activity.Schedule.Split(' ');
 
@@ -99,11 +96,11 @@ internal class ActivityManager : Service
 
     internal ActivityModel DebugGetActivity()
     {
-        return this.activities["ShopAdventureGuild1"];
+        return ModEntry.ContentPacks.activities["ShopAdventureGuild1"];
     }
 
     internal IEnumerable<ActivityModel> GetActivities()
     {
-        return this.activities.Values;
+        return ModEntry.ContentPacks.activities.Values;
     }
 }

@@ -9,8 +9,8 @@
         }
     ],
     "Schedule": "",
-    "TimeRange": [700, 900],
+    "TimeRange": [610, 700],
     "ForRandomVisitors": true,
     "Duration": "Medium",
-    "ArriveBy": [ "Train" ]
+    "ArriveBy": [ "Road" ]
 }

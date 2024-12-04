@@ -3,10 +3,8 @@ using StardewMods.VisitorsMod.Framework.Data;
 using StardewMods.VisitorsMod.Framework.Data.Models.Appearances;
 
 namespace StardewMods.VisitorsMod.Framework.Services.Visitors.RandomVisitors;
-internal class Colors : Service
+internal class ColorsManager
 {
-    private readonly IModHelper helper;
-
     // Colors
     internal IRawTextureData BodyBase = null!;
     internal IRawTextureData Eyes = null!;
@@ -17,22 +15,15 @@ internal class Colors : Service
     internal List<AppearancePaint> PantsColors = [];
     internal List<AppearancePaint> OutfitColors = [];
 
-    public Colors(
-        IModEvents events,
-        IModHelper helper,
-        ILogger logger,
-        IManifest manifest)
-        : base(logger, manifest)
+    public ColorsManager()
     {
-        this.helper = helper;
-
-        this.BodyBase = this.helper.ModContent.Load<IRawTextureData>(Path.Combine("assets", "CharGen", "base.png"));
-        this.Eyes = this.helper.ModContent.Load<IRawTextureData>(Path.Combine("assets", "CharGen", "eyes.png"));
-        this.SkinTones = this.helper.ModContent.Load<List<int[]>>(Path.Combine("assets", "CharGen", "skintones.json"));
-        this.EyeColors = this.helper.ModContent.Load<List<int[]>>(Path.Combine("assets", "CharGen", "eyecolors.json"));
-        this.HairColors = this.helper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "haircolors.json"));
-        this.ShirtColors = this.helper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "shirtcolors.json"));
-        this.PantsColors = this.helper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "pantscolors.json"));
+        this.BodyBase = ModEntry.Helper.ModContent.Load<IRawTextureData>(Path.Combine("assets", "CharGen", "base.png"));
+        this.Eyes = ModEntry.Helper.ModContent.Load<IRawTextureData>(Path.Combine("assets", "CharGen", "eyes.png"));
+        this.SkinTones = ModEntry.Helper.ModContent.Load<List<int[]>>(Path.Combine("assets", "CharGen", "skintones.json"));
+        this.EyeColors = ModEntry.Helper.ModContent.Load<List<int[]>>(Path.Combine("assets", "CharGen", "eyecolors.json"));
+        this.HairColors = ModEntry.Helper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "haircolors.json"));
+        this.ShirtColors = ModEntry.Helper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "shirtcolors.json"));
+        this.PantsColors = ModEntry.Helper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "pantscolors.json"));
     }
 
     /// <summary>

@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using StardewMods.VisitorsMod.Framework.Data.Models.Appearances;
 
-namespace StardewMods.VisitorsMod.Framework;
+namespace StardewMods.VisitorsMod.Framework.Services;
 
 internal static class ModUtility
 {

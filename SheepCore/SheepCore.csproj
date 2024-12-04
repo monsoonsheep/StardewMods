@@ -7,14 +7,6 @@
     <ImplicitUsings>true</ImplicitUsings>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="SimpleInjector">
-      <HintPath>$(GameModsPath)\FauxCore\SimpleInjector.dll</HintPath>
-      <Version>5.4.2</Version>
-      <Private>false</Private>
-    </PackageReference>
-  </ItemGroup>
-
   <!-- Translations -->
   <ItemGroup>
     <AdditionalFiles Include="i18n/default.json" />
@@ -34,7 +26,6 @@
   <ItemGroup>
     <SMAPIDependency Include="spacechase0.SpaceCore" Version="1.26" Reference="false" />
     <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
-    <SMAPIDependency Include="furyx639.FauxCore" Version="1.1.1" required="true" />
   </ItemGroup>
 
 </Project>

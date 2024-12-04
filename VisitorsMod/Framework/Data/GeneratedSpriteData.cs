@@ -7,7 +7,7 @@ namespace StardewMods.VisitorsMod.Framework.Data;
 
 public class GeneratedSpriteData : INetObject<NetFields>, IDisposable
 {
-    private static Func<GeneratedSpriteData, Texture2D> generateTextureFunction = ModEntry.GenerateTexture;
+    private static Func<GeneratedSpriteData, Texture2D> generateTextureFunction = ModEntry.RandomSprites.GenerateTexture;
 
     public NetFields NetFields { get; } = new NetFields("GeneratedSpriteData");
 

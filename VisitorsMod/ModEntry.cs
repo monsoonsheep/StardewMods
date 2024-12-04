@@ -3,17 +3,13 @@ global using StardewModdingAPI;
 global using StardewModdingAPI.Events;
 global using StardewMods.Common;
 
-using SimpleInjector;
 using HarmonyLib;
 using StardewMods.VisitorsMod.Framework.Services;
 using StardewMods.VisitorsMod.Framework.Services.Visitors;
 using StardewMods.VisitorsMod.Framework.Data;
 using Microsoft.Xna.Framework.Graphics;
 using StardewMods.VisitorsMod.Framework.Services.Visitors.RandomVisitors;
-using StardewMods.VisitorsMod.Framework;
 using StardewMods.VisitorsMod.Framework.Interfaces;
-using StardewMods.VisitorsMod.Framework.Visitors;
-using StardewMods.VisitorsMod.Framework.Services.Visitors.Activities;
 using StardewMods.SheepCore.Framework.Services;
 
 namespace StardewMods.VisitorsMod;
@@ -21,14 +17,36 @@ namespace StardewMods.VisitorsMod;
 public class ModEntry : Mod
 {
     internal static ModEntry Instance = null!;
-    private Container _container = null!;
 
-    public ModEntry() => Instance = this;
+    internal static IModEvents Events { get; private set; } = null!;
+    internal static IManifest Manifest { get; private set; } = null!;
+    internal new static IModHelper Helper { get; private set; } = null!;
+    internal static Harmony Harmony { get; private set; } = null!;
+    internal static NetState NetState { get; private set; } = null!;
+    internal static ContentPacks ContentPacks { get; private set; } = null!;
+    internal static VisitorManager Visitors { get; private set; } = null!;
+    internal static NpcMovement NpcMovement { get; private set; } = null!;
+    internal static RandomSprites RandomSprites { get; private set; } = null!;
+
+    public ModEntry()
+        => Instance = this;
 
     public override void Entry(IModHelper helper)
     {
-        I18n.Init(this.Helper.Translation);
-        this.Helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
+        Log.Monitor = base.Monitor;
+
+        Events = base.Helper.Events;
+        Manifest = base.ModManifest;
+        Helper = base.Helper;
+        Harmony = new Harmony(this.ModManifest.UniqueID);
+
+        NetState = new NetState();
+        ContentPacks = new ContentPacks();
+
+        Visitors = new VisitorManager();
+        RandomSprites = new RandomSprites(new ColorsManager());
+        I18n.Init(Helper.Translation);
+        Helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
     }
 
     /// <summary>
@@ -37,63 +55,11 @@ public class ModEntry : Mod
     [EventPriority(EventPriority.Low)]
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
     {
-        // Init
-        Container c = new Container();
-        this._container = c;
+        NpcMovement = NpcMovement.Instance;
 
-        c.RegisterSingleton(() => new Harmony(this.ModManifest.UniqueID));
-        c.RegisterInstance(this.Helper);
-        c.RegisterInstance(this.ModManifest);
-        c.RegisterInstance(this.Monitor);
-        c.RegisterInstance(this.Helper.Data);
-        c.RegisterInstance(this.Helper.Events);
-        c.RegisterInstance(this.Helper.GameContent);
-        c.RegisterInstance(this.Helper.Input);
-        c.RegisterInstance(this.Helper.ModContent);
-        c.RegisterInstance(this.Helper.ModRegistry);
-        c.RegisterInstance(this.Helper.Reflection);
-        c.RegisterInstance(this.Helper.Translation);
-        c.RegisterInstance(this.Helper.Multiplayer);
-
-        c.RegisterSingleton<ILogger, Logger>();
-
-        c.RegisterSingleton<ModEvents>();
-        c.RegisterSingleton<ContentPacks>();
-        c.RegisterSingleton<LocationProvider>();
-        c.RegisterSingleton<MultiplayerMessaging>();
-        c.RegisterSingleton<NetState>();
-
-        c.RegisterSingleton<NpcMovement>();
-
-        c.RegisterSingleton<VisitorManager>();
-        c.RegisterSingleton<RandomVisitorBuilder>();
-        c.RegisterSingleton<RandomSprites>();
-        c.RegisterSingleton<Colors>();
-        c.RegisterSingleton<ActivityManager>();
-
-        List<Type> spawners = [
-            typeof(TrainSpawner),
-            typeof(RoadSpawner),
-            typeof(WarpSpawner)
-            ];
-        c.Collection.Register<ISpawner>(spawners, Lifestyle.Singleton);
-
-        IBusSchedulesApi? busSchedules = this.Helper.ModRegistry.GetApi<IBusSchedulesApi>("MonsoonSheep.BusSchedules");
-        if (busSchedules != null)
-        {
-            c.RegisterInstance<IBusSchedulesApi>(busSchedules);
-            c.Collection.Append(typeof(ISpawner), typeof(BusSpawner));
-        }
-
-#if DEBUG
-        c.RegisterSingleton<Debug>();
-#endif
-
-        c.Verify();
-    }
-
-    internal static Texture2D GenerateTexture(GeneratedSpriteData data)
-    {
-        return Instance._container.GetInstance<RandomSprites>().GenerateTexture(data);
+        NetState.Initialize();
+        ContentPacks.Initialize();
+        RandomSprites.Initialize();
+        Visitors.Initialize();
     }
 }

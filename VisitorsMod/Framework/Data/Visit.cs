@@ -1,6 +1,6 @@
 using StardewMods.VisitorsMod.Framework.Data.Models.Activities;
 using StardewMods.VisitorsMod.Framework.Enums;
-using StardewMods.VisitorsMod.Framework.Visitors;
+using StardewMods.VisitorsMod.Framework.Interfaces;
 
 namespace StardewMods.VisitorsMod.Framework.Data;
 public class Visit

@@ -3,7 +3,7 @@ using Netcode;
 using StardewMods.VisitorsMod.Framework.Data;
 using StardewValley.Network;
 
-namespace StardewMods.VisitorsMod.Framework.Game;
+namespace StardewMods.VisitorsMod.Framework.Netcode;
 
 [XmlType("Mods_MonsoonSheep_VisitorsMod_VisitorNetState")]
 public class NetStateObject : INetObject<NetFields>
@@ -14,7 +14,9 @@ public class NetStateObject : INetObject<NetFields>
 
     public NetStateObject()
     {
-        this.NetFields.SetOwner(this).AddField(this.GeneratedSprites, "GeneratedSprites");
+        this.NetFields.SetOwner(this)
+            .AddField(this.GeneratedSprites, "GeneratedSprites");
+
         this.GeneratedSprites.OnValueRemoved += (id, data) => data.Dispose();
     }
 }

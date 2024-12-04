@@ -12,7 +12,7 @@
         {
             "TilePosition": {
                 "X": 20,
-                "Y": 20
+                "Y": 19
             },
             "Behavior": "look_2_3_3",
             "Animation": ""

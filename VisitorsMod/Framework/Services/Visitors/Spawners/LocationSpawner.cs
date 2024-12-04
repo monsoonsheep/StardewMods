@@ -2,17 +2,11 @@ using HarmonyLib;
 using Microsoft.Xna.Framework;
 using StardewMods.SheepCore.Framework.Services;
 using StardewMods.VisitorsMod.Framework.Data;
+using StardewMods.VisitorsMod.Framework.Interfaces;
 
-namespace StardewMods.VisitorsMod.Framework.Visitors;
+namespace StardewMods.VisitorsMod.Framework.Services.Visitors.Spawners;
 internal abstract class LocationSpawner : ISpawner
 {
-    protected readonly NpcMovement npcMovement;
-
-    public LocationSpawner(NpcMovement npcMovement)
-    {
-        this.npcMovement = npcMovement;
-    }
-
     public abstract string Id { get; }
 
     protected abstract (GameLocation, Point) GetSpawnLocation(Visit visit);
@@ -43,7 +37,7 @@ internal abstract class LocationSpawner : ISpawner
             npc.currentLocation = location;
             npc.Position = tilePoint.ToVector2() * 64f;
 
-            if (!this.npcMovement.NpcPathTo(npc, Game1.getLocationFromName(targetLocation), targetTile))
+            if (!ModEntry.NpcMovement.NpcPathTo(npc, Game1.getLocationFromName(targetLocation), targetTile))
                 return false;
         }
 
@@ -60,7 +54,7 @@ internal abstract class LocationSpawner : ISpawner
             AccessTools.Method(typeof(NPC), "prepareToDisembarkOnNewSchedulePath").Invoke(npc, []);
 
             Point activityPosition = visit.activity.Actors[i].TilePosition;
-            if (!this.npcMovement.NpcPathToFrom(npc, npc.currentLocation, activityPosition, location, tilePoint))
+            if (!ModEntry.NpcMovement.NpcPathToFrom(npc, npc.currentLocation, activityPosition, location, tilePoint))
                 return false;
         }
 

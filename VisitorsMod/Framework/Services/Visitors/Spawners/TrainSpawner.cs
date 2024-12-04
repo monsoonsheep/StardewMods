@@ -1,15 +1,11 @@
 using Microsoft.Xna.Framework;
 using StardewMods.VisitorsMod.Framework.Data;
 using StardewMods.SheepCore.Framework.Services;
+using StardewMods.VisitorsMod.Framework.Interfaces;
 
-namespace StardewMods.VisitorsMod.Framework.Visitors;
+namespace StardewMods.VisitorsMod.Framework.Services.Visitors.Spawners;
 internal class TrainSpawner : LocationSpawner, ISpawner
 {
-    public TrainSpawner(NpcMovement npcMovement) : base (npcMovement)
-    {
-
-    }
-
     public override bool IsAvailable()
     {
         return Game1.stats.DaysPlayed >= 31;

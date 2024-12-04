@@ -4,12 +4,12 @@ using StardewMods.SheepCore.Framework.Services;
 using StardewMods.VisitorsMod.Framework.Data;
 using StardewMods.VisitorsMod.Framework.Interfaces;
 
-namespace StardewMods.VisitorsMod.Framework.Visitors;
+namespace StardewMods.VisitorsMod.Framework.Services.Visitors.Spawners;
 internal class BusSpawner : LocationSpawner, ISpawner
 {
     private readonly IBusSchedulesApi api;
 
-    public BusSpawner(IBusSchedulesApi api, NpcMovement npcMovement) : base(npcMovement)
+    public BusSpawner(IBusSchedulesApi api) : base()
     {
         this.api = api;
     }
@@ -22,7 +22,7 @@ internal class BusSpawner : LocationSpawner, ISpawner
 
     public override bool IsAvailable()
         => this.api.IsAvailable();
-    
+
     protected override (GameLocation, Point) GetSpawnLocation(Visit visit)
     {
         return (Game1.getLocationFromName("BusStop"), this.api.BusTilePosition);

@@ -3,16 +3,12 @@ using Microsoft.Xna.Framework;
 using StardewValley.Pathfinding;
 
 namespace StardewMods.SheepCore.Framework.Services;
-public class NpcMovement : Service
+public class NpcMovement
 {
-    public NpcMovement(
-        Harmony harmony,
-        ILogger logger,
-        IManifest manifest
-        ) : base(logger, manifest)
-    {
+    public static NpcMovement Instance = null!;
 
-    }
+    public NpcMovement()
+        => Instance = this;
 
     public bool NpcPathTo(NPC npc, GameLocation location, Point tilePosition)
     {

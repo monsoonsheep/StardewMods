@@ -1,6 +1,6 @@
 using StardewMods.VisitorsMod.Framework.Data;
 
-namespace StardewMods.VisitorsMod.Framework.Visitors;
+namespace StardewMods.VisitorsMod.Framework.Interfaces;
 public interface ISpawner
 {
     public string Id { get; }

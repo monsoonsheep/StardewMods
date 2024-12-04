@@ -1,58 +1,74 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using StardewMods.VisitorsMod.Framework.Visitors;
 using StardewMods.VisitorsMod.Framework.Data;
 using StardewMods.VisitorsMod.Framework.Enums;
-using StardewMods.VisitorsMod.Framework.Services.Visitors.Activities;
 using HarmonyLib;
 using StardewMods.VisitorsMod.Framework.Data.Models;
 using StardewMods.VisitorsMod.Framework.Data.Models.Activities;
+using StardewModdingAPI;
+using StardewMods.VisitorsMod.Framework.Services.Visitors.RandomVisitors;
+using StardewMods.VisitorsMod.Framework.Interfaces;
+using StardewMods.VisitorsMod.Framework.Services.Visitors.Spawners;
 
 namespace StardewMods.VisitorsMod.Framework.Services.Visitors;
 
-internal class VisitorManager : Service
+internal class VisitorManager
 {
-    private static VisitorManager instance = null!;
+    internal static VisitorManager Instance = null!;
 
-    private readonly ICollection<ISpawner> spawners;
-    private readonly ActivityManager activities;
-    private readonly RandomVisitorBuilder visitorBuilder;
+    // Services
+    private ActivityManager activities = null!;
+    private RandomVisitorBuilder visitorBuilder = null!;
 
-    internal readonly Dictionary<string, VisitorModel> visitorModels = [];
+    // State
+    private List<ISpawner> spawners = null!;
+    private Dictionary<int, List<Visit>> visitSchedule = [];
 
-    private readonly Dictionary<int, List<Visit>> visitSchedule = [];
+    public VisitorManager()
+        => Instance = this;
 
-    internal IEnumerable<Visit> OngoingVisits
-        => this.visitSchedule.Values.SelectMany(i => i).Where(v => v.state == VisitState.Ongoing);
-
-    public VisitorManager(
-        ContentPacks contentPacks,
-        ICollection<ISpawner> spawners,
-        ActivityManager activities,
-        RandomVisitorBuilder visitorBuilder,
-        Harmony harmony,
-        IModEvents events,
-        ILogger logger,
-        IManifest manifest)
-        : base(logger, manifest)
+    internal void Initialize()
     {
-        instance = this;
+        ModEntry.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
+        ModEntry.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
+    }
 
-        this.visitorModels = contentPacks.visitorModels;
+    private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
+    {
+        if (!Context.IsMainPlayer)
+            return;
+        
+        this.activities = new ActivityManager();
+        this.activities.Initialize();
+        this.visitorBuilder = new RandomVisitorBuilder();
 
-        this.spawners = spawners;
-        this.activities = activities;
-        this.visitorBuilder = visitorBuilder;
+        this.spawners = [
+            new TrainSpawner(),
+            new RoadSpawner(),
+            new WarpSpawner(),
+            ];
 
-        events.GameLoop.DayStarted += this.OnDayStarted;
-        events.GameLoop.TimeChanged += this.OnTimeChanged;
+        IBusSchedulesApi? busSchedules = ModEntry.Helper.ModRegistry.GetApi<IBusSchedulesApi>("MonsoonSheep.BusSchedules");
+        if (busSchedules != null)
+        {
+            this.spawners.Add(new BusSpawner(busSchedules));
+        }
+
+        ModEntry.Events.GameLoop.DayStarted += this.OnDayStarted;
+        ModEntry.Events.GameLoop.TimeChanged += this.OnTimeChanged;
+    }
+
+    private void OnReturnedToTitle(object? sender, ReturnedToTitleEventArgs e)
+    {
+        ModEntry.Events.GameLoop.DayStarted -= this.OnDayStarted;
+        ModEntry.Events.GameLoop.TimeChanged -= this.OnTimeChanged;
     }
 
     private void OnDayStarted(object? sender, DayStartedEventArgs e)
     {
         this.visitSchedule.Clear();
         List<ActivityModel> activitiesForToday = this.activities.GetActivitiesForToday();
-        this.Log.Debug("Activities today:");
+        Log.Debug("Activities today:");
         foreach (ActivityModel activity in activitiesForToday)
         {
             int[] timeRange = activity.TimeRange;
@@ -73,7 +89,7 @@ internal class VisitorManager : Service
 
             if (spawner == null)
             {
-                this.Log.Warn($"Activity {activity.Id} doesn't have a valid ArriveBy: {activity.ArriveBy}");
+                Log.Warn($"Activity {activity.Id} doesn't have a valid ArriveBy: {activity.ArriveBy}");
                 continue;
             }
 
@@ -93,7 +109,7 @@ internal class VisitorManager : Service
                 endTime: Utility.ModifyTime(timeSelected, durationMinutes));
 
             this.visitSchedule[timeSelected].Add(visit);
-            this.Log.Debug($"- {activity.Id} at {timeSelected} by {spawner.Id}");
+            Log.Debug($"- {activity.Id} at {timeSelected} by {spawner.Id}");
         }
     }
 
@@ -121,13 +137,13 @@ internal class VisitorManager : Service
         }
 
         // End visits that are due to end
-        foreach (Visit visit in this.OngoingVisits)
+        foreach (Visit visit in this.OngoingVisits())
         {
             if (Game1.timeOfDay >= visit.endTime)
             {
                 if (!visit.spawner.EndVisit(visit))
                 {
-                    this.Log.Error("NPCs couldn't path back");
+                    Log.Error("NPCs couldn't path back");
                     for (int i = 0; i < visit.group.Count; i++)
                     {
                         NPC npc = visit.group[i];
@@ -135,6 +151,7 @@ internal class VisitorManager : Service
                         npc.currentLocation = null;
                         visit.state = VisitState.Ended;
                     }
+
                     continue;
                 }
 
@@ -160,6 +177,13 @@ internal class VisitorManager : Service
             }
         }
     }
+
+
+    private ISpawner? GetSpawner(string name)
+        => this.spawners.FirstOrDefault(s => s.Id.Equals(name));
+
+    private IEnumerable<Visit> OngoingVisits()
+        => this.visitSchedule.Values.SelectMany(i => i).Where(v => v.state == VisitState.Ongoing);
 
     private void PopulateNpcsForVisit(Visit visit)
     {
@@ -204,7 +228,7 @@ internal class VisitorManager : Service
         if (!visit.spawner.StartVisit(visit))
         {
             visit.state = VisitState.Failed;
-            this.Log.Error($"Visit failed: {visit.activity.Id}, spawner {visit.spawner.Id}");
+            Log.Error($"Visit failed: {visit.activity.Id}, spawner {visit.spawner.Id}");
             foreach (NPC npc in visit.group)
             {
                 npc.currentLocation?.characters.Remove(npc);
@@ -231,13 +255,5 @@ internal class VisitorManager : Service
         }
 
         return true;
-    }
-
-    private ISpawner? GetSpawner(string name)
-        => this.spawners.FirstOrDefault(s => s.Id.Equals(name));
-
-    internal void DebugSpawnTestNpc()
-    {
-        ActivityModel activity = this.activities.DebugGetActivity();
     }
 }

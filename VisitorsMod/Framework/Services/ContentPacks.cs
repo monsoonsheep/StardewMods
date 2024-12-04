@@ -4,11 +4,9 @@ using StardewMods.VisitorsMod.Framework.Data.Models.Appearances;
 
 namespace StardewMods.VisitorsMod.Framework.Services;
 
-internal class ContentPacks : Service
+internal class ContentPacks
 {
-    private readonly IModHelper helper;
-    private readonly IModContentHelper modContent;
-    private readonly NetState netState;
+    internal static ContentPacks Instance = null!;
 
     // Custom visitors
     internal Dictionary<string, VisitorModel> visitorModels = [];
@@ -24,39 +22,31 @@ internal class ContentPacks : Service
     internal Dictionary<string, AccessoryModel> Accessories = [];
     internal Dictionary<string, OutfitModel> Outfits = [];
 
-    public ContentPacks(
-        NetState netState,
-        IModEvents events,
-        IModHelper helper,
-        IModContentHelper modContent,
-        ILogger logger,
-        IManifest manifest)
-        : base(logger, manifest)
-    {
-        this.modContent = modContent;
-        this.helper = helper;
-        this.netState = netState;
+    internal ContentPacks()
+        => Instance = this;
 
-        IContentPack defaultContent = this.helper.ContentPacks.CreateTemporary(
-                   Path.Combine(this.helper.DirectoryPath, "assets", "DefaultContent"),
-                   $"{this.ModManifest.Author}.DefaultContent",
+    internal void Initialize()
+    {
+        IContentPack defaultContent = ModEntry.Helper.ContentPacks.CreateTemporary(
+                   Path.Combine(ModEntry.Helper.DirectoryPath, "assets", "DefaultContent"),
+                   $"{ModEntry.Manifest.Author}.DefaultContent",
                    "VisitorsMod Fake Content Pack",
                    "Default content for VisitorsMod",
-                   this.ModManifest.Author,
-                   this.ModManifest.Version
+                   ModEntry.Manifest.Author,
+                   ModEntry.Manifest.Version
                 );
 
         // Load default content pack included in assets folder
         this.LoadContentPack(defaultContent);
 
         // Load content packs
-        foreach (IContentPack contentPack in this.helper.ContentPacks.GetOwned())
+        foreach (IContentPack contentPack in ModEntry.Helper.ContentPacks.GetOwned())
             this.LoadContentPack(contentPack);
-    }    
+    }
 
     private void LoadContentPack(IContentPack contentPack)
     {
-        this.Log.Info($"Loading content pack {contentPack.Manifest.Name} by {contentPack.Manifest.Author}");
+        Log.Info($"Loading content pack {contentPack.Manifest.Name} by {contentPack.Manifest.Author}");
 
         DirectoryInfo visitorsRoot = new(Path.Combine(contentPack.DirectoryPath, "Visitors"));
 
@@ -80,7 +70,7 @@ internal class ContentPacks : Service
                 VisitorModel? model = contentPack.ReadJsonFile<VisitorModel>(Path.Combine(relativePathOfModel, "visitor.json"));
                 if (model == null)
                 {
-                    this.Log.Debug("Couldn't read visitor.json for content pack");
+                    Log.Debug("Couldn't read visitor.json for content pack");
                     continue;
                 }
                 model.Name = $"{contentPack.Manifest.UniqueID}/{model.Name}";
@@ -90,9 +80,9 @@ internal class ContentPacks : Service
 
                 model.Portrait = contentPack.HasFile(portraitPath)
                     ? contentPack.ModContent.GetInternalAssetName(portraitPath).Name
-                    : this.helper.ModContent.GetInternalAssetName(Path.Combine("assets", "CharGen", "Portraits", (string.IsNullOrEmpty(model.Portrait) ? "cat" : model.Portrait) + ".png")).Name;
+                    : ModEntry.Helper.ModContent.GetInternalAssetName(Path.Combine("assets", "CharGen", "Portraits", (string.IsNullOrEmpty(model.Portrait) ? "cat" : model.Portrait) + ".png")).Name;
 
-                this.Log.Trace($"Visitor model added: {model.Name}");
+                Log.Trace($"Visitor model added: {model.Name}");
                 this.visitorModels[model.Name] = model;
             }
         }
@@ -109,12 +99,12 @@ internal class ContentPacks : Service
                 ActivityModel? activity = contentPack.ReadJsonFile<ActivityModel>(Path.Combine(relativePathOfModel, "activity.json"));
                 if (activity == null)
                 {
-                    this.Log.Debug("Couldn't read activity.json for content pack");
+                    Log.Debug("Couldn't read activity.json for content pack");
                     continue;
                 }
                 activity.Id = folder.Name;
 
-                this.Log.Trace($"Activity model added: {activity.Id}");
+                Log.Trace($"Activity model added: {activity.Id}");
                 this.activities[activity.Id] = activity;
             }
         }
@@ -152,7 +142,7 @@ internal class ContentPacks : Service
             TAppearance? model = contentPack.ReadJsonFile<TAppearance>(Path.Combine(relativePathOfModel, $"{filename}.json"));
             if (model == null)
             {
-                this.Log.Debug($"Couldn't read {filename}.json for content pack {contentPack.Manifest.UniqueID}");
+                Log.Debug($"Couldn't read {filename}.json for content pack {contentPack.Manifest.UniqueID}");
                 return null;
             }
 
@@ -160,7 +150,7 @@ internal class ContentPacks : Service
             model.TexturePath = contentPack.ModContent.GetInternalAssetName(Path.Combine(relativePathOfModel, $"{filename}.png")).Name;
             model.ContentPack = contentPack;
 
-            this.Log.Trace($"{folderName} model added: {model.Id}");
+            Log.Trace($"{folderName} model added: {model.Id}");
 
             return model;
         }

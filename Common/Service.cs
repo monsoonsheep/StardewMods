@@ -3,7 +3,7 @@ public abstract class Service
 {
     public Service(ILogger logger, IManifest manifest)
     {
-        this.Log = logger;
+        Log = logger;
         this.ModManifest = manifest;
     }
 

@@ -2,15 +2,11 @@ using HarmonyLib;
 using Microsoft.Xna.Framework;
 using StardewMods.VisitorsMod.Framework.Data;
 using StardewMods.SheepCore.Framework.Services;
+using StardewMods.VisitorsMod.Framework.Interfaces;
 
-namespace StardewMods.VisitorsMod.Framework.Visitors;
+namespace StardewMods.VisitorsMod.Framework.Services.Visitors.Spawners;
 internal class WarpSpawner : LocationSpawner, ISpawner
 {
-    public WarpSpawner(NpcMovement npcMovement) : base(npcMovement)
-    {
-
-    }
-
     public override string Id
         => "Warp";
 
@@ -64,7 +60,7 @@ internal class WarpSpawner : LocationSpawner, ISpawner
             npc.currentLocation = targetLocation;
             npc.Position = warpPosition;
 
-            if (!this.npcMovement.NpcPathTo(npc, targetLocation, targetTile))
+            if (!ModEntry.NpcMovement.NpcPathTo(npc, targetLocation, targetTile))
             {
                 return false;
             }

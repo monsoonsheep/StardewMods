@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using HarmonyLib;
 using Netcode;
+using StardewMods.VisitorsMod.Framework.Netcode;
 
 namespace StardewMods.VisitorsMod.Framework.Game;
 
