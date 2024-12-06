@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Netcode;
+using StardewMods.MyShops.Framework.Game;
 using StardewValley;
 // ReSharper disable VirtualMemberCallInConstructor
 
@@ -16,7 +17,7 @@ public abstract class Seat : INetObject<NetFields>
     private readonly NetRef<NPC?> _netReservingCustomer = [];
 
     internal Table Table
-        => Mod.Cafe.Tables.FirstOrDefault(t => t.Seats.Contains(this))!;
+        => Mod.NetState.Tables.FirstOrDefault((t) => t.Seats.Contains(this))!;
 
     internal NPC? ReservingCustomer
     {

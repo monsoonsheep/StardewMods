@@ -6,12 +6,12 @@ using StardewMods.MyShops.Framework.Objects;
 using StardewValley.Network;
 
 namespace StardewMods.MyShops.Framework.Services;
-internal class NetState : Service
+internal class NetState 
 {
-    private static NetState Instance = null!;
+    internal static NetState Instance = null!;
 
-    internal NetStateObject fields
-        => Game1.player.team.get_NetStateObject().Value;
+    internal CafeNetState fields
+        => Game1.player.team.get_CafeNetState().Value;
 
     internal NetCollection<Table> Tables
         => this.fields.Tables;
@@ -29,28 +29,14 @@ internal class NetState : Service
         => this.fields.Menu;
 
     // Fields for syncing data
+
+    internal NetState()
+        => Instance = this;
+
+    internal void Initialize()
+    {
+       
+    }
+
     
-    public NetState(
-        Harmony harmony,
-        ILogger logger,
-        IManifest manifest)
-        : base(logger, manifest)
-    {
-        Instance = this;
-
-        harmony.Patch(
-            original: AccessTools.Constructor(typeof(FarmerTeam)),
-            postfix: new HarmonyMethod(AccessTools.Method(this.GetType(), nameof(After_FarmerTeamConstructor)))
-        );
-    }
-
-
-    /// <summary>
-    /// Add the net field to the farmerTeam
-    /// </summary>
-    private static void After_FarmerTeamConstructor(FarmerTeam __instance)
-    {
-        __instance.NetFields.AddField(__instance.get_NetStateObject());
-        Instance.Log.Info("Adding netfields to FarmerTeam");
-    }
 }

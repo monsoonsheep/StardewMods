@@ -22,6 +22,29 @@ internal static class NpcVirtualProperties
 
     internal static ConditionalWeakTable<NPC, Holder> Values = [];
 
+    internal static void InjectFields()
+    {
+        Mod.Harmony.Patch(
+           original: AccessTools.Constructor(typeof(NPC), []),
+           postfix: new HarmonyMethod(AccessTools.Method(typeof(NpcVirtualProperties), nameof(After_NPCConstructor)))
+       );
+    }
+
+    /// <summary>
+    /// Add net fields to NPC
+    /// </summary>
+    private static void After_NPCConstructor(NPC __instance)
+    {
+        __instance.NetFields
+            .AddField(__instance.get_DrawName(), "DrawName")
+            .AddField(__instance.get_DrawOrderItem(), "DrawOrderItem")
+            .AddField(__instance.get_IsSittingDown(), "IsSittingDown")
+            .AddField(__instance.get_OrderItem(), "OrderItem");
+
+
+        Log.Trace("Adding netfields to NPC");
+    }
+
     internal static void RegisterProperties(ISpaceCoreApi spaceCore)
     {
         //TODO: Do we need to register these for serialization? 

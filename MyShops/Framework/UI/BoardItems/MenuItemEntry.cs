@@ -14,7 +14,7 @@ internal class MenuItemEntry : MenuEntry
     internal MenuItemEntry(Item item) : base()
     {
         this.Item = item;
-        this.Price = this.Item.modData.TryGetValue(ModKeys.MODDATA_ITEM_PRICE, out string a)
+        this.Price = this.Item.modData.TryGetValue(Values.MODDATA_ITEM_PRICE, out string a)
             ? int.Parse(a)
             : item.sellToStorePrice();
     }

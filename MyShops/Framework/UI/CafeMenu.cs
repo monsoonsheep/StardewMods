@@ -65,7 +65,7 @@ public sealed class CafeMenu : IClickableMenu
         if (Game1.options.SnappyMenus)
             this._menuBoard.snapToDefaultClickableComponent();
 
-        if (Mod.Cafe.Enabled == 2)
+        if (Mod.Cafe.Open)
             this.Locked = true;
     }
 

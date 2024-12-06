@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
+using StardewMods.MyShops.Characters;
 using StardewMods.MyShops.Framework.Enums;
 using StardewMods.MyShops.Framework.Game;
 using StardewMods.MyShops.Framework.Objects;

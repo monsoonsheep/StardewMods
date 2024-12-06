@@ -45,7 +45,7 @@ public static class NpcExtensions
             else
             {
                 // Is a villager NPC
-                Mod.Instance.AddDialoguesOnArrivingAtCafe(c);
+                Mod.Dialogue.AddDialoguesOnArrivingAtCafe(c);
             }
             
             if (!group.Members.Any(other => !other.get_IsSittingDown().Value))
@@ -57,7 +57,7 @@ public static class NpcExtensions
     {
         GameLocation location = me.currentLocation;
 
-        while (!me.currentLocation.Equals(Mod.Cafe.Signboard?.Location) &&
+        while (!me.currentLocation.Equals(Mod.Locations.Signboard?.Location) &&
                !me.currentLocation.Name.Equals("Farm") &&
                me.controller.pathToEndPoint is { Count: > 2 })
         {

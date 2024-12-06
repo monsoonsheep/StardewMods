@@ -1,0 +1,36 @@
+{
+        "VisitFrequency": 2,
+        "BusyTimes": {
+            "fall_15": [
+                {
+                    "From": 600
+                }
+            ],
+            "Tue": [
+                {
+                    "From": 1300,
+                    "To": 2000
+                }
+            ],
+            "winter_15": [
+                {
+                    "From": 1430
+                }
+            ],
+            "winter_11": [
+                {
+                    "From": 600
+                }
+            ],
+            "Fri": [
+                {
+                    "From": 600
+                }
+            ],
+            "spring": [
+                {
+                    "From": 1530
+                }
+            ]
+        }
+}

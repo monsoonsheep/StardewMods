@@ -1,5 +1,6 @@
 using System.Xml.Serialization;
 using Netcode;
+using StardewMods.MyShops.Framework.Data;
 using StardewMods.MyShops.Framework.Inventories;
 using StardewMods.MyShops.Framework.Objects;
 using StardewValley.Network;
@@ -8,10 +9,10 @@ using StardewValley.Network;
 
 namespace StardewMods.MyShops.Framework.Game;
 
-[XmlType("Mods_MonsoonSheep_MyShops_NetStateObject")]
-public class NetStateObject : INetObject<NetFields>
+[XmlType("Mods_MonsoonSheep_MyShops_CafeNetState")]
+public class CafeNetState : INetObject<NetFields>
 {
-    public NetFields NetFields { get; } = new NetFields("NetStateObject");
+    public NetFields NetFields { get; } = new NetFields("CafeNetState");
 
     public readonly NetCollection<Table> Tables = [];
     public readonly NetBool CafeEnabled = new(false);
@@ -19,9 +20,16 @@ public class NetStateObject : INetObject<NetFields>
     public readonly NetRef<StardewValley.Object> Signboard = new(null);
     public readonly NetRef<FoodMenuInventory> Menu = new(new FoodMenuInventory());
 
-    public NetStateObject()
+    public CafeNetState()
     {
         this.NetFields.SetOwner(this).AddField(this.Tables, "Tables").AddField(this.CafeEnabled, "CafeEnabled")
             .AddField(this.CafeOpen, "CafeOpen").AddField(this.Signboard, "Signboard").AddField(this.Menu, "Menu");
+
+        this.Tables.OnValueAdded += table =>
+            table.State.fieldChangeVisibleEvent += (_, oldValue, newValue) => Mod.Tables.OnTableStateChange(table, new TableStateChangedEventArgs()
+            {
+                OldValue = oldValue,
+                NewValue = newValue
+            });
     }
 }

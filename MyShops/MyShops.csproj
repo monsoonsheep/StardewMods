@@ -8,11 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SimpleInjector">
-      <HintPath>$(GameModsPath)\FauxCore\SimpleInjector.dll</HintPath>
-      <Version>5.4.2</Version>
-      <Private>false</Private>
-    </PackageReference>
     <Reference Include="SpaceCore" HintPath="$(GamePath)\Mods\SpaceCore\SpaceCore.dll" Private="false" />
   </ItemGroup>
 
@@ -36,11 +31,5 @@
   <ItemGroup>
     <SMAPIDependency Include="spacechase0.SpaceCore" Version="1.24" Reference="false" />
     <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
-    <SMAPIDependency Include="furyx639.FauxCore" Version="1.0.0" required="true" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Framework\Interfaces\" />
-  </ItemGroup>
-    
 </Project>

@@ -1,0 +1,11 @@
+{
+        "VisitFrequency": 1,
+        "BusyTimes": {
+            "spring": [
+                {
+                    "From": 600,
+                    "To": 1900
+                }
+            ]
+        }
+}

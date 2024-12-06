@@ -1,0 +1,44 @@
+{
+        "VisitFrequency": 2,
+        "BusyTimes": {
+            "Tue": [
+                {
+                    "From": 600,
+                    "To": 1640
+                }
+            ],
+            "Mon": [
+                {
+                    "From": 1330,
+                    "To": 1800,
+                    "Priority": 1
+                }
+            ],
+            "Summer_Mon|Summer_Sun|spring": [
+                {
+                    "From": 1000,
+                    "To": 1800
+                }
+            ],
+            "winter": [
+                {
+                    "From": 900,
+                    "To": 1800
+                }
+            ],
+            "winter_16": [
+                {
+                    "From": 900,
+                    "To": 1100
+                },
+                {
+                    "From": 1600
+                }
+            ],
+            "summer": [
+                {
+                    "From": 900
+                }
+            ]
+        }
+}

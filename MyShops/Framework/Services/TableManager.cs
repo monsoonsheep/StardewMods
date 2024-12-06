@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using HarmonyLib;
 using StardewMods.MyShops.Framework.Characters;
 using StardewMods.MyShops.Framework.Data;
 using StardewMods.MyShops.Framework.Enums;
@@ -14,43 +15,40 @@ using xTile.Layers;
 using xTile.Tiles;
 
 namespace StardewMods.MyShops.Framework.Services;
-internal class TableManager : Service
+internal class TableManager
 {
-    private static TableManager instance = null!;
+    internal static TableManager Instance = null!;
 
-    private readonly NetState netState;
+    public TableManager()
+        => Instance = this;
 
-    public TableManager(
-        Harmony harmony,
-        NetState netState,
-        IModEvents events,
-        ILogger logger,
-        IManifest manifest
-        ) : base(logger, manifest)
+    internal void Initialize()
     {
-        instance = this;
-
-        this.netState = netState;
-
-
-        
-    }
-
-    private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
-    {
-        NetStateObject newState = this.netState.fields;
-
-        newState.Tables.OnValueAdded += table =>
-            table.State.fieldChangeVisibleEvent += (_, oldValue, newValue) => this.OnTableStateChange(table, new TableStateChangedEventArgs()
-            {
-                OldValue = oldValue,
-                NewValue = newValue
-            });
+        Mod.Harmony.Patch(
+            original: AccessTools.Method(typeof(Furniture), (nameof(Furniture.GetAdditionalFurniturePlacementStatus))),
+            postfix: new HarmonyMethod(AccessTools.Method(this.GetType(), nameof(After_GetAdditionalFurniturePlacementStatus)))
+        );
+        Mod.Harmony.Patch(
+            original: AccessTools.Method(typeof(Furniture),(nameof(Furniture.performObjectDropInAction))),
+            prefix: new HarmonyMethod(AccessTools.Method(this.GetType(), nameof(Before_PerformObjectDropInAction)))
+        );
+        Mod.Harmony.Patch(
+            original: AccessTools.Method(typeof(Furniture), (nameof(Furniture.canBeRemoved))),
+            postfix: new HarmonyMethod(AccessTools.Method(this.GetType(), nameof(After_CanBeRemoved)))
+        );
+        Mod.Harmony.Patch(
+            original: AccessTools.Method(typeof(Furniture), (nameof(Furniture.AddSittingFarmer))),
+            prefix: new HarmonyMethod(AccessTools.Method(this.GetType(), nameof(Before_AddSittingFarmer)))
+        );
+        Mod.Harmony.Patch(
+            original: AccessTools.Method(typeof(Furniture), (nameof(Furniture.HasSittingFarmers))),
+            postfix: new HarmonyMethod(AccessTools.Method(this.GetType(), nameof(After_FurnitureHasSittingFarmers)))
+        );
     }
 
     private static void After_FurnitureHasSittingFarmers(Furniture __instance, ref bool __result)
     {
-        if (instance.IsRegisteredChair(__instance, out FurnitureSeat? seat) && seat.IsReserved)
+        if (Instance.IsRegisteredChair(__instance, out FurnitureSeat? seat) && seat.IsReserved)
         {
             __result = true;
         }
@@ -64,7 +62,7 @@ internal class TableManager : Service
         if (__instance.IsTable())
         {
             Furniture table = location.GetFurnitureAt(new Vector2(x, y));
-            if (instance.IsRegisteredTable(table, out FurnitureTable? trackedTable) && trackedTable.IsReserved)
+            if (Instance.IsRegisteredTable(table, out FurnitureTable? trackedTable) && trackedTable.IsReserved)
                 __result = 2;
         }
     }
@@ -75,9 +73,9 @@ internal class TableManager : Service
     private static bool Before_AddSittingFarmer(Furniture __instance, Farmer who, ref Vector2? __result)
     {
         if (ModUtility.IsChair(__instance)
-            && instance.IsRegisteredChair(__instance, out FurnitureSeat? chair) && chair.IsReserved)
+            && Instance.IsRegisteredChair(__instance, out FurnitureSeat? chair) && chair.IsReserved)
         {
-            instance.Log.Warn("Can't sit in this chair, it's reserved");
+            Log.Warn("Can't sit in this chair, it's reserved");
             __result = null;
             return false;
         }
@@ -92,10 +90,10 @@ internal class TableManager : Service
     {
         if (__instance.IsTable())
         {
-            if (instance.IsRegisteredTable(__instance, out FurnitureTable? trackedTable)
+            if (Instance.IsRegisteredTable(__instance, out FurnitureTable? trackedTable)
                 && trackedTable.IsReserved)
             {
-                instance.Log.Warn("Can't drop in this object onto this table. It's reserved");
+                Log.Warn("Can't drop in this object onto this table. It's reserved");
                 __result = false;
                 return false;
             }
@@ -111,7 +109,7 @@ internal class TableManager : Service
 
         if (__instance.IsTable())
         {
-            if (instance.IsRegisteredTable(__instance, out FurnitureTable? trackedTable) && trackedTable.IsReserved)
+            if (Instance.IsRegisteredTable(__instance, out FurnitureTable? trackedTable) && trackedTable.IsReserved)
             {
                 Game1.addHUDMessage(new HUDMessage("Can't remove this furniture", 1000, fadeIn: false));
                 __result = false;
@@ -119,11 +117,26 @@ internal class TableManager : Service
         }
     }
 
+    internal void OnFurnitureListChanged(object? sender, FurnitureListChangedEventArgs e)
+    {
+        if (!Context.IsMainPlayer || !Mod.Cafe.Enabled)
+            return;
+
+        if (e.Location.Equals(Mod.Locations.Signboard?.Location))
+        {
+            foreach (var f in e.Removed)
+                this.OnFurnitureRemoved(f, e.Location);
+
+            foreach (var f in e.Added)
+                this.OnFurniturePlaced(f, e.Location);
+        }
+    }
+
     internal void PopulateTables()
     {
-        this.netState.Tables.Clear();
+        Mod.NetState.Tables.Clear();
 
-        if (this.Signboard?.Location == null)
+        if (Mod.NetState.Signboard.Value?.Location == null)
             return;
 
         int count = 0;
@@ -139,15 +152,15 @@ internal class TableManager : Service
             }
         }
 
-        this.Log.Debug($"{count} furniture tables found in cafe locations.");
+        Log.Debug($"{count} furniture tables found in cafe locations.");
 
         count = 0;
 
         // Map tables
-        foreach (var pair in this.GetMapTables(this.Signboard.Location))
+        foreach (var pair in this.GetMapTables(Mod.NetState.Signboard.Value.Location))
         {
             Rectangle newRectangle = new Rectangle(pair.Key.X * 64, pair.Key.Y * 64, pair.Key.Width * 64, pair.Key.Height * 64);
-            LocationTable locationTable = new LocationTable(newRectangle, this.Signboard.Location.Name, pair.Value);
+            LocationTable locationTable = new LocationTable(newRectangle, Mod.NetState.Signboard.Value.Location.Name, pair.Value);
             if (locationTable.Seats.Count > 0)
             {
                 this.AddTable(locationTable);
@@ -155,7 +168,7 @@ internal class TableManager : Service
             }
         }
 
-        this.Log.Debug($"{count} map-based tables found in cafe locations.");
+        Log.Debug($"{count} map-based tables found in cafe locations.");
     }
 
     private Dictionary<Rectangle, List<Vector2>> GetMapTables(GameLocation cafeLocation)
@@ -215,15 +228,15 @@ internal class TableManager : Service
     internal void AddTable(Table table)
     {
         table.Free();
-        this.netState.Tables.Add(table);
+        Mod.NetState.Tables.Add(table);
     }
 
     internal void RemoveTable(FurnitureTable table)
     {
-        if (this.netState.Tables.Remove(table))
-            this.Log.Debug("Table removed");
+        if (Mod.NetState.Tables.Remove(table))
+            Log.Debug("Table removed");
         else
-            this.Log.Warn("Trying to remove a table that isn't registered");
+            Log.Warn("Trying to remove a table that isn't registered");
     }
 
     internal static bool InteractWithTable(Table table, Farmer who)
@@ -259,18 +272,18 @@ internal class TableManager : Service
             return;
 
         Table table = (Table)sender;
-        CustomerGroup? group = this.Groups.FirstOrDefault(g => g.ReservedTable == table);
+        CustomerGroup? group = Mod.Customers.Groups.FirstOrDefault(g => g.ReservedTable == table);
 
         if ((e.NewValue != TableState.Free && e.NewValue != TableState.CustomersComing) && group == null)
         {
-            this.Log.Error("Table state changed, but the group reserving the table isn't in ActiveGroups");
+            Log.Error("Table state changed, but the group reserving the table isn't in ActiveGroups");
             return;
         }
 
         switch (e.NewValue)
         {
             case TableState.CustomersThinkingOfOrder:
-                this.Log.Debug("Table started");
+                Log.Debug("Table started");
 
                 Game1.delayedActions.Add(new DelayedAction(200, () =>
                     table.State.Set(TableState.CustomersDecidedOnOrder)));
@@ -278,12 +291,12 @@ internal class TableManager : Service
                 break;
 
             case TableState.CustomersDecidedOnOrder:
-                this.Log.Debug("Table decided");
+                Log.Debug("Table decided");
 
                 break;
 
             case TableState.CustomersWaitingForFood:
-                this.Log.Debug("Table waiting for order");
+                Log.Debug("Table waiting for order");
 
                 foreach (NPC member in group!.Members)
                     member.get_DrawOrderItem().Set(true);
@@ -291,7 +304,7 @@ internal class TableManager : Service
                 break;
 
             case TableState.CustomersEating:
-                this.Log.Debug("Table eating");
+                Log.Debug("Table eating");
 
                 foreach (NPC member in group!.Members)
                     member.get_DrawOrderItem().Set(false);
@@ -302,15 +315,15 @@ internal class TableManager : Service
                 break;
 
             case TableState.CustomersFinishedEating:
-                this.Log.Debug("Table finished meal");
+                Log.Debug("Table finished meal");
 
                 int money = group!.Members.Sum(m => m.get_OrderItem().Value?.salePrice() ?? 0);
                 Game1.MasterPlayer.Money += money;
-                this.MoneyForToday += money;
+                Mod.Cafe.MoneyForToday += money;
                 ModUtility.DoEmojiSprite(table.Center, EmojiSprite.Money);
                 Game1.stats.Increment(Values.STATS_MONEY_FROM_CAFE, money);
 
-                this.EndCustomerGroup(group);
+                Mod.Customers.EndCustomerGroup(group);
 
                 break;
         }
@@ -318,7 +331,7 @@ internal class TableManager : Service
 
     internal bool IsRegisteredTable(Furniture furniture, [NotNullWhen(true)] out FurnitureTable? result)
     {
-        foreach (Table t in this.netState.Tables)
+        foreach (Table t in Mod.NetState.Tables)
         {
             if (t is FurnitureTable ft && ft.ActualTable.Value == furniture)
             {
@@ -333,7 +346,7 @@ internal class TableManager : Service
 
     internal bool IsRegisteredChair(Furniture furniture, [NotNullWhen(true)] out FurnitureSeat? result)
     {
-        foreach (Table t in this.netState.Tables)
+        foreach (Table t in Mod.NetState.Tables)
         {
             if (t is FurnitureTable ft)
             {
@@ -354,14 +367,14 @@ internal class TableManager : Service
 
     internal bool IsFurnitureWithinRangeOfSignboard(Furniture furniture)
     {
-        if (this.Signboard?.Location == null)
+        if (Mod.NetState.Signboard.Value?.Location == null)
             return false;
 
         // Skip if the placed table is outside of the signboard's range
-        if (!furniture.Location.Equals(this.Signboard.Location))
+        if (!furniture.Location.Equals(Mod.NetState.Signboard.Value?.Location))
             return false;
 
-        Point signboardTile = new Point((int)this.Signboard.TileLocation.X, (int)this.Signboard.TileLocation.Y);
+        Point signboardTile = new Point((int)Mod.NetState.Signboard.Value.TileLocation.X, (int) Mod.NetState.Signboard.Value.TileLocation.Y);
         int distance = int.MaxValue;
 
         for (int x = (int)furniture.TileLocation.X; x <= furniture.TileLocation.X + furniture.getTilesWide(); x++)
@@ -377,7 +390,7 @@ internal class TableManager : Service
 
     internal void OnFurniturePlaced(Furniture placed, GameLocation location)
     {
-        this.Log.Trace($"Furniture placed at {placed.TileLocation}");
+        Log.Trace($"Furniture placed at {placed.TileLocation}");
 
         if (ModUtility.IsChair(placed))
         {
@@ -416,11 +429,11 @@ internal class TableManager : Service
 
     internal void OnFurnitureRemoved(Furniture removed, GameLocation location)
     {
-        this.Log.Trace($"Furniture removed from {removed.TileLocation}");
+        Log.Trace($"Furniture removed from {removed.TileLocation}");
 
         if (ModUtility.IsChair(removed))
         {
-            FurnitureTable? existingTable = this.netState.Tables
+            FurnitureTable? existingTable = Mod.NetState.Tables
                 .OfType<FurnitureTable>()
                 .FirstOrDefault(t => t.Seats.Any(seat => (seat as FurnitureSeat)?.ActualChair.Value.Equals(removed) is true));
 
@@ -444,22 +457,22 @@ internal class TableManager : Service
 
     internal Table? GetFreeTable(int minSeats = 1)
     {
-        return this.netState.Tables.PickRandomWhere(t => !t.IsReserved && t.Seats.Count >= minSeats && (t is not FurnitureTable ft || ft.Seats.Cast<FurnitureSeat>().All(s => !s.ActualChair.Value.HasSittingFarmers())));
+        return Mod.NetState.Tables.PickRandomWhere(t => !t.IsReserved && t.Seats.Count >= minSeats && (t is not FurnitureTable ft || ft.Seats.Cast<FurnitureSeat>().All(s => !s.ActualChair.Value.HasSittingFarmers())));
     }
 
     internal Table? GetTableFromCustomer(NPC npc)
     {
-        return this.netState.Tables.FirstOrDefault(t => t.Seats.Any(s => s.ReservingCustomer?.Equals(npc) ?? false));
+        return Mod.NetState.Tables.FirstOrDefault(t => t.Seats.Any(s => s.ReservingCustomer?.Equals(npc) ?? false));
     }
 
     internal Table? GetTableAt(GameLocation location, Point tile)
     {
-        return this.netState.Tables.FirstOrDefault(table => table.Location == location.Name && table.BoundingBox.Value.Contains(tile.X * 64, tile.Y * 64));
+        return Mod.NetState.Tables.FirstOrDefault(table => table.Location == location.Name && table.BoundingBox.Value.Contains(tile.X * 64, tile.Y * 64));
     }
 
     internal IEnumerable<Furniture> GetValidFurnitureInCafeLocations()
     {
-        if (this.Signboard?.Location is { } signboardLocation)
+        if (Mod.NetState.Signboard.Value?.Location is { } signboardLocation)
         {
             foreach (Furniture furniture in signboardLocation.furniture.Where(t => t.IsTable()))
             {

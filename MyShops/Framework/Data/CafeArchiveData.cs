@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using StardewMods.MyShops.Framework.Inventories;
 using StardewValley;
 using StardewValley.Inventories;
 
