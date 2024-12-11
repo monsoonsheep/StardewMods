@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using StardewMods.VisitorsMod.Framework.Data;
 using StardewMods.SheepCore.Framework.Services;
 using StardewMods.VisitorsMod.Framework.Interfaces;
+using StardewValley;
 
 namespace StardewMods.VisitorsMod.Framework.Services.Visitors.Spawners;
 internal class WarpSpawner : LocationSpawner, ISpawner
@@ -13,35 +14,15 @@ internal class WarpSpawner : LocationSpawner, ISpawner
     protected override (GameLocation, Point) GetSpawnLocation(Visit visit)
     {
         GameLocation location = Game1.getLocationFromName(visit.activity.Location);
-        Point entryPoint = Point.Zero;
-
         Warp warpOut = location.GetFirstPlayerWarp();
         GameLocation warpedLocation = Game1.getLocationFromName(warpOut.TargetName);
-        Point warpedOutTile = new Point(warpOut.TargetX, warpOut.TargetY);
 
-        foreach (Warp w in warpedLocation.warps)
-        {
-            if (Math.Abs(w.X - warpedOutTile.X) <= 2 && Math.Abs(w.Y - warpedOutTile.Y) <= 2)
-            {
-                entryPoint = new Point(w.TargetX, w.TargetY);
-                break;
-            }
-        }
-
-        foreach (KeyValuePair<Point, string> door in warpedLocation.doors.Pairs)
-        {
-            if ((door.Value == location.Name || door.Value == location.NameOrUniqueName)
-                && Math.Abs(door.Key.X - warpedOutTile.X) <= 2 && Math.Abs(door.Key.Y - warpedOutTile.Y) <= 2)
-            {
-                entryPoint = warpedLocation.getWarpPointTarget(door.Key);
-                break;
-            }
-        }
+        Point entryPoint = Pathfinding.Instance.GetEntryPointIntoLocation(location, warpedLocation);
 
         return (location, entryPoint);
     }
 
-    public override bool StartVisit(Visit visit)
+    public override bool SpawnVisitors(Visit visit)
     {
         (GameLocation targetLocation, Point entryPoint) = this.GetSpawnLocation(visit);
 
@@ -59,12 +40,18 @@ internal class WarpSpawner : LocationSpawner, ISpawner
             targetLocation.addCharacter(npc);
             npc.currentLocation = targetLocation;
             npc.Position = warpPosition;
+        }
 
-            if (!Mod.NpcMovement.NpcPathTo(npc, targetLocation, targetTile))
-            {
-                return false;
-            }
+        return true;
+    }
 
+    public override void AfterSpawn(Visit visit)
+    {
+        // Appear one by one instead of all appearing on one tile at the same time
+
+        for (int i = 0; i < visit.group.Count; i++)
+        {
+            NPC npc = visit.group[i];
             AccessTools.Field(typeof(Character), "freezeMotion").SetValue(npc, true);
             int delay = i * 800;
 
@@ -76,6 +63,5 @@ internal class WarpSpawner : LocationSpawner, ISpawner
                 AccessTools.Field(typeof(Character), "freezeMotion").SetValue(npc, false);
             }));
         }
-        return true;
     }
 }

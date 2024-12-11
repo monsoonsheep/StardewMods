@@ -20,12 +20,12 @@ public class Mod : StardewModdingAPI.Mod
 
     internal static IModEvents Events { get; private set; } = null!;
     internal static IManifest Manifest { get; private set; } = null!;
-    internal new static IModHelper Helper { get; private set; } = null!;
+    internal static IModHelper ModHelper { get; private set; } = null!;
     internal static Harmony Harmony { get; private set; } = null!;
     internal static NetState NetState { get; private set; } = null!;
     internal static Content ContentPacks { get; private set; } = null!;
     internal static VisitorManager Visitors { get; private set; } = null!;
-    internal static NpcMovement NpcMovement { get; private set; } = null!;
+    internal static Pathfinding NpcMovement { get; private set; } = null!;
     internal static RandomSprites RandomSprites { get; private set; } = null!;
 
     public Mod()
@@ -33,14 +33,15 @@ public class Mod : StardewModdingAPI.Mod
 
     public override void Entry(IModHelper helper)
     {
-        I18n.Init(Helper.Translation);
 
         Log.Monitor = base.Monitor;
 
-        Events = base.Helper.Events;
+        ModHelper = base.Helper;
+        Events = ModHelper.Events;
         Manifest = base.ModManifest;
-        Helper = base.Helper;
         Harmony = new Harmony(this.ModManifest.UniqueID);
+
+        I18n.Init(ModHelper.Translation);
 
         NetState = new NetState();
         ContentPacks = new Content();
@@ -48,7 +49,7 @@ public class Mod : StardewModdingAPI.Mod
         Visitors = new VisitorManager();
         RandomSprites = new RandomSprites(new ColorsManager());
 
-        Helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
+        ModHelper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
     }
 
     /// <summary>
@@ -57,7 +58,7 @@ public class Mod : StardewModdingAPI.Mod
     [EventPriority(EventPriority.Low)]
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
     {
-        NpcMovement = NpcMovement.Instance;
+        NpcMovement = Pathfinding.Instance;
 
         NetState.Initialize();
         ContentPacks.Initialize();

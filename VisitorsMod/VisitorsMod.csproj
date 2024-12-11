@@ -9,7 +9,7 @@
 
   <!-- Dependencies -->  
   <ItemGroup>
-    <Reference Include="SheepCore" HintPath="$(GamePath)\Mods\SheepCore\SheepCore.dll" Private="false" />
+    <ProjectReference Include="..\SheepCore\SheepCore.csproj" />
   </ItemGroup>
   
   <!-- Translations -->

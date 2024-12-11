@@ -1,5 +1,6 @@
 using HarmonyLib;
 using StardewMods.ExtraNpcBehaviors.Framework.Data;
+using StardewValley;
 using StardewValley.GameData.Characters;
 using StardewValley.Pathfinding;
 
@@ -13,7 +14,7 @@ internal class EndBehaviors
 
     internal void Initialize()
     {
-        Harmony harmony = ModEntry.Instance.Harmony;
+        Harmony harmony = Mod.Harmony;
 
         harmony.Patch(
             original: AccessTools.Method(typeof(NPC), "getRouteEndBehaviorFunction", [typeof(string), typeof(string)]),
@@ -54,12 +55,13 @@ internal class EndBehaviors
     /// </summary>
     private static void After_update(NPC __instance, GameTime time, GameLocation location)
     {
-        if (NpcState.table.TryGetValue(__instance, out var values))
+        __instance.speed = 4;
+        if (NpcVirtualProperties.Table.TryGetValue(__instance, out var values))
         {
             // Lerping the position of the character (for sitting and getting up)
             if (values.lerpPosition >= 0f)
             {
-                values.lerpPosition = values.lerpPosition + (float)time.ElapsedGameTime.TotalSeconds;
+                values.lerpPosition = values.lerpPosition + (float) time.ElapsedGameTime.TotalSeconds;
 
                 if (values.lerpPosition >= values.lerpDuration)
                 {
@@ -116,25 +118,30 @@ internal class EndBehaviors
     /// </summary>
     private static bool Before_finishEndOfRouteAnimation(NPC __instance)
     {
-        if (NpcState.table.TryGetValue(__instance, out var values))
+        if (NpcVirtualProperties.Table.TryGetValue(__instance, out var values))
         {
             if (values.isSitting)
             {
                 // Get up from chair
                 values.isSitting = false;
+
                 values.lerpStartPosition = __instance.Position;
                 values.lerpEndPosition = values.sittingOriginalPosition;
                 values.lerpPosition = 0f;
                 values.lerpDuration = 0.3f;
+
                 values.afterLerp = delegate (NPC n)
                 {
+                    NpcVirtualProperties.Table.Remove(n);
+                    AccessTools.Field(typeof(NPC), "freezeMotion").SetValue(n, false);
                     AccessTools.Method(typeof(NPC), "routeEndAnimationFinished", [typeof(Farmer)]).Invoke(n, [null]);
+                    n.Sprite.ClearAnimation();
                 };
 
-                __instance.Sprite.ClearAnimation();
 
                 return false;
             }
+
         }
 
         return true;
@@ -198,8 +205,10 @@ internal class EndBehaviors
 
             AccessTools.Field(typeof(NPC), "freezeMotion").SetValue(npc, true);
 
+            // Set sitting sprite if it exists
+
             CharacterData? data = npc.GetData();
-            if (data?.CustomFields != null && data.CustomFields.TryGetValue(Values.DATA_SITTINGSPRITES, out string? val)
+            if ((data?.CustomFields != null && data.CustomFields.TryGetValue(Values.DATA_SITTINGSPRITES, out string? val))
                 || npc.modData.TryGetValue(Values.DATA_SITTINGSPRITES, out val))
             {
                 string[] frames = val.Split(' ');

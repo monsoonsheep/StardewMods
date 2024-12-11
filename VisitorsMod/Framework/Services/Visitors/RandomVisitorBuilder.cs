@@ -21,7 +21,7 @@ internal class RandomVisitorBuilder
             Gender = ModUtility.GameGenderToCustomGender(spriteData.Gender),
             Name = $"Random{spriteData.Guid}",
             Spritesheet = $"{Values.GENERATED_SPRITE_PREFIX}/{spriteData.Guid}",
-            Portrait = Mod.Helper.ModContent.GetInternalAssetName(Path.Combine("assets", "CharGen", "Portraits", "cat.png")).Name
+            Portrait = Mod.ModHelper.ModContent.GetInternalAssetName(Path.Combine("assets", "CharGen", "Portraits", "cat.png")).Name
         };
 
         return model;

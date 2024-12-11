@@ -17,10 +17,6 @@
   "EntryDll": "VisitorsMod.dll",
   "Dependencies": [
     {
-      "UniqueID": "furyx639.FauxCore",
-      "MinimumVersion": "1.0.0"
-    },
-    {
       "UniqueID": "MonsoonSheep.ExtraNpcBehaviors",
       "MinimumVersion": "0.1.0"
     },

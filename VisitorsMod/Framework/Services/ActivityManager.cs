@@ -17,7 +17,7 @@ internal class ActivityManager
     {
         Mod.Events.Content.AssetRequested += this.OnAssetRequested;
 
-        this.Activities = Mod.Helper.GameContent.Load<Dictionary<string, ActivityModel>>("Mods/MonsoonSheep.VisitorsMod/Activities");
+        this.Activities = Mod.ModHelper.GameContent.Load<Dictionary<string, ActivityModel>>("Mods/MonsoonSheep.VisitorsMod/Activities");
     }
 
     private void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
@@ -27,12 +27,12 @@ internal class ActivityManager
             e.LoadFrom(() => {
                 Dictionary<string, ActivityModel> activities = new Dictionary<string, ActivityModel>();
 
-                DirectoryInfo folder = new DirectoryInfo(Path.Combine(Mod.Helper.DirectoryPath, "assets", "Activities"));
+                DirectoryInfo folder = new DirectoryInfo(Path.Combine(Mod.ModHelper.DirectoryPath, "assets", "Activities"));
 
                 foreach (FileInfo f in folder.GetFiles())
                 {
                     string id = f.Name.Replace(".json", "");
-                    activities[id] = Mod.Helper.ModContent.Load<ActivityModel>(Path.Combine("assets", "Activities", $"{f.Name}"));
+                    activities[id] = Mod.ModHelper.ModContent.Load<ActivityModel>(Path.Combine("assets", "Activities", $"{f.Name}"));
                     activities[id].Id = id;
                 }
 

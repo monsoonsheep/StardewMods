@@ -17,13 +17,13 @@ internal class ColorsManager
 
     public ColorsManager()
     {
-        this.BodyBase = Mod.Helper.ModContent.Load<IRawTextureData>(Path.Combine("assets", "CharGen", "base.png"));
-        this.Eyes = Mod.Helper.ModContent.Load<IRawTextureData>(Path.Combine("assets", "CharGen", "eyes.png"));
-        this.SkinTones = Mod.Helper.ModContent.Load<List<int[]>>(Path.Combine("assets", "CharGen", "skintones.json"));
-        this.EyeColors = Mod.Helper.ModContent.Load<List<int[]>>(Path.Combine("assets", "CharGen", "eyecolors.json"));
-        this.HairColors = Mod.Helper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "haircolors.json"));
-        this.ShirtColors = Mod.Helper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "shirtcolors.json"));
-        this.PantsColors = Mod.Helper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "pantscolors.json"));
+        this.BodyBase = Mod.ModHelper.ModContent.Load<IRawTextureData>(Path.Combine("assets", "CharGen", "base.png"));
+        this.Eyes = Mod.ModHelper.ModContent.Load<IRawTextureData>(Path.Combine("assets", "CharGen", "eyes.png"));
+        this.SkinTones = Mod.ModHelper.ModContent.Load<List<int[]>>(Path.Combine("assets", "CharGen", "skintones.json"));
+        this.EyeColors = Mod.ModHelper.ModContent.Load<List<int[]>>(Path.Combine("assets", "CharGen", "eyecolors.json"));
+        this.HairColors = Mod.ModHelper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "haircolors.json"));
+        this.ShirtColors = Mod.ModHelper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "shirtcolors.json"));
+        this.PantsColors = Mod.ModHelper.ModContent.Load<List<AppearancePaint>>(Path.Combine("assets", "CharGen", "pantscolors.json"));
     }
 
     /// <summary>

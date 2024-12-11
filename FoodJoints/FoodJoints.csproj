@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>StardewMods.FoodJoints</RootNamespace>
+    <Version>0.1.0</Version>
+    <EnableHarmony>true</EnableHarmony>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="SpaceCore" HintPath="$(GamePath)\Mods\SpaceCore\SpaceCore.dll" Private="false" />
+    <ProjectReference Include="..\SheepCore\SheepCore.csproj" Private="false"/>
+    <ProjectReference Include="..\ExtraNpcBehaviors\ExtraNpcBehaviors.csproj" Private="false"/>
+
+  </ItemGroup>
+  
+  <!-- Translations -->
+  <ItemGroup>
+    <AdditionalFiles Include="i18n/default.json" />
+  </ItemGroup>
+
+  <!-- SMAPI Manifest -->
+  <PropertyGroup>
+    <Name>FoodJoints</Name>
+    <Authors>MonsoonSheep</Authors>
+    <Description>Description</Description>
+    <UniqueId>MonsoonSheep.FoodJoints</UniqueId>
+    <UpdateKeys>Nexus:idhere</UpdateKeys>
+    <Version>0.1.0</Version>
+    <MinimumApiVersion>4.0.0</MinimumApiVersion>
+    <MinimumGameVersion>1.6</MinimumGameVersion>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <SMAPIDependency Include="spacechase0.SpaceCore" Version="1.24" Reference="false" />
+    <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
+    <SMAPIDependency Include="MonsoonSheep.ExtraNpcBehaviors" Version="0.1.0" Required="true" />
+    <SMAPIDependency Include="MonsoonSheep.SheepCore" Version="0.1.0" Required="true" />
+  </ItemGroup>
+</Project>

@@ -9,7 +9,9 @@ public interface ISpawner
 
     public bool IsAvailable();
 
-    public bool StartVisit(Visit visit);
+    public bool SpawnVisitors(Visit visit);
+
+    public void AfterSpawn(Visit visit);
 
     public bool EndVisit(Visit visit);
 }

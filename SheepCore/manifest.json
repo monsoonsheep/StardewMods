@@ -17,10 +17,6 @@
   "EntryDll": "SheepCore.dll",
   "Dependencies": [
     {
-      "UniqueID": "furyx639.FauxCore",
-      "MinimumVersion": "1.1.1"
-    },
-    {
       "UniqueID": "spacechase0.GenericModConfigMenu",
       "MinimumVersion": "1.12",
       "IsRequired": false

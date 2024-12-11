@@ -22,26 +22,31 @@ internal abstract class LocationSpawner : ISpawner
     public virtual bool IsAvailable()
         => true;
 
-    public virtual bool StartVisit(Visit visit)
+    public virtual bool SpawnVisitors(Visit visit)
     {
-        (GameLocation location, Point tilePoint) = this.GetSpawnLocation(visit);
+        (GameLocation spawnLocation, Point spawnTile) = this.GetSpawnLocation(visit);
         string targetLocation = visit.activity.Location;
 
         for (int i = 0; i < visit.group.Count; i++)
         {
             NPC npc = visit.group[i];
-
             Point targetTile = visit.activity.Actors[i].TilePosition;
 
-            location.addCharacter(npc);
-            npc.currentLocation = location;
-            npc.Position = tilePoint.ToVector2() * 64f;
+            if (npc.currentLocation != null)
+                npc.currentLocation.characters.Remove(npc);
+            
 
-            if (!Mod.NpcMovement.NpcPathTo(npc, Game1.getLocationFromName(targetLocation), targetTile))
-                return false;
+            spawnLocation.addCharacter(npc);
+            npc.currentLocation = spawnLocation;
+            npc.Position = spawnTile.ToVector2() * 64f;
         }
 
         return true;
+    }
+
+    public virtual void AfterSpawn(Visit visit)
+    {
+
     }
 
     public virtual bool EndVisit(Visit visit)
@@ -54,8 +59,15 @@ internal abstract class LocationSpawner : ISpawner
             AccessTools.Method(typeof(NPC), "prepareToDisembarkOnNewSchedulePath").Invoke(npc, []);
 
             Point activityPosition = visit.activity.Actors[i].TilePosition;
-            if (!Mod.NpcMovement.NpcPathToFrom(npc, npc.currentLocation, activityPosition, location, tilePoint))
+
+            Stack<Point>? path = Mod.NpcMovement.PathfindFromLocationToLocation(npc.currentLocation, activityPosition, location, tilePoint, npc);
+            if (path == null)
                 return false;
+
+            npc.controller = new StardewValley.Pathfinding.PathFindController(path, npc.currentLocation, npc, path.Last())
+            {
+                NPCSchedule = true
+            };
         }
 
         return true;

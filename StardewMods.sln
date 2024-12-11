@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.002.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyCafe", "MyCafe\MyCafe.csproj", "{187DDA81-A5BD-46DC-8C02-FEFA02EA1DC6}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CollapseOnFarmFix", "CollapseOnFarmFix\CollapseOnFarmFix.csproj", "{7B8577A5-ED43-40F8-9A56-372C458D36C2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PanWithHats", "PanWithHats\PanWithHats.csproj", "{6F22240C-28A6-4C88-A01C-47ED21D09860}"
@@ -17,9 +15,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusSchedules", "BusSchedule
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtraNpcBehaviors", "ExtraNpcBehaviors\ExtraNpcBehaviors.csproj", "{A8EA9D0E-6405-4641-B1DE-8F009BFDC5EB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyShops", "MyShops\MyShops.csproj", "{64559145-54B2-4169-A9FE-F3320BDDE3FC}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SheepCore", "SheepCore\SheepCore.csproj", "{21D9FCAE-77BE-4EAE-AD26-0DED3FDCE861}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FoodJoints", "FoodJoints\FoodJoints.csproj", "{89175375-9D93-46F6-8F69-42BE4AECD4AA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,10 +25,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{187DDA81-A5BD-46DC-8C02-FEFA02EA1DC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{187DDA81-A5BD-46DC-8C02-FEFA02EA1DC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{187DDA81-A5BD-46DC-8C02-FEFA02EA1DC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{187DDA81-A5BD-46DC-8C02-FEFA02EA1DC6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7B8577A5-ED43-40F8-9A56-372C458D36C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7B8577A5-ED43-40F8-9A56-372C458D36C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7B8577A5-ED43-40F8-9A56-372C458D36C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -51,14 +45,14 @@ Global
 		{A8EA9D0E-6405-4641-B1DE-8F009BFDC5EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A8EA9D0E-6405-4641-B1DE-8F009BFDC5EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A8EA9D0E-6405-4641-B1DE-8F009BFDC5EB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{64559145-54B2-4169-A9FE-F3320BDDE3FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{64559145-54B2-4169-A9FE-F3320BDDE3FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{64559145-54B2-4169-A9FE-F3320BDDE3FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{64559145-54B2-4169-A9FE-F3320BDDE3FC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{21D9FCAE-77BE-4EAE-AD26-0DED3FDCE861}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{21D9FCAE-77BE-4EAE-AD26-0DED3FDCE861}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{21D9FCAE-77BE-4EAE-AD26-0DED3FDCE861}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{21D9FCAE-77BE-4EAE-AD26-0DED3FDCE861}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89175375-9D93-46F6-8F69-42BE4AECD4AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89175375-9D93-46F6-8F69-42BE4AECD4AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89175375-9D93-46F6-8F69-42BE4AECD4AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89175375-9D93-46F6-8F69-42BE4AECD4AA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -67,10 +61,9 @@ Global
 		SolutionGuid = {736CB6EB-5A10-4114-8E8F-12200A9D42B8}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		Common\Common.projitems*{187dda81-a5bd-46dc-8c02-fefa02ea1dc6}*SharedItemsImports = 5
 		Common\Common.projitems*{21d9fcae-77be-4eae-ad26-0ded3fdce861}*SharedItemsImports = 5
-		Common\Common.projitems*{64559145-54b2-4169-a9fe-f3320bdde3fc}*SharedItemsImports = 5
 		Common\Common.projitems*{75f61fd6-a8de-4327-9cd2-2d939fe28b8a}*SharedItemsImports = 5
+		Common\Common.projitems*{89175375-9d93-46f6-8f69-42be4aecd4aa}*SharedItemsImports = 5
 		Common\Common.projitems*{a8ea9d0e-6405-4641-b1de-8f009bfdc5eb}*SharedItemsImports = 5
 		Common\Common.projitems*{b8a164cd-a176-4953-a8ad-db3e249a5c5d}*SharedItemsImports = 5
 		Common\Common.projitems*{d21f41bb-18e5-433a-b741-bc76b13d8336}*SharedItemsImports = 13

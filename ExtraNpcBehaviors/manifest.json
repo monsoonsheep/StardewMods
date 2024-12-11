@@ -15,12 +15,6 @@
   "MinimumApiVersion": "4.0.0",
   "MinimumGameVersion": "1.6",
   "EntryDll": "ExtraNpcBehaviors.dll",
-  "Dependencies": [
-    {
-      "UniqueID": "furyx639.FauxCore",
-      "MinimumVersion": "1.0.0"
-    }
-  ],
   "UpdateKeys": [
     "Nexus:idhere"
   ]

@@ -9,6 +9,8 @@ using StardewModdingAPI;
 using StardewMods.VisitorsMod.Framework.Services.Visitors.RandomVisitors;
 using StardewMods.VisitorsMod.Framework.Interfaces;
 using StardewMods.VisitorsMod.Framework.Services.Visitors.Spawners;
+using StardewMods.SheepCore.Framework.Services;
+using StardewValley.Pathfinding;
 
 namespace StardewMods.VisitorsMod.Framework.Services.Visitors;
 
@@ -48,7 +50,7 @@ internal class VisitorManager
             new WarpSpawner(),
             ];
 
-        IBusSchedulesApi? busSchedules = Mod.Helper.ModRegistry.GetApi<IBusSchedulesApi>("MonsoonSheep.BusSchedules");
+        IBusSchedulesApi? busSchedules = Mod.ModHelper.ModRegistry.GetApi<IBusSchedulesApi>("MonsoonSheep.BusSchedules");
         if (busSchedules != null)
         {
             this.spawners.Add(new BusSpawner(busSchedules));
@@ -67,6 +69,9 @@ internal class VisitorManager
     private void OnDayStarted(object? sender, DayStartedEventArgs e)
     {
         this.visitSchedule.Clear();
+
+        // Create visits for today
+
         List<ActivityModel> activitiesForToday = this.activities.GetActivitiesForToday();
         Log.Debug("Activities today:");
         foreach (ActivityModel activity in activitiesForToday)
@@ -122,7 +127,7 @@ internal class VisitorManager
             {
                 if (visit.state == VisitState.NotStarted)
                 {
-                    this.PopulateNpcsForVisit(visit);
+                    this.CreateNpcsFor(visit);
 
                     if (this.StartVisit(visit))
                     {
@@ -184,7 +189,7 @@ internal class VisitorManager
     private IEnumerable<Visit> OngoingVisits()
         => this.visitSchedule.Values.SelectMany(i => i).Where(v => v.state == VisitState.Ongoing);
 
-    private void PopulateNpcsForVisit(Visit visit)
+    private void CreateNpcsFor(Visit visit)
     {
         visit.group = [];
 
@@ -223,8 +228,7 @@ internal class VisitorManager
 
     private bool StartVisit(Visit visit)
     {
-        // Spawn
-        if (!visit.spawner.StartVisit(visit))
+        void cancel(Visit visit)
         {
             visit.state = VisitState.Failed;
             Log.Error($"Visit failed: {visit.activity.Id}, spawner {visit.spawner.Id}");
@@ -232,26 +236,44 @@ internal class VisitorManager
             {
                 npc.currentLocation?.characters.Remove(npc);
                 npc.currentLocation = null;
-                Utility.ForEachLocation((loc) => loc.characters.Remove(npc));
             }
+        }
+
+        // Spawn
+        if (!visit.spawner.SpawnVisitors(visit))
+        {
+            cancel(visit);
             return false;
         }
 
-        // Set behavior for activity when reached
+        
+
+        // Pathfind to target
+        string targetLocation = visit.activity.Location;
         for (int i = 0; i < visit.group.Count; i++)
         {
-            NPC npc = visit.group[i];
-            string behavior = visit.activity.Actors[i].Behavior;
-            
-            npc.controller.endBehaviorFunction = delegate (Character c, GameLocation loc)
+            string behaviorName = visit.activity.Actors[i].Behavior;
+
+            PathFindController.endBehavior endBehavior = delegate (Character c, GameLocation loc)
             {
                 if (c is NPC n)
                 {
-                    n.StartActivityRouteEndBehavior(behavior, null);
-                    visit.state = VisitState.Ongoing;
+                    n.StartActivityRouteEndBehavior(behaviorName, null);
                 }
-            };   
+            };
+
+            NPC npc = visit.group[i];
+            Point targetTile = visit.activity.Actors[i].TilePosition;
+
+            if (!npc.MoveTo(Game1.getLocationFromName(targetLocation), targetTile, endBehavior))
+            {
+                cancel(visit);
+                return false;
+            }
         }
+
+        // Spawner-specific action
+        visit.spawner.AfterSpawn(visit);
 
         return true;
     }

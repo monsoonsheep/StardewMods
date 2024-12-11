@@ -7,40 +7,34 @@ using StardewMods.VisitorsMod.Framework.Interfaces;
 namespace StardewMods.VisitorsMod.Framework.Services.Visitors.Spawners;
 internal class BusSpawner : LocationSpawner, ISpawner
 {
-    private readonly IBusSchedulesApi api;
+    private readonly IBusSchedulesApi busSchedulesApi;
 
     public BusSpawner(IBusSchedulesApi api) : base()
     {
-        this.api = api;
+        this.busSchedulesApi = api;
     }
 
     public override string Id
         => "Bus";
 
     public override int NextArrivalTime
-        => this.api.NextArrivalTime;
+        => this.busSchedulesApi.NextArrivalTime;
 
     public override bool IsAvailable()
-        => this.api.IsAvailable();
+        => this.busSchedulesApi.IsAvailable();
 
     protected override (GameLocation, Point) GetSpawnLocation(Visit visit)
     {
-        return (Game1.getLocationFromName("BusStop"), this.api.BusTilePosition);
+        return (Game1.getLocationFromName("BusStop"), this.busSchedulesApi.BusTilePosition);
     }
 
-    public override bool StartVisit(Visit visit)
+    public override void AfterSpawn(Visit visit)
     {
-        if (base.StartVisit(visit))
+        foreach (NPC npc in visit.group)
         {
-            foreach (NPC npc in visit.group)
-            {
-                npc.Position = new Vector2(-1000f, -1000f);
-                AccessTools.Field(typeof(Character), "freezeMotion").SetValue(npc, true);
-                this.api.AddVisitor(npc);
-            }
-            return true;
+            npc.Position = new Vector2(-1000f, -1000f);
+            AccessTools.Field(typeof(Character), "freezeMotion").SetValue(npc, true);
+            this.busSchedulesApi.AddVisitor(npc);
         }
-
-        return false;
     }
 }
