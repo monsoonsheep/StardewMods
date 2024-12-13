@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+using System.Xml.Serialization;
 using StardewValley;
 
 namespace StardewMods.FoodJoints.Framework.Data;
@@ -10,6 +12,10 @@ public class VillagerCustomerData
     internal string NpcName { get; set; } = null!;
     public WorldDate LastVisitedDate = new(1, Season.Spring, 1);
     public string? LastAteFood;
+
+    [JsonIgnore]
+    [XmlIgnore]
+    internal List<(int, int)>? FreePeriods { get; set; }
 
     public VillagerCustomerData()
     {

@@ -8,6 +8,7 @@ using StardewMods.ExtraNpcBehaviors.Framework.Data;
 using StardewMods.FoodJoints.Framework.Characters;
 using StardewMods.FoodJoints.Framework.Characters.Factory;
 using StardewMods.FoodJoints.Framework.Data;
+using StardewMods.FoodJoints.Framework.Data.Models;
 using StardewMods.FoodJoints.Framework.Enums;
 using StardewMods.FoodJoints.Framework.Game;
 using StardewMods.FoodJoints.Framework.Objects;
@@ -23,9 +24,17 @@ internal class CustomerManager
 {
     internal static CustomerManager Instance = null!;
 
+    internal Dictionary<string, CustomerData> CustomerData = [];
+    internal Dictionary<string, VillagerCustomerModel> VillagerCustomerModels = [];
+    internal Dictionary<string, VillagerCustomerData> VillagerData = [];
+
     private RandomCustomerBuilder randomCustomerBuilder = null!;
     private VillagerCustomerBuilder villagerCustomerBuilder = null!;
     internal readonly List<CustomerGroup> Groups = [];
+
+    private bool arrivalsScheduled = false;
+    internal List<int> villagerCustomerArrivals = [];
+    PriorityQueue<string, int> schedule = new();
 
     internal CustomerManager()
         => Instance = this;
@@ -35,11 +44,30 @@ internal class CustomerManager
         this.randomCustomerBuilder = new RandomCustomerBuilder();
         this.villagerCustomerBuilder = new VillagerCustomerBuilder();
 
+        Mod.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
+        Mod.Events.GameLoop.DayStarted += this.OnDayStarted;
         Mod.Events.GameLoop.DayEnding += this.OnDayEnding;
     }
 
+    private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
+    {
+        foreach (var model in this.VillagerCustomerModels)
+            if (!this.VillagerData.ContainsKey(model.Key))
+                this.VillagerData[model.Key] = new VillagerCustomerData(model.Key);
 
-    internal void OnDayEnding(object? sender, DayEndingEventArgs e)
+        this.CleanUpCustomers();
+
+        // may be invalidated if villager data is reloaded and different, so do it on asset ready or something
+        this.SetFreePeriods();
+    }
+
+    private void OnDayStarted(object? sender, DayStartedEventArgs e)
+    {
+        this.arrivalsScheduled = false;
+        this.villagerCustomerArrivals.Clear();
+    }
+
+    private void OnDayEnding(object? sender, DayEndingEventArgs e)
     {
         if (!Context.IsMainPlayer)
             return;
@@ -49,19 +77,99 @@ internal class CustomerManager
         this.CleanUpCustomers();
     }
 
+    internal void SetFreePeriods()
+    {
+        foreach (var data in this.VillagerData)
+        {
+            data.Value.FreePeriods = this.GetPossibleTimePeriodsForArrival(data.Value);
+        }
+    }
+
+    internal void ScheduleArrivals()
+    {
+        int totalTimeIntervalsDuringDay = (Mod.Cafe.ClosingTime - Mod.Cafe.OpeningTime) / 10;
+
+        foreach (var data in this.VillagerData)
+        {
+
+        }
+    }
+
+    private List<(int, int)>? GetPossibleTimePeriodsForArrival(VillagerCustomerData data)
+    {
+        NPC npc = data.GetNpc();
+        VillagerCustomerModel model = Mod.Customers.VillagerCustomerModels[data.NpcName];
+
+        int daysSinceLastVisit = Game1.Date.TotalDays - data.LastVisitedDate.TotalDays;
+        int daysAllowed = model.VisitFrequency switch
+        {
+            1 => 27,
+            2 => 13,
+            3 => 7,
+            4 => 3,
+            5 => 1,
+            _ => 9999999
+        };
+
+#if DEBUG
+        daysAllowed = 1;
+#endif
+
+        if (npc == null ||
+            npc.get_OrderItem().Value != null ||
+            npc.isSleeping.Value == true ||
+            npc.ScheduleKey == null ||
+            npc.controller != null ||
+            daysSinceLastVisit < daysAllowed)
+            return null;
+
+        List<(int, int)> freePeriods = [];
+
+        // If no busy period for today, they're free all day
+        if (!model.BusyTimes.TryGetValue(npc.ScheduleKey, out List<BusyPeriod>? busyPeriods))
+            return null;
+        if (busyPeriods.Count == 0)
+            return [(600, 2300)];
+
+        int cursor = 600;
+
+        // Check their busy periods for their current schedule key
+        foreach (BusyPeriod busyPeriod in busyPeriods)
+        {
+            int m1 = busyPeriod.From;
+            int m2 = busyPeriod.To;
+
+            // if free period length is 100 mins or more, add period from cursor to m1
+            if (Utility.CalculateMinutesBetweenTimes(cursor, m1) > 100)
+            {
+                freePeriods.Add((cursor, m1));
+            }
+
+            // move cursor to end of busy period
+            cursor = m2;
+        }
+
+        return freePeriods;
+    }
+
     internal void CustomerSpawningUpdate()
     {
+        if (!this.arrivalsScheduled)
+        {
+
+        }
+
         // Choose between villager spawn and non-villager spawn
         float weightForVillagers = Mod.Config.EnableNpcCustomers / 5f;
         float weightForRandom = Math.Max(Mod.Config.EnableCustomCustomers, Mod.Config.EnableRandomlyGeneratedCustomers) / 5f;
 
         float prob = this.ProbabilityToSpawnCustomers(Math.Max(weightForVillagers, weightForRandom));
 
+        Log.Trace($"(Chance to spawn: {prob})");
+
 #if DEBUG
         prob += 0.4f;
 #endif
-
-        Log.Trace($"(Chance to spawn: {prob})");
 
         // Try chance
         float random;
@@ -74,7 +182,6 @@ internal class CustomerManager
 
             if ((random * (weightForRandom + weightForVillagers)) < weightForVillagers)
                 this.SpawnVillagerCustomers();
-
 
             prob -= 0.25f;
         }
@@ -212,7 +319,7 @@ internal class CustomerManager
 
             if (group.Type != GroupType.Villager)
             {
-                if (Mod.Instance.CustomerData.TryGetValue(n.Name, out CustomerData? data))
+                if (Mod.Customers.CustomerData.TryGetValue(n.Name, out CustomerData? data))
                     data.LastVisitedData = Game1.Date;
 
                 bool res = n.MoveTo(tableLocation, getUpPosition, busStop, new Point(33, 9), (c, loc) => this.DeleteNpcFromExistence((c as NPC)!));
@@ -221,8 +328,8 @@ internal class CustomerManager
             }
             else
             {
-                Mod.Instance.VillagerData[n.Name].LastAteFood = n.get_OrderItem().Value!.QualifiedItemId;
-                Mod.Instance.VillagerData[n.Name].LastVisitedDate = Game1.Date;
+                Mod.Customers.VillagerData[n.Name].LastAteFood = n.get_OrderItem().Value!.QualifiedItemId;
+                Mod.Customers.VillagerData[n.Name].LastVisitedDate = Game1.Date;
                 n.faceTowardFarmerTimer = 0;
                 n.faceTowardFarmer = false;
                 n.movementPause = 0;

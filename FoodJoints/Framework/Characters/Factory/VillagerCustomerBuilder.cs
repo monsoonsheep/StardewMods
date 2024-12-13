@@ -88,7 +88,7 @@ internal class VillagerCustomerBuilder : CustomerBuilder
     {
         List<VillagerCustomerData> list = [];
 
-        foreach (KeyValuePair<string, VillagerCustomerData> data in Mod.Instance.VillagerData.OrderBy(_ => Game1.random.Next()))
+        foreach (KeyValuePair<string, VillagerCustomerData> data in Mod.Customers.VillagerData.OrderBy(_ => Game1.random.Next()))
         {
             if (list.Count == count)
                 break;
@@ -103,7 +103,7 @@ internal class VillagerCustomerBuilder : CustomerBuilder
     private static bool CanVillagerVisit(VillagerCustomerData data, int timeOfDay)
     {
         NPC npc = data.GetNpc();
-        VillagerCustomerModel model = Mod.Instance.VillagerCustomerModels[data.NpcName];
+        VillagerCustomerModel model = Mod.Customers.VillagerCustomerModels[data.NpcName];
 
         int daysSinceLastVisit = Game1.Date.TotalDays - data.LastVisitedDate.TotalDays;
         int daysAllowed = model.VisitFrequency switch

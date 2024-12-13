@@ -46,10 +46,6 @@ public class Mod : StardewModdingAPI.Mod
     internal static DialogueManager Dialogue => DialogueManager.Instance;
     internal static Pathfinding Pathfinding => Pathfinding.Instance;
 
-    internal Dictionary<string, CustomerData> CustomerData = [];
-    internal Dictionary<string, VillagerCustomerModel> VillagerCustomerModels = [];
-    internal Dictionary<string, VillagerCustomerData> VillagerData = [];
-
     public Mod()
         => Instance = this;
 
@@ -59,7 +55,6 @@ public class Mod : StardewModdingAPI.Mod
         I18n.Init(this.Helper.Translation);
         this.harmony = new Harmony(base.ModManifest.UniqueID);
         this.Helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
-        this.Helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
     }
 
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
@@ -123,14 +118,5 @@ public class Mod : StardewModdingAPI.Mod
            (query, context) => !Game1.currentLocation.IsOutdoors);
 
         this.sprites = Game1.content.Load<Texture2D>(Values.MODASSET_SPRITES);
-    }
-
-    private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
-    {
-        foreach (var model in this.VillagerCustomerModels)
-            if (!this.VillagerData.ContainsKey(model.Key))
-                this.VillagerData[model.Key] = new VillagerCustomerData(model.Key);
-
-        Customers.CleanUpCustomers();
     }
 }

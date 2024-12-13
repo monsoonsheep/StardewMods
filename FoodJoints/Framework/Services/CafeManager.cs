@@ -82,6 +82,7 @@ internal class CafeManager
         if (Game1.timeOfDay >= this.OpeningTime && Game1.timeOfDay <= this.ClosingTime)
         {
             this.Open = true;
+            Mod.Customers.ScheduleArrivals();
         }
         else
         {

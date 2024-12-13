@@ -61,7 +61,7 @@ internal class SaveDataManager
 
         foreach (var loadedEntry in loaded.VillagerCustomersData)
         {
-            if (!Mod.Instance.VillagerCustomerModels.TryGetValue(loadedEntry.Key, out VillagerCustomerModel? model))
+            if (!Mod.Customers.VillagerCustomerModels.TryGetValue(loadedEntry.Key, out VillagerCustomerModel? model))
             {
                 Log.Debug("Loading NPC customer data but not model found. Skipping...");
                 continue;
@@ -69,7 +69,7 @@ internal class SaveDataManager
 
             Log.Trace($"Loading customer data from save file {model.NpcName}");
             loadedEntry.Value.NpcName = model.NpcName;
-            Mod.Instance.VillagerData[loadedEntry.Key] = loadedEntry.Value;
+            Mod.Customers.VillagerData[loadedEntry.Key] = loadedEntry.Value;
         }
 
         //foreach (var loadedEntry in loaded.CustomersData)
@@ -99,7 +99,7 @@ internal class SaveDataManager
             OpeningTime = Mod.Cafe.OpeningTime,
             ClosingTime = Mod.Cafe.ClosingTime,
             MenuItemLists = new SerializableDictionary<FoodCategory, Inventory>(Mod.Cafe.Menu.ItemDictionary),
-            VillagerCustomersData = new SerializableDictionary<string, VillagerCustomerData>(Mod.Instance.VillagerData),
+            VillagerCustomersData = new SerializableDictionary<string, VillagerCustomerData>(Mod.Customers.VillagerData),
             //CustomersData = new SerializableDictionary<string, CustomerData>(Mod.Instance.CustomerData)
         };
 
