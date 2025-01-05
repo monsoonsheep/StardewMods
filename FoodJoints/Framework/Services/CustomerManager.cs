@@ -76,34 +76,8 @@ internal class CustomerManager
         }
     }
 
-    private bool CanVillagerVisit(VillagerCustomerData data)
-    {
-        NPC npc = data.GetNpc();
-        VillagerCustomerModel model = Mod.Customers.VillagerCustomerModels[data.NpcName];
-
-        int daysAllowed = model.VisitFrequency switch
-        {
-            1 => 27, 2 => 13, 3 => 7, 4 => 3, 5 => 1, _ => 9999999
-        };
-        int daysSinceLastVisit = Game1.Date.TotalDays - data.LastVisitedDate.TotalDays;
-
-#if DEBUG
-        daysAllowed = 1;
-#endif
-
-        if (npc == null ||
-            npc.ScheduleKey == null ||
-            npc.controller != null ||
-            daysSinceLastVisit < daysAllowed)
-            return false;
-
-        return true;
-    }
-
     internal void CustomerSpawningUpdate()
     {
-        
-
         // Choose between villager spawn and non-villager spawn
         float weightForVillagers = Mod.Config.EnableNpcCustomers / 5f;
         float weightForRandom = Math.Max(Mod.Config.EnableCustomCustomers, Mod.Config.EnableRandomlyGeneratedCustomers) / 5f;

@@ -63,7 +63,7 @@ internal class VillagerCustomerBuilder : CustomerBuilder
         return true;
     }
 
-    internal override void RevertChanges()
+    internal override void Cancel()
     {
         if (this._group == null)
             return;
@@ -73,8 +73,6 @@ internal class VillagerCustomerBuilder : CustomerBuilder
             Mod.Customers.ReturnVillagerToSchedule(c);
         }
     }
-
-
 
     private List<VillagerCustomerData> GetAvailableVillagerCustomers(int count)
     {

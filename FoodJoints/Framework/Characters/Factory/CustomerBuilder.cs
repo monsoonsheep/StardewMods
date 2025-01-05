@@ -12,7 +12,7 @@ internal abstract class CustomerBuilder
     internal abstract bool PreMove();
     internal abstract bool MoveToTable();
     internal abstract bool PostMove();
-    internal abstract void RevertChanges();
+    internal abstract void Cancel();
 
 
     internal CustomerGroup? TrySpawn(Table table, CustomerGroup? group = null)
@@ -46,7 +46,7 @@ internal abstract class CustomerBuilder
         }
 
         Log.Trace("Error spawning customers");
-        this.RevertChanges();
+        this.Cancel();
 
         return null;
     }

@@ -61,7 +61,7 @@ internal class RandomCustomerBuilder : CustomerBuilder
         return true;
     }
 
-    internal override void RevertChanges()
+    internal override void Cancel()
     {
         Log.Trace($"Reverting changes");
 
