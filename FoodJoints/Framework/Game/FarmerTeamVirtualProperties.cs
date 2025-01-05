@@ -1,7 +1,5 @@
 using System.Runtime.CompilerServices;
-using HarmonyLib;
 using Netcode;
-using StardewMods.FoodJoints.Framework.Netcode;
 
 namespace StardewMods.FoodJoints.Framework.Game;
 

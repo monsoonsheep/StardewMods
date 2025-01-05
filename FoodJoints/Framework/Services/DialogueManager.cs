@@ -1,10 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using StardewMods.FoodJoints.Framework.Data;
-using StardewValley.Objects;
 using StardewValley.TokenizableStrings;
 
 namespace StardewMods.FoodJoints.Framework.Services;

@@ -1,4 +1,3 @@
-using Microsoft.Xna.Framework;
 using StardewValley.Menus;
 
 namespace StardewMods.FoodJoints.Framework.UI.Options;

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using CollapseOnFarmFix.Patching;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
-using MonsoonSheep.Stardew.Common.Patching;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -26,38 +25,23 @@ namespace CollapseOnFarmFix
 
         public override void Entry(IModHelper helper)
         {
-            I18n.Init(helper.Translation);
             Log.Monitor = base.Monitor;
 
-            // Harmony patches
-            if (HarmonyPatcher.TryApply(this,
-                    new PassingOutPatches()
-                ) is false)
-            {
-                base.Monitor.Log("Cannot patch methods. Aborting...");
-                return;
-            }
+            (new PassingOutPatches()).Apply(new Harmony(this.ModManifest.UniqueID));
 
             helper.Events.GameLoop.DayStarted += this.OnDayStarted;
             helper.Events.Content.AssetRequested += this.OnAssetRequested;
-
-            
         }
 
         private void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
         {
-            // CP additions will do "EditData" to add lines to this dictionary by
-            // targeting "monsoonsheep.CollapseOnFarmFix/PutToBedDialogues"
-            if (e.NameWithoutLocale.IsEquivalentTo($"Mods/{this.ModManifest.UniqueID}/PostPassoutDialogues"))
+            // CP additions will do "EditData" to add lines to this dictionary
+            if (e.NameWithoutLocale.IsEquivalentTo($"Mods/monsoonsheep.CollapseOnFarmFix/PostPassoutDialogues"))
             {
                 
                 e.LoadFrom(() => new Dictionary<string, string>()
                 {
-                    {"PostPassoutDialogues.neutral.sunny.1", I18n.PostPassoutDialogues_Neutral_Sunny_1() },
-                    {"PostPassoutDialogues.rude.sunny.1", I18n.PostPassoutDialogues_Rude_Sunny_1() },
-                    {"PostPassoutDialogues.shy.sunny.1", I18n.PostPassoutDialogues_Shy_Sunny_1() },
-                    {"PostPassoutDialogues.rude.rain.1", I18n.PostPassoutDialogues_Rude_Rain_1() },
-                    {"PostPassoutDialogues.Abigail.rain.1", I18n.PostPassoutDialogues_Abigail_Rain_1() },
+                    
                 }, AssetLoadPriority.Medium);
             }
         }

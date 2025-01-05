@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using StardewValley.Inventories;
 using System.Xml.Serialization;
 using StardewMods.FoodJoints.Framework.Data;

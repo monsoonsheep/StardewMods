@@ -7,18 +7,21 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <Import Project="..\Common\Common.projitems" Label="Shared" />
+
   <!-- Translations -->
   <ItemGroup>
     <AdditionalFiles Include="i18n/default.json" />
   </ItemGroup>
 
+  
   <!-- SMAPI Manifest -->
   <PropertyGroup>
     <Name>ExtraNpcBehaviors</Name>
     <Authors>MonsoonSheep</Authors>
     <Description>Description</Description>
     <UniqueId>MonsoonSheep.ExtraNpcBehaviors</UniqueId>
-    <UpdateKeys>Nexus:idhere</UpdateKeys>
+    <UpdateKeys>Nexus:30609</UpdateKeys>
     <Version>0.1.0</Version>
     <MinimumApiVersion>4.0.0</MinimumApiVersion>
     <MinimumGameVersion>1.6</MinimumGameVersion>

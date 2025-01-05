@@ -1,21 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Graphics;
-using StardewMods.FoodJoints.Framework.Characters;
-using StardewMods.FoodJoints.Framework.Data;
 using StardewMods.FoodJoints.Framework.Enums;
 using StardewMods.FoodJoints.Framework.Game;
 using StardewMods.FoodJoints.Framework.Inventories;
 using StardewMods.FoodJoints.Framework.Objects;
 using StardewMods.FoodJoints.Framework.UI;
-using StardewValley;
-using StardewValley.Pathfinding;
-using StardewValley.SpecialOrders.Objectives;
 
 namespace StardewMods.FoodJoints.Framework.Services;
 

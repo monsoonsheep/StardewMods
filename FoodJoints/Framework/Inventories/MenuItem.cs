@@ -1,6 +1,3 @@
-using System;
-using StardewValley;
-
 namespace StardewMods.FoodJoints.Framework.Inventories;
 internal class MenuItem
 {

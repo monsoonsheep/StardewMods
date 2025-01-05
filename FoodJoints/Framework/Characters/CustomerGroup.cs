@@ -1,13 +1,8 @@
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.Xna.Framework;
 using StardewMods.FoodJoints.Framework.Enums;
 using StardewMods.FoodJoints.Framework.Game;
 using StardewMods.FoodJoints.Framework.Objects;
 using StardewMods.SheepCore.Framework.Services;
-using StardewValley;
 using StardewValley.Pathfinding;
-using xTile.Dimensions;
 
 namespace StardewMods.FoodJoints.Framework.Characters;
 

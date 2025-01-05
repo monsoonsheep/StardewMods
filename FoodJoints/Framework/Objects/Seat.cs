@@ -1,9 +1,5 @@
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using Microsoft.Xna.Framework;
 using Netcode;
 using StardewMods.FoodJoints.Framework.Game;
-using StardewValley;
 // ReSharper disable VirtualMemberCallInConstructor
 
 namespace StardewMods.FoodJoints.Framework.Objects;

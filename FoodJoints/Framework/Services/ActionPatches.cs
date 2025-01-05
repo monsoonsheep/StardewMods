@@ -1,13 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using HarmonyLib;
 using StardewMods.FoodJoints.Framework.Enums;
 using StardewMods.FoodJoints.Framework.Objects;
 using StardewMods.FoodJoints.Framework.UI;
-using StardewValley.Objects;
 using xTile.Dimensions;
 
 namespace StardewMods.FoodJoints.Framework.Services;

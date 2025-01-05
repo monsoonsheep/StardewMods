@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <Import Project="$(SolutionDir)\Common\Common.projitems" Label="Shared"/>
+  <!-- <Import Project="$(SolutionDir)\Common\Common.projitems" Label="Shared"/> -->
 
   <!-- common build settings -->
   <PropertyGroup>
@@ -24,7 +24,6 @@
   <!-- mod build package -->
   <ItemGroup>
     <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.3.2" />
-    <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.0" />
     <PackageReference Include="Leclair.Stardew.ModManifestBuilder" Version="2.4.0" />
   </ItemGroup>
 </Project>

@@ -1,5 +1,3 @@
-using StardewModdingAPI;
-
 namespace StardewMods.FoodJoints.Framework;
 
 internal static class Log

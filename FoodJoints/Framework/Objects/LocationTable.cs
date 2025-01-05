@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using Microsoft.Xna.Framework;
-
-
 namespace StardewMods.FoodJoints.Framework.Objects;
 
 public class LocationTable : Table

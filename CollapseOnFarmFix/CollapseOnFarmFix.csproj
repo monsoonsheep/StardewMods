@@ -4,7 +4,7 @@
     <!-- Metadata -->
     <Authors>MonsoonSheep</Authors>
     <RootNamespace>CollapseOnFarmFix</RootNamespace> 
-    <Version>0.1.2</Version>
+    <Version>0.2.7</Version>
 
     <!-- Build Settings -->
     <Configurations>Debug;Release</Configurations>
@@ -25,10 +25,7 @@
 
   <ItemGroup>
     <PackageReference Include="Lib.Harmony" Version="2.2.2" />
-    <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.0.1" />
   </ItemGroup>
 
   
-  <Import Project="..\Common.Patching\Common.Patching.projitems" Label="Shared" />
-  <Import Project="..\Common\Common.projitems" Label="Shared" />
 </Project>

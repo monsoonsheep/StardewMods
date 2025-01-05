@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
-using Microsoft.Xna.Framework;
 using Netcode;
 using StardewMods.FoodJoints.Framework.Enums;
-using StardewValley;
 
 
 namespace StardewMods.FoodJoints.Framework.Objects;

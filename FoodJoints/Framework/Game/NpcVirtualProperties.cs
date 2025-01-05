@@ -1,10 +1,7 @@
-using System;
 using System.Runtime.CompilerServices;
-using Microsoft.Xna.Framework;
 using Netcode;
 using StardewMods.FoodJoints.Framework.Characters;
 using StardewMods.FoodJoints.Framework.Objects;
-using StardewValley;
 
 namespace StardewMods.FoodJoints.Framework.Game;
 internal static class NpcVirtualProperties

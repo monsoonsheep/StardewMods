@@ -1,11 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
-using HarmonyLib;
-using Netcode;
 using StardewMods.FoodJoints.Framework.Characters;
 using StardewMods.FoodJoints.Framework.Game;
 

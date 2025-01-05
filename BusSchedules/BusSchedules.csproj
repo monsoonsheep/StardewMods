@@ -2,15 +2,18 @@
 
   <PropertyGroup>
     <RootNamespace>StardewMods.BusSchedules</RootNamespace>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <EnableHarmony>true</EnableHarmony>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Reference Include="SheepCore" HintPath="$(GamePath)\Mods\SheepCore\SheepCore.dll" Private="false" />
-    <PackageReference Update="Leclair.Stardew.ModManifestBuilder" Version="2.4.0" />
-  </ItemGroup>
   
+  <ItemGroup>
+    <ProjectReference Include="..\SheepCore\SheepCore.csproj" />
+    <PackageReference Update="Leclair.Stardew.ModManifestBuilder" Version="2.4.0" />
+    <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.0" />
+  </ItemGroup>
+  <Import Project="..\Common\Common.projitems" Label="Shared" />
+
+
   <!-- Translations -->
   <ItemGroup>
     <AdditionalFiles Include="i18n/default.json" />
@@ -22,11 +25,12 @@
     <Authors>MonsoonSheep</Authors>
     <Description>Description</Description>
     <UniqueId>MonsoonSheep.BusSchedules</UniqueId>
-    <UpdateKeys>Nexus:idhere</UpdateKeys>
-    <Version>0.1.0</Version>
+    <UpdateKeys>Nexus:30590</UpdateKeys>
+    <Version>0.1.1</Version>
     <MinimumApiVersion>4.0.0</MinimumApiVersion>
     <MinimumGameVersion>1.6</MinimumGameVersion>
   </PropertyGroup>
+  
   <ItemGroup>
     <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
     <SMAPIDependency Include="MonsoonSheep.SheepCore" Version="0.1.0" required="true" />

@@ -1,15 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using HarmonyLib;
-using Microsoft.Xna.Framework;
-using Netcode;
 using StardewMods.FoodJoints.Framework.Data;
 using StardewMods.FoodJoints.Framework.Data.Models;
 using StardewMods.FoodJoints.Framework.Enums;
 using StardewMods.FoodJoints.Framework.Game;
-using StardewValley;
-using StardewValley.TerrainFeatures;
 using SUtility = StardewValley.Utility;
 
 namespace StardewMods.FoodJoints.Framework.Characters.Factory;

@@ -1,4 +1,3 @@
-using Microsoft.Xna.Framework;
 using StardewMods.FoodJoints.Framework.UI.Options;
 
 namespace StardewMods.FoodJoints.Framework.UI.Pages;

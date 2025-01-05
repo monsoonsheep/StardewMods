@@ -3,7 +3,6 @@ using Netcode;
 using StardewMods.FoodJoints.Framework.Data;
 using StardewMods.FoodJoints.Framework.Inventories;
 using StardewMods.FoodJoints.Framework.Objects;
-using StardewValley.Network;
 
 #nullable disable
 

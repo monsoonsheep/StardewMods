@@ -1,10 +1,6 @@
-using System.Collections.Generic;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using StardewMods.FoodJoints.Framework.UI.Pages;
-using StardewModdingAPI;
-using StardewValley;
 using StardewValley.Menus;
 // ReSharper disable InconsistentNaming
 

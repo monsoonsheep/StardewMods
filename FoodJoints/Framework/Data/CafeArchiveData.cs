@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using StardewMods.FoodJoints.Framework.Inventories;
-using StardewValley;
 using StardewValley.Inventories;
 
 namespace StardewMods.FoodJoints.Framework.Data;

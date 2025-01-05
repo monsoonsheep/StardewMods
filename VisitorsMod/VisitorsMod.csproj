@@ -10,8 +10,11 @@
   <!-- Dependencies -->  
   <ItemGroup>
     <ProjectReference Include="..\SheepCore\SheepCore.csproj" />
+    <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.0" />
   </ItemGroup>
-  
+  <Import Project="..\Common\Common.projitems" Label="Shared" />
+
+
   <!-- Translations -->
   <ItemGroup>
     <AdditionalFiles Include="i18n/default.json" />

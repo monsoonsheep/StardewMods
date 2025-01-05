@@ -1,7 +1,4 @@
-using System.Linq;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using StardewValley;
 using StardewValley.Menus;
 
 namespace StardewMods.FoodJoints.Framework.UI;

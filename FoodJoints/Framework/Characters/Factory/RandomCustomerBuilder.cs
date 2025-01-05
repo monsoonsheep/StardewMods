@@ -1,10 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using StardewMods.FoodJoints.Framework.Enums;
-using StardewValley;
 
 namespace StardewMods.FoodJoints.Framework.Characters.Factory;
 

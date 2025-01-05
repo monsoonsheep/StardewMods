@@ -14,7 +14,6 @@ global using StardewMods.Common;
 using StardewMods.FoodJoints.Framework.Services;
 using StardewMods.FoodJoints.Framework.Data.Models;
 using Microsoft.Xna.Framework.Graphics;
-using StardewMods.FoodJoints.Framework.Data;
 using StardewValley.TokenizableStrings;
 using StardewMods.FoodJoints.Framework.Game;
 using StardewMods.SheepCore.Framework.Services;

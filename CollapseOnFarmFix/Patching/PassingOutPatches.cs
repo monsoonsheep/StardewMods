@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
-using MonsoonSheep.Stardew.Common.Patching;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Locations;
@@ -11,21 +10,21 @@ using StardewValley.Network;
 
 namespace CollapseOnFarmFix.Patching
 {
-    internal class PassingOutPatches : BasePatcher
+    internal class PassingOutPatches
     {
-        public override void Apply(Harmony harmony, IMonitor monitor)
+        public void Apply(Harmony harmony)
         {
             harmony.Patch(
-                original: this.RequireMethod<Farmer>(nameof(Farmer.performPassoutWarp), [typeof(Farmer), typeof(string), typeof(Point), typeof(bool)]),
-                postfix: this.GetHarmonyMethod(nameof(PassingOutPatches.PerformPassoutWarpPostfix))
+            original: AccessTools.Method(typeof(Farmer), nameof(Farmer.performPassoutWarp), [typeof(Farmer), typeof(string), typeof(Point), typeof(bool)]),
+            postfix: new HarmonyMethod(AccessTools.Method(this.GetType(), nameof(PassingOutPatches.PerformPassoutWarpPostfix)))
             );
+
             harmony.Patch(
-                original: this.RequireMethod<LocationRequest>(nameof(LocationRequest.Warped), [typeof(GameLocation)]),
-                prefix: this.GetHarmonyMethod(nameof(PassingOutPatches.LocationRequestWarpedPrefix)),
-                postfix: this.GetHarmonyMethod(nameof(PassingOutPatches.LocationRequestWarpedPostfix))
+            original: AccessTools.Method(typeof(LocationRequest), nameof(LocationRequest.Warped)),
+            prefix: new HarmonyMethod(AccessTools.Method(this.GetType(), nameof(PassingOutPatches.LocationRequestWarpedPrefix))),
+            postfix: new HarmonyMethod(AccessTools.Method(this.GetType(), nameof(PassingOutPatches.LocationRequestWarpedPostfix)))
             );
         }
-
       
         /// <summary>
         /// performPassoutWarp() initiates a LocationRequest and (through a call chain) stores it in Game1.locationRequest.
@@ -34,7 +33,7 @@ namespace CollapseOnFarmFix.Patching
         private static void PerformPassoutWarpPostfix(Farmer who, string bed_location_name, Point bed_point, bool has_bed)
         {
             GameLocation? passoutLocation = ((NetLocationRef?) AccessTools.Field(typeof(Farmer), "currentLocationRef").GetValue(who))?.Value;
-            if (passoutLocation is Farm)
+            if (passoutLocation is Farm || passoutLocation?.GetParentLocation() is Farm)
             {
                 Mod.RequestForBedWarp = (who, Game1.locationRequest);
             }

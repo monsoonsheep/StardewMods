@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace StardewMods.FoodJoints.Framework.Data.Models;
 
 internal class ConfigModel

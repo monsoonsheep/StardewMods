@@ -1,12 +1,6 @@
-using System;
-using System.Linq;
-using HarmonyLib;
-using Microsoft.Xna.Framework;
 using StardewMods.FoodJoints.Framework.Enums;
 using StardewMods.FoodJoints.Framework.Game;
 using StardewMods.FoodJoints.Framework.Objects;
-using StardewValley;
-using StardewValley.Network;
 using StardewValley.Pathfinding;
 using xTile.Dimensions;
 

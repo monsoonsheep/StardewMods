@@ -1,7 +1,4 @@
-using System;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using StardewValley;
 using StardewValley.Menus;
 
 namespace StardewMods.FoodJoints.Framework.UI.Options;

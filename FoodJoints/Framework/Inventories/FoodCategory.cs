@@ -1,5 +1,3 @@
-using System;
-using System.Text.Json.Serialization;
 using System.Xml.Serialization;
 using Netcode;
 using StardewMods.FoodJoints.Framework.Enums;

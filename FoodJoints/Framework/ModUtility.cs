@@ -1,12 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using StardewValley;
-using StardewValley.Buildings;
 using StardewValley.Objects;
-using SUtility = StardewValley.Utility;
-using SObject = StardewValley.Object;
-using xTile.Dimensions;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using StardewMods.FoodJoints.Framework.Enums;
 

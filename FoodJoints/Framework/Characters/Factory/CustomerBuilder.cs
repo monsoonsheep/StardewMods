@@ -1,7 +1,5 @@
-using System;
 using StardewMods.FoodJoints.Framework.Game;
 using StardewMods.FoodJoints.Framework.Objects;
-using StardewValley;
 
 namespace StardewMods.FoodJoints.Framework.Characters.Factory;
 

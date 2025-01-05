@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using StardewMods.ExtraNpcBehaviors.Framework.Data;
 using StardewMods.FoodJoints.Framework.Characters;
 using StardewMods.FoodJoints.Framework.Characters.Factory;
@@ -13,11 +8,8 @@ using StardewMods.FoodJoints.Framework.Enums;
 using StardewMods.FoodJoints.Framework.Game;
 using StardewMods.FoodJoints.Framework.Objects;
 using StardewMods.SheepCore.Framework.Services;
-using StardewValley;
-using StardewValley.Locations;
 using StardewValley.Pathfinding;
 using StardewValley.SpecialOrders.Objectives;
-using NpcVirtualProperties = StardewMods.FoodJoints.Framework.Game.NpcVirtualProperties;
 
 namespace StardewMods.FoodJoints.Framework.Services;
 internal class CustomerManager
@@ -28,20 +20,16 @@ internal class CustomerManager
     internal Dictionary<string, VillagerCustomerModel> VillagerCustomerModels = [];
     internal Dictionary<string, VillagerCustomerData> VillagerData = [];
 
-    private RandomCustomerBuilder randomCustomerBuilder = null!;
     private VillagerCustomerBuilder villagerCustomerBuilder = null!;
     internal readonly List<CustomerGroup> Groups = [];
 
-    private bool arrivalsScheduled = false;
-    internal List<int> villagerCustomerArrivals = [];
-    PriorityQueue<string, int> schedule = new();
+    private Dictionary<int, VillagerCustomerData> villagerCustomerSchedule = new();
 
     internal CustomerManager()
         => Instance = this;
 
     internal void Initialize()
     {
-        this.randomCustomerBuilder = new RandomCustomerBuilder();
         this.villagerCustomerBuilder = new VillagerCustomerBuilder();
 
         Mod.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
@@ -56,15 +44,11 @@ internal class CustomerManager
                 this.VillagerData[model.Key] = new VillagerCustomerData(model.Key);
 
         this.CleanUpCustomers();
-
-        // may be invalidated if villager data is reloaded and different, so do it on asset ready or something
-        this.SetFreePeriods();
     }
 
     private void OnDayStarted(object? sender, DayStartedEventArgs e)
     {
-        this.arrivalsScheduled = false;
-        this.villagerCustomerArrivals.Clear();
+
     }
 
     private void OnDayEnding(object? sender, DayEndingEventArgs e)
@@ -77,87 +61,48 @@ internal class CustomerManager
         this.CleanUpCustomers();
     }
 
-    internal void SetFreePeriods()
-    {
-        foreach (var data in this.VillagerData)
-        {
-            data.Value.FreePeriods = this.GetPossibleTimePeriodsForArrival(data.Value);
-        }
-    }
-
     internal void ScheduleArrivals()
     {
         int totalTimeIntervalsDuringDay = (Mod.Cafe.ClosingTime - Mod.Cafe.OpeningTime) / 10;
+        var intervals = Enumerable.Range(0, totalTimeIntervalsDuringDay).Select(i => Utility.ModifyTime(Mod.Cafe.OpeningTime, (i * 10)));
 
-        foreach (var data in this.VillagerData)
+        foreach (VillagerCustomerData data in this.VillagerData.Values)
         {
+            List<(int, int)>? freePeriods = data.FreePeriods;
 
+            int time = 0;
+
+            this.villagerCustomerSchedule[time] = data;
         }
     }
 
-    private List<(int, int)>? GetPossibleTimePeriodsForArrival(VillagerCustomerData data)
+    private bool CanVillagerVisit(VillagerCustomerData data)
     {
         NPC npc = data.GetNpc();
         VillagerCustomerModel model = Mod.Customers.VillagerCustomerModels[data.NpcName];
 
-        int daysSinceLastVisit = Game1.Date.TotalDays - data.LastVisitedDate.TotalDays;
         int daysAllowed = model.VisitFrequency switch
         {
-            1 => 27,
-            2 => 13,
-            3 => 7,
-            4 => 3,
-            5 => 1,
-            _ => 9999999
+            1 => 27, 2 => 13, 3 => 7, 4 => 3, 5 => 1, _ => 9999999
         };
+        int daysSinceLastVisit = Game1.Date.TotalDays - data.LastVisitedDate.TotalDays;
 
 #if DEBUG
         daysAllowed = 1;
 #endif
 
         if (npc == null ||
-            npc.get_OrderItem().Value != null ||
-            npc.isSleeping.Value == true ||
             npc.ScheduleKey == null ||
             npc.controller != null ||
             daysSinceLastVisit < daysAllowed)
-            return null;
+            return false;
 
-        List<(int, int)> freePeriods = [];
-
-        // If no busy period for today, they're free all day
-        if (!model.BusyTimes.TryGetValue(npc.ScheduleKey, out List<BusyPeriod>? busyPeriods))
-            return null;
-        if (busyPeriods.Count == 0)
-            return [(600, 2300)];
-
-        int cursor = 600;
-
-        // Check their busy periods for their current schedule key
-        foreach (BusyPeriod busyPeriod in busyPeriods)
-        {
-            int m1 = busyPeriod.From;
-            int m2 = busyPeriod.To;
-
-            // if free period length is 100 mins or more, add period from cursor to m1
-            if (Utility.CalculateMinutesBetweenTimes(cursor, m1) > 100)
-            {
-                freePeriods.Add((cursor, m1));
-            }
-
-            // move cursor to end of busy period
-            cursor = m2;
-        }
-
-        return freePeriods;
+        return true;
     }
 
     internal void CustomerSpawningUpdate()
     {
-        if (!this.arrivalsScheduled)
-        {
-
-        }
+        
 
         // Choose between villager spawn and non-villager spawn
         float weightForVillagers = Mod.Config.EnableNpcCustomers / 5f;
@@ -167,9 +112,9 @@ internal class CustomerManager
 
         Log.Trace($"(Chance to spawn: {prob})");
 
-#if DEBUG
+        #if DEBUG
         prob += 0.4f;
-#endif
+        #endif
 
         // Try chance
         float random;
@@ -223,17 +168,6 @@ internal class CustomerManager
 #endif
 
         return Math.Max(prob, 1f);
-    }
-
-    internal void SpawnRandomCustomers()
-    {
-        Table? table = Mod.Tables.GetFreeTable();
-        if (table != null)
-        {
-            CustomerGroup? group = this.randomCustomerBuilder.TrySpawn(table);
-            if (group != null)
-                this.AddGroup(group);
-        }
     }
 
     internal void SpawnVillagerCustomers()

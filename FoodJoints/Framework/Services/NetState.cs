@@ -1,9 +1,7 @@
-using HarmonyLib;
 using Netcode;
 using StardewMods.FoodJoints.Framework.Game;
 using StardewMods.FoodJoints.Framework.Inventories;
 using StardewMods.FoodJoints.Framework.Objects;
-using StardewValley.Network;
 
 namespace StardewMods.FoodJoints.Framework.Services;
 internal class NetState 
