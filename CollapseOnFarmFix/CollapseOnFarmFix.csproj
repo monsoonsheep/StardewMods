@@ -15,7 +15,6 @@
     <!-- SMAPI Paths -->
     <ModFolderName>CollapseOnFarmFix</ModFolderName>
     <GamePath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley</GamePath>
-    <GameModsPath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley\Mods\My Mods</GameModsPath>
   </PropertyGroup>
 
   <!-- Translations -->

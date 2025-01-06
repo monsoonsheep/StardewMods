@@ -23,7 +23,8 @@ internal class CustomerManager
     private VillagerCustomerBuilder villagerCustomerBuilder = null!;
     internal readonly List<CustomerGroup> Groups = [];
 
-    private Dictionary<int, VillagerCustomerData> villagerCustomerSchedule = new();
+    internal DynamicScheduler dynamicScheduler = null!;
+    internal VillagerScheduler villagerScheduler = null!;
 
     internal CustomerManager()
         => Instance = this;
@@ -31,6 +32,8 @@ internal class CustomerManager
     internal void Initialize()
     {
         this.villagerCustomerBuilder = new VillagerCustomerBuilder();
+        this.dynamicScheduler = new DynamicScheduler();
+        this.villagerScheduler = new VillagerScheduler();
 
         Mod.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
         Mod.Events.GameLoop.DayStarted += this.OnDayStarted;
@@ -61,104 +64,26 @@ internal class CustomerManager
         this.CleanUpCustomers();
     }
 
-    internal void ScheduleArrivals()
+    internal void RandomSpawningUpdate()
     {
-        int totalTimeIntervalsDuringDay = (Mod.Cafe.ClosingTime - Mod.Cafe.OpeningTime) / 10;
-        var intervals = Enumerable.Range(0, totalTimeIntervalsDuringDay).Select(i => Utility.ModifyTime(Mod.Cafe.OpeningTime, (i * 10)));
-
-        foreach (VillagerCustomerData data in this.VillagerData.Values)
-        {
-            List<(int, int)>? freePeriods = data.FreePeriods;
-
-            int time = 0;
-
-            this.villagerCustomerSchedule[time] = data;
-        }
+        int count = this.dynamicScheduler.TrySpawn();
+        count = 0;
+        for (int i = 0; i < count; i++)
+            this.SpawnCustomers(CustomerGroupType.Random);
     }
 
-    internal void CustomerSpawningUpdate()
-    {
-        // Choose between villager spawn and non-villager spawn
-        float weightForVillagers = Mod.Config.EnableNpcCustomers / 5f;
-        float weightForRandom = Math.Max(Mod.Config.EnableCustomCustomers, Mod.Config.EnableRandomlyGeneratedCustomers) / 5f;
-
-        float prob = this.ProbabilityToSpawnCustomers(Math.Max(weightForVillagers, weightForRandom));
-
-        Log.Trace($"(Chance to spawn: {prob})");
-
-        #if DEBUG
-        prob += 0.4f;
-        #endif
-
-        // Try chance
-        float random;
-
-        while ((random = Game1.random.NextSingle()) <= prob)
-        {
-            // REMOVE
-            weightForVillagers = 1f;
-            weightForRandom = 0f;
-
-            if ((random * (weightForRandom + weightForVillagers)) < weightForVillagers)
-                this.SpawnVillagerCustomers();
-
-            prob -= 0.25f;
-        }
-    }
-
-    private float ProbabilityToSpawnCustomers(float baseProb)
-    {
-        int totalTimeIntervalsDuringDay = (Mod.Cafe.ClosingTime - Mod.Cafe.OpeningTime) / 10;
-        int minutesTillCloses = StardewValley.Utility.CalculateMinutesBetweenTimes(Game1.timeOfDay, Mod.Cafe.ClosingTime);
-        int minutesSinceLastVisitors = StardewValley.Utility.CalculateMinutesBetweenTimes(Mod.Cafe.LastTimeCustomersArrived, Game1.timeOfDay);
-        if (minutesTillCloses <= 20 || totalTimeIntervalsDuringDay == 0)
-            return -10.00f;
-
-        // base
-        float prob = 1f / (float) Math.Pow(totalTimeIntervalsDuringDay, 0.5f);
-
-        // more chance if it's been a while since last Visitors
-        // TODO maybe mult this at the end
-        prob += minutesSinceLastVisitors switch
-        {
-            <= 30 => -0.1f,
-            <= 60 => Game1.random.Next(5) == 0 ? 0.05f : -0.10f,
-            <= 100 => Game1.random.Next(2) == 0 ? -0.08f : 0.08f,
-            <= 120 => 0.2f,
-            >= 130 => 0.4f,
-            _ => 0.05f
-        };
-
-        // slight chance to spawn if last hour of open time
-        if (minutesTillCloses <= 60)
-            prob += Game1.random.Next(20 + Math.Max(0, minutesTillCloses / 3)) >= 28
-                ? 0.10f
-                : -0.20f;
-
-        prob *= ((float) Math.Pow(baseProb, 0.5) * 1.50f);
-
-#if DEBUG
-        //prob += Debug.ExtraProbabilityToSpawn;
-#endif
-
-        return Math.Max(prob, 1f);
-    }
-
-    internal void SpawnVillagerCustomers()
+    internal void SpawnCustomers(CustomerGroupType type)
     {
         Table? table = Mod.Tables.GetFreeTable();
         if (table != null)
         {
             CustomerGroup? group = this.villagerCustomerBuilder.TrySpawn(table);
             if (group != null)
-                this.AddGroup(group);
+            {
+                this.Groups.Add(group);
+                Mod.Cafe.LastTimeCustomersArrived = Game1.timeOfDay;
+            }
         }
-    }
-
-    internal void AddGroup(CustomerGroup group)
-    {
-        this.Groups.Add(group);
-        Mod.Cafe.LastTimeCustomersArrived = Game1.timeOfDay;
     }
 
     internal Item? GetMenuItemForCustomer(NPC npc)
@@ -168,37 +93,37 @@ internal class CustomerManager
 
         foreach (Item i in Mod.Cafe.Menu.ItemDictionary.Values.SelectMany(i => i))
         {
-            int tasteLevel;
+            GiftObjective.LikeLevels tasteLevel;
             switch (npc.getGiftTasteForThisItem(i))
             {
                 case 6:
-                    tasteLevel = (int)GiftObjective.LikeLevels.Hated;
+                    tasteLevel = GiftObjective.LikeLevels.Hated;
                     break;
                 case 4:
-                    tasteLevel = (int)GiftObjective.LikeLevels.Disliked;
+                    tasteLevel = GiftObjective.LikeLevels.Disliked;
                     break;
                 case 8:
-                    tasteLevel = (int)GiftObjective.LikeLevels.Neutral;
+                    tasteLevel = GiftObjective.LikeLevels.Neutral;
                     break;
                 case 2:
-                    tasteLevel = (int)GiftObjective.LikeLevels.Liked;
+                    tasteLevel = GiftObjective.LikeLevels.Liked;
                     break;
                 case 0:
-                    tasteLevel = (int)GiftObjective.LikeLevels.Loved;
+                    tasteLevel = GiftObjective.LikeLevels.Loved;
                     break;
                 default:
                     continue;
             }
 
-            if (!tastesItems.ContainsKey(tasteLevel))
-                tastesItems[tasteLevel] = [];
+            if (!tastesItems.ContainsKey((int) tasteLevel))
+                tastesItems[(int) tasteLevel] = [];
 
-            tastesItems[tasteLevel].Add(i);
+            tastesItems[(int) tasteLevel].Add(i);
             count++;
         }
 
         // Null if either no items on menu or the best the menu can do for the npc is less than neutral taste for them
-        if (count == 0 || tastesItems.Keys.Max() <= (int)GiftObjective.LikeLevels.Disliked)
+        if (count == 0 || tastesItems.Keys.Max() <= (int) GiftObjective.LikeLevels.Disliked)
             return null;
 
         return tastesItems[tastesItems.Keys.Max()].PickRandom();

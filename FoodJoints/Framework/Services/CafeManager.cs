@@ -101,7 +101,7 @@ internal class CafeManager
                 cafeMenu.Locked = true;
 
             // If cafe open, try spawn customers
-            this.customers.CustomerSpawningUpdate();
+            this.customers.RandomSpawningUpdate();
         }
         else
         {

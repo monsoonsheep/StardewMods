@@ -121,6 +121,7 @@ internal class VillagerCustomerBuilder : CustomerBuilder
         // If no busy period for today, they're free all day
         if (!model.BusyTimes.TryGetValue(npc.ScheduleKey, out List<BusyPeriod>? busyPeriods))
             return false;
+
         if (busyPeriods.Count == 0)
             return true;
 

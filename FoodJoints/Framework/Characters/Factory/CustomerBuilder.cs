@@ -14,7 +14,6 @@ internal abstract class CustomerBuilder
     internal abstract bool PostMove();
     internal abstract void Cancel();
 
-
     internal CustomerGroup? TrySpawn(Table table, CustomerGroup? group = null)
     {
         this._table = table;

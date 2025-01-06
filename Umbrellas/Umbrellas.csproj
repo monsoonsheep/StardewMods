@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>StardewMods.Umbrellas</RootNamespace>
+    <Version>0.1.0</Version>
+    <EnableHarmony>true</EnableHarmony>
+    <ImplicitUsings>true</ImplicitUsings>
+  </PropertyGroup>
+
+  <!-- Translations -->
+  <ItemGroup>
+    <AdditionalFiles Include="i18n/default.json" />
+  </ItemGroup>
+
+  <!-- SMAPI Manifest -->
+  <PropertyGroup>
+    <Name>Umbrellas</Name>
+    <Authors>MonsoonSheep</Authors>
+    <Description>Description</Description>
+    <UniqueId>MonsoonSheep.Umbrellas</UniqueId>
+    <UpdateKeys>Nexus:inserthere</UpdateKeys>
+    <Version>0.1.0</Version>
+    <MinimumApiVersion>4.1.7</MinimumApiVersion>
+    <MinimumGameVersion>1.6</MinimumGameVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <SMAPIDependency Include="spacechase0.SpaceCore" Version="1.26" Reference="false" />
+    <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
+  </ItemGroup>
+
+</Project>

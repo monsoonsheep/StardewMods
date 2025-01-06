@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SheepCore", "SheepCore\Shee
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FoodJoints", "FoodJoints\FoodJoints.csproj", "{89175375-9D93-46F6-8F69-42BE4AECD4AA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Umbrellas", "Umbrellas\Umbrellas.csproj", "{C72CC586-3969-4072-B473-4EFCB588E2C5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,6 +55,10 @@ Global
 		{89175375-9D93-46F6-8F69-42BE4AECD4AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{89175375-9D93-46F6-8F69-42BE4AECD4AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{89175375-9D93-46F6-8F69-42BE4AECD4AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C72CC586-3969-4072-B473-4EFCB588E2C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C72CC586-3969-4072-B473-4EFCB588E2C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C72CC586-3969-4072-B473-4EFCB588E2C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C72CC586-3969-4072-B473-4EFCB588E2C5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

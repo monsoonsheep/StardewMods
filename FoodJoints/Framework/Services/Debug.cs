@@ -16,7 +16,7 @@ internal class Debug
         switch (e.Button)
         {
             case SButton.Insert:
-                Mod.Customers.SpawnVillagerCustomers();
+                Mod.Customers.SpawnCustomers(Enums.CustomerGroupType.Villager);
                 break;
             default:
                 break;
