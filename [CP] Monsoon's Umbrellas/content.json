@@ -1,0 +1,537 @@
+{
+  "Format": "2.4.0",
+  "Changes": 
+  [
+    {
+      "Action": "EditData",
+      "Target": "Mods/MonsoonSheep.Umbrellas/Umbrellas",
+      "Entries": 
+      {
+        "Abigail": {
+          "Texture": "{{InternalAssetKey: abigail.png}}",
+
+          "Deletes": [
+            // Downfacing
+            {
+              "X": 12,
+              "Y": 21,
+              "Width": 3,
+              "Height": 5
+            },
+
+            // Upfacing
+            {
+              "X": 34,
+              "Y": 86,
+              "Width": 2,
+              "Height": 4
+            },
+            {
+              "X": 2,
+              "Y": 86,
+              "Width": 2,
+              "Height": 4
+            },
+            {
+              "X": 17,
+              "Y": 87,
+              "Width": 3,
+              "Height": 5
+            }
+          ],
+
+          "Copies": [
+            // Downfacing (abigail's left hand)
+            {
+              "Source": {
+                "X": 58,
+                "Y": 21,
+                "Width": 4,
+                "Height": 6
+              },
+              "Targets": [
+                {
+                  "X": 10,
+                  "Y": 21
+                },
+                {
+                  "X": 26,
+                  "Y": 22
+                },
+                {
+                  "X": 42,
+                  "Y": 21
+                }
+              ]
+            },
+
+            // Rightfacing
+            {
+              "Source": {
+                "X": 27,
+                "Y": 54,
+                "Width": 3,
+                "Height": 4
+              },
+              "Targets": [
+                {
+                  "X": 11,
+                  "Y": 53,
+                },
+                {
+                  "X": 43,
+                  "Y": 53
+                },
+                {
+                  "X": 59,
+                  "Y": 54
+                }
+              ]
+            },
+
+            // Upfacing
+            {
+              "Source": {
+                "X": 50,
+                "Y": 87,
+                "Width": 3,
+                "Height": 6
+              },
+              "Targets": [
+                {
+                  "X": 34,
+                  "Y": 86
+                },
+                {
+                  "X": 18,
+                  "Y": 87
+                },
+                {
+                  "X": 2,
+                  "Y": 86
+                },
+              ]
+            },
+
+            // Leftfacing
+            {
+              "Source": {
+                "X": 21,
+                "Y": 119,
+                "Width": 4,
+                "Height": 3
+              },
+              "Targets": [
+                {
+                  "X": 22,
+                  "Y": 119
+                }
+              ]
+            },
+            {
+              "Source": {
+                "X": 23,
+                "Y": 118,
+                "Width": 6,
+                "Height": 4
+              },
+              "Targets": [
+                {
+                  "X": 39,
+                  "Y": 118
+                },
+                {
+                  "X": 7,
+                  "Y": 118
+                },
+                {
+                  "X": 55,
+                  "Y": 119
+                }
+              ]
+            }
+          ]
+        },
+        "Sebastian": {
+          "Texture": "{{InternalAssetKey: sebastian.png}}",
+
+          "Deletes": [
+            // Downfacing
+            {
+              "X": 12,
+              "Y": 20,
+              "Width": 3,
+              "Height": 5
+            },
+            {
+              "X": 44,
+              "Y": 20,
+              "Width": 3,
+              "Height": 5
+            },
+            {
+              "X": 28,
+              "Y": 21,
+              "Width": 2,
+              "Height": 3
+            },
+            {
+              "X": 60,
+              "Y": 20,
+              "Width": 3,
+              "Height": 4
+            },
+
+            // Upfacing
+            {
+              "X": 1,
+              "Y": 85,
+              "Width": 3,
+              "Height": 4
+            },
+            {
+              "X": 33,
+              "Y": 85,
+              "Width": 3,
+              "Height": 4
+            },
+            {
+              "X": 49,
+              "Y": 85,
+              "Width": 3,
+              "Height": 3
+            },
+
+            // Leftfacing
+            {
+              "X": 11,
+              "Y": 117,
+              "Width": 1,
+              "Height": 3
+            },
+            {
+              "X": 43,
+              "Y": 117,
+              "Width": 1,
+              "Height": 3
+            },
+            {
+              "X": 59,
+              "Y": 115,
+              "Width": 3,
+              "Height": 6
+            },
+          ],
+
+          "Copies": [
+            {
+              // Downfacing
+              "Source": {
+                // Already existing umbrella sprite
+                "X": 56,
+                "Y": 308,
+                "Width": 2,
+                "Height": 3
+              },
+              "Targets": [
+                {
+                  "X": 8,
+                  "Y": 20
+                },
+                {
+                  "X": 24,
+                  "Y": 21
+                },
+                {
+                  "X": 40,
+                  "Y": 20
+                }
+              ]
+            },
+            // ORDER MATTERS!
+            {
+              "Source": {
+                "X": 24,
+                "Y": 19,
+                "Width": 6,
+                "Height": 5
+              },
+              "Targets": [
+                {
+                  "X": 56,
+                  "Y": 19
+                }
+              ]
+            },
+            // (arm)
+            {
+              "Source": {
+                "X": 59,
+                "Y": 304,
+                "Width": 3,
+                "Height": 5
+              },
+              "Targets": [
+                {
+                  "X": 11,
+                  "Y": 16
+                },
+                {
+                  "X": 27,
+                  "Y": 17
+                },
+                {
+                  "X": 43,
+                  "Y": 16
+                },
+              ]
+            },
+
+            // Rightfacing
+            {
+              "Source": {
+                "X": 27,
+                "Y": 52,
+                "Width": 3,
+                "Height": 4
+              },
+              "Targets": [
+                {
+                  "X": 11,
+                  "Y": 51
+                },
+                {
+                  "X": 43,
+                  "Y": 51
+                },
+                {
+                  "X": 59,
+                  "Y": 52
+                },
+              ]
+            },
+
+            // Upfacing
+            {
+              "Source": {
+                "X": 18,
+                "Y": 84,
+                "Width": 3,
+                "Height": 3
+              },
+              "Targets": [
+                {
+                  "X": 2,
+                  "Y": 83
+                },
+                {
+                  "X": 34,
+                  "Y": 83
+                },
+                {
+                  "X": 50,
+                  "Y": 84
+                },
+              ]
+            },
+
+            // Leftfacing
+            {
+              "Source": {
+                "X": 22,
+                "Y": 117,
+                "Width": 5,
+                "Height": 5
+              },
+              "Targets": [
+                {
+                  "X": 6,
+                  "Y": 116
+                },
+                {
+                  "X": 38,
+                  "Y": 116
+                },
+                {
+                  "X": 38,
+                  "Y": 116
+                },
+              ]
+            },
+            // ORDER MATTERS!
+            {
+              "Source": {
+                "X": 22,
+                "Y": 115,
+                "Width": 6,
+                "Height": 6
+              },
+              "Targets": [
+                {
+                  "X": 54,
+                  "Y": 115
+                }
+              ]
+            },
+          ]
+        },
+        "Evelyn": {
+          "Texture": "{{InternalAssetKey: evelyn.png}}",
+
+          "Offset": {
+            "X": 0,
+            "Y": 1
+          },
+
+          "Deletes": [
+            {
+              "X": "32",
+              "Y": "88",
+              "Width": "2",
+              "Height": "5"
+            },
+            {
+              "X": "34",
+              "Y": "90",
+              "Width": "1",
+              "Height": "3"
+            },
+            {
+              "X": "16",
+              "Y": "89",
+              "Width": "2",
+              "Height": "5"
+            },
+            {
+              "X": "18",
+              "Y": "91",
+              "Width": "1",
+              "Height": "3"
+            },
+            {
+              "X": "0",
+              "Y": "88",
+              "Width": "2",
+              "Height": "5"
+            },
+            {
+              "X": "2",
+              "Y": "90",
+              "Width": "1",
+              "Height": "3"
+            }
+          ],
+
+          "Copies": [
+            {
+              "Source": {
+                "X": "58",
+                "Y": "25",
+                "Width": "4",
+                "Height": "3"
+              },
+              "Targets": [
+                {
+                  "X": "57",
+                  "Y": "24"
+                },
+                {
+                  "X": "41",
+                  "Y": "23"
+                },
+                {
+                  "X": "25",
+                  "Y": "24"
+                },
+                {
+                  "X": "9",
+                  "Y": "23"
+                }
+              ]
+            },
+            {
+              "Source": {
+                "X": "24",
+                "Y": "27",
+                "Width": "4",
+                "Height": "2"
+              },
+              "Targets": [
+                {
+                  "X": "56",
+                  "Y": "27"
+                }
+              ]
+            },
+            {
+              "Source": {
+                "X": "27",
+                "Y": "55",
+                "Width": "2",
+                "Height": "4"
+              },
+              "Targets": [
+                {
+                  "X": "11",
+                  "Y": "54"
+                },
+                {
+                  "X": "43",
+                  "Y": "54"
+                },
+                {
+                  "X": "59",
+                  "Y": "55"
+                }
+              ]
+            },
+            {
+              "Source": {
+                "X": "48",
+                "Y": "89",
+                "Width": "4",
+                "Height": "5"
+              },
+              "Targets": [
+                {
+                  "X": "32",
+                  "Y": "88"
+                },
+                {
+                  "X": "16",
+                  "Y": "89"
+                },
+                {
+                  "X": "0",
+                  "Y": "88"
+                }
+              ]
+            },
+            {
+              "Source": {
+                "X": "23",
+                "Y": "121",
+                "Width": "5",
+                "Height": "4"
+              },
+              "Targets": [
+                {
+                  "X": "7",
+                  "Y": "20"
+                },
+                {
+                  "X": "39",
+                  "Y": "120"
+                },
+                {
+                  "X": "55",
+                  "Y": "121"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

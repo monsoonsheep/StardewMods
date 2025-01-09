@@ -24,7 +24,6 @@
     <MinimumGameVersion>1.6</MinimumGameVersion>
   </PropertyGroup>
   <ItemGroup>
-    <SMAPIDependency Include="spacechase0.SpaceCore" Version="1.26" Reference="false" />
     <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
   </ItemGroup>
 
