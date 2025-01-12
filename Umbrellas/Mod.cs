@@ -32,7 +32,6 @@ public class Mod : StardewModdingAPI.Mod
         this.Helper.Events.Player.Warped += this.OnPlayerWarped;
         this.Helper.Events.Content.AssetRequested += this.OnAssetRequested;
         this.Helper.Events.Content.AssetReady += this.OnAssetReady;
-        this.Helper.Events.Display.RenderedWorld += this.OnRenderedWorld;
     }
 
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
@@ -141,18 +140,13 @@ public class Mod : StardewModdingAPI.Mod
         }
     }
 
-    private void OnRenderedWorld(object? sender, RenderedWorldEventArgs e)
-    {
-
-    }
-
     public static void After_NpcDraw(NPC __instance, SpriteBatch b, float alpha)
     {
         if (!Instance.CurrentUmbrellaHolders.Contains(__instance.Name))
             return;
 
         Texture2D texture = Game1.content.Load<Texture2D>(Instance.Umbrellas[__instance.Name].Texture);
-        Vector2 customOffset = Instance.Umbrellas[__instance.Name].Offset;
+        Point customOffset = Instance.Umbrellas[__instance.Name].Offset;
 
         int verticalIndex = (__instance.FacingDirection) switch
         {
@@ -172,7 +166,8 @@ public class Mod : StardewModdingAPI.Mod
         offset += new Vector2(-6, -7f) * 4f;
 
         // Custom offset from model
-        offset += customOffset;
+        offset.X += customOffset.X;
+        offset.Y += customOffset.Y;
 
 
         Vector2 position = __instance.getLocalPosition(Game1.viewport)

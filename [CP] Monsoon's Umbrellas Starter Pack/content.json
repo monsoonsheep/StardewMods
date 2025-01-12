@@ -8,7 +8,7 @@
       "Entries": 
       {
         "Abigail": {
-          "Texture": "{{InternalAssetKey: abigail.png}}",
+          "Texture": "{{InternalAssetKey: assets/abigail.png}}",
 
           "Deletes": [
             // Downfacing
@@ -153,7 +153,7 @@
           ]
         },
         "Sebastian": {
-          "Texture": "{{InternalAssetKey: sebastian.png}}",
+          "Texture": "{{InternalAssetKey: assets/sebastian.png}}",
 
           "Deletes": [
             // Downfacing
@@ -376,7 +376,7 @@
           ]
         },
         "Evelyn": {
-          "Texture": "{{InternalAssetKey: evelyn.png}}",
+          "Texture": "{{InternalAssetKey: assets/evelyn.png}}",
 
           "Offset": {
             "X": 0,
@@ -385,147 +385,466 @@
 
           "Deletes": [
             {
-              "X": "32",
-              "Y": "88",
-              "Width": "2",
-              "Height": "5"
+              "X": 32,
+              "Y": 88,
+              "Width": 2,
+              "Height": 5
             },
             {
-              "X": "34",
-              "Y": "90",
-              "Width": "1",
-              "Height": "3"
+              "X": 34,
+              "Y": 90,
+              "Width": 1,
+              "Height": 3
             },
             {
-              "X": "16",
-              "Y": "89",
-              "Width": "2",
-              "Height": "5"
+              "X": 16,
+              "Y": 89,
+              "Width": 2,
+              "Height": 5
             },
             {
-              "X": "18",
-              "Y": "91",
-              "Width": "1",
-              "Height": "3"
+              "X": 18,
+              "Y": 91,
+              "Width": 1,
+              "Height": 3
             },
             {
-              "X": "0",
-              "Y": "88",
-              "Width": "2",
-              "Height": "5"
+              "X": 0,
+              "Y": 88,
+              "Width": 2,
+              "Height": 5
             },
             {
-              "X": "2",
-              "Y": "90",
-              "Width": "1",
-              "Height": "3"
+              "X": 2,
+              "Y": 90,
+              "Width": 1,
+              "Height": 3
             }
           ],
 
           "Copies": [
             {
               "Source": {
-                "X": "58",
-                "Y": "25",
-                "Width": "4",
-                "Height": "3"
+                "X": 58,
+                "Y": 25,
+                "Width": 4,
+                "Height": 3
               },
               "Targets": [
                 {
-                  "X": "57",
-                  "Y": "24"
+                  "X": 57,
+                  "Y": 24
                 },
                 {
-                  "X": "41",
-                  "Y": "23"
+                  "X": 41,
+                  "Y": 23
                 },
                 {
-                  "X": "25",
-                  "Y": "24"
+                  "X": 25,
+                  "Y": 24
                 },
                 {
-                  "X": "9",
-                  "Y": "23"
+                  "X": 9,
+                  "Y": 23
                 }
               ]
             },
             {
               "Source": {
-                "X": "24",
-                "Y": "27",
-                "Width": "4",
-                "Height": "2"
+                "X": 24,
+                "Y": 27,
+                "Width": 4,
+                "Height": 2
               },
               "Targets": [
                 {
-                  "X": "56",
-                  "Y": "27"
+                  "X": 56,
+                  "Y": 27
                 }
               ]
             },
             {
               "Source": {
-                "X": "27",
-                "Y": "55",
-                "Width": "2",
-                "Height": "4"
+                "X": 27,
+                "Y": 55,
+                "Width": 2,
+                "Height": 4
               },
               "Targets": [
                 {
-                  "X": "11",
-                  "Y": "54"
+                  "X": 11,
+                  "Y": 54
                 },
                 {
-                  "X": "43",
-                  "Y": "54"
+                  "X": 43,
+                  "Y": 54
                 },
                 {
-                  "X": "59",
-                  "Y": "55"
+                  "X": 59,
+                  "Y": 55
                 }
               ]
             },
             {
               "Source": {
-                "X": "48",
-                "Y": "89",
-                "Width": "4",
-                "Height": "5"
+                "X": 48,
+                "Y": 89,
+                "Width": 4,
+                "Height": 5
               },
               "Targets": [
                 {
-                  "X": "32",
-                  "Y": "88"
+                  "X": 32,
+                  "Y": 88
                 },
                 {
-                  "X": "16",
-                  "Y": "89"
+                  "X": 16,
+                  "Y": 89
                 },
                 {
-                  "X": "0",
-                  "Y": "88"
+                  "X": 0,
+                  "Y": 88
                 }
               ]
             },
             {
               "Source": {
-                "X": "23",
-                "Y": "121",
-                "Width": "5",
-                "Height": "4"
+                "X": 23,
+                "Y": 121,
+                "Width": 5,
+                "Height": 4
               },
               "Targets": [
                 {
-                  "X": "7",
-                  "Y": "20"
+                  "X": 7,
+                  "Y": 20
                 },
                 {
-                  "X": "39",
-                  "Y": "120"
+                  "X": 39,
+                  "Y": 120
                 },
                 {
-                  "X": "55",
-                  "Y": "121"
+                  "X": 55,
+                  "Y": 121
+                }
+              ]
+            }
+          ]
+        },
+        "Penny": {
+          "Texture": "{{InternalAssetKey: assets/penny.png}}",
+
+          "Offset": {
+            "X": 0,
+            "Y": 1
+          },
+          
+          "Deletes": [
+            {
+              "X": 44,
+              "Y": 23,
+              "Width": 2,
+              "Height": 3
+            },
+            {
+              "X": 12,
+              "Y": 23,
+              "Width": 2,
+              "Height": 3
+            },
+            {
+              "X": 12,
+              "Y": 84,
+              "Width": 2,
+              "Height": 6
+            },
+            {
+              "X": 44,
+              "Y": 84,
+              "Width": 2,
+              "Height": 6
+            },
+            {
+              "X": 60,
+              "Y": 85,
+              "Width": 2,
+              "Height": 6
+            },
+            {
+              "X": 11,
+              "Y": 118,
+              "Width": 1,
+              "Height": 2
+            },
+            {
+              "X": 59,
+              "Y": 118,
+              "Width": 3,
+              "Height": 3
+            },
+            {
+              "X": 60,
+              "Y": 121,
+              "Width": 1,
+              "Height": 1
+            }
+          ],
+
+          "Copies": [
+            {
+              "Source": {
+                "X": 58,
+                "Y": 22,
+                "Width": 3,
+                "Height": 3
+              },
+              "Targets": [
+                {
+                  "X": 10,
+                  "Y": 22
+                },
+                {
+                  "X": 26,
+                  "Y": 22
+                },
+                {
+                  "X": 42,
+                  "Y": 22
+                }
+              ]
+            },
+            {
+              "Source": {
+                "X": 27,
+                "Y": 54,
+                "Width": 2,
+                "Height": 3
+              },
+              "Targets": [
+                {
+                  "X": 11,
+                  "Y": 54
+                },
+                {
+                  "X": 43,
+                  "Y": 54
+                },
+                {
+                  "X": 59,
+                  "Y": 54
+                }
+              ]
+            },
+            {
+              "Source": {
+                "X": 26,
+                "Y": 87,
+                "Width": 2,
+                "Height": 3
+              },
+              "Targets": [
+                {
+                  "X": 58,
+                  "Y": 87
+                }
+              ]
+            },
+            {
+              "Source": {
+                "X": 27,
+                "Y": 85,
+                "Width": 2,
+                "Height": 6
+              },
+              "Targets": [
+                {
+                  "X": 11,
+                  "Y": 84
+                },
+                {
+                  "X": 43,
+                  "Y": 84
+                },
+                {
+                  "X": 59,
+                  "Y": 85
+                }
+              ]
+            },
+            {
+              "Source": {
+                "X": 22,
+                "Y": 117,
+                "Width": 5,
+                "Height": 5
+              },
+              "Targets": [
+                {
+                  "X": 6,
+                  "Y": 117
+                },
+                {
+                  "X": 38,
+                  "Y": 117
+                },
+                {
+                  "X": 54,
+                  "Y": 117
+                }
+              ]
+            }
+          ]
+        },
+        "Leah": {
+          "Texture": "{{InternalAssetKey: assets/leah.png}}",
+          
+          "Deletes": [
+            {
+              "X": 12,
+              "Y": 22,
+              "Width": 2,
+              "Height": 4
+            },
+            {
+              "X": 28,
+              "Y": 23,
+              "Width": 2,
+              "Height": 3
+            },
+            {
+              "X": 44,
+              "Y": 22,
+              "Width": 2,
+              "Height": 3
+            },
+            {
+              "X": 60,
+              "Y": 23,
+              "Width": 2,
+              "Height": 3
+            },
+            {
+              "X": 2,
+              "Y": 84,
+              "Width": 2,
+              "Height": 6
+            },
+            {
+              "X": 34,
+              "Y": 85,
+              "Width": 2,
+              "Height": 5
+            },
+            {
+              "X": 49,
+              "Y": 84,
+              "Width": 3,
+              "Height": 5
+            },
+            {
+              "X": 11,
+              "Y": 120,
+              "Width": 1,
+              "Height": 2
+            },
+            {
+              "X": 27,
+              "Y": 120,
+              "Width": 3,
+              "Height": 3
+            },
+            {
+              "X": 28,
+              "Y": 119,
+              "Width": 1,
+              "Height": 1
+            },
+            {
+              "X": 43,
+              "Y": 120,
+              "Width": 1,
+              "Height": 2
+            }
+          ],
+
+          "Copies": [
+            {
+              "Source": {
+                "X": 27,
+                "Y": 23,
+                "Width": 3,
+                "Height": 3
+              },
+              "Targets": [
+                {
+                  "X": 26,
+                  "Y": 22
+                },
+                {
+                  "X": 10,
+                  "Y": 21
+                },
+                {
+                  "X": 42,
+                  "Y": 21
+                },
+                {
+                  "X": 58,
+                  "Y": 22
+                }
+              ]
+            },
+            {
+              "Source": {
+                "X": 58,
+                "Y": 55,
+                "Width": 3,
+                "Height": 3
+              },
+              "Targets": [
+                {
+                  "X": 42,
+                  "Y": 54
+                },
+                {
+                  "X": 26,
+                  "Y": 55
+                },
+                {
+                  "X": 10,
+                  "Y": 54
+                }
+              ]
+            },
+            {
+              "Source": {
+                "X": 53,
+                "Y": 119,
+                "Width": 6,
+                "Height": 4
+              },
+              "Targets": [
+                {
+                  "X": 5,
+                  "Y": 119
+                },
+                {
+                  "X": 37,
+                  "Y": 119
+                }
+              ]
+            },
+            {
+              "Source": {
+                "X": 53,
+                "Y": 119,
+                "Width": 6,
+                "Height": 3
+              },
+              "Targets": [
+                {
+                  "X": 21,
+                  "Y": 119
                 }
               ]
             }

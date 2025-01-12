@@ -9,7 +9,7 @@ public class UmbrellaModel
 {
     public string Texture = null!;
 
-    public Vector2 Offset = Vector2.Zero;
+    public Point Offset = Point.Zero;
 
     public List<Rectangle> Deletes = [];
 

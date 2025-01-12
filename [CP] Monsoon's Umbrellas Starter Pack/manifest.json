@@ -1,13 +1,13 @@
 {
-  "Name": "Monsoon's Umbrellas",
+  "Name": "Monsoon's Umbrellas Starter Pack",
   "Author": "MonsoonSheep",
-  "Version": "0.1.0",
+  "Version": "1.0.0",
   "Description": "Add some umbrellas for characters",
-  "UniqueID": "MonsoonSheep.MonsoonsUmbrellas",
+  "UniqueID": "MonsoonSheep.MonsoonsUmbrellasStarterPack",
   "ContentPackFor": {
     "UniqueID": "Pathoschild.ContentPatcher",
   },
   "UpdateKeys": [
-    "Nexus:idhere"
+    "Nexus:30785"
   ]
 }

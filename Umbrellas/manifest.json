@@ -10,8 +10,8 @@
   "UniqueID": "MonsoonSheep.Umbrellas",
   "Name": "Umbrellas",
   "Author": "MonsoonSheep",
-  "Version": "0.1.0",
-  "Description": "Description",
+  "Version": "1.0.0",
+  "Description": "NPCs can carry umbrellas! You can make unique umbrellas for characters.",
   "MinimumApiVersion": "4.1.7",
   "MinimumGameVersion": "1.6",
   "EntryDll": "Umbrellas.dll",
@@ -23,6 +23,6 @@
     }
   ],
   "UpdateKeys": [
-    "Nexus:inserthere"
+    "Nexus:30741"
   ]
 }
