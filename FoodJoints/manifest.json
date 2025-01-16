@@ -1,4 +1,4 @@
-{
+﻿{
   /*
    | This file is automatically updated by ModManifestBuilder
    | when the project is compiled.
@@ -35,6 +35,6 @@
     }
   ],
   "UpdateKeys": [
-    "Nexus:idhere"
+    "Nexus:20695"
   ]
 }
