@@ -64,6 +64,11 @@ internal class CustomerManager
         this.CleanUpCustomers();
     }
 
+    internal void TenMinuteUpdate()
+    {
+
+    }
+
     internal void RandomSpawningUpdate()
     {
         int count = this.dynamicScheduler.TrySpawn();

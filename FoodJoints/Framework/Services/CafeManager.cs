@@ -70,7 +70,6 @@ internal class CafeManager
         if (Game1.timeOfDay >= this.OpeningTime && Game1.timeOfDay <= this.ClosingTime)
         {
             this.Open = true;
-            Mod.Customers.ScheduleArrivals();
         }
         else
         {
@@ -97,16 +96,12 @@ internal class CafeManager
 
         if (this.Open)
         {
-            if (Game1.activeClickableMenu is CafeMenu cafeMenu)
-                cafeMenu.Locked = true;
-
-            // If cafe open, try spawn customers
-            this.customers.RandomSpawningUpdate();
+            this.customers.TenMinuteUpdate();
         }
-        else
+
+        if (Game1.activeClickableMenu is CafeMenu cafeMenu)
         {
-            if (Game1.activeClickableMenu is CafeMenu cafeMenu)
-                cafeMenu.Locked = false;
+            cafeMenu.Locked = this.Open;
         }
     }
 

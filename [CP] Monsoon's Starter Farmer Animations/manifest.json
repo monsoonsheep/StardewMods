@@ -1,0 +1,13 @@
+{
+  "Name": "Monsoon's Custom Walking Styles",
+  "Author": "MonsoonSheep",
+  "Version": "1.0.0",
+  "Description": "Add some walking and running styles for Custom Farmer Animations",
+  "UniqueID": "MonsoonSheep.MonsoonStarterFarmerAnimations",
+  "ContentPackFor": {
+    "UniqueID": "Pathoschild.ContentPatcher",
+  },
+  "UpdateKeys": [
+    "Nexus:42069"
+  ]
+}

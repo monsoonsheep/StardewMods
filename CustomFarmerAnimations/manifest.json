@@ -1,0 +1,27 @@
+{
+  /*
+   | This file is automatically updated by ModManifestBuilder
+   | when the project is compiled.
+   | 
+   | Changes made to this file may be overwritten.
+   | 
+   */
+  "$schema": "https://smapi.io/schemas/manifest.json",
+  "UniqueID": "MonsoonSheep.CustomFarmerAnimations",
+  "Name": "CustomFarmerAnimations",
+  "Author": "MonsoonSheep",
+  "Version": "0.1.0",
+  "Description": "Description",
+  "MinimumApiVersion": "4.0.0",
+  "MinimumGameVersion": "1.6",
+  "EntryDll": "CustomFarmerAnimations.dll",
+  "Dependencies": [
+    {
+      "UniqueID": "spacechase0.GenericModConfigMenu",
+      "MinimumVersion": "1.12"
+    }
+  ],
+  "UpdateKeys": [
+    "Nexus:69420"
+  ]
+}

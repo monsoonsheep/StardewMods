@@ -1,0 +1,41 @@
+{
+  "Format": "2.4.0",
+  "Changes": 
+  [
+    {
+      "Action": "EditData",
+      "Target": "Mods/MonsoonSheep.CustomFarmerAnimations/Entries",
+      "Entries": 
+      {
+        "HandsBack": {
+          "Name": "Hands Back",
+
+          "Operations": [
+            // Looking down - Put arms back
+            // Halves
+            "copy 112,0,8,32 128,0",
+            "copy 136,0,8,32 120,0",
+            // Copy the whole 16x32 to index 0
+
+            "copy 112,0,16,32 96,0",
+            
+            // Looking right
+            // Delete leftarm from index 1
+            "erase 120,32,8,32",
+            // Copy full from index 1 to 0 and 2
+            "copy 112,32,16,32 96,32",
+            "copy 112,32,16,32 128,32",
+
+            // Looking up
+            // Right half of index 1 to index 2
+            "copy 120,64,8,32 136,64",
+            // Left half of index 2 to index 1
+            "copy 128,64,8,32 112,64",
+            // Whole to index 0
+            "copy 112,64,16,32 96,64"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>StardewMods.CustomFarmerAnimations</RootNamespace>
+    <Version>0.1.0</Version>
+    <EnableHarmony>true</EnableHarmony>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="GenericModConfigMenu" HintPath="$(GamePath)\Mods\GenericModConfigMenu\GenericModConfigMenu.dll" Private="false" />
+  </ItemGroup>
+  <Import Project="..\Common\Common.projitems" Label="Shared" />
+
+  
+  <!-- Translations -->
+  <ItemGroup>
+    <AdditionalFiles Include="i18n/default.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="i18n\" />
+  </ItemGroup>
+
+
+  <!-- SMAPI Manifest -->
+  <PropertyGroup>
+    <Name>CustomFarmerAnimations</Name>
+    <Authors>MonsoonSheep</Authors>
+    <Description>Description</Description>
+    <UniqueId>MonsoonSheep.CustomFarmerAnimations</UniqueId>
+    <UpdateKeys>Nexus:69420</UpdateKeys>
+    <Version>0.1.0</Version>
+    <MinimumApiVersion>4.0.0</MinimumApiVersion>
+    <MinimumGameVersion>1.6</MinimumGameVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
+  </ItemGroup>
+  
+</Project>
