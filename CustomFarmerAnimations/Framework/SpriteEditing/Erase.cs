@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StardewMods.CustomFarmerAnimations.Framework
+namespace StardewMods.CustomFarmerAnimations.Framework.SpriteEditing
 {
     public class Erase : EditOperation
     {

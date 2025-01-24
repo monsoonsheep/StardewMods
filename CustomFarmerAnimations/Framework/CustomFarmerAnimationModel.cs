@@ -1,3 +1,5 @@
+using StardewMods.CustomFarmerAnimations.Framework.SpriteEditing;
+
 namespace StardewMods.CustomFarmerAnimations.Framework
 {
     public class CustomFarmerAnimationModel

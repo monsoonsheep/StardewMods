@@ -8,7 +8,7 @@ using StardewValley.GameData.HomeRenovations;
 using static StardewValley.Menus.CharacterCustomization;
 using static StardewValley.Minigames.TargetGame;
 
-namespace StardewMods.CustomFarmerAnimations.Framework
+namespace StardewMods.CustomFarmerAnimations.Framework.SpriteEditing
 {
     public abstract class EditOperation
     {
@@ -25,7 +25,8 @@ namespace StardewMods.CustomFarmerAnimations.Framework
                     split.Length > 2 ? split[2] : -1,
                     split.Length > 3 ? split[3] : -1);
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Log.Error("Error parsing move operation");
                 return null;
             }

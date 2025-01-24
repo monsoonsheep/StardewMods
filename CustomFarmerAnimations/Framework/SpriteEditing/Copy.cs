@@ -1,8 +1,8 @@
-namespace StardewMods.CustomFarmerAnimations.Framework
+namespace StardewMods.CustomFarmerAnimations.Framework.SpriteEditing
 {
     public class Copy : EditOperation
     {
-        public Rectangle Source {  get; set; }
+        public Rectangle Source { get; set; }
 
         public Rectangle Target { get; set; }
 

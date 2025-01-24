@@ -12,6 +12,7 @@ global using StardewMods.Common;
 
 using StardewMods.CustomFarmerAnimations.Framework;
 using StardewValley.Locations;
+using StardewMods.CustomFarmerAnimations.Framework.SpriteEditing;
 
 
 namespace StardewMods.CustomFarmerAnimations;
