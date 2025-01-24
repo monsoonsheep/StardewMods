@@ -52,7 +52,7 @@ public class Mod : StardewModdingAPI.Mod
     {
         this.Entries = Game1.content.Load<Dictionary<string, CustomFarmerAnimationModel>>("Mods/MonsoonSheep.CustomFarmerAnimations/Entries");
         this.ActivatedAnimations = this.Config.ActiveAnimations.ToHashSet();
-        this.InvalidateFarmerSprites();
+        this.RefreshFarmerSprites();
         this.SetupGmcm();
     }
 
@@ -85,7 +85,7 @@ public class Mod : StardewModdingAPI.Mod
     {
         if (e.NameWithoutLocale.IsEquivalentTo("Mods/MonsoonSheep.CustomFarmerAnimations/Entries"))
         {
-            var previous = this.Entries.Keys;
+            List<string> previous = this.Entries.Keys.ToList();
             this.Entries = Game1.content.Load<Dictionary<string, CustomFarmerAnimationModel>>("Mods/MonsoonSheep.CustomFarmerAnimations/Entries");
             // If Entries has changed, update the Config Menu
             if (previous.Count != this.Entries.Count || previous.Any(i => !this.Entries.ContainsKey(i)))
@@ -95,7 +95,7 @@ public class Mod : StardewModdingAPI.Mod
         }
     }
 
-    private void InvalidateFarmerSprites()
+    private void RefreshFarmerSprites()
     {
         this.Helper.GameContent.InvalidateCache("Characters/Farmer/farmer_base");
         this.Helper.GameContent.InvalidateCache("Characters/Farmer/farmer_girl_base");
@@ -112,8 +112,12 @@ public class Mod : StardewModdingAPI.Mod
         configMenu.Register(
             mod: this.ModManifest,
             reset: () => this.Config = new ModConfig(),
-            save: () => this.Helper.WriteConfig(this.Config)
-        );
+            save: () =>
+            {
+                this.RefreshFarmerSprites();
+                this.Config.ActiveAnimations = this.ActivatedAnimations.ToList();
+                this.Helper.WriteConfig(this.Config);
+            });
 
         configMenu.AddSectionTitle(
             mod: this.ModManifest,
@@ -133,10 +137,6 @@ public class Mod : StardewModdingAPI.Mod
                         this.ActivatedAnimations.Add(entry.Key);
                     else
                         this.ActivatedAnimations.Remove(entry.Key);
-
-                    this.InvalidateFarmerSprites();
-                    this.Config.ActiveAnimations = this.ActivatedAnimations.ToList();
-                    this.Helper.WriteConfig(this.Config);
                 }
             );
         }

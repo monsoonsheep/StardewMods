@@ -8,7 +8,7 @@
       "Entries": 
       {
         "HandsBack": {
-          "Name": "Hands Back",
+          "Name": "Hands Back (walking only)",
 
           "Operations": [
             // Looking down - Put arms back
@@ -33,6 +33,61 @@
             "copy 128,64,8,32 112,64",
             // Whole to index 0
             "copy 112,64,16,32 96,64"
+          ]
+        },
+        "NinjaRun": {
+          "Name": "Ninja Run (running only)",
+
+          "Operations": [
+            // Running
+            // Running, down: 
+            // R1F1, R1F2, R4F1, R1F2, 
+            // R1F1, R1F3, R4F2, R1F3, repeat 
+            // (frame indexes 
+            // 0@90, 1@60, 18@120, 1@60, 
+            // 0@90, 2@60, 19@120, 2@60, repeat)
+
+            // Running, left and right: R2F1, R4F4, R3F6, R2F1,
+            // R4F3, R2F6, repeat 
+            // (frame indexes 
+            // 6@90, 21@140, 17@100, 
+            // 6@90, 20@140, 11@100, repeat)
+
+            // Running, up: 
+            // R3F1, R3F2, R4F5, R3F2, 
+            // R3F1, R3F3, R4F6, R3F3, repeat 
+            // (frame indexes 
+            // 12@90, 13@60, 22@120, 13@60, 
+            // 12@90, 14@60, 23@120, 14@60, repeat) 
+
+            // Down
+            "move 120,112,8,16 104,112",
+            // Duplicate back to other side
+            "copy 96,112,16,16 112,112",
+            // Duplicate to all others
+            "copy 96,112,16,16 96,16",
+            "copy 96,112,16,16 112,16",
+            "copy 96,112,16,16 128,16",
+
+            // Right
+            // frame 21 back arm delete
+            "erase 152,112,8,16",
+            "copy 139,116,1,1 155,116",
+            // duplicate to 20
+            "copy 144,112,16,16 128,112",
+            // duplicate to all others
+            "copy 144,112,16,16 176,80",
+            "copy 144,112,16,16 176,48",
+            "copy 144,112,16,16 96,48",
+
+            // Up
+            "copy 120,80,8,16 136,80",
+            // duplicate back to 13
+            "copy 128,80,16,16 112,80",
+            // duplicate to all others
+            "copy 128,80,16,16 96,80",
+            "copy 128,80,16,16 160,112",
+            "copy 128,80,16,16 176,112",
           ]
         }
       }
