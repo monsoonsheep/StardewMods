@@ -5,55 +5,53 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StardewMods.CustomFarmerAnimations.Framework.SpriteEditing
+namespace StardewMods.CustomFarmerAnimations.Framework.SpriteEditing;
+
+public class Move : EditOperation
 {
-    public class Move : EditOperation
+    public Rectangle Source { get; set; }
+
+    public Rectangle Target { get; set; }
+
+    public Move(Rectangle source, Rectangle target)
     {
-        public Rectangle Source { get; set; }
+        this.Source = source;
+        this.Target = target;
+    }
 
-        public Rectangle Target { get; set; }
+    public override void Execute(IAssetDataForImage imageData)
+    {
+        imageData.PatchImage(imageData.Data, this.Source, this.Target, PatchMode.Replace);
 
-        public Move(Rectangle source, Rectangle target)
+        Color[] transparentData = ArrayPool<Color>.Shared.Rent(this.Target.Width * this.Target.Height);
+        try
         {
-            this.Source = source;
-            this.Target = target;
+            RawTextureData sourceData = new RawTextureData(transparentData, this.Source.Width, this.Source.Height);
+            for (int i = 0; i < sourceData.Data.Length; i++)
+            {
+                sourceData.Data[i] = Color.Transparent;
+            }
+            imageData.PatchImage(sourceData, null, this.Source, PatchMode.Replace);
         }
-
-        public override void Execute(IAssetDataForImage imageData)
+        finally
         {
-            imageData.PatchImage(imageData.Data, this.Source, this.Target, PatchMode.Replace);
-
-            Color[] transparentData = ArrayPool<Color>.Shared.Rent(this.Target.Width * this.Target.Height);
-            try
-            {
-                RawTextureData sourceData = new RawTextureData(transparentData, this.Source.Width, this.Source.Height);
-                for (int i = 0; i < sourceData.Data.Length; i++)
-                {
-                    sourceData.Data[i] = Color.Transparent;
-                }
-                imageData.PatchImage(sourceData, null, this.Source, PatchMode.Replace);
-            }
-            finally
-            {
-                ArrayPool<Color>.Shared.Return(transparentData);
-            }
-        }
-
-        internal static Move? Parse(string[] op)
-        {
-            Rectangle? source = ParseRectangle(op[1]);
-            Rectangle? target = ParseRectangle(op[2]);
-
-            if (source == null || target == null)
-            {
-                return null;
-            }
-            if (target.Value.Width == -1)
-            {
-                target = new Rectangle(target.Value.X, target.Value.Y, source.Value.Width, source.Value.Height);
-            }
-            return new Move(source.Value, target.Value);
+            ArrayPool<Color>.Shared.Return(transparentData);
         }
     }
 
+    internal static Move? Parse(string[] op)
+    {
+        Rectangle? source = ParseRectangle(op[1]);
+        Rectangle? target = ParseRectangle(op[2]);
+
+        if (source == null || target == null)
+        {
+            return null;
+        }
+        if (target.Value.Width == -1)
+        {
+            target = new Rectangle(target.Value.X, target.Value.Y, source.Value.Width, source.Value.Height);
+        }
+        return new Move(source.Value, target.Value);
+    }
 }

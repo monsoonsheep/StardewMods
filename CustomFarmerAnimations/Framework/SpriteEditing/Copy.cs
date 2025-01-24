@@ -1,37 +1,36 @@
-namespace StardewMods.CustomFarmerAnimations.Framework.SpriteEditing
+namespace StardewMods.CustomFarmerAnimations.Framework.SpriteEditing;
+
+public class Copy : EditOperation
 {
-    public class Copy : EditOperation
+    public Rectangle Source { get; set; }
+
+    public Rectangle Target { get; set; }
+
+    public Copy(Rectangle source, Rectangle target)
     {
-        public Rectangle Source { get; set; }
+        this.Source = source;
+        this.Target = target;
+    }
 
-        public Rectangle Target { get; set; }
+    public override void Execute(IAssetDataForImage imageData)
+    {
+        imageData.PatchImage(imageData.Data, this.Source, this.Target, PatchMode.Replace);
+    }
 
-        public Copy(Rectangle source, Rectangle target)
+    internal static Copy? Parse(string[] op)
+    {
+        Rectangle? source = ParseRectangle(op[1]);
+        Rectangle? target = ParseRectangle(op[2]);
+
+        if (source == null || target == null)
         {
-            this.Source = source;
-            this.Target = target;
+            return null;
         }
 
-        public override void Execute(IAssetDataForImage imageData)
+        if (target.Value.Width == -1)
         {
-            imageData.PatchImage(imageData.Data, this.Source, this.Target, PatchMode.Replace);
+            target = new Rectangle(target.Value.X, target.Value.Y, source.Value.Width, source.Value.Height);
         }
-
-        internal static Copy? Parse(string[] op)
-        {
-            Rectangle? source = ParseRectangle(op[1]);
-            Rectangle? target = ParseRectangle(op[2]);
-
-            if (source == null || target == null)
-            {
-                return null;
-            }
-
-            if (target.Value.Width == -1)
-            {
-                target = new Rectangle(target.Value.X, target.Value.Y, source.Value.Width, source.Value.Height);
-            }
-            return new Copy(source.Value, target.Value);
-        }
+        return new Copy(source.Value, target.Value);
     }
 }

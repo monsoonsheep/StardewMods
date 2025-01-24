@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StardewMods.CustomFarmerAnimations.Framework
+namespace StardewMods.CustomFarmerAnimations.Framework;
+
+internal class ModConfig
 {
-    internal class ModConfig
-    {
-        public List<string> ActiveAnimations { get; set; } = [];
-    }
+    public List<string> ActiveAnimations { get; set; } = [];
 }
