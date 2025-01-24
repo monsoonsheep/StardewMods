@@ -41,13 +41,14 @@ public class Move : EditOperation
 
     internal static Move? Parse(string[] op)
     {
-        Rectangle? source = ParseRectangle(op[1]);
-        Rectangle? target = ParseRectangle(op[2]);
+        Rectangle? source = ModUtility.ParseRectangle(op[1]);
+        Rectangle? target = ModUtility.ParseRectangle(op[2]);
 
         if (source == null || target == null)
         {
             return null;
         }
+
         if (target.Value.Width == -1)
         {
             target = new Rectangle(target.Value.X, target.Value.Y, source.Value.Width, source.Value.Height);

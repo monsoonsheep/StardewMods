@@ -36,7 +36,7 @@ public class Erase : EditOperation
 
     internal static Erase? Parse(string[] op)
     {
-        Rectangle? rect = ParseRectangle(op[1]);
+        Rectangle? rect = ModUtility.ParseRectangle(op[1]);
 
         if (rect == null)
         {

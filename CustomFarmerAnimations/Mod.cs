@@ -87,7 +87,7 @@ public class Mod : StardewModdingAPI.Mod
         {
             var previous = this.Entries.Keys;
             this.Entries = Game1.content.Load<Dictionary<string, CustomFarmerAnimationModel>>("Mods/MonsoonSheep.CustomFarmerAnimations/Entries");
-
+            // If Entries has changed, update the Config Menu
             if (previous.Count != this.Entries.Count || previous.Any(i => !this.Entries.ContainsKey(i)))
             {
                 this.SetupGmcm();

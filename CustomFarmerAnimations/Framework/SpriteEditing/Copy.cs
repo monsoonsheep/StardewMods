@@ -19,8 +19,8 @@ public class Copy : EditOperation
 
     internal static Copy? Parse(string[] op)
     {
-        Rectangle? source = ParseRectangle(op[1]);
-        Rectangle? target = ParseRectangle(op[2]);
+        Rectangle? source = ModUtility.ParseRectangle(op[1]);
+        Rectangle? target = ModUtility.ParseRectangle(op[2]);
 
         if (source == null || target == null)
         {

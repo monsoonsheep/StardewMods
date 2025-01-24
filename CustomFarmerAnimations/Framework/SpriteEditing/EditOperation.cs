@@ -1,12 +1,6 @@
 using System;
 using System.Buffers;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using StardewValley.GameData.HomeRenovations;
-using static StardewValley.Menus.CharacterCustomization;
-using static StardewValley.Minigames.TargetGame;
+
 
 namespace StardewMods.CustomFarmerAnimations.Framework.SpriteEditing;
 
@@ -14,21 +8,21 @@ public abstract class EditOperation
 {
     public abstract void Execute(IAssetDataForImage imageData);
 
-    internal static Rectangle? ParseRectangle(string commaSeparatedRect)
+    internal static EditOperation? ParseOperation(string operation)
     {
-        try
+        string[] split = operation.Split(' ');
+
+        EditOperation? parsed = split[0] switch
         {
-            int[] split = commaSeparatedRect.Split(',').Select(i => int.Parse(i)).ToArray();
-            return new Rectangle(
-                split[0],
-                split[1],
-                split.Length > 2 ? split[2] : -1,
-                split.Length > 3 ? split[3] : -1);
-        }
-        catch (Exception e)
-        {
-            Log.Error("Error parsing move operation");
-            return null;
-        }
+            "move" => Move.Parse(split),
+            "copy" => Copy.Parse(split),
+            "erase" => Erase.Parse(split),
+            _ => null
+        };
+
+        if (parsed == null)
+            throw new InvalidOperationException($"Edit Operation {operation} could not be parsed for model");
+
+        return parsed;
     }
 }
