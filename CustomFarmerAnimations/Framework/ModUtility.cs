@@ -20,9 +20,9 @@ namespace StardewMods.CustomFarmerAnimations.Framework
                     split.Length > 2 ? split[2] : -1,
                     split.Length > 3 ? split[3] : -1);
             }
-            catch (Exception e)
+            catch (FormatException e)
             {
-                Log.Error("Error parsing move operation");
+                Log.Error("Error parsing rectangle");
                 Log.Error($"Error: {e}");
                 return null;
             }

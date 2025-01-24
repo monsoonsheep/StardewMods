@@ -10,7 +10,7 @@ public abstract class EditOperation
 
     internal static EditOperation? ParseOperation(string operation)
     {
-        string[] split = operation.Split(' ');
+        string[] split = operation.Split(' ');        
 
         EditOperation? parsed = split[0] switch
         {
