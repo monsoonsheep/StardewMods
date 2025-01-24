@@ -26,22 +26,15 @@ namespace StardewMods.CustomFarmerAnimations.Framework
 
         private static EditOperation? ParseOperation(string operation)
         {
-            if (operation.StartsWith("move"))
+            string[] split = operation.Split(' ');
+
+            return split[0] switch
             {
-                return Move.Parse(operation);
-            }
-            else if (operation.StartsWith("copy"))
-            {
-                return Copy.Parse(operation);
-            }
-            else if (operation.StartsWith("erase"))
-            {
-                return Erase.Parse(operation);
-            }
-            else
-            {
-                return null;
-            }
+                "move" => Move.Parse(split),
+                "copy" => Copy.Parse(split),
+                "erase" => Erase.Parse(split),
+                _ => null,
+            };
         }
     }
 }

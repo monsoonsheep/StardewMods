@@ -39,11 +39,10 @@ namespace StardewMods.CustomFarmerAnimations.Framework
             }
         }
 
-        internal static Move? Parse(string op)
+        internal static Move? Parse(string[] op)
         {
-            string[] split = op.Split(' ');
-            Rectangle? source = ParseRectangle(split[1]);
-            Rectangle? target = ParseRectangle(split[2]);
+            Rectangle? source = ParseRectangle(op[1]);
+            Rectangle? target = ParseRectangle(op[2]);
 
             if (source == null || target == null)
             {

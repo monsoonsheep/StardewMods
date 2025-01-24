@@ -34,10 +34,9 @@ namespace StardewMods.CustomFarmerAnimations.Framework
 
         }
 
-        internal static Erase? Parse(string op)
+        internal static Erase? Parse(string[] op)
         {
-            string[] split = op.Split(' ');
-            Rectangle? rect = ParseRectangle(split[1]);
+            Rectangle? rect = ParseRectangle(op[1]);
 
             if (rect == null)
             {
