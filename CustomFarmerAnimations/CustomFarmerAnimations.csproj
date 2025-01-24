@@ -14,12 +14,6 @@
 
   
   <!-- Translations -->
-  <ItemGroup>
-    <AdditionalFiles Include="i18n/default.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="i18n\" />
-  </ItemGroup>
 
 
   <!-- SMAPI Manifest -->
