@@ -153,4 +153,10 @@ public interface IGenericModConfigMenuApi
     /// <summary>Remove a mod from the config UI and delete all its options and pages.</summary>
     /// <param name="mod">The mod's manifest.</param>
     void Unregister(IManifest mod);
+
+    /// <summary>Register a method to notify when any option registered by this mod is edited through the config UI.</summary>
+    /// <param name="mod">The mod's manifest.</param>
+    /// <param name="onChange">The method to call with the option's unique field ID and new value.</param>
+    /// <remarks>Options use a randomized ID by default; you'll likely want to specify the <c>fieldId</c> argument when adding options if you use this.</remarks>
+    void OnFieldChanged(IManifest mod, Action<string, object> onChange);
 }

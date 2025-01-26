@@ -129,7 +129,7 @@ public class Mod : StardewModdingAPI.Mod
             configMenu.AddBoolOption(
             mod: this.ModManifest,
             name: () => entry.Value.Name,
-            tooltip: () => $"Check this to activate \"{entry.Value.Name}\"",
+            tooltip: () => $"Activate \"{entry.Value.Name}\"",
             getValue: () => this.ActivatedAnimations.Contains(entry.Key),
             setValue: value =>
                 {
@@ -137,9 +137,36 @@ public class Mod : StardewModdingAPI.Mod
                         this.ActivatedAnimations.Add(entry.Key);
                     else
                         this.ActivatedAnimations.Remove(entry.Key);
-                }
+                },
+            fieldId: $"option_{entry.Key}"
             );
         }
+
+        configMenu.OnFieldChanged(
+            mod: this.ModManifest,
+            onChange: this.OnOptionChanged
+        );
+    }
+
+    private void OnOptionChanged(string optionId, object value)
+    {
+        // TODO test if this is called multiple times after multiple OnFieldChanged
+        Log.Trace("Option changed");
+
+        string key = optionId.Split('_', 2)[1];
+        
+        if (this.Entries.ContainsKey(key) && value is bool boolValue)
+        {
+            if (boolValue && !this.ActivatedAnimations.Contains(key))
+            {
+                this.ActivatedAnimations.Add(key);
+            }
+            else
+            {
+                this.ActivatedAnimations.Remove(key);
+            }
+        }
+
     }
 }
 

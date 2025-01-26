@@ -8,7 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="GenericModConfigMenu" HintPath="$(GamePath)\Mods\GenericModConfigMenu\GenericModConfigMenu.dll" Private="false" />
   </ItemGroup>
   <Import Project="..\Common\Common.projitems" Label="Shared" />
 

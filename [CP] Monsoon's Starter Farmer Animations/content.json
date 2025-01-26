@@ -7,8 +7,29 @@
       "Target": "Mods/MonsoonSheep.CustomFarmerAnimations/Entries",
       "Entries": 
       {
+        // Walking, down: 
+        // 0@200, 1@200, 0@200, 2@200, 
+
+        // Walking, left and right: 
+        // 6@200, 7@200, 6@200, 8@200, repeat)
+
+        // Walking, up: 
+        // 12@200, 13@200, 12@200, 14@200, repeat) 
+
+        // Running, down: 
+        // 0@90, 1@60, 18@120, 1@60, 
+        // 0@90, 2@60, 19@120, 2@60, repeat)
+
+        // Running, left and right: 
+        // 6@90, 21@140, 17@100, 
+        // 6@90, 20@140, 11@100, repeat)
+
+        // Running, up: 
+        // 12@90, 13@60, 22@120, 13@60, 
+        // 12@90, 14@60, 23@120, 14@60, repeat) 
+
         "HandsBack": {
-          "Name": "Hands Back (walking only)",
+          "Name": "Hands Back (walking)",
 
           "Operations": [
             // Looking down - Put arms back
@@ -36,31 +57,9 @@
           ]
         },
         "NinjaRun": {
-          "Name": "Ninja Run (running only)",
+          "Name": "Ninja Run",
 
           "Operations": [
-
-            // Walking, down: 
-            // 0@200, 1@200, 0@200, 2@200, 
-
-            // Walking, left and right: 
-            // 6@200, 7@200, 6@200, 8@200, repeat)
-
-            // Walking, up: 
-            // 12@200, 13@200, 12@200, 14@200, repeat) 
-
-            // Running, down: 
-            // 0@90, 1@60, 18@120, 1@60, 
-            // 0@90, 2@60, 19@120, 2@60, repeat)
-
-            // Running, left and right: 
-            // 6@90, 21@140, 17@100, 
-            // 6@90, 20@140, 11@100, repeat)
-
-            // Running, up: 
-            // 12@90, 13@60, 22@120, 13@60, 
-            // 12@90, 14@60, 23@120, 14@60, repeat) 
-
             // Down
             "move 120,112,8,16 104,112",
             // Duplicate back to other side
