@@ -114,7 +114,7 @@ internal class VisitorManager
                 endTime: Utility.ModifyTime(timeSelected, durationMinutes));
 
             this.visitSchedule[timeSelected].Add(visit);
-            Log.Debug($"- {activity.Id} at {timeSelected} by {spawner.Id}");
+            Log.Trace($"- {activity.Id} at {timeSelected} by {spawner.Id}");
         }
     }
 

@@ -4,29 +4,28 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StardewMods.CustomFarmerAnimations.Framework
+namespace StardewMods.CustomFarmerAnimations.Framework;
+
+internal static class ModUtility
 {
-    internal static class ModUtility
+    internal static Rectangle? ParseRectangle(string commaSeparatedRect)
     {
-        internal static Rectangle? ParseRectangle(string commaSeparatedRect)
+        try
         {
-            try
-            {
-                int[] split = commaSeparatedRect.Split(',').Select(i => int.Parse(i)).ToArray();
+            int[] split = commaSeparatedRect.Split(',').Select(i => int.Parse(i)).ToArray();
 
-                return new Rectangle(
-                    split[0],
-                    split[1],
-                    split.Length > 2 ? split[2] : -1,
-                    split.Length > 3 ? split[3] : -1);
-            }
-            catch (FormatException e)
-            {
-                Log.Error("Error parsing rectangle");
-                Log.Error($"Error: {e}");
-                return null;
-            }
+            return new Rectangle(
+                split[0],
+                split[1],
+                split.Length > 2 ? split[2] : -1,
+                split.Length > 3 ? split[3] : -1);
         }
-
+        catch (FormatException e)
+        {
+            Log.Error("Error parsing rectangle");
+            Log.Error($"Error: {e}");
+            return null;
+        }
     }
+
 }

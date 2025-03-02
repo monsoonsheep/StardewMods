@@ -1,16 +1,14 @@
 using System;
-using GenericModConfigMenu.Framework;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Utilities;
 using StardewValley;
 
-namespace StardewMods.CustomFarmerAnimations.Framework;
+namespace StardewMods.CustomFarmerAnimations.Framework.Api;
 
 /// <summary>The API which lets other mods add a config UI through Generic Mod Config Menu.</summary>
-public interface IGenericModConfigMenuApi
-    : IGenericModConfigMenuApiWithObsoleteMethods // DELETE THIS LINE WHEN COPIED INTO YOUR MOD CODE
+public interface IGenericModConfigMenuApi   
 {
     /*********
     ** Methods

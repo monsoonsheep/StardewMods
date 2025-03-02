@@ -89,6 +89,169 @@
             "copy 128,80,16,16 160,112",
             "copy 128,80,16,16 176,112",
           ]
+        },
+        "Totter": {
+          "Name": "Totter (unstable walk)",
+
+          "Patches": [
+            {
+              "Source": {
+                "Texture": "{{InternalAssetKey: assets/totter.png}}",
+                "Region": {
+                  "X": 0, "Y": 0, "Width": 32, "Height": 96
+                }
+              },
+              "Target": {
+                "X": 16, "Y": 0, "Width": 32, "Height": 96
+              },
+              "Overlay": false
+            }
+          ]
+        },
+        "WalkingCane": {
+          "Name": "Walking Cane",
+
+          "Patches": [
+            {
+              "Source": {
+                "Texture": "{{InternalAssetKey: assets/cane.png}}",
+                "Region": {
+                  "X": 0, "Y": 0, "Width": 3, "Height": 8
+                }
+              },
+              "Target": {
+                "X": 43, "Y": 17, "Width": 3, "Height": 8
+              }
+            },
+            {
+              "Source": {
+                "Texture": "{{InternalAssetKey: assets/cane.png}}",
+                "Region": {
+                  "X": 4, "Y": 1, "Width": 3, "Height": 6
+                }
+              },
+              "Target": {
+                "X": 11, "Y": 50, "Width": 3, "Height": 6
+              }
+            },
+            {
+              "Source": {
+                "Texture": "{{InternalAssetKey: assets/cane.png}}",
+                "Region": {
+                  "X": 8, "Y": 3, "Width": 4, "Height": 5
+                }
+              },
+              "Target": {
+                "X": 26, "Y": 52, "Width": 4, "Height": 5
+              }
+            },
+            {
+              "Source": {
+                "Texture": "{{InternalAssetKey: assets/cane.png}}",
+                "Region": {
+                  "X": 14, "Y": 4, "Width": 2, "Height": 3
+                }
+              },
+              "Target": {
+                "X": 42, "Y": 51, "Width": 2, "Height": 3
+              }
+            },
+            {
+              "Source": {
+                "Texture": "{{InternalAssetKey: assets/cane.png}}",
+                "Region": {
+                  "X": 0, "Y": 9, "Width": 3, "Height": 8
+                }
+              },
+              "Target": {
+                "X": 1, "Y": 80, "Width": 3, "Height": 8
+              }
+            }
+          ],
+
+          "DrawOver": [
+            {
+              "Frame": 0,
+              "Source": {
+                "Texture": "{{InternalAssetKey: assets/cane.png}}",
+                "Region": {
+                  "X": 0, "Y": 16, "Width": 16, "Height": 32
+                }
+              }
+            },
+            {
+              "Frame": 1,
+              "Source": {
+                "Texture": "{{InternalAssetKey: assets/cane.png}}",
+                "Region": {
+                  "X": 16, "Y": 16, "Width": 16, "Height": 32
+                }
+              }
+            },
+            {
+              "Frame": 2,
+              "Source": {
+                "Texture": "{{InternalAssetKey: assets/cane.png}}",
+                "Region": {
+                  "X": 32, "Y": 16, "Width": 16, "Height": 32
+                }
+              }
+            },
+            {
+              "Frame": 6,
+              "Source": {
+                "Texture": "{{InternalAssetKey: assets/cane.png}}",
+                "Region": {
+                  "X": 0, "Y": 48, "Width": 16, "Height": 32
+                }
+              }
+            },
+            {
+              "Frame": 7,
+              "Source": {
+                "Texture": "{{InternalAssetKey: assets/cane.png}}",
+                "Region": {
+                  "X": 16, "Y": 48, "Width": 16, "Height": 32
+                }
+              }
+            },
+            {
+              "Frame": 8,
+              "Source": {
+                "Texture": "{{InternalAssetKey: assets/cane.png}}",
+                "Region": {
+                  "X": 32, "Y": 48, "Width": 16, "Height": 32
+                }
+              }
+            },
+            {
+              "Frame": 12,
+              "Source": {
+                "Texture": "{{InternalAssetKey: assets/cane.png}}",
+                "Region": {
+                  "X": 0, "Y": 80, "Width": 16, "Height": 32
+                }
+              }
+            },
+            {
+              "Frame": 13,
+              "Source": {
+                "Texture": "{{InternalAssetKey: assets/cane.png}}",
+                "Region": {
+                  "X": 16, "Y": 80, "Width": 16, "Height": 32
+                }
+              }
+            },
+            {
+              "Frame": 14,
+              "Source": {
+                "Texture": "{{InternalAssetKey: assets/cane.png}}",
+                "Region": {
+                  "X": 32, "Y": 80, "Width": 16, "Height": 32
+                }
+              }
+            },
+          ]
         }
       }
     }

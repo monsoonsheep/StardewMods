@@ -6,9 +6,6 @@
     <EnableHarmony>true</EnableHarmony>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
-
-  <ItemGroup>
-  </ItemGroup>
   <Import Project="..\Common\Common.projitems" Label="Shared" />
 
   

@@ -9,10 +9,14 @@ global using StardewModdingAPI.Events;
 global using StardewValley;
 global using StardewMods.Common;
 
-
 using StardewMods.CustomFarmerAnimations.Framework;
 using StardewValley.Locations;
 using StardewMods.CustomFarmerAnimations.Framework.SpriteEditing;
+using StardewMods.CustomFarmerAnimations.Framework.Data;
+using StardewMods.CustomFarmerAnimations.Framework.Api;
+using StardewMods.CustomFarmerAnimations.Framework.SpriteEditing.Patching;
+using StardewMods.CustomFarmerAnimations.Framework.SpriteEditing.Overlays;
+using Microsoft.Xna.Framework.Graphics;
 
 
 namespace StardewMods.CustomFarmerAnimations;
@@ -25,8 +29,9 @@ public class Mod : StardewModdingAPI.Mod
     internal ModConfig Config = null!;
 
     internal Dictionary<string, CustomFarmerAnimationModel> Entries = [];
-
     internal HashSet<string> ActivatedAnimations = [];
+
+    internal Dictionary<int, List<Source>> CurrentOverdraws = [];
 
     public Mod()
         => Instance = this;
@@ -40,6 +45,7 @@ public class Mod : StardewModdingAPI.Mod
         this.Helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
         this.Helper.Events.Content.AssetRequested += this.OnAssetRequested;
         this.Helper.Events.Content.AssetReady += this.OnAssetReady;
+        this.Helper.Events.Display.RenderedWorld += this.OnRenderedWorld;
     }
 
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
@@ -76,6 +82,22 @@ public class Mod : StardewModdingAPI.Mod
                     {
                         edit.Execute(imageData);
                     }
+
+                    foreach (ImagePatch patch in model.Patches)
+                    {
+                        patch.Execute(imageData);
+                    }
+
+                    foreach (DrawOver draw in model.DrawOver)
+                    {
+                        if (!this.CurrentOverdraws.TryGetValue(draw.Frame, out List<Source>? val))
+                        {
+                            this.CurrentOverdraws[draw.Frame] = new List<Source>();
+                            val = this.CurrentOverdraws[draw.Frame];
+                        }
+
+                        val.Add(draw.Source);
+                    }
                 }
             });
         }
@@ -87,6 +109,7 @@ public class Mod : StardewModdingAPI.Mod
         {
             List<string> previous = this.Entries.Keys.ToList();
             this.Entries = Game1.content.Load<Dictionary<string, CustomFarmerAnimationModel>>("Mods/MonsoonSheep.CustomFarmerAnimations/Entries");
+
             // If Entries has changed, update the Config Menu
             if (previous.Count != this.Entries.Count || previous.Any(i => !this.Entries.ContainsKey(i)))
             {
@@ -95,10 +118,37 @@ public class Mod : StardewModdingAPI.Mod
         }
     }
 
+    private void OnRenderedWorld(object? sender, RenderedWorldEventArgs e)
+    {
+        foreach (Farmer farmer in Game1.currentLocation.farmers)
+        {
+            if (this.CurrentOverdraws.TryGetValue(farmer.Sprite.CurrentFrame, out List<Source>? sources))
+            {
+                foreach (Source source in sources)
+                {
+                    Vector2 origin = new Vector2(farmer.xOffset, (farmer.yOffset + 128f - (farmer.GetBoundingBox().Height / 2)) / 4f + 4f);
+
+                    e.SpriteBatch.Draw(
+                        Game1.content.Load<Texture2D>(source.Texture),
+                        farmer.getLocalPosition(Game1.viewport) + origin, 
+                        source.Region,
+                        Color.White, 0f, origin, 4f, SpriteEffects.None,
+                        FarmerRenderer.GetLayerDepth(farmer.getDrawLayer(), FarmerRenderer.FarmerSpriteLayers.ToolDown));
+                }
+            }
+        }
+    }
+
     private void RefreshFarmerSprites()
     {
-        this.Helper.GameContent.InvalidateCache("Characters/Farmer/farmer_base");
-        this.Helper.GameContent.InvalidateCache("Characters/Farmer/farmer_girl_base");
+        if (this.Helper.GameContent.InvalidateCache("Characters/Farmer/farmer_base"))
+            Log.Trace("farmer_base invalidated");
+        if (this.Helper.GameContent.InvalidateCache("Characters/Farmer/farmer_girl_base"))
+            Log.Trace("farmer_girl_base invalidated");
+        if (this.Helper.GameContent.InvalidateCache("Characters/Farmer/farmer_base_bald"))
+            Log.Trace("farmer_base_bald invalidated");
+        if (this.Helper.GameContent.InvalidateCache("Characters/Farmer/farmer_girl_base_bald"))
+            Log.Trace("farmer_girl_base_bald invalidated");
     }
 
     private void SetupGmcm()
@@ -141,32 +191,6 @@ public class Mod : StardewModdingAPI.Mod
             fieldId: $"option_{entry.Key}"
             );
         }
-
-        configMenu.OnFieldChanged(
-            mod: this.ModManifest,
-            onChange: this.OnOptionChanged
-        );
-    }
-
-    private void OnOptionChanged(string optionId, object value)
-    {
-        // TODO test if this is called multiple times after multiple OnFieldChanged
-        Log.Trace("Option changed");
-
-        string key = optionId.Split('_', 2)[1];
-        
-        if (this.Entries.ContainsKey(key) && value is bool boolValue)
-        {
-            if (boolValue && !this.ActivatedAnimations.Contains(key))
-            {
-                this.ActivatedAnimations.Add(key);
-            }
-            else
-            {
-                this.ActivatedAnimations.Remove(key);
-            }
-        }
-
     }
 }
 

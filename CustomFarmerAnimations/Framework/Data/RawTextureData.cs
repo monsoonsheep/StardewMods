@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 
-namespace StardewMods.CustomFarmerAnimations.Framework;
+namespace StardewMods.CustomFarmerAnimations.Framework.Data;
 
 internal class RawTextureData : IRawTextureData
 {

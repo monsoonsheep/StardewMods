@@ -18,7 +18,8 @@
   "Dependencies": [
     {
       "UniqueID": "spacechase0.GenericModConfigMenu",
-      "MinimumVersion": "1.12"
+      "MinimumVersion": "1.12",
+      "IsRequired": false
     }
   ],
   "UpdateKeys": [
