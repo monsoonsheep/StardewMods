@@ -1,0 +1,7 @@
+{
+  "summer_1": "Bus0 AnimalShop 5 17 3/1030 Hospital 15 15 3 alex_sit_left \"Strings\\schedules\\Alex:summer_16.000\"/1330 Hospital 4 6 1 \"Strings\\schedules\\Alex:summer_16.001\"/1600 JoshHouse 15 4 2/2400 JoshHouse 21 4 1 alex_sleep",
+  "winter_17": "900 BathHouse_MensLocker 3 5 2 alex_lift_weights/1500 Beach 27 24 1 \"Strings\\schedules\\Alex:winter_17.000\"/2400 JoshHouse 21 4 1 alex_sleep",
+  "Wed": "NOT friendship Haley 6/800 Town 64 64 2 alex_football/1200 HaleyHouse 7 23 3 alex_sit_left/1630 Town 50 68 1/1840 JoshHouse 8 19 2/2000 JoshHouse 17 5 0/2200 JoshHouse 21 4 1 alex_sleep",
+  "Sun": "MAIL saloonSportsRoom/GOTO Sun_normal/800 Town 64 64 2 alex_football/1100 Saloon 32 7 0 \"Strings\\schedules\\Alex:Sun.000\"/1500 Town 50 68 1/1830 JoshHouse 8 19 2/2000 JoshHouse 17 5 0/2200 JoshHouse 21 4 1 alex_sleep",
+  "winter": "Bus1 Town 64 64 2 alex_football/1400 JoshHouse 14 5 2 alex_lift_weights/1600 Town 50 68 1/1830 JoshHouse 8 19 2/2000 JoshHouse 17 5 0/2200 JoshHouse 21 4 1 alex_sleep"
+}
