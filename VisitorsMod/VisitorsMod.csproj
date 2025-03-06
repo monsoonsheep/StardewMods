@@ -9,7 +9,7 @@
 
   <!-- Dependencies -->  
   <ItemGroup>
-    <ProjectReference Include="..\SheepCore\SheepCore.csproj" />
+    <ProjectReference Include="..\SheepCore\SheepCore.csproj" Private="False" />
     <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.0" />
   </ItemGroup>
   <Import Project="..\Common\Common.projitems" Label="Shared" />

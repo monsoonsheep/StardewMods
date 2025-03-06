@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using StardewMods.VisitorsMod.Framework.Data.Models.Appearances;
 
@@ -5,6 +6,18 @@ namespace StardewMods.VisitorsMod.Framework.Services;
 
 internal static class ModUtility
 {
+    internal static int GetDurationValue(string duration)
+    {
+        return (duration) switch
+        {
+            "Instant" => 10,
+            "Short" => 60,
+            "Medium" => 150,
+            "Long" => 350,
+            _ => 60
+        };
+    }
+
     internal static Gender GetRandomGender(bool binary = false)
     {
         if (binary)

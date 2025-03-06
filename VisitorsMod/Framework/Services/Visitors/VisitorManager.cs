@@ -16,8 +16,6 @@ namespace StardewMods.VisitorsMod.Framework.Services.Visitors;
 
 internal class VisitorManager
 {
-    internal static VisitorManager Instance = null!;
-
     // Services
     private ActivityManager activities = null!;
     private RandomVisitorBuilder visitorBuilder = null!;
@@ -26,13 +24,23 @@ internal class VisitorManager
     private List<ISpawner> spawners = null!;
     private Dictionary<int, List<Visit>> visitSchedule = [];
 
-    public VisitorManager()
-        => Instance = this;
+    // Properties
+    private IEnumerable<Visit> OngoingVisits
+        => this.visitSchedule.Values.SelectMany(i => i).Where(v => v.state == VisitState.Ongoing);
+
+    private ISpawner? GetSpawner(string name)
+        => this.spawners.FirstOrDefault(s => s.Id.Equals(name));
 
     internal void Initialize()
     {
         Mod.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
         Mod.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
+    }
+
+    private void OnReturnedToTitle(object? sender, ReturnedToTitleEventArgs e)
+    {
+        Mod.Events.GameLoop.DayStarted -= this.OnDayStarted;
+        Mod.Events.GameLoop.TimeChanged -= this.OnTimeChanged;
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
@@ -52,18 +60,10 @@ internal class VisitorManager
 
         IBusSchedulesApi? busSchedules = Mod.ModHelper.ModRegistry.GetApi<IBusSchedulesApi>("MonsoonSheep.BusSchedules");
         if (busSchedules != null)
-        {
             this.spawners.Add(new BusSpawner(busSchedules));
-        }
-
+        
         Mod.Events.GameLoop.DayStarted += this.OnDayStarted;
         Mod.Events.GameLoop.TimeChanged += this.OnTimeChanged;
-    }
-
-    private void OnReturnedToTitle(object? sender, ReturnedToTitleEventArgs e)
-    {
-        Mod.Events.GameLoop.DayStarted -= this.OnDayStarted;
-        Mod.Events.GameLoop.TimeChanged -= this.OnTimeChanged;
     }
 
     private void OnDayStarted(object? sender, DayStartedEventArgs e)
@@ -72,25 +72,16 @@ internal class VisitorManager
 
         // Create visits for today
 
+        Log.Trace("Activities today:");
+
         List<ActivityModel> activitiesForToday = this.activities.GetActivitiesForToday();
-        Log.Debug("Activities today:");
         foreach (ActivityModel activity in activitiesForToday)
         {
-            int[] timeRange = activity.TimeRange;
-
-            int timeSelected = Utility.ConvertMinutesToTime(
-                (Game1.random.Next(
-                    Utility.ConvertTimeToMinutes(timeRange[0]),
-                    Utility.ConvertTimeToMinutes(timeRange[1])
-                    ) / 10) * 10
-            );
-
-            if (!this.visitSchedule.ContainsKey(timeSelected) || this.visitSchedule[timeSelected] == null)
-                this.visitSchedule[timeSelected] = [];
-
-            List<string> arriveBy = activity.ArriveBy;
-            List<ISpawner?> spawners = arriveBy.Select(s => this.GetSpawner(s)).Where(s => s != null && s.IsAvailable()).ToList();
-            ISpawner? spawner = spawners.MinBy(_ => Game1.random.Next());
+            // Select a random spawner out of available spawners
+            ISpawner? spawner = activity.ArriveBy
+                .Select(this.GetSpawner)
+                .Where(s => s != null && s.IsAvailable())
+                .MinBy(_ => Game1.random.Next());
 
             if (spawner == null)
             {
@@ -98,23 +89,25 @@ internal class VisitorManager
                 continue;
             }
 
-            int durationMinutes = (activity.Duration) switch
-            {
-                "Instant" => 10,
-                "Short" => 60,
-                "Medium" => 150,
-                "Long" => 350,
-                _ => 60
-            };
+            int timeSelected = Utility.ConvertMinutesToTime(
+                (Game1.random.Next(
+                    Utility.ConvertTimeToMinutes(activity.TimeRange[0]),
+                    Utility.ConvertTimeToMinutes(activity.TimeRange[1])
+                    ) / 10) * 10
+            );
+
+            // Create new list if not exist
+            if (!this.visitSchedule.ContainsKey(timeSelected) || this.visitSchedule[timeSelected] == null)
+                this.visitSchedule[timeSelected] = [];
 
             Visit visit = new Visit(
                 activity,
                 spawner,
                 startTime: timeSelected,
-                endTime: Utility.ModifyTime(timeSelected, durationMinutes));
+                endTime: Utility.ModifyTime(timeSelected, ModUtility.GetDurationValue(activity.Duration)));
 
             this.visitSchedule[timeSelected].Add(visit);
-            Log.Trace($"- {activity.Id} at {timeSelected} by {spawner.Id}");
+            Log.Trace($" - {activity.Id} at {timeSelected} by {spawner.Id}");
         }
     }
 
@@ -127,69 +120,23 @@ internal class VisitorManager
             {
                 if (visit.state == VisitState.NotStarted)
                 {
-                    this.CreateNpcsFor(visit);
-
-                    if (this.StartVisit(visit))
-                    {
-                        visit.state = VisitState.HeadingToDestination;
-                    }
-                    else
-                    {
-                        visit.state = VisitState.Failed;
-                    }
+                    this.CreateRandomNpcsForVisit(visit);
+                    this.StartVisit(visit);
                 }
             }
         }
 
         // End visits that are due to end
-        foreach (Visit visit in this.OngoingVisits())
+        foreach (Visit visit in this.OngoingVisits)
         {
             if (Game1.timeOfDay >= visit.endTime)
             {
-                if (!visit.spawner.EndVisit(visit))
-                {
-                    Log.Error("NPCs couldn't path back");
-                    for (int i = 0; i < visit.group.Count; i++)
-                    {
-                        NPC npc = visit.group[i];
-                        npc.currentLocation.characters.Remove(npc);
-                        npc.currentLocation = null;
-                        visit.state = VisitState.Ended;
-                    }
-
-                    continue;
-                }
-
-                visit.state = VisitState.HeadingBack;
-
-                for (int i = 0; i < visit.group.Count; i++)
-                {
-                    NPC npc = visit.group[i];
-                    npc.controller.endBehaviorFunction = delegate (Character c, GameLocation loc)
-                    {
-                        if (c is NPC n)
-                        {
-                            n.currentLocation.characters.Remove(n);
-                            n.currentLocation = null;
-
-                            if (visit.group.All(i => i.currentLocation == null))
-                            {
-                                visit.state = VisitState.Ended;
-                            }
-                        }
-                    };
-                }
+                this.EndVisit(visit);
             }
         }
     }
 
-    private ISpawner? GetSpawner(string name)
-        => this.spawners.FirstOrDefault(s => s.Id.Equals(name));
-
-    private IEnumerable<Visit> OngoingVisits()
-        => this.visitSchedule.Values.SelectMany(i => i).Where(v => v.state == VisitState.Ongoing);
-
-    private void CreateNpcsFor(Visit visit)
+    private void CreateRandomNpcsForVisit(Visit visit)
     {
         visit.group = [];
 
@@ -228,10 +175,10 @@ internal class VisitorManager
 
     private bool StartVisit(Visit visit)
     {
-        void cancel(Visit visit)
+        static void cancel(Visit visit)
         {
             visit.state = VisitState.Failed;
-            Log.Error($"Visit failed: {visit.activity.Id}, spawner {visit.spawner.Id}");
+            Log.Trace($"Visit failed {visit.activity.Id} at {visit.spawner.Id}");
             foreach (NPC npc in visit.group)
             {
                 npc.currentLocation?.characters.Remove(npc);
@@ -246,35 +193,71 @@ internal class VisitorManager
             return false;
         }
 
-        
-
         // Pathfind to target
         string targetLocation = visit.activity.Location;
+
         for (int i = 0; i < visit.group.Count; i++)
         {
+            NPC npc = visit.group[i];
+
             string behaviorName = visit.activity.Actors[i].Behavior;
 
-            PathFindController.endBehavior endBehavior = delegate (Character c, GameLocation loc)
-            {
-                if (c is NPC n)
-                {
-                    n.StartActivityRouteEndBehavior(behaviorName, null);
-                }
-            };
+            // End behavior can be something from ExtraNpcBehaviors
+            PathFindController.endBehavior endBehavior = (n, _) => (n as NPC)!.StartActivityRouteEndBehavior(behaviorName, null);
 
-            NPC npc = visit.group[i];
-            Point targetTile = visit.activity.Actors[i].TilePosition;
-
-            if (!npc.MoveTo(Game1.getLocationFromName(targetLocation), targetTile, endBehavior))
+            // Pathfind to target
+            if (!npc.MoveTo(Game1.getLocationFromName(targetLocation), visit.activity.Actors[i].TilePosition, endBehavior))
             {
                 cancel(visit);
                 return false;
             }
         }
 
+        visit.state = VisitState.HeadingToDestination;
+
         // Spawner-specific action
         visit.spawner.AfterSpawn(visit);
 
         return true;
+    }
+
+    private void EndVisit(Visit visit)
+    {
+        if (!visit.spawner.EndVisit(visit))
+        {
+            Log.Error("NPCs couldn't path back");
+            for (int i = 0; i < visit.group.Count; i++)
+            {
+                NPC npc = visit.group[i];
+
+                npc.currentLocation.characters.Remove(npc);
+                npc.currentLocation = null;
+                visit.state = VisitState.Ended;
+            }
+
+            return;
+        }
+
+        visit.state = VisitState.HeadingBack;
+
+        // End behavior: delete after reaching destination
+        for (int i = 0; i < visit.group.Count; i++)
+        {
+            NPC npc = visit.group[i];
+
+            npc.controller.endBehaviorFunction = delegate (Character c, GameLocation loc)
+            {
+                if (c is NPC n)
+                {
+                    n.currentLocation.characters.Remove(n);
+                    n.currentLocation = null;
+
+                    if (visit.group.All(i => i.currentLocation == null))
+                    {
+                        visit.state = VisitState.Ended;
+                    }
+                }
+            };
+        }
     }
 }
