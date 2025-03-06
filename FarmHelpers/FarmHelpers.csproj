@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>StardewMods.FarmHelpers</RootNamespace>
+    <Version>0.1.0</Version>
+    <EnableHarmony>true</EnableHarmony>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <!-- Dependencies -->
+  <ItemGroup>
+    <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.0" />
+  </ItemGroup>
+  <Import Project="..\Common\Common.projitems" Label="Shared" />
+
+  <!-- Translations -->
+  <ItemGroup>
+    <AdditionalFiles Include="i18n/default.json" />
+  </ItemGroup>
+
+  <!-- SMAPI Manifest -->
+  <PropertyGroup>
+    <Name>FarmHelpers</Name>
+    <Authors>MonsoonSheep</Authors>
+    <Description>Hire helpers to work on your farm!</Description>
+    <UniqueId>MonsoonSheep.FarmHelpers</UniqueId>
+    <UpdateKeys>Nexus:69420</UpdateKeys>
+    <Version>0.1.0</Version>
+    <MinimumApiVersion>4.0.0</MinimumApiVersion>
+    <MinimumGameVersion>1.6</MinimumGameVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="i18n\" />
+  </ItemGroup>
+
+</Project>

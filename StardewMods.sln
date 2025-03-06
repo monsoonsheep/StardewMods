@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Umbrellas", "Umbrellas\Umbr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomFarmerAnimations", "CustomFarmerAnimations\CustomFarmerAnimations.csproj", "{5E265844-2784-4B30-AD09-34ED102EF09A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FarmHelpers", "FarmHelpers\FarmHelpers.csproj", "{A95860D1-AA37-4E34-9127-F1BCCCCBEE35}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -65,6 +67,10 @@ Global
 		{5E265844-2784-4B30-AD09-34ED102EF09A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5E265844-2784-4B30-AD09-34ED102EF09A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5E265844-2784-4B30-AD09-34ED102EF09A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A95860D1-AA37-4E34-9127-F1BCCCCBEE35}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A95860D1-AA37-4E34-9127-F1BCCCCBEE35}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A95860D1-AA37-4E34-9127-F1BCCCCBEE35}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A95860D1-AA37-4E34-9127-F1BCCCCBEE35}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -78,6 +84,7 @@ Global
 		Common\Common.projitems*{75f61fd6-a8de-4327-9cd2-2d939fe28b8a}*SharedItemsImports = 5
 		Common\Common.projitems*{89175375-9d93-46f6-8f69-42be4aecd4aa}*SharedItemsImports = 5
 		Common\Common.projitems*{a8ea9d0e-6405-4641-b1de-8f009bfdc5eb}*SharedItemsImports = 5
+		Common\Common.projitems*{a95860d1-aa37-4e34-9127-f1bccccbee35}*SharedItemsImports = 5
 		Common\Common.projitems*{b8a164cd-a176-4953-a8ad-db3e249a5c5d}*SharedItemsImports = 5
 		Common\Common.projitems*{d21f41bb-18e5-433a-b741-bc76b13d8336}*SharedItemsImports = 13
 	EndGlobalSection

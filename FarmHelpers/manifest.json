@@ -1,0 +1,28 @@
+{
+  /*
+   | This file is automatically updated by ModManifestBuilder
+   | when the project is compiled.
+   | 
+   | Changes made to this file may be overwritten.
+   | 
+   */
+  "$schema": "https://smapi.io/schemas/manifest.json",
+  "UniqueID": "MonsoonSheep.FarmHelpers",
+  "Name": "FarmHelpers",
+  "Author": "MonsoonSheep",
+  "Version": "0.1.0",
+  "Description": "Hire helpers to work on your farm!",
+  "MinimumApiVersion": "4.0.0",
+  "MinimumGameVersion": "1.6",
+  "EntryDll": "FarmHelpers.dll",
+  "Dependencies": [
+    {
+      "UniqueID": "spacechase0.GenericModConfigMenu",
+      "MinimumVersion": "1.12",
+      "IsRequired": false
+    }
+  ],
+  "UpdateKeys": [
+    "Nexus:69420"
+  ]
+}
