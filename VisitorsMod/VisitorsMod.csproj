@@ -3,17 +3,15 @@
   <PropertyGroup>
     <RootNamespace>StardewMods.VisitorsMod</RootNamespace>
     <Version>0.1.0</Version>
-    <EnableHarmony>true</EnableHarmony>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
-  <!-- Dependencies -->  
+  <!-- Dependencies -->
+  <Import Project="..\Common\Common.projitems" Label="Shared" />
+
   <ItemGroup>
     <ProjectReference Include="..\SheepCore\SheepCore.csproj" Private="False" />
     <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.0" />
   </ItemGroup>
-  <Import Project="..\Common\Common.projitems" Label="Shared" />
-
 
   <!-- Translations -->
   <ItemGroup>

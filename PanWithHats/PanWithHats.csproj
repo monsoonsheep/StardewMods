@@ -1,12 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <ModFolderName>PanWithHats</ModFolderName>
-		<GamePath>/home/mansoor/.steam/debian-installation/steamapps/common/Stardew Valley</GamePath>
+    <RootNamespace>StardewMods.PanWithHats</RootNamespace>
+    <Version>1.0.0</Version>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Lib.Harmony" Version="2.2.2" />
-  </ItemGroup>
-
+  
 </Project>

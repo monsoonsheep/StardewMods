@@ -3,18 +3,17 @@
   <PropertyGroup>
     <RootNamespace>StardewMods.FoodJoints</RootNamespace>
     <Version>0.1.0</Version>
-    <EnableHarmony>true</EnableHarmony>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <!-- Dependencies -->
+  <Import Project="..\Common\Common.projitems" Label="Shared" />
+  
   <ItemGroup>
-    <Reference Include="SpaceCore" HintPath="$(GamePath)\Mods\SpaceCore\SpaceCore.dll" Private="false" />
     <ProjectReference Include="..\SheepCore\SheepCore.csproj" Private="false"/>
     <ProjectReference Include="..\ExtraNpcBehaviors\ExtraNpcBehaviors.csproj" Private="false"/>
+    <Reference Include="SpaceCore" HintPath="$(GamePath)\Mods\SpaceCore\SpaceCore.dll" Private="false" />
     <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.0" />
   </ItemGroup>
-  <Import Project="..\Common\Common.projitems" Label="Shared" />
-
 
   <!-- Translations -->
   <ItemGroup>
@@ -23,7 +22,7 @@
 
   <!-- Content Patcher Component -->
   <ItemGroup>
-    <ContentPacks Include="[CP] FoodJoints" Version="$(Version)" />
+    <ContentPacks Include="CP" Version="$(Version)" FolderName="[CP] FoodJoints" />
   </ItemGroup>
   
   <!-- SMAPI Manifest -->
@@ -37,7 +36,6 @@
     <MinimumApiVersion>4.0.0</MinimumApiVersion>
     <MinimumGameVersion>1.6</MinimumGameVersion>
   </PropertyGroup>
-  
   <ItemGroup>
     <SMAPIDependency Include="spacechase0.SpaceCore" Version="1.24" Reference="false" />
     <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />

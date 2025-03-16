@@ -1,34 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- Metadata -->
-    <Authors>MonsoonSheep</Authors>
-    <RootNamespace>CollapseOnFarmFix</RootNamespace> 
+    <RootNamespace>StardewMods.CollapseOnFarmFix</RootNamespace> 
     <Version>0.2.7</Version>
-
-    <!-- Build Settings -->
-    <Configurations>Debug;Release</Configurations>
-    <TargetFramework>net6.0</TargetFramework>
-    <LangVersion>latest</LangVersion>
-    <EnableHarmony>true</EnableHarmony>
-    
-    <!-- SMAPI Paths -->
-    <ModFolderName>CollapseOnFarmFix</ModFolderName>
-    <GamePath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley</GamePath>
   </PropertyGroup>
 
   <!-- Content Patcher Component -->
   <ItemGroup>
-    <ContentPacks Include="[CP] CollapseOnFarmFix" Version="$(Version)" />
+    <ContentPacks Include="CP" Version="$(Version)" FolderName="[CP] CollapseOnFarmFix" />
   </ItemGroup>
   
   <!-- Translations -->
   <ItemGroup>
     <AdditionalFiles Include="i18n/default.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Lib.Harmony" Version="2.2.2" />
   </ItemGroup>
 
 </Project>

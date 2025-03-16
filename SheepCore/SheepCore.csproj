@@ -3,10 +3,9 @@
   <PropertyGroup>
     <RootNamespace>StardewMods.SheepCore</RootNamespace>
     <Version>0.1.0</Version>
-    <EnableHarmony>true</EnableHarmony>
-    <ImplicitUsings>true</ImplicitUsings>
   </PropertyGroup>
 
+  <!-- Dependencies -->
   <Import Project="..\Common\Common.projitems" Label="Shared" />
 
   <!-- Translations -->

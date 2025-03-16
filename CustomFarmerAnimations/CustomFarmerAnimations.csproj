@@ -3,14 +3,14 @@
   <PropertyGroup>
     <RootNamespace>StardewMods.CustomFarmerAnimations</RootNamespace>
     <Version>0.1.0</Version>
-    <EnableHarmony>true</EnableHarmony>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+
+  <!-- Dependencies -->
   <Import Project="..\Common\Common.projitems" Label="Shared" />
 
   <!-- Content Patcher Component -->
   <ItemGroup>
-    <ContentPacks Include="[CP] Monsoon's Starter Farmer Animations" Version="$(Version)" />
+    <ContentPacks Include="CP" Version="$(Version)" FolderName="[CP] Monsoon's Starter Farmer Animations" />
   </ItemGroup>
   
   <!-- SMAPI Manifest -->
@@ -24,7 +24,6 @@
     <MinimumApiVersion>4.0.0</MinimumApiVersion>
     <MinimumGameVersion>1.6</MinimumGameVersion>
   </PropertyGroup>
-
   <ItemGroup>
     <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
   </ItemGroup>

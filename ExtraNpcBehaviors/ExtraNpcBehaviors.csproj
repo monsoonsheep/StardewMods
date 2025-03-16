@@ -3,17 +3,15 @@
   <PropertyGroup>
     <RootNamespace>StardewMods.ExtraNpcBehaviors</RootNamespace>
     <Version>0.1.0</Version>
-    <EnableHarmony>true</EnableHarmony>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <!-- Dependencies -->
   <Import Project="..\Common\Common.projitems" Label="Shared" />
 
   <!-- Translations -->
   <ItemGroup>
     <AdditionalFiles Include="i18n/default.json" />
   </ItemGroup>
-
   
   <!-- SMAPI Manifest -->
   <PropertyGroup>

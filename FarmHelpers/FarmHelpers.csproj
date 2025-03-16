@@ -3,15 +3,14 @@
   <PropertyGroup>
     <RootNamespace>StardewMods.FarmHelpers</RootNamespace>
     <Version>0.1.0</Version>
-    <EnableHarmony>true</EnableHarmony>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <!-- Dependencies -->
+  <Import Project="..\Common\Common.projitems" Label="Shared" />
+
   <ItemGroup>
     <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.0" />
   </ItemGroup>
-  <Import Project="..\Common\Common.projitems" Label="Shared" />
 
   <!-- Translations -->
   <ItemGroup>
@@ -20,7 +19,7 @@
 
   <!-- Content Patcher Component -->
   <ItemGroup>
-    <ContentPacks Include="[CP] FarmHelpers" Version="$(Version)" />
+    <ContentPacks Include="CP" Version="$(Version)" FolderName="[CP] FarmHelpers" IgnoreModFilePatterns="\.aseprite$" />
   </ItemGroup>
 
   <!-- SMAPI Manifest -->
@@ -36,9 +35,6 @@
   </PropertyGroup>
   <ItemGroup>
     <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="i18n\" />
   </ItemGroup>
 
 </Project>

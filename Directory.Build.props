@@ -15,7 +15,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <!-- <EnableModZip Condition="'$(Configuration)' == 'Debug'">False</EnableModZip> -->
     <ModZipPath>$(SolutionDir)\_releases</ModZipPath>
-    
+    <EnableHarmony>true</EnableHarmony>
+
+    <IgnoreModFilePatterns>\.aseprite$, \.ase$</IgnoreModFilePatterns>
 
     <!-- For ModManifestBuilder -->
     <Version_AppendConfiguration>false</Version_AppendConfiguration>
