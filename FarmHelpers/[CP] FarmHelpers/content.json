@@ -1,0 +1,96 @@
+{
+	"Format": "2.5.0",
+	"Changes": [
+
+		// NPC House
+		{
+			"LogName": "Map edit: Patch Helper's house in \"Forest\" map",
+			"Action": "EditMap",
+			"Target": "Maps/Forest",
+			"FromFile": "assets/Maps/helper_house.tmx",
+			"ToArea": {
+				"X": 68,
+				"Y": 75,
+				"Width": 6,
+				"Height": 8
+			},
+			"PatchMode": "Overlay"
+		},
+		{
+			"LogName": "Remove bushes from Forest map",
+			"Action": "EditMap",
+			"Target": "Maps/Forest",
+			"MapTiles": [
+                {
+                    "Position": { "X": 68, "Y": 83 },
+                    "Layer": "Paths",
+                    "Remove": true
+                },
+                {
+                    "Position": { "X": 72, "Y": 75 },
+                    "Layer": "Paths",
+                    "Remove": true
+                }
+            ]
+		},
+
+		// NPC
+		{
+            "Action": "Load",
+            "Target": "Characters/{{ModId}}_Helper",
+            "FromFile": "assets/character/sprites.png"
+        },
+        {
+            "Action": "Load",
+            "Target": "Portraits/{{ModId}}_Helper",
+            "FromFile": "assets/character/portrait.png"
+        },
+        {
+            "Action": "Load",
+            "Target": "Characters/Dialogue/{{ModId}}_Helper",
+            "FromFile": "assets/character/dialogue.json"
+        },
+        {
+            "Action": "Load",
+            "Target": "Characters/schedules/{{ModId}}_Helper",
+            "FromFile": "assets/character/schedule.json"
+        },
+        {
+            "Action": "EditData",
+            "Target": "Data/Characters",
+            "Entries": {
+                "{{ModId}}_Helper": {
+                    "DisplayName": "Helper", // this can use {{i18n:}} to support translations
+                    "BirthSeason": "Summer",
+                    "BirthDay": 27,
+                    "HomeRegion": "Town",
+                    "Gender": "Male",
+                    "Age": "Adult",
+                    "Manner": "Rude",
+                    "SocialAnxiety": "Neutral",
+                    "Optimism": "Neutral",
+
+                    "CanBeRomanced": false,
+
+                    "Home": [
+                        {
+                            "Id": "Default",
+                            "Location": "Forest",
+                            "Tile": {
+	                            "X": 85,
+	                            "Y": 76
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "Action": "EditData",
+            "Target": "Data/NPCGiftTastes",
+            "Entries": {
+                "{{ModId}}_Helper": "You're giving this to me? This is amazing!/207 232 233 400/Thank you! This is a very interesting specimen./-5 -79 422/...What is this?/80 330/This is disgusting./2/That was very thoughtful of you./-4/ "
+            }
+        },
+	]
+}

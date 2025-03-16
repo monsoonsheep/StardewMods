@@ -18,6 +18,11 @@
     <AdditionalFiles Include="i18n/default.json" />
   </ItemGroup>
 
+  <!-- Content Patcher Component -->
+  <ItemGroup>
+    <ContentPacks Include="[CP] FarmHelpers" Version="$(Version)" />
+  </ItemGroup>
+
   <!-- SMAPI Manifest -->
   <PropertyGroup>
     <Name>FarmHelpers</Name>

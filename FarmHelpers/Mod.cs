@@ -7,6 +7,7 @@ using HarmonyLib;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley.Characters;
 using StardewMods.FarmHelpers.Framework;
+using StardewValley.Locations;
 
 namespace StardewMods.FarmHelpers;
 
@@ -41,6 +42,16 @@ public class Mod : StardewModdingAPI.Mod
     /// </summary>
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
     {
+        ModHelper.Events.GameLoop.DayStarted += this.OnDayStarted;
+    }
+
+    private void OnDayStarted(object? sender, DayStartedEventArgs e)
+    {
+        // Remove the bush blocking the way to helper's house
+        GameLocation forest = Game1.RequireLocation<Forest>("Forest");
+        
+        var bush = forest.getLargeTerrainFeatureAt(68, 83);
+        forest.largeTerrainFeatures.Remove(bush);
 
     }
 }

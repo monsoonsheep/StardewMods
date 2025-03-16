@@ -12,6 +12,11 @@
     <AdditionalFiles Include="i18n/default.json" />
   </ItemGroup>
 
+  <!-- Content Patcher Component -->
+  <ItemGroup>
+    <ContentPacks Include="[CP] Monsoon's Umbrellas Starter Pack" Version="$(Version)" />
+  </ItemGroup>
+  
   <!-- SMAPI Manifest -->
   <PropertyGroup>
     <Name>Umbrellas</Name>

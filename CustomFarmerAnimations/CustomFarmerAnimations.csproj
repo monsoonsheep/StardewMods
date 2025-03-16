@@ -8,10 +8,11 @@
   </PropertyGroup>
   <Import Project="..\Common\Common.projitems" Label="Shared" />
 
+  <!-- Content Patcher Component -->
+  <ItemGroup>
+    <ContentPacks Include="[CP] Monsoon's Starter Farmer Animations" Version="$(Version)" />
+  </ItemGroup>
   
-  <!-- Translations -->
-
-
   <!-- SMAPI Manifest -->
   <PropertyGroup>
     <Name>CustomFarmerAnimations</Name>

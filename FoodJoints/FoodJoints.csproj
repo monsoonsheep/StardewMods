@@ -21,6 +21,11 @@
     <AdditionalFiles Include="i18n/default.json" />
   </ItemGroup>
 
+  <!-- Content Patcher Component -->
+  <ItemGroup>
+    <ContentPacks Include="[CP] FoodJoints" Version="$(Version)" />
+  </ItemGroup>
+  
   <!-- SMAPI Manifest -->
   <PropertyGroup>
     <Name>FoodJoints</Name>

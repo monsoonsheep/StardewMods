@@ -1,0 +1,18 @@
+{
+	"Name": "Farm Helpers (CP Component)",
+	"Author": "MonsoonSheep",
+	"Version": "0.1.0",
+	"Description": "Content for FarmHelpers",
+	"UniqueID": "MonsoonSheep.FarmHelpersCP",
+	"MinimumApiVersion": "4.0.0",
+	"UpdateKeys": [ "Nexus:69420" ],
+	"ContentPackFor": {
+		"UniqueID": "Pathoschild.ContentPatcher"
+	},
+	"Dependencies": [
+	 {
+      "UniqueID": "MonsoonSheep.FarmHelpers",
+      "IsRequired": true,
+	 }
+	]
+}
