@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="6" height="8" tilewidth="16" tileheight="16" infinite="0" nextlayerid="13" nextobjectid="1">
- <tileset firstgid="1" source="spring_farmhelpers_tilesheet.tsx"/>
+ <tileset firstgid="1" source="spring_itachi_house_tilesheet.tsx"/>
  <layer id="1" name="Back" width="6" height="8">
   <data encoding="csv">
 0,0,0,0,0,0,

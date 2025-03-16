@@ -20,6 +20,8 @@ public class Mod : StardewModdingAPI.Mod
     internal static IModHelper ModHelper { get; private set; } = null!;
     internal static Harmony Harmony { get; private set; } = null!;
 
+    internal static HelperManager HelperManager { get; private set; } = null!;
+
     public Mod()
         => Instance = this;
 
@@ -42,16 +44,7 @@ public class Mod : StardewModdingAPI.Mod
     /// </summary>
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
     {
-        ModHelper.Events.GameLoop.DayStarted += this.OnDayStarted;
-    }
-
-    private void OnDayStarted(object? sender, DayStartedEventArgs e)
-    {
-        // Remove the bush blocking the way to helper's house
-        GameLocation forest = Game1.RequireLocation<Forest>("Forest");
-        
-        var bush = forest.getLargeTerrainFeatureAt(68, 83);
-        forest.largeTerrainFeatures.Remove(bush);
-
+        HelperManager = new HelperManager();
+        HelperManager.Initialize();
     }
 }

@@ -84,6 +84,9 @@ dotnet_naming_rule.most_identifiers_should_be_pascal_case.severity=suggestion
 # CS0436: Type conflicts with imported type
 dotnet_diagnostic.CS0436.severity = none
 
+# IDE0161: Convert to file-scoped namespace
+csharp_style_namespace_declarations = file_scoped:warning
+
 ##########
 ## Column guidelines
 ## documentation: https://marketplace.visualstudio.com/items?itemName=PaulHarrington.EditorGuidelines
