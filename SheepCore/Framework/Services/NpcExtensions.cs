@@ -5,26 +5,52 @@ using System.Text;
 using System.Threading.Tasks;
 using StardewValley.Pathfinding;
 using StardewValley;
+using System.Diagnostics.CodeAnalysis;
 
 namespace StardewMods.SheepCore.Framework.Services;
 public static class NpcExtensions
 {
-    public static bool MoveTo(this NPC me, GameLocation startLocation, Point startPoint, GameLocation targetLocation, Point targetPoint, PathFindController.endBehavior? endBehavior)
+    public static bool CanPath(this NPC me, GameLocation location, Point position, [NotNullWhen(true)] out Stack<Point>? path)
     {
-        Stack<Point>? path = Mod.Pathfinding.PathfindFromLocationToLocation(startLocation, startPoint, targetLocation, targetPoint, me);
-        if (path == null)
+        if (me == null)
+        {
+            path = null;
             return false;
+        }
+
+        path = Pathfinding.PathfindFromLocationToLocation(
+            me.currentLocation,
+            me.TilePoint,
+            location,
+            position,
+            me);
+
+        return path?.Any() == true;
+    }
+
+    public static void MoveTo(this NPC me, Stack<Point> path, Action<NPC>? endBehavior)
+    {
         me.controller = new PathFindController(path, me.currentLocation, me, path.Last())
         {
             NPCSchedule = true
         };
 
-        me.controller.endBehaviorFunction = endBehavior;
+        if (endBehavior != null)
+            me.controller.endBehaviorFunction = Pathfinding.EndBehaviorDelegateFactory(me, endBehavior);
+    }
+
+    public static bool MoveTo(this NPC me, GameLocation startLocation, Point startPoint, GameLocation targetLocation, Point targetPoint, Action<NPC>? endBehavior)
+    {
+        Stack<Point>? path = Pathfinding.PathfindFromLocationToLocation(startLocation, startPoint, targetLocation, targetPoint, me);
+        if (path == null)
+            return false;
+
+        me.MoveTo(path, endBehavior);
 
         return true;
     }
 
-    public static bool MoveTo(this NPC me, GameLocation location, Point tilePoint, PathFindController.endBehavior? endBehavior)
+    public static bool MoveTo(this NPC me, GameLocation location, Point tilePoint, Action<NPC>? endBehavior)
     {
         return me.MoveTo(me.currentLocation, me.TilePoint, location, tilePoint, endBehavior);
     }

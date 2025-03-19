@@ -35,5 +35,8 @@ public class Mod : StardewModdingAPI.Mod
     {
         new Pathfinding();
         Pathfinding.Instance.Initialize();
+
+        new LocationProvider();
+        LocationProvider.Instance.Initialize();
     }
 }

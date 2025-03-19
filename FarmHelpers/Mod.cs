@@ -18,6 +18,7 @@ public class Mod : StardewModdingAPI.Mod
     internal static IModEvents Events { get; private set; } = null!;
     internal static IManifest Manifest { get; private set; } = null!;
     internal static IModHelper ModHelper { get; private set; } = null!;
+    internal static IGameContentHelper GameContent { get; private set; } = null!;
     internal static Harmony Harmony { get; private set; } = null!;
 
     internal static HelperManager HelperManager { get; private set; } = null!;
@@ -32,6 +33,7 @@ public class Mod : StardewModdingAPI.Mod
         ModHelper = base.Helper;
         Events = ModHelper.Events;
         Manifest = base.ModManifest;
+        GameContent = base.Helper.GameContent;
         Harmony = new Harmony(this.ModManifest.UniqueID);
 
         ModHelper.Events.GameLoop.GameLaunched += this.OnGameLaunched;

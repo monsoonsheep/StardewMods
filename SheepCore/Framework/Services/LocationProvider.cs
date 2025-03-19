@@ -3,7 +3,17 @@ using StardewValley.Locations;
 namespace StardewMods.SheepCore.Framework.Services;
 public class LocationProvider
 {
+    public static LocationProvider Instance = null!;
+
     private readonly Dictionary<string, WeakReference<GameLocation>> Cache = [];
+
+    public LocationProvider()
+        => Instance = this;
+
+    internal void Initialize()
+    {
+
+    }
 
     public BusStop BusStop
         => (BusStop)this.Get("BusStop");
@@ -19,6 +29,9 @@ public class LocationProvider
 
     public FarmHouse FarmHouse
         => (FarmHouse)this.Get("FarmHouse");
+
+    public Forest Forest
+        => (Forest)this.Get("Forest");
 
     internal GameLocation Get(string key)
     {

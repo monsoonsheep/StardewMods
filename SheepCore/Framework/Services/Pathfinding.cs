@@ -1,9 +1,5 @@
-using HarmonyLib;
-using Microsoft.Xna.Framework;
-using StardewValley.Characters;
 using StardewValley.Pathfinding;
 using StardewValley.TerrainFeatures;
-using xTile.Dimensions;
 using xTile.Layers;
 
 namespace StardewMods.SheepCore.Framework.Services;
@@ -56,7 +52,7 @@ public class Pathfinding
         this.RemoveNpcBarrier();
     }
 
-    public Stack<Point>? PathfindFromLocationToLocation(GameLocation startingLocation, Point startTile,
+    public static Stack<Point>? PathfindFromLocationToLocation(GameLocation startingLocation, Point startTile,
         GameLocation targetLocation, Point targetTile, NPC character)
     {
         Point nextStartPosition = startTile;
@@ -64,12 +60,12 @@ public class Pathfinding
 
         if (startingLocation.Name.Equals(targetLocation.Name))
         {
-            return this.FindPath(nextStartPosition, targetTile, startingLocation, character);
+            return Instance.FindPath(nextStartPosition, targetTile, startingLocation, character);
         }
 
         // Get location route
         string[]? locationsRoute = WarpPathfindingCache.GetLocationRoute(startingLocation.NameOrUniqueName, targetLocation.NameOrUniqueName, character.Gender)
-            ?? this.GetLocationRoute(startingLocation.NameOrUniqueName, targetLocation.NameOrUniqueName);
+            ?? Instance.GetLocationRoute(startingLocation.NameOrUniqueName, targetLocation.NameOrUniqueName);
 
         if (locationsRoute == null)
         {
@@ -79,7 +75,7 @@ public class Pathfinding
 
         if (locationsRoute.Contains("Farm"))
         {
-            this.RemoveNpcBarrier();
+            Instance.RemoveNpcBarrier();
         }
 
         for (int i = 0; i < locationsRoute.Length; i++)
@@ -95,7 +91,7 @@ public class Pathfinding
                 if (target.Equals(Point.Zero))
                     return null;
 
-                Stack<Point>? nextPath = this.FindPath(nextStartPosition, target, current, character);
+                Stack<Point>? nextPath = Instance.FindPath(nextStartPosition, target, current, character);
 
                 if (nextPath == null)
                     return null;
@@ -111,14 +107,14 @@ public class Pathfinding
             }
             else
             {
-                Stack<Point>? nextPath = this.FindPath(nextStartPosition, targetTile, current, character);
+                Stack<Point>? nextPath = Instance.FindPath(nextStartPosition, targetTile, current, character);
                 if (nextPath == null)
                     return null;
                 path = combineStacks(path, nextPath);
             }
         }
 
-        this.RestoreNpcBarrier();
+        Instance.RestoreNpcBarrier();
 
         Stack<Point> combineStacks(Stack<Point> original, Stack<Point> toAdd)
         {
@@ -376,5 +372,14 @@ public class Pathfinding
 
             this.NpcBarrierRemoved = false;
         }
+    }
+
+    public static PathFindController.endBehavior EndBehaviorDelegateFactory(NPC npc, Action<NPC> action)
+    {
+        return (c, _) =>
+        {
+            if (c is NPC n)
+                action(n);
+        };
     }
 }

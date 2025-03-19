@@ -17,6 +17,10 @@
   "EntryDll": "FarmHelpers.dll",
   "Dependencies": [
     {
+      "UniqueID": "MonsoonSheep.SheepCore",
+      "MinimumVersion": "0.1.0"
+    },
+    {
       "UniqueID": "spacechase0.GenericModConfigMenu",
       "MinimumVersion": "1.12",
       "IsRequired": false

@@ -1,18 +1,6 @@
 {
 	"Format": "2.5.0",
 	"Changes": [
-        // NAME OPTIONS: Hanzo, Tadashi, Itachi, Daichi, Naoki
-        // Register  for the main mod
-        {
-            "LogName": "Register Itachi as helper for the main mod",
-            "Action": "EditData",
-            "Target": "Mods/MonsoonSheep.FarmHelpers/HelperNpc",
-            "Entries": {
-                "Name": "Itachi",
-                "EntryPoint": "Forest"
-            }
-        },
-
 		// NPC House
 		{
 			"LogName": "Map edit: Patch Helper's house in \"Forest\" map",
@@ -92,7 +80,11 @@
 	                            "Y": 76
                             }
                         }
-                    ]
+                    ],
+
+                    "CustomFields": {
+                        "Mods/MonsoonSheep.FarmHelpers/HelperNpc": "something"
+                    }
                 }
             }
         },
