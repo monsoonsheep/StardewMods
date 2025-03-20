@@ -22,8 +22,10 @@ internal class HelperManager
     private NPC? helper = null;
     private PathFindController? oldController = null;
 
-    internal List<Building> buildingsToTendTo = [];
     private MilkPail milkPail = null!;
+
+    private List<FarmAnimal> animals = [];
+    private int index = 0;
 
     internal int StartTime = 620;
 
@@ -42,7 +44,8 @@ internal class HelperManager
     {
         foreach (var pair in Game1.characterData)
         {
-            if (pair.Value.CustomFields != null && pair.Value.CustomFields.TryGetValue("Mods/MonsoonSheep.FarmHelpers/HelperNpc", out string? val))
+            if (pair.Value.CustomFields != null
+                && pair.Value.CustomFields.TryGetValue("Mods/MonsoonSheep.FarmHelpers/HelperNpc", out string? val))
             {
                 this.helper = Game1.getCharacterFromName(pair.Key);
             }
@@ -56,19 +59,8 @@ internal class HelperManager
             ItachiHouseFixes.RemoveBushes();
         }
 
-        this.buildingsToTendTo.Clear();
-        foreach (Building b in Game1.getFarm().buildings)
-        {
-            if (b.GetData()?.IndoorMapType == "StardewValley.AnimalHouse")
-            {
-                foreach (FarmAnimal animal in b.GetIndoors().Animals.Values)
-                {
-                    if (animal.currentProduce.Value != null && animal.CanGetProduceWithTool(this.milkPail)) {
-
-                    }
-                }
-            }
-        }
+        this.animals.Clear();
+        this.index = 0;
     }
 
     private void OnTimeChanged(object? sender, TimeChangedEventArgs e)
@@ -93,6 +85,20 @@ internal class HelperManager
         // stop at Farm 41, 64, start jobs 
         // Helper jobs -> Coop take (eggs, duck feather, rabbit foot), barn milk cows, fish pond (in the future)
 
+        Utility.ForEachLocation(delegate (GameLocation loc)
+        {
+            foreach (FarmAnimal animal in loc.animals.Values)
+            {
+                this.animals.Add(animal);
+            }
+            return true;
+        });
+
+
+    }
+
+    private void Next(NPC helper)
+    {
 
     }
 
