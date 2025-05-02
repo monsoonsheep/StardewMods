@@ -1,0 +1,28 @@
+{
+  /*
+   | This file is automatically updated by ModManifestBuilder
+   | when the project is compiled.
+   | 
+   | Changes made to this file may be overwritten.
+   | 
+   */
+  "$schema": "https://smapi.io/schemas/manifest.json",
+  "UniqueID": "MonsoonSheep.WrongForecast",
+  "Name": "SheepCore",
+  "Author": "MonsoonSheep",
+  "Version": "0.1.0",
+  "Description": "Description",
+  "MinimumApiVersion": "4.1.7",
+  "MinimumGameVersion": "1.6",
+  "EntryDll": "WrongForecast.dll",
+  "Dependencies": [
+    {
+      "UniqueID": "spacechase0.GenericModConfigMenu",
+      "MinimumVersion": "1.12",
+      "IsRequired": false
+    }
+  ],
+  "UpdateKeys": [
+    "Nexus:30594"
+  ]
+}

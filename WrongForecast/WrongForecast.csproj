@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>StardewMods.WrongForecast</RootNamespace>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+  <!-- Dependencies -->
+  <Import Project="..\Common\Common.projitems" Label="Shared" />
+
+  <!-- Translations -->
+  <ItemGroup>
+    <AdditionalFiles Include="i18n/default.json" />
+  </ItemGroup>
+
+  <!-- SMAPI Manifest -->
+  <PropertyGroup>
+    <Name>SheepCore</Name>
+    <Authors>MonsoonSheep</Authors>
+    <Description>Description</Description>
+    <UniqueId>MonsoonSheep.WrongForecast</UniqueId>
+    <UpdateKeys>Nexus:30594</UpdateKeys>
+    <Version>0.1.0</Version>
+    <MinimumApiVersion>4.1.7</MinimumApiVersion>
+    <MinimumGameVersion>1.6</MinimumGameVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
+  </ItemGroup>
+
+</Project>
