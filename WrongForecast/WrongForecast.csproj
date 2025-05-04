@@ -6,7 +6,9 @@
   </PropertyGroup>
 
   <!-- Dependencies -->
-  <Import Project="..\Common\Common.projitems" Label="Shared" />
+  <!--
+    <Import Project="..\Common\Common.projitems" Label="Shared" />
+  -->
 
   <!-- Translations -->
   <ItemGroup>
@@ -15,11 +17,11 @@
 
   <!-- SMAPI Manifest -->
   <PropertyGroup>
-    <Name>SheepCore</Name>
+    <Name>Science Is A Liar Sometimes</Name>
     <Authors>MonsoonSheep</Authors>
-    <Description>Description</Description>
+    <Description>Weather forecast can be wrong sometimes</Description>
     <UniqueId>MonsoonSheep.WrongForecast</UniqueId>
-    <UpdateKeys>Nexus:30594</UpdateKeys>
+    <UpdateKeys>Nexus:69420</UpdateKeys>
     <Version>0.1.0</Version>
     <MinimumApiVersion>4.1.7</MinimumApiVersion>
     <MinimumGameVersion>1.6</MinimumGameVersion>
