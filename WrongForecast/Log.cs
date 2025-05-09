@@ -1,6 +1,6 @@
 using StardewModdingAPI;
 
-namespace StardewMods.WrongForecast.Framework.Services;
+namespace StardewMods.WrongForecast;
 
 internal static class Log
 {

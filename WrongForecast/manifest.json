@@ -8,10 +8,10 @@
    */
   "$schema": "https://smapi.io/schemas/manifest.json",
   "UniqueID": "MonsoonSheep.WrongForecast",
-  "Name": "SheepCore",
+  "Name": "Science Is A Liar Sometimes",
   "Author": "MonsoonSheep",
-  "Version": "0.1.0",
-  "Description": "Description",
+  "Version": "1.0.0",
+  "Description": "Weather forecast can be wrong sometimes",
   "MinimumApiVersion": "4.1.7",
   "MinimumGameVersion": "1.6",
   "EntryDll": "WrongForecast.dll",
@@ -23,6 +23,6 @@
     }
   ],
   "UpdateKeys": [
-    "Nexus:30594"
+    "Nexus:33740"
   ]
 }

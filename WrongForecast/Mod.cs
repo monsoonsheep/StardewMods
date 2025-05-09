@@ -8,7 +8,6 @@ global using Microsoft.Xna.Framework;
 global using StardewModdingAPI;
 global using StardewModdingAPI.Events;
 global using StardewValley;
-using StardewMods.WrongForecast.Framework.Services;
 using StardewValley.Extensions;
 using StardewValley.Objects;
 using StardewValley.Pathfinding;
@@ -20,11 +19,10 @@ public class Mod : StardewModdingAPI.Mod
     internal static Mod Instance = null!;
 
     internal static Harmony Harmony { get; private set; } = null!;
+    internal static ConfigModel Config { get; private set; } = null!;
     internal static IModEvents Events { get; private set; } = null!;
     public Mod()
         => Instance = this;
-
-    public int percentageChanceOfLying = 5;
 
     private bool scienceLiesToday = false;
 
@@ -34,6 +32,7 @@ public class Mod : StardewModdingAPI.Mod
 
     public override void Entry(IModHelper helper)
     {
+        Config = this.Helper.ReadConfig<ConfigModel>();
         Log.Monitor = base.Monitor;
         Harmony = new Harmony(base.ModManifest.UniqueID);
         Events = this.Helper.Events;
@@ -47,11 +46,11 @@ public class Mod : StardewModdingAPI.Mod
             );
     }
 
-    private bool Before_getWeatherForecast(TV __instance, string weatherId, ref string __result)
+    private static bool Before_getWeatherForecast(TV __instance, ref string weatherId, ref string __result)
     {
-        if (this.scienceLiesToday)
+        if (Instance.scienceLiesToday)
         {
-            weatherId = this.fakeWeatherIdToday;
+            weatherId = Instance.fakeWeatherIdToday;
         }
 
         return true;
@@ -59,16 +58,15 @@ public class Mod : StardewModdingAPI.Mod
 
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
     {
-
+        this.InitializeGmcm();
     }
 
     private void OnDayStarted(object? sender, DayStartedEventArgs e)
     {
-        this.scienceLiesToday = Game1.random.NextBool(this.percentageChanceOfLying / 100f);
+        this.scienceLiesToday = Game1.random.NextBool(Config.PercentageChanceOfLying / 100f);
 
         if (this.scienceLiesToday)
         {
-
             WorldDate tomorrow = new WorldDate(Game1.Date);
             int totalDays = tomorrow.TotalDays + 1;
             tomorrow.TotalDays = totalDays;
@@ -91,5 +89,34 @@ public class Mod : StardewModdingAPI.Mod
     private void OnDayEnding(object? sender, DayEndingEventArgs e)
     {
         this.scienceLiesToday = false;
+    }
+
+    private void InitializeGmcm()
+    {
+        IModHelper helper = this.Helper;
+        IManifest manifest = this.ModManifest;
+
+        // get Generic Mod Config Menu's API (if it's installed)
+        IGenericModConfigMenuApi? configMenu = helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
+        if (configMenu == null)
+            return;
+
+        // register mod
+        configMenu.Register(
+            mod: manifest,
+            reset: () => Mod.Config = new ConfigModel(),
+            save: () => helper.WriteConfig(Mod.Config)
+            );
+
+        configMenu.AddNumberOption(
+            mod: manifest,
+            getValue: () => Config.PercentageChanceOfLying,
+            setValue: (value) => Config.PercentageChanceOfLying = value,
+            name: () => "Percentage chance of wrong forecast",
+            min: 0,
+            max: 100,
+            interval: 1,
+            formatValue: (value) => $"{value}%"
+        );
     }
 }
