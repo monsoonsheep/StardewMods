@@ -9,12 +9,11 @@ internal class ActionPatches
     internal static ActionPatches Instance = null!;
 
     internal ActionPatches()
-        => Instance = this;
-
-    internal void Initialize()
     {
+        Instance = this;
+
         Harmony harmony = Mod.Harmony;
-        
+
         harmony.Patch(
             original: AccessTools.Method(typeof(StardewValley.Object), nameof(StardewValley.Object.performRemoveAction)),
             postfix: new HarmonyMethod(AccessTools.Method(this.GetType(), nameof(ActionPatches.After_ObjectPerformRemoveAction)))

@@ -1,20 +1,22 @@
 using Microsoft.Xna.Framework.Graphics;
 using StardewMods.FoodJoints.Framework.Data.Models;
+using StardewValley.GameData.BigCraftables;
 
 namespace StardewMods.FoodJoints.Framework.Services;
 internal class AssetManager
 {
     internal static AssetManager Instance = null!;
 
-    internal AssetManager()
-        => Instance = this;
+    internal Dictionary<string, VillagerCustomerModel> VillagerCustomerModels = [];
 
-    internal void Initialize()
+    internal AssetManager()
     {
+        Instance = this;
+
         Mod.Events.Content.AssetRequested += this.OnAssetRequested;
         Mod.Events.Content.AssetReady += this.OnAssetReady;
 
-        Mod.Instance.VillagerCustomerModels = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(Values.MODASSET_NPC_VISITING_DATA);
+        this.VillagerCustomerModels = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(Values.MODASSET_NPC_VISITING_DATA);
     }
 
     internal void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
@@ -62,6 +64,25 @@ internal class AssetManager
 
             e.LoadFrom(() => data, AssetLoadPriority.Medium);
         }
+
+        // Signboard object
+        else if (e.NameWithoutLocale.IsEquivalentTo("Data/BigCraftables"))
+        {
+            //e.Edit((asset) =>
+            //    {
+            //        IDictionary<string, BigCraftableData> data = asset.AsDictionary<string, BigCraftableData>().Data;
+                    
+            //        data[Values.CAFE_SIGNBOARD_OBJECT_ID] = new BigCraftableData()
+            //        {
+            //            Name = Values.CAFE_SIGNBOARD_OBJECT_ID,
+            //            DisplayName = "Signboard",
+            //            Description = "Place to start a food shop",
+            //            Texture = Values.MODASSET_SPRITES,
+            //            SpriteIndex = 15
+            //        };
+            //    },
+            //    AssetEditPriority.Default);
+        }
     }
 
     internal void OnAssetReady(object? sender, AssetReadyEventArgs e)
@@ -69,9 +90,7 @@ internal class AssetManager
         // NPC Schedules
         if (e.NameWithoutLocale.IsEquivalentTo(Values.MODASSET_NPC_VISITING_DATA))
         {
-            Mod.Instance.VillagerCustomerModels = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(Values.MODASSET_NPC_VISITING_DATA);
+            this.VillagerCustomerModels = Game1.content.Load<Dictionary<string, VillagerCustomerModel>>(Values.MODASSET_NPC_VISITING_DATA);
         }
     }
-
-
 }

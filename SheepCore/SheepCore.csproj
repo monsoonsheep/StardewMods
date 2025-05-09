@@ -17,7 +17,7 @@
   <PropertyGroup>
     <Name>SheepCore</Name>
     <Authors>MonsoonSheep</Authors>
-    <Description>Description</Description>
+    <Description>Core dependency mod for MonsoonSheep's other mods</Description>
     <UniqueId>MonsoonSheep.SheepCore</UniqueId>
     <UpdateKeys>Nexus:30594</UpdateKeys>
     <Version>0.1.0</Version>
@@ -25,7 +25,6 @@
     <MinimumGameVersion>1.6</MinimumGameVersion>
   </PropertyGroup>
   <ItemGroup>
-    <SMAPIDependency Include="spacechase0.SpaceCore" Version="1.27" Reference="false" />
     <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
   </ItemGroup>
 

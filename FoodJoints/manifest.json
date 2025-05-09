@@ -1,4 +1,4 @@
-﻿{
+{
   /*
    | This file is automatically updated by ModManifestBuilder
    | when the project is compiled.
@@ -11,7 +11,7 @@
   "Name": "FoodJoints",
   "Author": "MonsoonSheep",
   "Version": "0.1.0",
-  "Description": "Description",
+  "Description": "Make food shops and customers will visit",
   "MinimumApiVersion": "4.0.0",
   "MinimumGameVersion": "1.6",
   "EntryDll": "FoodJoints.dll",
@@ -31,7 +31,7 @@
     },
     {
       "UniqueID": "spacechase0.SpaceCore",
-      "MinimumVersion": "1.26.2"
+      "MinimumVersion": "1.27.0"
     }
   ],
   "UpdateKeys": [

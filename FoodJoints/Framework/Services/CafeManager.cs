@@ -35,10 +35,9 @@ internal class CafeManager
         => Mod.NetState.Menu.Value;
 
     internal CafeManager()
-        => Instance = this;
-
-    internal void Initialize()
     {
+        Instance = this;
+
         this.tables = Mod.Tables;
         this.locations = Mod.Locations;
         this.customers = Mod.Customers;
@@ -184,7 +183,7 @@ internal class CafeManager
                 );
             }
 
-            Item item;
+            Item? item;
             if (c.get_DrawOrderItem().Value == true && (item = c.get_OrderItem().Value) != null)
             {
                 Vector2 offset = new Vector2(0,

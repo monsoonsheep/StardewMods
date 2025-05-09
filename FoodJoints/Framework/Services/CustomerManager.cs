@@ -17,7 +17,6 @@ internal class CustomerManager
     internal static CustomerManager Instance = null!;
 
     internal Dictionary<string, CustomerData> CustomerData = [];
-    internal Dictionary<string, VillagerCustomerModel> VillagerCustomerModels = [];
     internal Dictionary<string, VillagerCustomerData> VillagerData = [];
 
     private VillagerCustomerBuilder villagerCustomerBuilder = null!;
@@ -27,10 +26,9 @@ internal class CustomerManager
     internal VillagerScheduler villagerScheduler = null!;
 
     internal CustomerManager()
-        => Instance = this;
-
-    internal void Initialize()
     {
+        Instance = this;
+
         this.villagerCustomerBuilder = new VillagerCustomerBuilder();
         this.dynamicScheduler = new DynamicScheduler();
         this.villagerScheduler = new VillagerScheduler();
@@ -42,11 +40,11 @@ internal class CustomerManager
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
     {
-        foreach (var model in this.VillagerCustomerModels)
+        foreach (var model in Mod.Assets.VillagerCustomerModels)
             if (!this.VillagerData.ContainsKey(model.Key))
                 this.VillagerData[model.Key] = new VillagerCustomerData(model.Key);
 
-        this.CleanUpCustomers();
+        this.CleanUpCustomNpcs();
     }
 
     private void OnDayStarted(object? sender, DayStartedEventArgs e)
@@ -61,7 +59,7 @@ internal class CustomerManager
 
         // Delete customers
         this.RemoveAllCustomers();
-        this.CleanUpCustomers();
+        this.CleanUpCustomNpcs();
     }
 
     internal void TenMinuteUpdate()
@@ -160,8 +158,8 @@ internal class CustomerManager
                 if (Mod.Customers.CustomerData.TryGetValue(n.Name, out CustomerData? data))
                     data.LastVisitedData = Game1.Date;
 
-                bool res = n.MoveTo(tableLocation, getUpPosition, busStop, new Point(33, 9), (c, loc) => this.DeleteNpcFromExistence((c as NPC)!));
-                if (!res)
+                bool result = n.MoveTo(tableLocation, getUpPosition, busStop, new Point(33, 9), this.DeleteNpcFromExistence);
+                if (!result)
                     this.DeleteNpcFromExistence(n);
             }
             else
@@ -175,7 +173,7 @@ internal class CustomerManager
                 if (currentlyInFarmLocation)
                 {
                     // if failed, warp home TODO
-                    bool res = n.MoveTo(tableLocation, getUpPosition, busStop, new Point(14, 24), (c, _) => this.ReturnVillagerToSchedule((c as NPC)!));
+                    bool res = n.MoveTo(tableLocation, getUpPosition, busStop, new Point(14, 24), this.ReturnVillagerToSchedule);
                 }
                 else
                 {
@@ -253,7 +251,7 @@ internal class CustomerManager
 
     }
 
-    internal void CleanUpCustomers()
+    internal void CleanUpCustomNpcs()
     {
         Utility.ForEachLocation((loc) =>
         {
@@ -263,6 +261,7 @@ internal class CustomerManager
                 if (npc.Name.StartsWith(Values.CUSTOMER_NPC_NAME_PREFIX))
                 {
                     loc.characters.RemoveAt(i);
+                    npc.currentLocation = null;
                 }
             }
 
@@ -284,8 +283,8 @@ internal class CustomerManager
         List<int> activityTimes = npc.Schedule.Keys.OrderBy(i => i).ToList();
         int timeOfCurrent = activityTimes.LastOrDefault(t => t <= Game1.timeOfDay);
         int timeOfNext = activityTimes.FirstOrDefault(t => t > Game1.timeOfDay);
-        int minutesSinceCurrentStarted = StardewValley.Utility.CalculateMinutesBetweenTimes(timeOfCurrent, Game1.timeOfDay);
-        int minutesTillNextStarts = StardewValley.Utility.CalculateMinutesBetweenTimes(Game1.timeOfDay, timeOfNext);
+        int minutesSinceCurrentStarted = Utility.CalculateMinutesBetweenTimes(timeOfCurrent, Game1.timeOfDay);
+        int minutesTillNextStarts = Utility.CalculateMinutesBetweenTimes(Game1.timeOfDay, timeOfNext);
         int timeOfActivity;
 
         if (timeOfCurrent == 0) // Means it's the start of the day

@@ -36,6 +36,7 @@ public class Mod : StardewModdingAPI.Mod
     internal static Texture2D Sprites => Instance.sprites;
     internal static NetState NetState => NetState.Instance;
     internal static MultiplayerManager ModMultiplayer => MultiplayerManager.Instance;
+    internal static AssetManager Assets => AssetManager.Instance;
     internal static SaveDataManager SaveData => SaveDataManager.Instance;
     internal static CafeManager Cafe => CafeManager.Instance;
     internal static TableManager Tables => TableManager.Instance;
@@ -62,46 +63,33 @@ public class Mod : StardewModdingAPI.Mod
         NpcVirtualProperties.InjectFields();
 
         new ConfigManager();
-        ConfigManager.Instance.Initialize();
 
         new SaveDataManager();
-        SaveDataManager.Instance.Initialize();
 
         new NetState();
-        NetState.Instance.Initialize();
 
         new AssetManager();
-        AssetManager.Instance.Initialize();
 
         new MultiplayerManager();
-        MultiplayerManager.Instance.Initialize();
 
         new TableManager();
-        TableManager.Instance.Initialize();
 
         new LocationManager();
-        LocationManager.Instance.Initialize();
 
         new CustomerManager();
-        CustomerManager.Instance.Initialize();
 
         new CafeManager();
-        CafeManager.Instance.Initialize();
 
         new EventManager();
-        EventManager.Instance.Initialize();
 
         new DialogueManager();
-        DialogueManager.Instance.Initialize();
 
         new ActionPatches();
-        ActionPatches.Instance.Initialize();
 
         new CharacterPatches();
-        CharacterPatches.Instance.Initialize();
 
         new Debug();
-        Debug.Instance.Initialize();
+
         this.Helper.ConsoleCommands.Add("cafe_givesignboard", "Gives you the cafe signboard (if you want to skip the Gus 7-heart event", Locations.GiveSignboard);
 
         TokenParser.RegisterParser(

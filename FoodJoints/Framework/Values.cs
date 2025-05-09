@@ -17,6 +17,7 @@ internal static class Values
     internal const string GAMESTATEQUERY_ISINDOORCAFE = "MonsoonSheep.FoodJoints_IsIndoorCafe";
 
     internal const string CAFE_SIGNBOARD_OBJECT_ID = "MonsoonSheep.FoodJoints_CafeSignboard";
+    internal const string CAFE_SIGNBOARD_OBJECT_TEXTURE = "MonsoonSheep.FoodJoints_CafeSignboard_Texture";
 
     internal const string CAFE_BUILDING = "MonsoonSheep.FoodJoints_CafeBuilding";
     internal const string CAFE_MAP_NAME = "MonsoonSheep.FoodJoints_CafeMap";

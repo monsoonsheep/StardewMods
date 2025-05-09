@@ -5,10 +5,9 @@ internal class MultiplayerManager
     internal static MultiplayerManager Instance = null;
 
     internal MultiplayerManager()
-        => Instance = this;
-
-    internal void Initialize()
     {
+        Instance = this;
+
         Mod.Events.Multiplayer.ModMessageReceived += this.OnModMessageReceived;
     }
 

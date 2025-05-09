@@ -29,12 +29,7 @@ internal class NetState
     // Fields for syncing data
 
     internal NetState()
-        => Instance = this;
-
-    internal void Initialize()
     {
-       
+        Instance = this;
     }
-
-    
 }

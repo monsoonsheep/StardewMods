@@ -29,7 +29,7 @@
   <PropertyGroup>
     <Name>FoodJoints</Name>
     <Authors>MonsoonSheep</Authors>
-    <Description>Description</Description>
+    <Description>Make food shops and customers will visit</Description>
     <UniqueId>MonsoonSheep.FoodJoints</UniqueId>
     <UpdateKeys>Nexus:20695</UpdateKeys>
     <Version>0.1.0</Version>

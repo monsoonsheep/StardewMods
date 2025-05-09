@@ -7,10 +7,9 @@ internal class DialogueManager
     internal static DialogueManager Instance = null!;
 
     internal DialogueManager()
-        => Instance = this;
-
-    internal void Initialize()
     {
+        Instance = this;
+
         Mod.Harmony.Patch(
             original: AccessTools.Method(typeof(NPC), "loadCurrentDialogue"),
             postfix: new HarmonyMethod(AccessTools.Method(this.GetType(), nameof(After_NpcLoadCurrentDialogue)))
@@ -22,7 +21,7 @@ internal class DialogueManager
     /// </summary>
     private static void After_NpcLoadCurrentDialogue(NPC __instance, ref Stack<Dialogue> __result)
     {
-        if (Mod.Instance.VillagerData.TryGetValue(__instance.Name, out var data) &&
+        if (Mod.Customers.VillagerData.TryGetValue(__instance.Name, out var data) &&
             data.LastVisitedDate.TotalDays > 1 &&
             data.LastAteFood != null &&
             Game1.random.Next(4) == 0 &&
@@ -35,7 +34,7 @@ internal class DialogueManager
     internal void AddDialoguesOnArrivingAtCafe(NPC npc)
     {
         // Add the first time visit dialogues if their data's Last Visited value is the Spring 1, year 1
-        string key = Mod.Instance.VillagerData[npc.Name].LastVisitedDate.TotalDays <= 1
+        string key = Mod.Customers.VillagerData[npc.Name].LastVisitedDate.TotalDays <= 1
             ? Values.MODASSET_DIALOGUE_ENTRY_CAFEFIRSTTIMEVISIT
             : Values.MODASSET_DIALOGUE_ENTRY_CAFEVISIT;
 

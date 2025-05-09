@@ -1,8 +1,8 @@
-{
-	"Name": "Example Cafe Building for FoodJoints",
+﻿{
+	"Name": "FoodJoints (CP Component)",
 	"Author": "MonsoonSheep",
 	"Version": "0.1.0",
-	"Description": "Example Cafe Building for FoodJoints",
+	"Description": "FoodJoints (CP Component)",
 	"UniqueID": "MonsoonSheep.ExampleCafeBuilding",
 	"MinimumApiVersion": "4.0.0",
 	"UpdateKeys": [ "Nexus:20695" ],

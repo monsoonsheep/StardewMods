@@ -14,16 +14,15 @@ internal class TableManager
     internal static TableManager Instance = null!;
 
     public TableManager()
-        => Instance = this;
-
-    internal void Initialize()
     {
+        Instance = this;
+
         Mod.Harmony.Patch(
             original: AccessTools.Method(typeof(Furniture), (nameof(Furniture.GetAdditionalFurniturePlacementStatus))),
             postfix: new HarmonyMethod(AccessTools.Method(this.GetType(), nameof(After_GetAdditionalFurniturePlacementStatus)))
         );
         Mod.Harmony.Patch(
-            original: AccessTools.Method(typeof(Furniture),(nameof(Furniture.performObjectDropInAction))),
+            original: AccessTools.Method(typeof(Furniture), (nameof(Furniture.performObjectDropInAction))),
             prefix: new HarmonyMethod(AccessTools.Method(this.GetType(), nameof(Before_PerformObjectDropInAction)))
         );
         Mod.Harmony.Patch(

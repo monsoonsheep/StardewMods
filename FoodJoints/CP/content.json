@@ -1,4 +1,4 @@
-{
+﻿{
 	"Format": "2.0.0",
 	"Changes": [
 		// Cafe building and signboard
@@ -43,6 +43,23 @@
 			"Action": "Load",
 			"Target": "MonsoonSheep.FoodJoints_CafeBuildingTexture",
 			"FromFile": "assets/cafebuilding.png"
-		}
+		},
+
+        {
+            "LogName": "Signboard for food shop",
+            "Action": "EditData",
+            "Target": "Data/BigCraftables",
+            "Entries": {
+                "MonsoonSheep.FoodJoints_CafeSignboard": {
+                    "Name": "MonsoonSheep.FoodJoints_CafeSignboard",
+                    "DisplayName": "Signboard",
+                    "Description": "Put down to start a food shop",
+                    "Texture": "Mods/MonsoonSheep.FoodJoints/Sprites",
+                    "SpriteIndex": 15
+                }
+            }
+        }
+
+
 	]
 }

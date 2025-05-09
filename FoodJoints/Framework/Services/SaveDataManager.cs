@@ -9,10 +9,9 @@ internal class SaveDataManager
 {
     internal static SaveDataManager Instance = null!;
     internal SaveDataManager()
-        => Instance = this;
-
-    internal void Initialize()
     {
+        Instance = this;
+
         Mod.Events.GameLoop.Saving += this.OnSaving;
         Mod.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
     }
@@ -56,7 +55,7 @@ internal class SaveDataManager
 
         foreach (var loadedEntry in loaded.VillagerCustomersData)
         {
-            if (!Mod.Customers.VillagerCustomerModels.TryGetValue(loadedEntry.Key, out VillagerCustomerModel? model))
+            if (!Mod.Assets.VillagerCustomerModels.TryGetValue(loadedEntry.Key, out VillagerCustomerModel? model))
             {
                 Log.Debug("Loading NPC customer data but not model found. Skipping...");
                 continue;

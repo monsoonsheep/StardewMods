@@ -11,7 +11,7 @@
   "Name": "SheepCore",
   "Author": "MonsoonSheep",
   "Version": "0.1.0",
-  "Description": "Description",
+  "Description": "Core dependency mod for MonsoonSheep's other mods",
   "MinimumApiVersion": "4.1.7",
   "MinimumGameVersion": "1.6",
   "EntryDll": "SheepCore.dll",

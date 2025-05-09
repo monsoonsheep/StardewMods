@@ -93,7 +93,7 @@ internal class VillagerCustomerBuilder : CustomerBuilder
     private static bool CanVillagerVisit(VillagerCustomerData data, int timeOfDay)
     {
         NPC npc = data.GetNpc();
-        VillagerCustomerModel model = Mod.Customers.VillagerCustomerModels[data.NpcName];
+        VillagerCustomerModel model = Mod.Assets.VillagerCustomerModels[data.NpcName];
 
         int daysSinceLastVisit = Game1.Date.TotalDays - data.LastVisitedDate.TotalDays;
         int daysAllowed = model.VisitFrequency switch

@@ -77,25 +77,14 @@ public class CustomerGroup
             int facingDirection = seats[i].SittingDirection;
             string sitBehaviorName = $"sit_{jumpdirection}_{facingDirection}";
 
-            Stack<Point>? path = Mod.Pathfinding.PathfindFromLocationToLocation(npc.currentLocation, npc.TilePoint, targetLocation, targetPos.Value, npc);
-            if (path == null)
+            if (npc.MoveTo(targetLocation, targetPos.Value, (n) =>
+            {
+                n.StartActivityRouteEndBehavior(sitBehaviorName, null);
+                this.ReservedTable.State.Set(TableState.CustomersThinkingOfOrder);
+            }))
             {
                 return false;
             }
-
-            npc.controller = new PathFindController(path, npc.currentLocation, npc, path.Last())
-            {
-                NPCSchedule = true
-            };
-
-            npc.controller.endBehaviorFunction = delegate (Character c, GameLocation loc)
-            {
-                if (c is NPC n)
-                {
-                    n.StartActivityRouteEndBehavior(sitBehaviorName, null);
-                    this.ReservedTable.State.Set(TableState.CustomersThinkingOfOrder);
-                }
-            };
 
             AccessTools.Method(typeof(NPC), "prepareToDisembarkOnNewSchedulePath", [])?.Invoke(npc, []);
         }
@@ -103,7 +92,7 @@ public class CustomerGroup
         return true;
     }
 
-    internal bool MoveTo(GameLocation location, Point tile, PathFindController.endBehavior? endBehavior)
+    internal bool MoveTo(GameLocation location, Point tile, Action<NPC> endBehavior)
     {
         List<Point> tiles = this.Members.Select(_ => tile).ToList();
         return this.MoveTo(location, tiles, endBehavior);
@@ -115,7 +104,7 @@ public class CustomerGroup
         return this.MoveTo(location, tiles, endBehaviorName);
     }
 
-    internal bool MoveTo(GameLocation location, List<Point> tilePositions, PathFindController.endBehavior? endBehavior)
+    internal bool MoveTo(GameLocation location, List<Point> tilePositions, Action<NPC> endBehavior)
     {
         for (int i = 0; i < this.Members.Count; i++)
         {
@@ -129,18 +118,10 @@ public class CustomerGroup
 
     internal bool MoveTo(GameLocation location, List<Point> tilePositions, string endBehaviorName)
     {
-        PathFindController.endBehavior endBehavior = delegate (Character c, GameLocation loc)
-        {
-            if (c is NPC n)
-            {
-                n.StartActivityRouteEndBehavior(endBehaviorName, null);
-            }
-        };
-
         for (int i = 0; i < this.Members.Count; i++)
         {
             NPC npc = this.Members[i];
-            if (!npc.MoveTo(location, tilePositions[i], endBehavior))
+            if (!npc.MoveTo(location, tilePositions[i], (n) => n.StartActivityRouteEndBehavior(endBehaviorName, null)))
                 return false;
         }
 

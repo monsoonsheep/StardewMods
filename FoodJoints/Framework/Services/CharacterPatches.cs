@@ -7,10 +7,9 @@ internal class CharacterPatches
 {
     internal static CharacterPatches Instance = null!;
     internal CharacterPatches()
-        => Instance = this;
-
-    internal void Initialize()
     {
+        Instance = this;
+
         Mod.Harmony.Patch(
             original: AccessTools.Method(typeof(Character), nameof(Character.shouldCollideWithBuildingLayer), [typeof(GameLocation)]),
             transpiler: new HarmonyMethod(AccessTools.Method(this.GetType(), nameof(CharacterPatches.Transpile_CharacterShouldCollideWithBuildingLayer)))

@@ -7,12 +7,9 @@ internal class ConfigManager
     internal static ConfigManager Instance = null!;
 
     internal ConfigManager()
-        => Instance = this;
-
-    internal void Initialize()
     {
+        Instance = this;
         Mod.Config = Mod.ModHelper.ReadConfig<ConfigModel>();
-
         this.InitializeGmcm();
     }
 

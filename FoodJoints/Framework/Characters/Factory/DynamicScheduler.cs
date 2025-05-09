@@ -8,6 +8,7 @@ using StardewMods.FoodJoints.Framework.Enums;
 namespace StardewMods.FoodJoints.Framework.Characters.Factory;
 internal class DynamicScheduler
 {
+
     internal int TrySpawn()
     {
         int count = 0;

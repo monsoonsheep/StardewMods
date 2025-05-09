@@ -12,13 +12,11 @@ internal class LocationManager
     }
 
     internal LocationManager()
-        => Instance = this;
-
-    internal void Initialize()
     {
+        Instance = this;
+
         GameLocation.RegisterTileAction(Values.SIGNBOARD_BUILDING_CLICK_EVENT_KEY, CafeMenu.Action_OpenCafeMenu);
     }
-
 
     internal bool UpdateSignboard()
     {

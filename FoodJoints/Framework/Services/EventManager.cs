@@ -6,10 +6,9 @@ internal class EventManager
     internal static EventManager Instance = null!;
 
     internal EventManager()
-        => Instance = this;
-
-    internal void Initialize()
     {
+        Instance = this;
+
         SpaceEvents.OnEventFinished += this.OnEventFinished;
     }
 

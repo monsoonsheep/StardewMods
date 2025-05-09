@@ -23,9 +23,9 @@ public class VillagerCustomerData
             if (this.freePeriods == null)
             {
                 NPC npc = this.GetNpc();
-                VillagerCustomerModel model = Mod.Customers.VillagerCustomerModels[this.NpcName];
+                VillagerCustomerModel model = Mod.Assets.VillagerCustomerModels[this.NpcName];
 
-                this.freePeriods = new List<(int, int)>();
+                this.freePeriods = [];
 
                 // If there's no busytimes data, no visits
                 if (model.BusyTimes.TryGetValue(npc.ScheduleKey, out List<BusyPeriod>? busyPeriods))
