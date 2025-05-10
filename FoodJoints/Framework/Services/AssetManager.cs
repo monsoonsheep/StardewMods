@@ -51,37 +51,7 @@ internal class AssetManager
         // NPC Schedules
         else if (e.NameWithoutLocale.IsEquivalentTo(Values.MODASSET_NPC_VISITING_DATA))
         {
-            Dictionary<string, VillagerCustomerModel> data = [];
-
-            DirectoryInfo schedulesFolder = new DirectoryInfo(Path.Combine(Mod.ModHelper.DirectoryPath, "assets", "VillagerSchedules"));
-            foreach (FileInfo file in schedulesFolder.GetFiles())
-            {
-                VillagerCustomerModel model = Mod.ModHelper.ModContent.Load<VillagerCustomerModel>(file.FullName);
-                string npcName = file.Name.Replace(".json", "");
-                model.NpcName = npcName;
-                data[npcName] = model;
-            }
-
-            e.LoadFrom(() => data, AssetLoadPriority.Medium);
-        }
-
-        // Signboard object
-        else if (e.NameWithoutLocale.IsEquivalentTo("Data/BigCraftables"))
-        {
-            //e.Edit((asset) =>
-            //    {
-            //        IDictionary<string, BigCraftableData> data = asset.AsDictionary<string, BigCraftableData>().Data;
-                    
-            //        data[Values.CAFE_SIGNBOARD_OBJECT_ID] = new BigCraftableData()
-            //        {
-            //            Name = Values.CAFE_SIGNBOARD_OBJECT_ID,
-            //            DisplayName = "Signboard",
-            //            Description = "Place to start a food shop",
-            //            Texture = Values.MODASSET_SPRITES,
-            //            SpriteIndex = 15
-            //        };
-            //    },
-            //    AssetEditPriority.Default);
+            e.LoadFrom(() => new Dictionary<string, VillagerCustomerModel>(), AssetLoadPriority.Medium);
         }
     }
 

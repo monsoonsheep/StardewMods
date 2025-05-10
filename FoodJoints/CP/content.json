@@ -1,7 +1,6 @@
 ﻿{
 	"Format": "2.0.0",
 	"Changes": [
-		// Cafe building and signboard
 		{
 			"LogName": "Cafe building and Signboard",
 			"Action": "EditData",
@@ -58,8 +57,637 @@
                     "SpriteIndex": 15
                 }
             }
+        },
+
+        {
+            "LogName": "NPC Visiting data",
+            "Action": "EditData",
+            "Target": "Mods/MonsoonSheep.FoodJoints/NpcVisitingData",
+            "Entries": {
+                "Abigail": {
+                    "VisitFrequency": 4,
+                    "BusyTimes": {
+                        "6": [
+                            {
+                                "From": 1500,
+                                "To": 2100
+                            }
+                        ],
+                        "11": [
+                            {
+                                "From": 1000,
+                                "To": 2000
+                            }
+                        ],
+                        "winter_15": [
+                            {
+                                "From": 1030
+                            }
+                        ],
+                        "spring_4": [
+                            {
+                                "From": 900,
+                                "To": 1630
+                            },
+                            {
+                                "From": 2000
+                            }
+                        ],
+                        "Wed": [
+                            {
+                                "From": 1000,
+                                "To": 1200
+                            },
+                            {
+                                "From": 1800,
+                                "To": 1900
+                            },
+                            {
+                                "From": 2300
+                            }
+                        ],
+                        "summer": [
+                            {
+                                "From": 1030,
+                                "To": 1740
+                            }
+                        ],
+                        "winter": [
+                            {
+                                "From": 1030,
+                                "To": 1430
+                            }
+                        ],
+                        "Sun": [
+                            {
+                                "From": 1300,
+                                "To": 2000
+                            }
+                        ]
+                    }
+                },
+                "Alex": {
+                    "VisitFrequency": 3,
+                    "BusyTimes": {
+                        "rain": [
+                            {
+                                "From": 600
+                            }
+                        ],
+                        "summer_16": [
+                            {
+                                "From": 600
+                            }
+                        ],
+                        "winter_17": [
+                            {
+                                "From": 600
+                            }
+                        ],
+                        "winter": [
+                            {
+                                "From": 600,
+                                "To": 1930
+                            }
+                        ],
+                        "Wed": [
+                            {
+                                "From": 1200,
+                                "To": 1840
+                            }
+                        ]
+                    }
+                },
+                "Caroline": {
+                    "VisitFrequency": 2,
+                    "BusyTimes": {
+                        "fall_25": [
+                            {
+                                "From": 600,
+                                "To": 1700
+                            }
+                        ],
+                        "winter_16": [
+                            {
+                                "From": 1600
+                            }
+                        ],
+                        "rain": [
+                            {
+                                "From": 600
+                            }
+                        ],
+                        "Tue": [
+                            {
+                                "From": 600,
+                                "To": 1830
+                            },
+                            {
+                                "From": 2200
+                            }
+                        ],
+                        "Fri": [
+                            {
+                                "From": 600,
+                                "To": 1700
+                            },
+                            {
+                                "From": 2200
+                            }
+                        ],
+                        "Wed": [
+                            {
+                                "From": 600,
+                                "To": 1500
+                            },
+                            {
+                                "From": 2200
+                            }
+                        ],
+                        "Sat": [
+                            {
+                                "From": 600,
+                                "To": 1700
+                            },
+                            {
+                                "From": 2200
+                            }
+                        ],
+                        "Sun": [
+                            {
+                                "From": 600,
+                                "To": 1400
+                            },
+                            {
+                                "From": 2200
+                            }
+                        ],
+                        "spring": [
+                            {
+                                "From": 600,
+                                "To": 1430
+                            },
+                            {
+                                "From": 2200
+                            }
+                        ]
+                    }
+                },
+                "Emily": {
+                    "VisitFrequency": 2,
+                    "BusyTimes": {
+                        "fall_15": [
+                            {
+                                "From": 600
+                            }
+                        ],
+                        "Tue": [
+                            {
+                                "From": 1300,
+                                "To": 2000
+                            }
+                        ],
+                        "winter_15": [
+                            {
+                                "From": 1430
+                            }
+                        ],
+                        "winter_11": [
+                            {
+                                "From": 600
+                            }
+                        ],
+                        "Fri": [
+                            {
+                                "From": 600
+                            }
+                        ],
+                        "spring": [
+                            {
+                                "From": 1530
+                            }
+                        ]
+                    }
+                },
+                "Haley": {
+                    "VisitFrequency": 5,
+                    "BusyTimes": {}
+                },
+                "Leah": {
+                    "VisitFrequency": 2,
+                    "BusyTimes": {
+                        "winter_15": [
+                            {
+                                "From": 900,
+                                "To": 1200
+                            },
+                            {
+                                "From": 1600
+                            }
+                        ],
+                        "spring_16": [
+                            {
+                                "From": 600
+                            }
+                        ],
+                        "fall": [
+                            {
+                                "From": 900,
+                                "To": 1400
+                            }
+                        ],
+                        "Mon": [
+                            {
+                                "From": 900,
+                                "To": 1400
+                            }
+                        ],
+                        "Fri": [
+                            {
+                                "From": 900
+                            }
+                        ],
+                        "summer": [
+                            {
+                                "From": 900,
+                                "To": 1900
+                            }
+                        ],
+                        "spring": [
+                            {
+                                "From": 900,
+                                "To": 1800
+                            }
+                        ]
+                    }
+                },
+                "Lewis": {
+                    "VisitFrequency": 1,
+                    "BusyTimes": {
+                        "rain|fall_9": [
+                            {
+                                "From": 600
+                            }
+                        ],
+                        "winter_16": [
+                            {
+                                "From": 1620
+                            }
+                        ],
+                        "Tue": [
+                            {
+                                "From": 600,
+                                "To": 1600
+                            }
+                        ],
+                        "6|3|1|15|fall_Sun|summer_Sun|default": [
+                            {
+                                "From": 600,
+                                "To": 1600
+                            }
+                        ],
+                        "Fri": [
+                            {
+                                "From": 600,
+                                "To": 1400
+                            },
+                            {
+                                "From": 1700
+                            }
+                        ],
+                        "spring": [
+                            {
+                                "From": 600,
+                                "To": 1830
+                            }
+                        ],
+                        "winter_Sun": [
+                            {
+                                "From": 1100,
+                                "To": 1600
+                            }
+                        ]
+                    }
+                },
+                "Marnie": {
+                    "VisitFrequency": 1,
+                    "BusyTimes": {
+                        "fall_18": [
+                            {
+                                "From": 600,
+                                "To": 1900
+                            },
+                            {
+                                "From": 2200
+                            }
+                        ],
+                        "winter_16": [
+                            {
+                                "From": 600
+                            }
+                        ],
+                        "winter_18": [
+                            {
+                                "From": 600
+                            }
+                        ],
+                        "spring": [
+                            {
+                                "From": 600,
+                                "To": 1640
+                            },
+                            {
+                                "From": 2200
+                            }
+                        ],
+                        "Sat": [
+                            {
+                                "From": 600,
+                                "To": 1640
+                            },
+                            {
+                                "From": 2300
+                            }
+                        ],
+                        "Fri": [
+                            {
+                                "From": 600
+                            }
+                        ],
+                        "Mon": [
+                            {
+                                "From": 600,
+                                "To": 1300
+                            },
+                            {
+                                "From": 2100
+                            }
+                        ],
+                        "Tue": [
+                            {
+                                "From": 1300,
+                                "To": 1850
+                            },
+                            {
+                                "From": 2300
+                            }
+                        ]
+                    }
+                },
+                "Maru": {
+                    "VisitFrequency": 2,
+                    "BusyTimes": {
+                        "Tue": [
+                            {
+                                "From": 600,
+                                "To": 1640
+                            }
+                        ],
+                        "Mon": [
+                            {
+                                "From": 1330,
+                                "To": 1800,
+                                "Priority": 1
+                            }
+                        ],
+                        "Summer_Mon|Summer_Sun|spring": [
+                            {
+                                "From": 1000,
+                                "To": 1800
+                            }
+                        ],
+                        "winter": [
+                            {
+                                "From": 900,
+                                "To": 1800
+                            }
+                        ],
+                        "winter_16": [
+                            {
+                                "From": 900,
+                                "To": 1100
+                            },
+                            {
+                                "From": 1600
+                            }
+                        ],
+                        "summer": [
+                            {
+                                "From": 900
+                            }
+                        ]
+                    }
+                },
+                "Penny": {
+                    "VisitFrequency": 2,
+                    "Companions": [
+                        "Jas"
+                    ],
+                    "BusyTimes": {
+                        "9": [
+                            {
+                                "From": 1100,
+                                "To": 1600
+                            }
+                        ],
+                        "rain2": [
+                            {
+                                "From": 1200,
+                                "To": 1600
+                            }
+                        ],
+                        "summer": [
+                            {
+                                "From": 600,
+                                "To": 1800
+                            }
+                        ],
+                        "winter_15": [
+                            {
+                                "From": 1600
+                            }
+                        ],
+                        "winter": [
+                            {
+                                "From": 900,
+                                "To": 1800
+                            }
+                        ],
+                        "winter_4": [
+                            {
+                                "From": 900,
+                                "To": 1800
+                            }
+                        ],
+                        "Summer_Sun": [
+                            {
+                                "From": 600,
+                                "To": 1800
+                            }
+                        ],
+                        "Tue": [
+                            {
+                                "From": 600,
+                                "To": 1830
+                            },
+                            {
+                                "From": 2200
+                            }
+                        ],
+                        "Sat": [
+                            {
+                                "From": 600
+                            }
+                        ],
+                        "spring": [
+                            {
+                                "From": 600,
+                                "To": 1230
+                            },
+                            {
+                                "From": 1600,
+                                "To": 1840
+                            },
+                            {
+                                "From": 2200
+                            }
+                        ]
+                    }
+                },
+                "Sam": {
+                    "VisitFrequency": 4,
+                    "Companions": [
+                        "Vincent",
+                        "Sebastian",
+                        "Abigail"
+                    ],
+                    "BusyTimes": {
+                        "rain|rain2|9": [
+                            {
+                                "From": 600
+                            }
+                        ],
+                        "winter_16": [
+                            {
+                                "From": 1700
+                            }
+                        ],
+                        "fall_11": [
+                            {
+                                "From": 600,
+                                "To": 1800
+                            },
+                            {
+                                "From": 2200
+                            }
+                        ],
+                        "winter": [
+                            {
+                                "From": 1320,
+                                "To": 1900
+                            },
+                            {
+                                "From": 2200
+                            }
+                        ],
+                        "Sat": [
+                            {
+                                "From": 1800,
+                                "To": 2100
+                            }
+                        ],
+                        "Mon": [
+                            {
+                                "From": 600,
+                                "To": 1700
+                            },
+                            {
+                                "From": 2200
+                            }
+                        ],
+                        "Fri": [
+                            {
+                                "From": 1500
+                            }
+                        ]
+                    }
+                },
+                "Sebastian": {
+                    "VisitFrequency": 3,
+                    "BusyTimes": {
+                        "rain": [
+                            {
+                                "From": 1030,
+                                "To": 1700
+                            }
+                        ],
+                        "rain2": [
+                            {
+                                "From": 600,
+                                "To": 1200
+                            },
+                            {
+                                "From": 1500,
+                                "To": 1800
+                            },
+                            {
+                                "From": 2300
+                            }
+                        ],
+                        "winter_16": [
+                            {
+                                "From": 1650
+                            }
+                        ],
+                        "fall": [
+                            {
+                                "From": 1200,
+                                "To": 1500
+                            }
+                        ],
+                        "summer_4": [
+                            {
+                                "From": 600,
+                                "To": 1600
+                            }
+                        ],
+                        "Sat": [
+                            {
+                                "From": 600,
+                                "To": 1800
+                            }
+                        ],
+                        "Thu": [
+                            {
+                                "From": 1030,
+                                "To": 1400
+                            }
+                        ],
+                        "Fri": [
+                            {
+                                "From": 600
+                            }
+                        ],
+                        "spring": [
+                            {
+                                "From": 1030,
+                                "To": 1500
+                            }
+                        ]
+                    }
+                },
+                "Shane": {
+                    "VisitFrequency": 1,
+                    "BusyTimes": {
+                        "spring": [
+                            {
+                                "From": 600,
+                                "To": 1900
+                            }
+                        ]
+                    }
+                }
+            }
         }
-
-
-	]
+    ]
 }

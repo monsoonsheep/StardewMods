@@ -62,33 +62,33 @@ public class Mod : StardewModdingAPI.Mod
         FarmerTeamVirtualProperties.InjectFields();
         NpcVirtualProperties.InjectFields();
 
-        new ConfigManager();
+        _ = new ConfigManager();
 
-        new SaveDataManager();
+        _ = new SaveDataManager();
 
-        new NetState();
+        _ = new NetState();
 
-        new AssetManager();
+        _ = new AssetManager();
 
-        new MultiplayerManager();
+        _ = new MultiplayerManager();
 
-        new TableManager();
+        _ = new TableManager();
 
-        new LocationManager();
+        _ = new LocationManager();
 
-        new CustomerManager();
+        _ = new CustomerManager();
 
-        new CafeManager();
+        _ = new CafeManager();
 
-        new EventManager();
+        _ = new EventManager();
 
-        new DialogueManager();
+        _ = new DialogueManager();
 
-        new ActionPatches();
+        _ = new ActionPatches();
 
-        new CharacterPatches();
+        _ = new CharacterPatches();
 
-        new Debug();
+        _ = new Debug();
 
         this.Helper.ConsoleCommands.Add("cafe_givesignboard", "Gives you the cafe signboard (if you want to skip the Gus 7-heart event", Locations.GiveSignboard);
 
