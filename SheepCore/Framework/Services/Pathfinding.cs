@@ -8,11 +8,8 @@ public class Pathfinding
     public static Pathfinding Instance = null!;
 
     private readonly Dictionary<string, List<LocationWarpRoute>> LocationRoutes = [];
-
     internal readonly List<Point> NpcBarrierTiles = [];
     internal bool NpcBarrierRemoved;
-
-
     private readonly sbyte[,] Directions = new sbyte[4, 2]
     {
         { 0, -1 },
@@ -52,7 +49,7 @@ public class Pathfinding
         this.RemoveNpcBarrier();
     }
 
-    public static Stack<Point>? PathfindFromLocationToLocation(GameLocation startingLocation, Point startTile,
+    public Stack<Point>? PathfindFromLocationToLocation(GameLocation startingLocation, Point startTile,
         GameLocation targetLocation, Point targetTile, NPC character)
     {
         Point nextStartPosition = startTile;

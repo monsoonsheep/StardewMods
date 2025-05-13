@@ -1,9 +1,9 @@
-{
+﻿{
 	"Format": "2.5.0",
 	"Changes": [
 		// NPC House
 		{
-			"LogName": "Map edit: Patch Helper's house in \"Forest\" map",
+			"LogName": "Map edit: Put Helper's house in \"Forest\" map",
 			"Action": "EditMap",
 			"Target": "Maps/Forest",
 			"FromFile": "assets/Maps/itachi_house.tmx",
@@ -83,7 +83,7 @@
                     ],
 
                     "CustomFields": {
-                        "Mods/MonsoonSheep.FarmHelpers/HelperNpc": "something"
+                        "Mods/MonsoonSheep.FarmHelpers/HelperNpc": "true"
                     }
                 }
             }

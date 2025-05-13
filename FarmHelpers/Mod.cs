@@ -21,8 +21,6 @@ public class Mod : StardewModdingAPI.Mod
     internal static IGameContentHelper GameContent { get; private set; } = null!;
     internal static Harmony Harmony { get; private set; } = null!;
 
-    internal static HelperManager HelperManager { get; private set; } = null!;
-
     public Mod()
         => Instance = this;
 
@@ -46,7 +44,8 @@ public class Mod : StardewModdingAPI.Mod
     /// </summary>
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
     {
-        HelperManager = new HelperManager();
-        HelperManager.Initialize();
+        _ = new HelperManager();
+
+        _ = new ItachiHouseFixes();
     }
 }

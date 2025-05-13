@@ -18,7 +18,7 @@ public static class NpcExtensions
             return false;
         }
 
-        path = Pathfinding.PathfindFromLocationToLocation(
+        path = Pathfinding.Instance.PathfindFromLocationToLocation(
             me.currentLocation,
             me.TilePoint,
             location,
@@ -41,7 +41,7 @@ public static class NpcExtensions
 
     public static bool MoveTo(this NPC me, GameLocation startLocation, Point startPoint, GameLocation targetLocation, Point targetPoint, Action<NPC>? endBehavior)
     {
-        Stack<Point>? path = Pathfinding.PathfindFromLocationToLocation(startLocation, startPoint, targetLocation, targetPoint, me);
+        Stack<Point>? path = Pathfinding.Instance.PathfindFromLocationToLocation(startLocation, startPoint, targetLocation, targetPoint, me);
         if (path == null)
             return false;
 
@@ -52,6 +52,12 @@ public static class NpcExtensions
 
     public static bool MoveTo(this NPC me, GameLocation location, Point tilePoint, Action<NPC>? endBehavior)
     {
-        return me.MoveTo(me.currentLocation, me.TilePoint, location, tilePoint, endBehavior);
+        if (me.CanPath(location, tilePoint, out Stack<Point>? path))
+        {
+            me.MoveTo(path, endBehavior);
+            return true;
+        }
+
+        return false;
     }
 }

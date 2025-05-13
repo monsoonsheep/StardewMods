@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,9 +8,22 @@ using StardewValley.Locations;
 namespace StardewMods.FarmHelpers.Framework;
 internal class ItachiHouseFixes
 {
-    internal static bool BushesRemoved = false;
+    internal bool BushesRemoved = false;
 
-    internal static void RemoveBushes()
+    internal ItachiHouseFixes()
+    {
+        Mod.Events.GameLoop.DayStarted += this.OnDayStarted;
+    }
+
+    private void OnDayStarted(object? sender, DayStartedEventArgs e)
+    {
+        if (Game1.characterData.ContainsKey($"{Mod.Manifest.UniqueID}_Itachi") && this.BushesRemoved == false)
+        {
+            this.RemoveBushes();
+        }
+    }
+
+    internal void RemoveBushes()
     {
         // Remove the bush blocking the way to helper's house
         GameLocation forest = Game1.RequireLocation<Forest>("Forest");
@@ -18,6 +31,6 @@ internal class ItachiHouseFixes
         var bush = forest.getLargeTerrainFeatureAt(68, 83);
         forest.largeTerrainFeatures.Remove(bush);
 
-        BushesRemoved = true;
+        this.BushesRemoved = true;
     }
 }

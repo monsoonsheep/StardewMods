@@ -11,6 +11,8 @@ internal class Debug
         switch (e.Button)
         {
             case SButton.Insert:
+                NPC helper = Game1.getCharacterFromName($"{Mod.Manifest.UniqueID}_Itachi");
+                Log.Debug(helper.currentLocation.Name);
                 break;
             default:
                 break;
