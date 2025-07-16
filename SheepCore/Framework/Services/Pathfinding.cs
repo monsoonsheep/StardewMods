@@ -1,5 +1,7 @@
+using StardewValley;
 using StardewValley.Pathfinding;
 using StardewValley.TerrainFeatures;
+using xTile.Dimensions;
 using xTile.Layers;
 
 namespace StardewMods.SheepCore.Framework.Services;
@@ -145,6 +147,44 @@ public class Pathfinding
         return PathFindController.findPathForNPCSchedules(startTile, targetTile, location, 30000, character);
     }
 
+    public Stack<Point>? FindPathToNearestEmptyTileNextToTarget(GameLocation location, Point startTile, Point targetTile, Character? npc = null, bool includeDiagonal = false)
+    {
+        List<sbyte[]> directions =
+        [
+            [0, 1], // down
+            [-1, 0], // left
+            [0, -1], // up
+            [1, 0] // right
+        ];
+
+        if (includeDiagonal)
+        {
+            directions = directions.Concat([
+                [1, 1],
+                [1, -1],
+                [-1, 1],
+                [-1, -1]
+                ]).ToList();
+        }
+
+        Stack<Point>? shortestPath = null;
+        foreach (sbyte[]? direction in directions)
+        {
+            Point newTile = targetTile + new Point(direction[0], direction[1]);
+
+            if (location.GetFurnitureAt(newTile.ToVector2()) != null
+                || !location.isTilePassable(new Location(newTile.X, newTile.Y), Game1.viewport))
+                continue;
+
+            Stack<Point>? p = this.FindPath(startTile, newTile, location, npc);
+
+            if (p != null && !(p.Count >= shortestPath?.Count))
+                shortestPath = p;
+        }
+
+        return shortestPath;
+    }
+
     private Stack<Point>? PathfindImpl(GameLocation location, Point startPoint, Point endPoint, Character? character, int limit = 5000)
     {
         PriorityQueue frontier = new();
@@ -164,8 +204,10 @@ public class Pathfinding
         {
             PathNode currentNode = frontier.Dequeue();
             if (currentNode.x == endPoint.X && currentNode.y == endPoint.Y)
+            {
                 return PathFindController.reconstructPath(currentNode);
-
+            }
+                
             visited.Add(currentNode.id);
 
             for (int i = 0; i < 4; i++)
@@ -175,20 +217,27 @@ public class Pathfinding
                 int neighborHash = PathNode.ComputeHash(neighborX, neighborY);
 
                 if (visited.Contains(neighborHash))
+                {
                     continue;
+                }
 
-                PathNode neighbor = new(neighborX, neighborY, currentNode);
-                neighbor.g = (byte)(currentNode.g + 1);
+                PathNode neighbor = new PathNode(neighborX, neighborY, currentNode);
+                neighbor.g = (byte) (currentNode.g + 1);
+
+                bool colliding = location.isCollidingPosition(new Rectangle(neighbor.x * 64 + 1, neighbor.y * 64 + 1, 62, 62), Game1.viewport, false, 0, glider: false, character, pathfinding: true);
+                bool isFencegate = location.getObjectAtTile(neighborX, neighborY) is Fence fence && fence.isGate.Value;
 
                 if (((neighborX == endPoint.X && neighborY == endPoint.Y) || (neighborX >= 0 && neighborY >= 0 && neighborX < layerWidth && neighborY < layerHeight))
-                    && !location.isCollidingPosition(new Microsoft.Xna.Framework.Rectangle(neighbor.x * 64 + 1, neighbor.y * 64 + 1, 62, 62), Game1.viewport, false, 0, glider: false, character, pathfinding: true))
+                    && (!colliding || isFencegate))
                 {
                     int neighborScore = neighbor.g + this.GetPreferenceValueForTerrainType(location, neighbor.x, neighbor.y) +
                                         (Math.Abs(endPoint.X - neighborX) + Math.Abs(endPoint.Y - neighborY))
                                         + ((neighbor.x == currentNode.x && neighbor.x == previousNode.x) || (neighbor.y == currentNode.y && neighbor.y == previousNode.y) ? -2 : 0);
 
                     if (!frontier.Contains(neighbor, neighborScore))
+                    {
                         frontier.Enqueue(neighbor, neighborScore);
+                    }
                 }
             }
 
@@ -226,8 +275,10 @@ public class Pathfinding
         }
 
         if (location.terrainFeatures.TryGetValue(new Vector2(x, y), out var terrainFeature) && terrainFeature is Flooring)
+        {
             value -= 7;
-
+        }
+            
         return value;
     }
 

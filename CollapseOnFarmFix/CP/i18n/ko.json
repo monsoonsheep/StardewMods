@@ -1,0 +1,11 @@
+﻿{
+    // These are for development. To be expanded soon. If you want to contribute or translate, let me know! I'm not good at writing.
+    "PostPassoutDialogues.neutral.sunny.1": "괜찮아? 너 밖에서 정신을 잃었었어!$s#$b#건강 관리 좀 하는 게 좋겠다.$k",
+    "PostPassoutDialogues.rude.sunny.1": "드디어 정신 차렸네! 농장에 쓰러져있었어.#$b#내가 여기까지 널 업어왔다고.",
+    "PostPassoutDialogues.shy.sunny.1": "저기... 괜찮아? 밖에서 기절했었어. 내가 안으로 업어왔어...",  
+    "PostPassoutDialogues.rude.rain.1": "...#$b#비가 오는데 밖에 있으면 안 돼. 감기라도 걸리면 어쩌려고?",
+    "PostPassoutDialogues.Abigail.rain.1": "어! 깼네!$h#$b#어젯밤에 잠이 안 와서 너 보러 갔는데, 네가 바닥에 쓰러져 있었어.",
+
+    "HospitalKilledEvent.generic": "none/-100 -100/farmer 20 12 2 {0} 21 12 3 Harvey 22 11 3/pause 1500/showFrame 5/message \" ...{0}?\"/pause 1000/message \"괜찮을 거야... 다 괜찮을 거야...\"/viewport 20 12 true/pause 1000/speak {0} \"깼구나! 엄청 걱정했다고!!#$b#네가 농장에 기절한 걸 내가 발견했어...#$b#하비가 응급 수술도 했단 말이야!#$b#다음엔 좀 더 조심해, 알았지?$s\"/showFrame 0/pause 1000/emote farmer 28/hospitaldeath/end",
+    "HospitalKilledEvent.Emily": "none/-100 -100/farmer 20 12 2 Emily 21 12 3 Harvey 22 11 3/pause 1500/showFrame 5/message \" {0}?\"/pause 1000/message \"괜찮을 거야 자기야.\"/viewport 20 12 true/pause 1000/emote Emily 20/speak Emily \"너 진짜 심하게 다쳤었어. 나 엄청 걱정했다고!$s#$b#너 진짜 몸 관리 좀 해야겠어.{0}.\"/showFrame 0/pause 300/faceDirection Emily 0 continue/move Harvey -1 0 2 continue/speak Emily \"늦은 시간인데 와줘서 고마워 하비.$k\"/pause 200/emote farmer 28/hospitaldeath/end"
+}

@@ -43,22 +43,9 @@ public static class NpcExtensions
             entryPoint = new Point(w.X, w.Y);
         }
 
-        Stack<Point>? shortestPath = null;
-        foreach (sbyte[]? direction in directions)
-        {
-            Point newTile = seatPos + new Point(direction[0], direction[1]);
+        Stack<Point>? pathNextToChair = Mod.Pathfinding.FindPathToNearestEmptyTileNextToTarget(targetLocation, entryPoint, seatPos);
 
-            if (targetLocation.GetFurnitureAt(newTile.ToVector2()) != null
-                || !targetLocation.isTilePassable(new Location(newTile.X, newTile.Y), Game1.viewport))
-                continue;
-
-            Stack<Point>? p = Mod.Pathfinding.FindPath(entryPoint, newTile, targetLocation, npc);
-
-            if (p != null && !(p.Count >= shortestPath?.Count))
-                shortestPath = p;
-        }
-
-        return shortestPath?.LastOrDefault();
+        return pathNextToChair?.LastOrDefault();
     }
 
     public static void SitDownEndBehavior(Character ch, GameLocation loc)

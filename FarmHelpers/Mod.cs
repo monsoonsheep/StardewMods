@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewValley.Characters;
 using StardewMods.FarmHelpers.Framework;
 using StardewValley.Locations;
+using StardewMods.SheepCore.Framework.Services;
 
 namespace StardewMods.FarmHelpers;
 
@@ -20,6 +21,10 @@ public class Mod : StardewModdingAPI.Mod
     internal static IModHelper ModHelper { get; private set; } = null!;
     internal static IGameContentHelper GameContent { get; private set; } = null!;
     internal static Harmony Harmony { get; private set; } = null!;
+
+    internal static LocationProvider Locations = null!;
+
+    internal static Pathfinding Pathfinding = null!;
 
     public Mod()
         => Instance = this;
@@ -47,5 +52,8 @@ public class Mod : StardewModdingAPI.Mod
         _ = new HelperManager();
 
         _ = new ItachiHouseFixes();
+
+        Locations = LocationProvider.Instance;
+        Pathfinding = Pathfinding.Instance;
     }
 }

@@ -1,7 +1,7 @@
-{
+﻿{
   "Name": "Collapse On Farm Fix - CP Component",
   "Author": "monsoonsheep",
-  "Version": "0.2.7",
+  "Version": "0.2.8",
   "Description": "Dialogues and other data for Collapse On Farm Fix",
   "UniqueID": "monsoonsheep.CollapseOnFarmFixCP",
   "ContentPackFor": {
