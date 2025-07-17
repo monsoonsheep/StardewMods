@@ -11,8 +11,17 @@ internal class Debug
         switch (e.Button)
         {
             case SButton.Insert:
-                NPC helper = Game1.getCharacterFromName($"{Mod.Manifest.UniqueID}_Itachi");
-                Log.Debug(helper.currentLocation.Name);
+                Utility.ForEachBuilding((b) =>
+                {
+                    if (b.buildingType.Value == "Coop")
+                    {
+                        Log.Debug($"{Game1.player.TilePoint}");
+                        
+                   
+
+                    }
+                    return true;
+                });
                 break;
             default:
                 break;

@@ -14,16 +14,22 @@ internal abstract class Job
 
     internal Point StartPoint;
 
+    protected Job(NPC helper)
+    {
+        this.helper = helper;
+    }
+
     internal abstract void Start(NPC npc);
 
-    protected Point EnterBuilding(Building building)
+    protected virtual void Finish(NPC npc)
     {
-        GameLocation indoors = building.GetIndoors();
+        Log.Trace($"{this.GetType().FullName} job finished");
 
-        Point entry = ModUtility.GetEntryTileForBuildingIndoors(building);
+        if (npc.currentLocation != Mod.Locations.Farm || npc.TilePoint != this.StartPoint)
+        {
+            Game1.warpCharacter(npc, Mod.Locations.Farm, this.StartPoint.ToVector2());
+        }
 
-        Game1.warpCharacter(this.helper, indoors, entry.ToVector2());
-
-        return entry;
+        HelperManager.OnFinishJob(this, npc);
     }
 }

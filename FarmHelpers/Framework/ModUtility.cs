@@ -31,12 +31,19 @@ internal static class ModUtility
         yield return new Point(target.X, target.Y + 1);
     }
 
-    internal static IEnumerable<Point> GetEmptyTilesNextTo(Point target)
+    internal static IEnumerable<Point> GetEmptyTilesNextTo(GameLocation loc, Point target)
     {
         foreach (Point p in GetTilesNextTo(target))
         {
-            if 
+            if (loc.isTilePassable(target.ToVector2()) && loc.GetFurnitureAt(target.ToVector2()) == null) {
+                yield return p;
+            }
         }
+    }
+
+    internal static int GetDirectionFromTiles(Point p1, Point p2)
+    {
+        return Utility.getDirectionFromChange(p1.ToVector2(), p2.ToVector2());
     }
 
     internal static List<Point> GetNaturalPath(Point startTile, List<Point> targets)
@@ -68,5 +75,10 @@ internal static class ModUtility
         Point entry = new Point(warp.TargetX, warp.TargetY - 1);
 
         return entry;
+    }
+
+    internal static void AddDelayedAction(Action action, int delay)
+    {
+        Game1.delayedActions.Add(new DelayedAction(delay, action));
     }
 }

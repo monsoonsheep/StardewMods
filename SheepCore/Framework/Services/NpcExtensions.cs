@@ -10,7 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace StardewMods.SheepCore.Framework.Services;
 public static class NpcExtensions
 {
-    public static bool CanPath(this NPC me, GameLocation location, Point position, [NotNullWhen(true)] out Stack<Point>? path)
+    public static bool CanPath(this NPC me, GameLocation location, Point position, [NotNullWhen(true)] out Stack<Point>? path, bool checkCharacter = true)
     {
         if (me == null)
         {
@@ -23,7 +23,7 @@ public static class NpcExtensions
             me.TilePoint,
             location,
             position,
-            me);
+            checkCharacter ? me : null);
 
         return path?.Any() == true;
     }

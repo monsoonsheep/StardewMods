@@ -26,6 +26,8 @@ public class Mod : StardewModdingAPI.Mod
 
     internal static Pathfinding Pathfinding = null!;
 
+    internal static HelperInventory HelperInventory = null!;
+
     public Mod()
         => Instance = this;
 
@@ -49,6 +51,8 @@ public class Mod : StardewModdingAPI.Mod
     /// </summary>
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
     {
+        HelperInventory = new HelperInventory();
+
         _ = new HelperManager();
 
         _ = new ItachiHouseFixes();

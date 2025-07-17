@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
+using StardewMods.SheepCore.Framework.Services;
 using StardewValley;
 using StardewValley.Buildings;
 
@@ -12,45 +13,46 @@ internal class CoopJob : Job
 {
     private readonly Building coop;
     private readonly GameLocation indoors;
+    private Point entry;
 
-    internal CoopJob(NPC helper, Building coop)
+    private int index = -1;
+    private List<Point> pickupStandingPoints = [];
+    private List<Point> pickupObjectPoints = [];
+
+
+    internal CoopJob(NPC helper, Building coop) : base(helper)
     {
-        base.helper = helper;
         this.coop = coop;
         this.indoors = coop.GetIndoors();
 
-        this.StartPoint = coop.getPointForHumanDoor();
-
-        
+        this.StartPoint = coop.getPointForHumanDoor() + new Point(0, 1);
     }
 
     internal override void Start(NPC npc)
     {
-        Point entry = base.EnterBuilding(this.coop);
+        Log.Trace("Starting coop job");
 
-        List<Point> pickups = [];
-        List<StardewValley.Object> pickupObjects = [];
+        this.entry = HelperManager.EnterBuilding(npc, this.coop);
+
+        List<Point> pickupsUnordered = [];
 
         foreach (StardewValley.Object obj in this.indoors.Objects.Values)
         {
             if (IsCollectibleObject(obj))
             {
-                pickups.Add(obj.TileLocation.ToPoint());
-                pickupObjects.Add(obj);
+                pickupsUnordered.Add(obj.TileLocation.ToPoint());
             }
         }
 
-        List<Point> path = ModUtility.GetNaturalPath(entry, pickups);
+        this.pickupObjectPoints = ModUtility.GetNaturalPath(this.entry, pickupsUnordered);
+        List<StardewValley.Object> pickupObjects = this.pickupObjectPoints.Select(p => this.indoors.Objects[p.ToVector2()]).ToList();
 
-        List<Point> pickupPoints = [];
-
+        // Chain-Path to the tile next to each pickup
         Dictionary<Point, StardewValley.Object> temporaryPickupObjects = [];
-
-        Point current = entry;
-
-        for (int i = 0; i < pickups.Count; i++)
+        Point current = this.entry;
+        for (int i = 0; i < this.pickupObjectPoints.Count; i++)
         {
-            Point? nearestEmpty = Mod.Pathfinding.FindPathToNearestEmptyTileNextToTarget(this.indoors, current, pickups[i], npc)?.LastOrDefault();
+            Point? nearestEmpty = Mod.Pathfinding.FindPathToNearestEmptyTileNextToTarget(this.indoors, current, this.pickupObjectPoints[i], npc)?.LastOrDefault();
             if (!nearestEmpty.HasValue)
             {
                 Log.Error("Can't path to coop object");
@@ -58,12 +60,11 @@ internal class CoopJob : Job
             }
 
             // temporarily remove the object to make way for future pathing
-            StardewValley.Object obj = this.indoors.Objects[pickups[i].ToVector2()];
-            this.indoors.Objects.Remove(pickups[i].ToVector2());
-            temporaryPickupObjects.Add(pickups[i], obj);
+            StardewValley.Object obj = this.indoors.Objects[this.pickupObjectPoints[i].ToVector2()];
+            this.indoors.Objects.Remove(this.pickupObjectPoints[i].ToVector2());
+            temporaryPickupObjects.Add(this.pickupObjectPoints[i], obj);
 
-
-            pickupPoints.Add(nearestEmpty.Value);
+            this.pickupStandingPoints.Add(nearestEmpty.Value);
 
             current = nearestEmpty.Value;
         }
@@ -74,12 +75,58 @@ internal class CoopJob : Job
             this.indoors.Objects.Add(pair.Key.ToVector2(), pair.Value);
         }
 
+        if (this.pickupObjectPoints.Count > this.pickupStandingPoints.Count)
+        {
+            foreach (Point p in this.pickupObjectPoints)
+            {
+                if (this.pickupStandingPoints.Contains(p))
+                {
+                    this.pickupObjectPoints.Remove(p);
+                }
+            }
+        }
 
+        // start moving
+        this.MoveToNextPickup();
     }
 
-    private void PickupObject(Point tile)
+    private void MoveToNextPickup()
     {
+        this.index += 1;
 
+        if (this.index >= this.pickupObjectPoints.Count)
+        {
+            Log.Trace("All coop objects collected");
+
+            HelperManager.MoveHelper(this.indoors, this.entry, this.Finish);
+            return;
+        }
+
+        Point standingTile = this.pickupStandingPoints[this.index];
+
+        HelperManager.MoveHelper(this.indoors, standingTile, this.PickupObject);
+    }
+
+    private void PickupObject(NPC npc)
+    {
+        Point objectTile = this.pickupObjectPoints[this.index];
+        int directionToFace = ModUtility.GetDirectionFromTiles(objectTile, npc.TilePoint);
+
+        npc.faceDirection(directionToFace);
+
+        ModUtility.AddDelayedAction(this.ActuallyPickupObject, Game1.random.Next(100, 650));
+        ModUtility.AddDelayedAction(this.MoveToNextPickup, Game1.random.Next(650, 990));
+    }
+
+    public void ActuallyPickupObject()
+    {
+        Point objectTile = this.pickupObjectPoints[this.index];
+
+        // TODO maybe do animation to pickup? (far future  probably)
+
+        StardewValley.Object obj = this.indoors.removeObject(objectTile.ToVector2(), showDestroyedObject: false);
+
+        Mod.HelperInventory.Add(obj);
     }
 
     internal static bool IsAvailable(Building coop)

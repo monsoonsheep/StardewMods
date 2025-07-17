@@ -3,6 +3,7 @@ using StardewValley.Pathfinding;
 using StardewValley.TerrainFeatures;
 using xTile.Dimensions;
 using xTile.Layers;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace StardewMods.SheepCore.Framework.Services;
 public class Pathfinding
@@ -52,7 +53,7 @@ public class Pathfinding
     }
 
     public Stack<Point>? PathfindFromLocationToLocation(GameLocation startingLocation, Point startTile,
-        GameLocation targetLocation, Point targetTile, NPC character)
+        GameLocation targetLocation, Point targetTile, NPC? character)
     {
         Point nextStartPosition = startTile;
         Stack<Point> path = new Stack<Point>();
@@ -63,7 +64,7 @@ public class Pathfinding
         }
 
         // Get location route
-        string[]? locationsRoute = WarpPathfindingCache.GetLocationRoute(startingLocation.NameOrUniqueName, targetLocation.NameOrUniqueName, character.Gender)
+        string[]? locationsRoute = WarpPathfindingCache.GetLocationRoute(startingLocation.NameOrUniqueName, targetLocation.NameOrUniqueName, character?.Gender ?? Gender.Undefined)
             ?? Instance.GetLocationRoute(startingLocation.NameOrUniqueName, targetLocation.NameOrUniqueName);
 
         if (locationsRoute == null)
@@ -224,7 +225,7 @@ public class Pathfinding
                 PathNode neighbor = new PathNode(neighborX, neighborY, currentNode);
                 neighbor.g = (byte) (currentNode.g + 1);
 
-                bool colliding = location.isCollidingPosition(new Rectangle(neighbor.x * 64 + 1, neighbor.y * 64 + 1, 62, 62), Game1.viewport, false, 0, glider: false, character, pathfinding: true);
+                bool colliding = location.isCollidingPosition(new Rectangle(neighbor.x * 64 + 1, neighbor.y * 64 + 1, 62, 62), Game1.viewport, false, 0, glider: false, character, pathfinding: true, ignoreCharacterRequirement: true);
                 bool isFencegate = location.getObjectAtTile(neighborX, neighborY) is Fence fence && fence.isGate.Value;
 
                 if (((neighborX == endPoint.X && neighborY == endPoint.Y) || (neighborX >= 0 && neighborY >= 0 && neighborX < layerWidth && neighborY < layerHeight))
