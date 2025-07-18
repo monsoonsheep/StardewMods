@@ -14,14 +14,16 @@ internal class ItemCollectionJob : Job
 
     private Func<StardewValley.Object, bool> toCollect;
 
-    internal ItemCollectionJob(Func<StardewValley.Object, bool> toCollect, Action<Job> onFinish, GameLocation location, Point startingPosition, NPC npc) : base(npc, location, onFinish)
+    internal ItemCollectionJob(Func<StardewValley.Object, bool> toCollect, Action<Job>? onFinish, GameLocation location, Point? startingPosition, NPC npc) : base(npc, location, onFinish)
     {
-        base.StartPoint = startingPosition;
+        base.startPoint = startingPosition;
         this.toCollect = toCollect;
     }
 
     internal override void Start(NPC npc)
     {
+        Log.Debug("Starting Item collection job");
+
         List<Point> pickupsUnordered = [];
 
         foreach (StardewValley.Object obj in this.location.Objects.Values)
@@ -74,6 +76,8 @@ internal class ItemCollectionJob : Job
             }
         }
 
+        Log.Debug($"{this.pickupObjectPoints.Count} objects to collect");
+
         // start moving
         this.MoveToNextPickup();
     }
@@ -84,10 +88,9 @@ internal class ItemCollectionJob : Job
 
         if (this.index >= this.pickupObjectPoints.Count)
         {
-            Log.Trace("All coop objects collected");
+            Log.Debug("All objects collected");
 
-            this.onFinish(this);
-            //HelperManager.MoveHelper(this.location, base.StartPoint, (n) => this.onFinish());
+            base.Finish(base.npc);
             return;
         }
 
@@ -114,6 +117,13 @@ internal class ItemCollectionJob : Job
 
         StardewValley.Object obj = this.location.removeObject(objectTile.ToVector2(), showDestroyedObject: false);
 
+        Log.Debug($"Picking up '{obj.DisplayName}'");
+
         Mod.HelperInventory.Add(obj);
+    }
+
+    internal static bool IsAvailable(GameLocation location)
+    {
+        return location.Objects.Values.Any(o => ModUtility.IsCollectableObject(o));
     }
 }

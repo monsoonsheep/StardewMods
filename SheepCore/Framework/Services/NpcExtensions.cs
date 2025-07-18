@@ -32,6 +32,7 @@ public static class NpcExtensions
     {
         me.controller = new PathFindController(path, me.currentLocation, me, path.Last())
         {
+            nonDestructivePathing = false,
             NPCSchedule = true
         };
 

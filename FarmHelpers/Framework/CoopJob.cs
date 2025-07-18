@@ -9,13 +9,13 @@ using StardewValley;
 using StardewValley.Buildings;
 
 namespace StardewMods.FarmHelpers.Framework;
-internal class CoopJob : Job
+internal class CoopJob : CompositeJob
 {
     private readonly Building coop;
     private Point indoorEntry;
 
-    private ItemCollectionJob itemCollection = null!;
-    private TroughJob trough = null!;
+    private ItemCollectionJob? itemCollection = null!;
+    private TroughJob? trough = null!;
 
     internal CoopJob(NPC npc, Building coop, Action<Job> onFinish) : base(npc, coop.GetIndoors(), onFinish)
     {
@@ -23,33 +23,60 @@ internal class CoopJob : Job
         this.StartPoint = coop.getPointForHumanDoor() + new Point(0, 1);
     }
 
+    /// <summary>
+    /// Start job when at the door of the coop
+    /// </summary>
     internal override void Start(NPC npc)
     {
-        Log.Trace("Starting coop job");
+        Log.Debug("Starting coop job");
 
         this.indoorEntry = HelperManager.EnterBuilding(this.npc, this.coop);
 
-        this.itemCollection = new ItemCollectionJob(ModUtility.IsCollectableObject, this.OnFinishCollecting, base.location, this.indoorEntry, this.npc);
-        this.trough = new TroughJob(this.npc, base.location, this.OnFinishTrough);
+        if (ItemCollectionJob.IsAvailable(this.location))
+        {
+            base.subJobs.Add(new ItemCollectionJob(
+                ModUtility.IsCollectableObject,
+                null,
+                base.location,
+                this.indoorEntry,
+                this.npc));
+        }
 
-        // Could do MoveTo StartPoint, then Start, but he's already at StartPoint so just start
-        this.itemCollection.Start(npc);
+        if (TroughJob.IsAvailable(this.location))
+        {
+            base.subJobs.Add(new TroughJob(this.npc, base.location, null));
+        }
+
+        if (PettingJob.IsAvailable(this.location))
+        {
+            base.subJobs.Add(new PettingJob(this.npc, base.location, null, null));
+        }
+
+        base.Start(npc);
     }
 
-    internal void OnFinishCollecting(Job job)
+    internal override void DoneAllJobs()
     {
-        HelperManager.MoveHelper(this.location, this.trough.StartPoint, this.trough.Start);
+        Log.Debug("All sub-jobs done for coop job");
+
+        HelperManager.MoveHelper(this.location, this.indoorEntry, this.Finish);
     }
 
-    internal void OnFinishTrough(Job job)
+    internal override void Finish(NPC npc)
     {
-        HelperManager.MoveHelper(this.location, this.StartPoint, (n) => this.onFinish(this));
+        Log.Debug("Leaving coop");
+
+        HelperManager.ExitBuilding(npc, this.location, this.StartPoint);
+        if (ModUtility.IsTimeForOpeningAnimalDoors(this.coop.GetParentLocation()))
+        {
+            this.coop.animalDoorOpen.Set(true);
+        }
+        base.Finish(npc);
     }
 
     internal static bool IsAvailable(Building coop)
     {
         return coop.GetIndoors() is AnimalHouse house
-            && house.Objects.Values.Any(o => ModUtility.IsCollectableObject(o))
-            && TroughJob.IsAvailable(house);
+            && (ItemCollectionJob.IsAvailable(house) || TroughJob.IsAvailable(house) || PettingJob.IsAvailable(house));
     }
 }

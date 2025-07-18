@@ -12,11 +12,19 @@ internal abstract class Job
 {
     protected NPC npc = null!;
 
-    internal Point StartPoint = new Point (-9999, -9999);
-    internal GameLocation location;
-    internal Action<Job> onFinish;
+    protected Point? startPoint = null;
 
-    protected Job(NPC npc, GameLocation location, Action<Job> onFinish)
+    internal Point StartPoint
+    {
+        get => this.startPoint ?? this.npc.TilePoint;
+
+        set => this.startPoint = value;
+    }
+
+    internal GameLocation location;
+    internal Action<Job>? onFinish;
+
+    protected Job(NPC npc, GameLocation location, Action<Job>? onFinish)
     {
         this.npc = npc;
         this.location = location;
@@ -24,4 +32,9 @@ internal abstract class Job
     }
 
     internal abstract void Start(NPC npc);
+
+    internal virtual void Finish(NPC npc)
+    {
+        this.onFinish?.Invoke(this);
+    }
 }

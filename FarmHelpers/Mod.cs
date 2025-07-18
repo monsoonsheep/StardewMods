@@ -3,6 +3,8 @@ global using StardewModdingAPI;
 global using StardewModdingAPI.Events;
 global using StardewMods.Common;
 
+global using Point = Microsoft.Xna.Framework.Point;
+
 using HarmonyLib;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley.Characters;
@@ -27,6 +29,8 @@ public class Mod : StardewModdingAPI.Mod
     internal static Pathfinding Pathfinding = null!;
 
     internal static HelperInventory HelperInventory = null!;
+
+    internal static Farmer FakeFarmer = null!;
 
     public Mod()
         => Instance = this;
@@ -59,5 +63,7 @@ public class Mod : StardewModdingAPI.Mod
 
         Locations = LocationProvider.Instance;
         Pathfinding = Pathfinding.Instance;
+
+        FakeFarmer = new Farmer();
     }
 }

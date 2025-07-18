@@ -122,4 +122,9 @@ internal static class ModUtility
     {
         return (obj.QualifiedItemId == "(O)444" || obj.HasContextTag("egg_item") || obj.HasContextTag("(O)446") || obj.HasContextTag("(O)440"));
     }
+
+    internal static bool IsTimeForOpeningAnimalDoors(GameLocation parentLocation)
+    {
+        return Game1.season != Season.Winter && parentLocation.IsRainingHere() == false;
+    }
 }

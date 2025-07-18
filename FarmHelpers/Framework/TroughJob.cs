@@ -15,7 +15,7 @@ internal class TroughJob : Job
     private int index = -1;
     private StardewValley.Object hopper;
 
-    internal TroughJob(NPC npc, GameLocation location, Action<Job> onFinish) : base(npc, location, onFinish)
+    internal TroughJob(NPC npc, GameLocation location, Action<Job>? onFinish) : base(npc, location, onFinish)
     {
         StardewValley.Object? h = this.location.Objects.Values.FirstOrDefault(o => o.Name.Equals("Feed Hopper"))
             ?? throw new Exception("Hopper not found in animal house");
@@ -37,6 +37,8 @@ internal class TroughJob : Job
 
     internal override void Start(NPC npc)
     {
+        Log.Debug("Starting trough job");
+        
         GameLocation rootLocation = this.location.GetRootLocation();
         Map map = rootLocation.Map;
 
@@ -54,7 +56,7 @@ internal class TroughJob : Job
             this.hays.Add(hay);
         }
 
-        Log.Trace($"Collected {this.hays.Count} hays from hopper");
+        Log.Debug($"Collected {this.hays.Count} hays from hopper");
 
         this.npc.faceDirection(Utility.getDirectionFromChange(this.hopper.TileLocation, this.npc.Tile));
 
@@ -67,10 +69,9 @@ internal class TroughJob : Job
 
         if (this.index >= this.emptySlots.Count)
         {
-            Log.Trace("All trough hays done");
+            Log.Debug("All trough hays done");
 
-            this.onFinish(this);
-            //HelperManager.MoveHelper(this.location, base.StartPoint, (n) => this.onFinish());
+            base.Finish(npc);
             return;
         }
 
@@ -120,7 +121,7 @@ internal class TroughJob : Job
         }
     }
 
-    internal static bool IsAvailable(AnimalHouse location)
+    internal static bool IsAvailable(GameLocation location)
     {
         return EmptyTroughSlots(location).Any();
     }
