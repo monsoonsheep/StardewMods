@@ -6,20 +6,22 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.Buildings;
+using StardewValley.Tools;
 
 namespace StardewMods.FarmHelpers.Framework;
 internal class BarnJob : Job
 {
     private readonly Building barn;
-    private readonly GameLocation indoors;
-    private Point entry;
 
-    internal BarnJob(NPC helper, Building barn) : base(helper)
+    private MilkPail milkPail = null!;
+
+    internal BarnJob(NPC helper, Building barn, Action<Job> onFinish) : base(helper, barn.GetIndoors(), onFinish)
     {
         this.barn = barn;
-        this.indoors = barn.GetIndoors();
 
         this.StartPoint = barn.getPointForHumanDoor() + new Point(0, 1);
+
+        this.milkPail = new MilkPail();
     }
 
     internal override void Start(NPC npc)
@@ -27,9 +29,8 @@ internal class BarnJob : Job
 
     }
 
-    protected override void Finish(NPC npc)
+    protected override void ResetAndFinish(NPC npc)
     {
         throw new NotImplementedException();
     }
-
 }

@@ -31,11 +31,42 @@ internal static class ModUtility
         yield return new Point(target.X, target.Y + 1);
     }
 
+    internal static IEnumerable<Point> GetTilesNextTo(Point target, int directionToPrioritize)
+    {
+        Point[] points = [
+            new Point(target.X, target.Y - 1),
+            new Point(target.X + 1, target.Y),
+            new Point(target.X, target.Y + 1),
+            new Point(target.X - 1, target.Y)
+            ];
+
+        yield return points[directionToPrioritize];
+
+        for (int i = 0; i < 4; i++)
+        {
+            if (i != directionToPrioritize)
+            {
+                yield return points[i];
+            }
+        }
+    }
+
+    internal static IEnumerable<Point> GetEmptyTilesNextTo(GameLocation loc, Point target, int directionToPrioritize)
+    {
+        foreach (Point p in GetTilesNextTo(target, directionToPrioritize))
+        {
+            if (loc.isTilePassable(p.ToVector2()) && loc.GetFurnitureAt(p.ToVector2()) == null)
+            {
+                yield return p;
+            }
+        }
+    }
+
     internal static IEnumerable<Point> GetEmptyTilesNextTo(GameLocation loc, Point target)
     {
         foreach (Point p in GetTilesNextTo(target))
         {
-            if (loc.isTilePassable(target.ToVector2()) && loc.GetFurnitureAt(target.ToVector2()) == null) {
+            if (loc.isTilePassable(p.ToVector2()) && loc.GetFurnitureAt(p.ToVector2()) == null) {
                 yield return p;
             }
         }
@@ -80,5 +111,15 @@ internal static class ModUtility
     internal static void AddDelayedAction(Action action, int delay)
     {
         Game1.delayedActions.Add(new DelayedAction(delay, action));
+    }
+
+    internal static bool IsFarmOrIndoor(GameLocation location)
+    {
+        return location is Farm || (location.ParentBuilding is Building b && b.GetParentLocation() is Farm);
+    }
+
+    internal static bool IsCollectableObject(StardewValley.Object obj)
+    {
+        return (obj.QualifiedItemId == "(O)444" || obj.HasContextTag("egg_item") || obj.HasContextTag("(O)446") || obj.HasContextTag("(O)440"));
     }
 }

@@ -29,7 +29,6 @@ internal class HelperManager
 
     private NPC? helper = null;
     private PathFindController? previousController = null;
-    private MilkPail milkPail = null!;
 
     private int index = -1;
 
@@ -56,7 +55,6 @@ internal class HelperManager
         Mod.Events.Content.AssetRequested += this.OnAssetRequested;
         Mod.Events.Content.AssetReady += this.OnAssetReady;
 
-        this.milkPail = new MilkPail();
 
         Mod.Harmony.Patch(
             AccessTools.Method(typeof(Character), nameof(Character.collideWith), [typeof(StardewValley.Object)]),
@@ -90,6 +88,7 @@ internal class HelperManager
         this.State = HelperState.OffDuty;
         this.currentJob = null;
         this.plannedJobs.Clear();
+        this.buildingDoorsClosed.Clear();
         this.index = -1;
         this.FindJobs();
     }
@@ -143,19 +142,19 @@ internal class HelperManager
 
             if (buildingType == "Barn" && indoors.animals.Any())
             {
-                Log.Trace("Adding barn job");
+                //Log.Trace("Adding barn job");
 
-                BarnJob job = new BarnJob(this.helper!, building);
-                this.plannedJobs.Add(job);
+                //BarnJob job = new BarnJob(this.helper!, building);
+                //this.plannedJobs.Add(job);
 
-                this.CheckBuildingAnimalDoor(building);
+                //this.CheckBuildingAnimalDoor(building);
             }
 
             else if (buildingType == "Coop" && CoopJob.IsAvailable(building))
             {
                 Log.Trace("Adding coop job");
 
-                CoopJob job = new CoopJob(this.helper!, building);
+                CoopJob job = new CoopJob(this.helper!, building, OnFinishJob);
                 this.plannedJobs.Add(job);
 
                 this.CheckBuildingAnimalDoor(building);
@@ -174,6 +173,17 @@ internal class HelperManager
         }
     }
 
+    private void RestoreBuildingAnimalDoors()
+    {
+        foreach (Building b in this.buildingDoorsClosed)
+        {
+            if (b.animalDoorOpen.Value == false)
+            {
+                b.animalDoorOpen.Set(true);
+            }
+        }
+    }
+
     
     private void StartDay()
     {
@@ -187,10 +197,9 @@ internal class HelperManager
 
         //this.helper.ignoreScheduleToday = true;
 
-        GameLocation forest = this.locations.Forest;
-        Point pos = new Point(67, 4);
+        bool res = MoveHelper(this.locations.Forest, new Point(67, 4), this.StartJobs);
 
-        if (MoveHelper(forest, pos, this.StartJobs) == true)
+        if (res == true)
         {
             this.State = HelperState.MovingToFarm;
         }
@@ -238,8 +247,15 @@ internal class HelperManager
         }
     }
 
-    public static void OnFinishJob(Job job, NPC npc)
+    public static void OnFinishJob(Job job)
     {
+        Log.Trace($"{job.GetType().FullName} job finished");
+
+        if (Instance.helper!.currentLocation != Mod.Locations.Farm || Instance.helper.TilePoint != job.StartPoint)
+        {
+            Game1.warpCharacter(Instance.helper, Mod.Locations.Farm, job.StartPoint.ToVector2());
+        }
+
         // TODO track the job as finished, maybe stats?
         Instance.NextJob();
     }
@@ -267,13 +283,7 @@ internal class HelperManager
 
     private void AllJobsFinished()
     {
-        foreach (Building b in this.buildingDoorsClosed)
-        {
-            if (b.animalDoorOpen.Value == false)
-            {
-                b.animalDoorOpen.Set(true);
-            }
-        }
+        this.RestoreBuildingAnimalDoors();
 
         this.GoHome();
     }
@@ -331,6 +341,12 @@ internal class HelperManager
             {
                 fence.toggleGate(false, is_toggling_counterpart: true);
             }
+        }
+
+        // set isCharging to true because of collisions with farm animals
+        if (ModUtility.IsFarmOrIndoor(location) && location.animals.FieldDict.Count > 0)
+        {
+            npc.isCharging = true;
         }
 
         return res;
