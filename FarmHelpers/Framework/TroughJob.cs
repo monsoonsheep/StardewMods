@@ -86,7 +86,7 @@ internal class TroughJob : Job
             return;
         }
 
-        HelperManager.MoveHelper(this.location, standingTile.Value, this.PlaceHay);
+        Worker.MoveHelper(this.location, standingTile.Value, this.PlaceHay);
     }
 
     private void PlaceHay(NPC npc)

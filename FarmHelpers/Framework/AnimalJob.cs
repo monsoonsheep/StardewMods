@@ -57,7 +57,7 @@ internal abstract class AnimalJob : Job
 
         // Move to pet
         this.currentAnimal.pauseTimer = 9999;
-        HelperManager.MoveHelper(this.location, standingTile.Value, this.OnReachAnimal);
+        Worker.MoveHelper(this.location, standingTile.Value, this.OnReachAnimal);
     }
 
     private void OnReachAnimal(NPC npc)

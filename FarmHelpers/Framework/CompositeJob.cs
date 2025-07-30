@@ -39,7 +39,7 @@ internal abstract class CompositeJob : Job
         }
         else
         {
-            HelperManager.MoveHelper(this.location, nextJob.StartPoint, nextJob.Start);
+            Worker.MoveHelper(this.location, nextJob.StartPoint, nextJob.Start);
         }
     }
 

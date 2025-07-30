@@ -30,7 +30,7 @@ internal class CoopJob : CompositeJob
     {
         Log.Debug("Starting coop job");
 
-        this.indoorEntry = HelperManager.EnterBuilding(this.npc, this.coop);
+        this.indoorEntry = Worker.EnterBuilding(this.npc, this.coop);
 
         if (ItemCollectionJob.IsAvailable(this.location))
         {
@@ -59,14 +59,14 @@ internal class CoopJob : CompositeJob
     {
         Log.Debug("All sub-jobs done for coop job");
 
-        HelperManager.MoveHelper(this.location, this.indoorEntry, this.Finish);
+        Worker.MoveHelper(this.location, this.indoorEntry, this.Finish);
     }
 
     internal override void Finish(NPC npc)
     {
         Log.Debug("Leaving coop");
 
-        HelperManager.ExitBuilding(npc, this.location, this.StartPoint);
+        Worker.ExitBuilding(npc, this.location, this.StartPoint);
         if (ModUtility.IsTimeForOpeningAnimalDoors(this.coop.GetParentLocation()))
         {
             this.coop.animalDoorOpen.Set(true);

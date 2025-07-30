@@ -95,7 +95,7 @@ internal class ItemCollectionJob : Job
         }
 
         Point target = this.pickupStandingPoints[this.index];
-        HelperManager.MoveHelper(this.location, target, this.PickupObject);
+        Worker.MoveHelper(this.location, target, this.PickupObject);
     }
 
     private void PickupObject(NPC npc)

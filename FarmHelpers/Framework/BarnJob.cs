@@ -30,7 +30,7 @@ internal class BarnJob : CompositeJob
     {
         Log.Debug("Starting barn job");
 
-        this.indoorEntry = HelperManager.EnterBuilding(this.npc, this.barn);
+        this.indoorEntry = Worker.EnterBuilding(this.npc, this.barn);
 
         if (ItemCollectionJob.IsAvailable(this.location))
         {
@@ -64,14 +64,14 @@ internal class BarnJob : CompositeJob
     {
         Log.Debug("All sub-jobs done for barn job");
 
-        HelperManager.MoveHelper(this.location, this.indoorEntry, this.Finish);
+        Worker.MoveHelper(this.location, this.indoorEntry, this.Finish);
     }
 
     internal override void Finish(NPC npc)
     {
         Log.Debug("Leaving barn");
 
-        HelperManager.ExitBuilding(npc, this.location, this.StartPoint);
+        Worker.ExitBuilding(npc, this.location, this.StartPoint);
         if (ModUtility.IsTimeForOpeningAnimalDoors(this.barn.GetParentLocation()))
         {
             this.barn.animalDoorOpen.Set(true);
