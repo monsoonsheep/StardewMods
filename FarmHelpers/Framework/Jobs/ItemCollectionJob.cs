@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 
-namespace StardewMods.FarmHelpers.Framework;
+namespace StardewMods.FarmHelpers.Framework.Jobs;
 internal class ItemCollectionJob : Job
 {
     private int index = -1;
@@ -16,7 +16,7 @@ internal class ItemCollectionJob : Job
 
     internal ItemCollectionJob(Func<StardewValley.Object, bool> toCollect, Action<Job>? onFinish, GameLocation location, Point? startingPosition, NPC npc) : base(npc, location, onFinish)
     {
-        base.startPoint = startingPosition;
+        startPoint = startingPosition;
         this.toCollect = toCollect;
     }
 
@@ -34,12 +34,12 @@ internal class ItemCollectionJob : Job
             }
         }
 
-        this.pickupObjectPoints = ModUtility.GetNaturalPath(base.StartPoint, pickupsUnordered);
+        this.pickupObjectPoints = ModUtility.GetNaturalPath(StartPoint, pickupsUnordered);
         List<StardewValley.Object> pickupObjects = this.pickupObjectPoints.Select(p => this.location.Objects[p.ToVector2()]).ToList();
 
         // Chain-Path to the tile next to each pickup
         Dictionary<Point, StardewValley.Object> temporaryPickupObjects = [];
-        Point current = base.StartPoint;
+        Point current = StartPoint;
         for (int i = 0; i < this.pickupObjectPoints.Count; i++)
         {
             Point? nearestEmpty = Mod.Pathfinding.FindPathToNearestEmptyTileNextToTarget(this.location, current, this.pickupObjectPoints[i], this.npc)?.LastOrDefault();
@@ -90,12 +90,12 @@ internal class ItemCollectionJob : Job
         {
             Log.Debug("All objects collected");
 
-            base.Finish(base.npc);
+            base.Finish(npc);
             return;
         }
 
         Point target = this.pickupStandingPoints[this.index];
-        Worker.MoveHelper(this.location, target, this.PickupObject);
+        Mod.Movement.Move(this.location, target, this.PickupObject);
     }
 
     private void PickupObject(NPC npc)

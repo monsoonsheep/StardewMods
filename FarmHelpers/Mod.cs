@@ -28,9 +28,11 @@ public class Mod : StardewModdingAPI.Mod
 
     internal static Pathfinding Pathfinding = null!;
 
+    internal static JobHandler Jobs = null!;
+
     internal static Worker Worker = null!;
 
-    internal static HelperInventory HelperInventory = null!;
+    internal static WorkerInventory HelperInventory = null!;
 
     internal static Movement Movement = null!;
 
@@ -60,14 +62,15 @@ public class Mod : StardewModdingAPI.Mod
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
     {
         Worker = new Worker();
+        Movement = new Movement();
+        Jobs = new JobHandler();
 
         _ = new ItachiHouseFixes();
 
         Locations = LocationProvider.Instance;
         Pathfinding = Pathfinding.Instance;
 
-        HelperInventory = new HelperInventory();
-        Movement = new Movement();
+        HelperInventory = new WorkerInventory();
         FakeFarmer = new Farmer();
     }
 }

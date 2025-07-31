@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework;
 using StardewMods.SheepCore.Framework.Services;
 using StardewValley.Buildings;
 
-namespace StardewMods.FarmHelpers.Framework;
+namespace StardewMods.FarmHelpers.Framework.Jobs;
 internal abstract class Job
 {
     protected NPC npc = null!;

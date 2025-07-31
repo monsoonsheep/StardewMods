@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StardewMods.FarmHelpers.Framework;
+namespace StardewMods.FarmHelpers.Framework.Jobs;
 internal abstract class AnimalJob : Job
 {
     private List<FarmAnimal> remainingAnimals = [];
@@ -12,7 +12,7 @@ internal abstract class AnimalJob : Job
 
     internal AnimalJob(NPC npc, GameLocation location, Action<Job>? onFinish, Point? startingTile) : base(npc, location, onFinish)
     {
-        base.startPoint = startingTile;
+        this.startPoint = startingTile;
     }
 
     internal override void Start(NPC npc)
@@ -57,7 +57,7 @@ internal abstract class AnimalJob : Job
 
         // Move to pet
         this.currentAnimal.pauseTimer = 9999;
-        Worker.MoveHelper(this.location, standingTile.Value, this.OnReachAnimal);
+        Mod.Movement.Move(this.location, standingTile.Value, this.OnReachAnimal);
     }
 
     private void OnReachAnimal(NPC npc)

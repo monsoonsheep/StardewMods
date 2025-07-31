@@ -8,7 +8,7 @@ using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Tools;
 
-namespace StardewMods.FarmHelpers.Framework;
+namespace StardewMods.FarmHelpers.Framework.Jobs;
 internal class BarnJob : CompositeJob
 {
     private readonly Building barn;
@@ -30,31 +30,31 @@ internal class BarnJob : CompositeJob
     {
         Log.Debug("Starting barn job");
 
-        this.indoorEntry = Worker.EnterBuilding(this.npc, this.barn);
+        this.indoorEntry = Mod.Movement.EnterBuilding(this.barn);
 
         if (ItemCollectionJob.IsAvailable(this.location))
         {
-            base.subJobs.Add(new ItemCollectionJob(
+            subJobs.Add(new ItemCollectionJob(
                 ModUtility.IsCollectableObject,
                 null,
-                base.location,
+                location,
                 this.indoorEntry,
                 this.npc));
         }
 
         if (TroughJob.IsAvailable(this.location))
         {
-            base.subJobs.Add(new TroughJob(this.npc, base.location, null));
+            subJobs.Add(new TroughJob(this.npc, location, null));
         }
 
         if (PettingJob.IsAvailable(this.location))
         {
-            base.subJobs.Add(new PettingJob(this.npc, base.location, null, null));
+            subJobs.Add(new PettingJob(this.npc, location, null, null));
         }
 
         if (AnimalProduceJob.IsAvailable(this.location))
         {
-            base.subJobs.Add(new AnimalProduceJob(this.npc, base.location, null, null));
+            subJobs.Add(new AnimalProduceJob(this.npc, location, null, null));
         }
 
         base.Start(npc);
@@ -64,14 +64,14 @@ internal class BarnJob : CompositeJob
     {
         Log.Debug("All sub-jobs done for barn job");
 
-        Worker.MoveHelper(this.location, this.indoorEntry, this.Finish);
+        Mod.Movement.Move(this.location, this.indoorEntry, this.Finish);
     }
 
     internal override void Finish(NPC npc)
     {
         Log.Debug("Leaving barn");
 
-        Worker.ExitBuilding(npc, this.location, this.StartPoint);
+        Mod.Movement.ExitBuilding(this.location, this.StartPoint);
         if (ModUtility.IsTimeForOpeningAnimalDoors(this.barn.GetParentLocation()))
         {
             this.barn.animalDoorOpen.Set(true);

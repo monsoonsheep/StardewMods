@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace StardewMods.FarmHelpers.Framework;
-internal class HelperInventory
+internal class WorkerInventory
 {
     private List<Item> Inventory = [];
 

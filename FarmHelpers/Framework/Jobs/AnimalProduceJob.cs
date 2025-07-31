@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using StardewValley.GameData.FarmAnimals;
 using StardewValley.Objects;
 
-namespace StardewMods.FarmHelpers.Framework;
+namespace StardewMods.FarmHelpers.Framework.Jobs;
 internal class AnimalProduceJob : AnimalJob
 {
     public AnimalProduceJob(NPC npc, GameLocation location, Action<Job>? onFinish, Point? startingTile) : base(npc, location, onFinish, startingTile)
@@ -46,7 +46,7 @@ internal class AnimalProduceJob : AnimalJob
 
     internal static bool IsAnimalValidButStatic(FarmAnimal animal)
     {
-        return (animal.GetHarvestType() == FarmAnimalHarvestType.HarvestWithTool && animal.currentProduce.Value != null);
+        return animal.GetHarvestType() == FarmAnimalHarvestType.HarvestWithTool && animal.currentProduce.Value != null;
     }
 
     internal static bool IsAvailable(GameLocation location)

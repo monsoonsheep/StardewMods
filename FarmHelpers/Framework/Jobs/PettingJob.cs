@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StardewMods.FarmHelpers.Framework;
+namespace StardewMods.FarmHelpers.Framework.Jobs;
 internal class PettingJob : AnimalJob
 {
     internal PettingJob(NPC npc, GameLocation location, Action<Job>? onFinish, Point? startingTile) : base(npc, location, onFinish, startingTile)
@@ -14,7 +14,7 @@ internal class PettingJob : AnimalJob
 
     protected override bool IsAnimalValid(FarmAnimal animal)
     {
-        return (animal.wasPet.Value == false && animal.wasAutoPet.Value == false);
+        return animal.wasPet.Value == false && animal.wasAutoPet.Value == false;
     }
 
     protected override void AnimalAction(FarmAnimal animal)

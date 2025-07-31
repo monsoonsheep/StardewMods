@@ -8,7 +8,7 @@ using StardewMods.SheepCore.Framework.Services;
 using StardewValley;
 using StardewValley.Buildings;
 
-namespace StardewMods.FarmHelpers.Framework;
+namespace StardewMods.FarmHelpers.Framework.Jobs;
 internal class CoopJob : CompositeJob
 {
     private readonly Building coop;
@@ -30,26 +30,26 @@ internal class CoopJob : CompositeJob
     {
         Log.Debug("Starting coop job");
 
-        this.indoorEntry = Worker.EnterBuilding(this.npc, this.coop);
+        this.indoorEntry = Mod.Movement.EnterBuilding(this.coop);
 
         if (ItemCollectionJob.IsAvailable(this.location))
         {
-            base.subJobs.Add(new ItemCollectionJob(
+            subJobs.Add(new ItemCollectionJob(
                 ModUtility.IsCollectableObject,
                 null,
-                base.location,
+                location,
                 this.indoorEntry,
                 this.npc));
         }
 
         if (TroughJob.IsAvailable(this.location))
         {
-            base.subJobs.Add(new TroughJob(this.npc, base.location, null));
+            subJobs.Add(new TroughJob(this.npc, location, null));
         }
 
         if (PettingJob.IsAvailable(this.location))
         {
-            base.subJobs.Add(new PettingJob(this.npc, base.location, null, null));
+            subJobs.Add(new PettingJob(this.npc, location, null, null));
         }
 
         base.Start(npc);
@@ -59,14 +59,14 @@ internal class CoopJob : CompositeJob
     {
         Log.Debug("All sub-jobs done for coop job");
 
-        Worker.MoveHelper(this.location, this.indoorEntry, this.Finish);
+        Mod.Movement.Move(this.location, this.indoorEntry, this.Finish);
     }
 
     internal override void Finish(NPC npc)
     {
         Log.Debug("Leaving coop");
 
-        Worker.ExitBuilding(npc, this.location, this.StartPoint);
+        Mod.Movement.ExitBuilding(this.location, this.StartPoint);
         if (ModUtility.IsTimeForOpeningAnimalDoors(this.coop.GetParentLocation()))
         {
             this.coop.animalDoorOpen.Set(true);

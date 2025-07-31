@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StardewMods.FarmHelpers.Framework;
+namespace StardewMods.FarmHelpers.Framework.Jobs;
 internal abstract class CompositeJob : Job
 {
     protected List<Job> subJobs = [];
@@ -39,7 +39,7 @@ internal abstract class CompositeJob : Job
         }
         else
         {
-            Worker.MoveHelper(this.location, nextJob.StartPoint, nextJob.Start);
+            Mod.Movement.Move(this.location, nextJob.StartPoint, nextJob.Start);
         }
     }
 

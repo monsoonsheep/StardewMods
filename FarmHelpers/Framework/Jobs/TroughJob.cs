@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework;
 using xTile;
 using xTile.Tiles;
 
-namespace StardewMods.FarmHelpers.Framework;
+namespace StardewMods.FarmHelpers.Framework.Jobs;
 internal class TroughJob : Job
 {
     private List<StardewValley.Object> hays = [];
@@ -24,11 +24,11 @@ internal class TroughJob : Job
 
         foreach (Point p in ModUtility.GetEmptyTilesNextTo(this.location, this.hopper.TileLocation.ToPoint(), directionToPrioritize: 2))
         {
-            base.StartPoint = p;
+            StartPoint = p;
             break;
         }
 
-        if (base.StartPoint.X == -9999)
+        if (StartPoint.X == -9999)
         {
             // INVALID
             return;
@@ -86,7 +86,7 @@ internal class TroughJob : Job
             return;
         }
 
-        Worker.MoveHelper(this.location, standingTile.Value, this.PlaceHay);
+        Mod.Movement.Move(this.location, standingTile.Value, this.PlaceHay);
     }
 
     private void PlaceHay(NPC npc)

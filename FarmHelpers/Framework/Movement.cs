@@ -11,7 +11,7 @@ internal class Movement
 {
     internal bool Move(GameLocation location, Point tile, Action<NPC>? endBehavior)
     {
-        NPC npc = Mod.Worker.npc ?? throw new Exception("worker NPC is null");
+        NPC npc = Mod.Worker.Npc ?? throw new Exception("worker NPC is null");
 
         // open all closed fences
         bool isFarm = location is Farm;
@@ -43,14 +43,10 @@ internal class Movement
         }
 
         // close the fences again
-        if (res == true && isFarm)
+        if (res == true && isFarm && fences.Any())
         {
             Log.Debug("Closing fences back");
-
-            foreach (Fence fence in fences)
-            {
-                fence.toggleGate(false, is_toggling_counterpart: true);
-            }
+            fences.ForEach(f => f.toggleGate(false, is_toggling_counterpart: true));
         }
 
         // set isCharging to true because of collisions with farm animals
@@ -63,8 +59,10 @@ internal class Movement
         return res;
     }
 
-    internal static Point EnterBuilding(NPC npc, Building building)
+    internal Point EnterBuilding(Building building)
     {
+        NPC npc = Mod.Worker.Npc ?? throw new Exception("worker NPC is null");
+
         GameLocation indoors = building.GetIndoors();
 
         Point entry = ModUtility.GetEntryTileForBuildingIndoors(building);
@@ -74,8 +72,10 @@ internal class Movement
         return entry;
     }
 
-    internal static Point ExitBuilding(NPC npc, GameLocation indoors, Point? exitPointOnFarm = null)
+    internal Point ExitBuilding(GameLocation indoors, Point? exitPointOnFarm = null)
     {
+        NPC npc = Mod.Worker.Npc ?? throw new Exception("worker NPC is null");
+
         GameLocation parentLocation = indoors.GetParentLocation();
         Building building = indoors.ParentBuilding;
 
