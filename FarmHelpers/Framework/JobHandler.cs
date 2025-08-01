@@ -86,7 +86,7 @@ internal class JobHandler
 
             if (this.worker.Npc.currentLocation is Farm || this.worker.Npc.currentLocation is AnimalHouse)
             {
-                WarpToForestWaitingPoint(this.worker.Npc);
+                this.WarpToForestWaitingPoint(this.worker.Npc);
             }
         }
     }
@@ -112,7 +112,7 @@ internal class JobHandler
             {
                 Log.Debug("Adding barn job");
 
-                BarnJob job = new BarnJob(this.worker.Npc!, building, OnFinishJob);
+                BarnJob job = new BarnJob(this.worker.Npc!, building, this.OnFinishJob);
                 this.plannedJobs.Add(job);
 
                 this.CloseAnimalDoor(building);
@@ -122,7 +122,7 @@ internal class JobHandler
             {
                 Log.Debug("Adding coop job");
 
-                CoopJob job = new CoopJob(this.worker.Npc!, building, OnFinishJob);
+                CoopJob job = new CoopJob(this.worker.Npc!, building, this.OnFinishJob);
                 this.plannedJobs.Add(job);
 
                 this.CloseAnimalDoor(building);
@@ -135,10 +135,7 @@ internal class JobHandler
     // TODO remove maybe?
     private void CloseAnimalDoor(Building building)
     {
-        if (building.animalDoorOpen.Value == true)
-        {
-            building.animalDoorOpen.Set(false);
-        }
+        building.animalDoorOpen.Set(false);
     }
 
     private void StartDay()
@@ -172,7 +169,7 @@ internal class JobHandler
     private void StartJobs(NPC npc)
     {
         // warp to Farm 41, 61, start jobs 
-        WarpToFarmEntryPoint(npc);
+        this.WarpToFarmEntryPoint(npc);
         this.NextJob();
     }
 
@@ -205,25 +202,26 @@ internal class JobHandler
         }
     }
 
-    public static void OnFinishJob(Job job)
+    internal void OnFinishJob(Job job)
     {
         Log.Debug($"{job.GetType().FullName} job finished");
 
-        if (Instance.worker.Npc!.currentLocation != Mod.Locations.Farm || Instance.worker.Npc.TilePoint != job.StartPoint)
+        // 
+        if (this.worker.Npc!.currentLocation != Mod.Locations.Farm || this.worker.Npc.TilePoint != job.StartPoint)
         {
-            Game1.warpCharacter(Instance.worker.Npc, Mod.Locations.Farm, job.StartPoint.ToVector2());
+            Game1.warpCharacter(this.worker.Npc, Mod.Locations.Farm, job.StartPoint.ToVector2());
         }
 
         // TODO track the job as finished, maybe stats?
-        Instance.NextJob();
+        this.NextJob();
     }
 
-    internal static void WarpToForestWaitingPoint(NPC npc)
+    internal void WarpToForestWaitingPoint(NPC npc)
     {
         Game1.warpCharacter(npc, Mod.Locations.Forest, new Vector2(67, 4));
     }
 
-    internal static void WarpToFarmEntryPoint(NPC npc)
+    internal void WarpToFarmEntryPoint(NPC npc)
     {
         Game1.warpCharacter(npc, Mod.Locations.Farm, new Vector2(41, 61));
     }
@@ -240,7 +238,7 @@ internal class JobHandler
 
     private void LeaveFarmAndGoHome(NPC npc)
     {
-        WarpToForestWaitingPoint(npc);
+        this.WarpToForestWaitingPoint(npc);
 
         Log.Debug("Setting EventActor to false");
         npc.EventActor = false;
