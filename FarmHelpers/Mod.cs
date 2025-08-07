@@ -24,10 +24,13 @@ public class Mod : StardewModdingAPI.Mod
     internal static IGameContentHelper GameContent { get; private set; } = null!;
     internal static Harmony Harmony { get; private set; } = null!;
 
+
+    // Dependencies
     internal static LocationProvider Locations = null!;
 
     internal static Pathfinding Pathfinding = null!;
 
+    // Mod Services
     internal static JobHandler Jobs = null!;
 
     internal static Worker Worker = null!;
@@ -61,15 +64,13 @@ public class Mod : StardewModdingAPI.Mod
     /// </summary>
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
     {
-        Worker = new Worker();
-        Movement = new Movement();
-        Jobs = new JobHandler();
-
-        _ = new ItachiHouseFixes();
-
         Locations = LocationProvider.Instance;
         Pathfinding = Pathfinding.Instance;
 
+        Worker = new Worker();
+        Movement = new Movement();
+        Jobs = new JobHandler();
+        _ = new ItachiHouseFixes();
         HelperInventory = new WorkerInventory();
         FakeFarmer = new Farmer();
     }

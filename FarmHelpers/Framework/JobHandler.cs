@@ -198,7 +198,6 @@ internal class JobHandler
             Log.Error($"Path not found for job {this.currentJob.GetType().Name}");
 
             this.NextJob();
-            return;
         }
     }
 
@@ -206,7 +205,7 @@ internal class JobHandler
     {
         Log.Debug($"{job.GetType().FullName} job finished");
 
-        // 
+        // Return to FARM, at the finished job's start point, if not already there
         if (this.worker.Npc!.currentLocation != Mod.Locations.Farm || this.worker.Npc.TilePoint != job.StartPoint)
         {
             Game1.warpCharacter(this.worker.Npc, Mod.Locations.Farm, job.StartPoint.ToVector2());
