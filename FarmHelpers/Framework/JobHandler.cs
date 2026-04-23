@@ -81,6 +81,7 @@ internal class JobHandler
     {
         if (this.worker.Npc != null)
         {
+            // Reset NPC state and remove them from building interiors
             Log.Debug("Setting EventActor to false");
             this.worker.Npc.EventActor = false;
 
@@ -91,6 +92,9 @@ internal class JobHandler
         }
     }
 
+    /// <summary>
+    /// Generate available jobs and add them to the jobs list
+    /// </summary>
     private void FindJobs()
     {
         Utility.ForEachBuilding((building) =>
@@ -132,12 +136,17 @@ internal class JobHandler
         });
     }
 
-    // TODO remove maybe?
+    /// <summary>
+    /// Close the animal door of building
+    /// </summary>
     private void CloseAnimalDoor(Building building)
     {
         building.animalDoorOpen.Set(false);
     }
 
+    /// <summary>
+    /// Path to the farm (<see cref="WorkerState.MovingToFarm"/>)
+    /// </summary>
     private void StartDay()
     {
         Log.Debug("Setting EventActor to true");

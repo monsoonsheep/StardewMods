@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>StardewMods.SnowgoonGame</RootNamespace>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+  <!-- Dependencies -->
+  <Import Project="..\Common\Common.projitems" Label="Shared" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\SheepCore\SheepCore.csproj" Private="false" />
+    <Reference Include="SpaceCore" HintPath="$(GamePath)\Mods\SpaceCore\SpaceCore.dll" Private="false" />
+    <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.0" />
+  </ItemGroup>
+
+  <!-- Translations -->
+  <ItemGroup>
+    <AdditionalFiles Include="i18n/default.json" />
+  </ItemGroup>
+
+  <!-- Content Patcher Component -->
+  <!--<ItemGroup>
+    <ContentPacks Include="CP" Version="$(Version)" FolderName="[CP] FoodJoints" />
+  </ItemGroup>-->
+
+  <!-- SMAPI Manifest -->
+  <PropertyGroup>
+    <Name>Snowgoon Game</Name>
+    <Authors>MonsoonSheep</Authors>
+    <Description>Make snowgoons with your friends</Description>
+    <UniqueId>MonsoonSheep.SnowgoonGame</UniqueId>
+    <UpdateKeys>Nexus:idhere</UpdateKeys>
+    <MinimumApiVersion>4.0.0</MinimumApiVersion>
+    <MinimumGameVersion>1.6</MinimumGameVersion>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <SMAPIDependency Include="spacechase0.SpaceCore" Version="1.24" Reference="false" />
+    <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
+    <SMAPIDependency Include="MonsoonSheep.SheepCore" Version="0.1.0" Required="true" />
+  </ItemGroup>
+</Project>
+

@@ -27,6 +27,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FarmHelpers", "FarmHelpers\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WrongForecast", "WrongForecast\WrongForecast.csproj", "{BBDEF5E6-1B21-408B-81CA-20A204DA93B8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnowgoonGame", "SnowgoonGame\SnowgoonGame.csproj", "{607CE0D3-CCCA-48AC-938C-DA690093B1D0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,6 +79,10 @@ Global
 		{BBDEF5E6-1B21-408B-81CA-20A204DA93B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BBDEF5E6-1B21-408B-81CA-20A204DA93B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BBDEF5E6-1B21-408B-81CA-20A204DA93B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{607CE0D3-CCCA-48AC-938C-DA690093B1D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{607CE0D3-CCCA-48AC-938C-DA690093B1D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{607CE0D3-CCCA-48AC-938C-DA690093B1D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{607CE0D3-CCCA-48AC-938C-DA690093B1D0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -87,10 +93,10 @@ Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Common\Common.projitems*{21d9fcae-77be-4eae-ad26-0ded3fdce861}*SharedItemsImports = 5
 		Common\Common.projitems*{5e265844-2784-4b30-ad09-34ed102ef09a}*SharedItemsImports = 5
+		Common\Common.projitems*{607ce0d3-ccca-48ac-938c-da690093b1d0}*SharedItemsImports = 5
 		Common\Common.projitems*{75f61fd6-a8de-4327-9cd2-2d939fe28b8a}*SharedItemsImports = 5
 		Common\Common.projitems*{89175375-9d93-46f6-8f69-42be4aecd4aa}*SharedItemsImports = 5
 		Common\Common.projitems*{a8ea9d0e-6405-4641-b1de-8f009bfdc5eb}*SharedItemsImports = 5
-		Common\Common.projitems*{a95860d1-aa37-4e34-9127-f1bccccbee35}*SharedItemsImports = 5
 		Common\Common.projitems*{b8a164cd-a176-4953-a8ad-db3e249a5c5d}*SharedItemsImports = 5
 		Common\Common.projitems*{d21f41bb-18e5-433a-b741-bc76b13d8336}*SharedItemsImports = 13
 	EndGlobalSection

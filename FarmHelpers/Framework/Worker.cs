@@ -27,6 +27,9 @@ internal class Worker
             );
     }
 
+    /// <summary>
+    /// Prevent collision with fence gates (when pathing? when moving? idk TODO find out)
+    /// </summary>
     private static void After_CharacterCollideWith(Character __instance, StardewValley.Object o, ref bool __result)
     {
         if (__instance == Instance.Npc && o is Fence fence && fence.isGate.Value)
@@ -35,6 +38,9 @@ internal class Worker
         }
     }
 
+    /// <summary>
+    /// Find the worker when we first load in
+    /// </summary>
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
     {
         foreach (var pair in Game1.characterData)

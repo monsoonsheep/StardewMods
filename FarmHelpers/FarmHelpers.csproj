@@ -10,7 +10,7 @@
 
   <ItemGroup>
 	  <ProjectReference Include="..\SheepCore\SheepCore.csproj" Private="false" />
-	  <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.0" />
+	  <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.1" />
   </ItemGroup>
 
   <!-- Translations -->
@@ -36,6 +36,10 @@
   </PropertyGroup>
   <ItemGroup>
     <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="Leclair.Stardew.ModManifestBuilder" Version="2.4.1" />
+    <PackageReference Update="Pathoschild.Stardew.ModBuildConfig" Version="4.4.0" />
   </ItemGroup>
 
 </Project>

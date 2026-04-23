@@ -1,0 +1,36 @@
+{
+  /*
+   | This file is automatically updated by ModManifestBuilder
+   | when the project is compiled.
+   | 
+   | Changes made to this file may be overwritten.
+   | 
+   */
+  "$schema": "https://smapi.io/schemas/manifest.json",
+  "UniqueID": "MonsoonSheep.SnowgoonGame",
+  "Name": "Snowgoon Game",
+  "Author": "MonsoonSheep",
+  "Version": "0.1.0",
+  "Description": "Make snowgoons with your friends",
+  "MinimumApiVersion": "4.0.0",
+  "MinimumGameVersion": "1.6",
+  "EntryDll": "SnowgoonGame.dll",
+  "Dependencies": [
+    {
+      "UniqueID": "MonsoonSheep.SheepCore",
+      "MinimumVersion": "0.1.0"
+    },
+    {
+      "UniqueID": "spacechase0.GenericModConfigMenu",
+      "MinimumVersion": "1.12",
+      "IsRequired": false
+    },
+    {
+      "UniqueID": "spacechase0.SpaceCore",
+      "MinimumVersion": "1.24"
+    }
+  ],
+  "UpdateKeys": [
+    "Nexus:idhere"
+  ]
+}
