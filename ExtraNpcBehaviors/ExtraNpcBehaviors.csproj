@@ -12,6 +12,9 @@
   <ItemGroup>
     <AdditionalFiles Include="i18n/default.json" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="Pathoschild.Stardew.ModBuildConfig" Version="4.4.0" />
+  </ItemGroup>
   
   <!-- SMAPI Manifest -->
   <PropertyGroup>
@@ -21,7 +24,7 @@
     <UniqueId>MonsoonSheep.ExtraNpcBehaviors</UniqueId>
     <UpdateKeys>Nexus:30609</UpdateKeys>
     <Version>0.1.0</Version>
-    <MinimumApiVersion>4.0.0</MinimumApiVersion>
+    <MinimumApiVersion>4.5.2</MinimumApiVersion>
     <MinimumGameVersion>1.6</MinimumGameVersion>
   </PropertyGroup>
 

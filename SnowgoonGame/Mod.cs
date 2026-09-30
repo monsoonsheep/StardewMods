@@ -21,7 +21,6 @@ public class Mod : StardewModdingAPI.Mod
 {
     internal static Mod Instance = null!;
 
-    private Texture2D sprites = null!;
     private Harmony harmony = null!;
 
     internal static Harmony Harmony => Instance.harmony;
@@ -39,6 +38,7 @@ public class Mod : StardewModdingAPI.Mod
         Log.Monitor = base.Monitor;
         I18n.Init(this.Helper.Translation);
         this.harmony = new Harmony(base.ModManifest.UniqueID);
+
         this.Helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
     }
 

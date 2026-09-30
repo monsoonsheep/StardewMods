@@ -12,7 +12,7 @@
   "Author": "MonsoonSheep",
   "Version": "0.1.0",
   "Description": "Visitors arrive in Stardew Valley",
-  "MinimumApiVersion": "4.0.0",
+  "MinimumApiVersion": "4.5.2",
   "MinimumGameVersion": "1.6",
   "EntryDll": "VisitorsMod.dll",
   "Dependencies": [

@@ -1,14 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <RootNamespace>StardewMods.WrongForecast</RootNamespace>
-    <ModFolderName>Science Is A Liar Sometimes</ModFolderName>
+    <RootNamespace>DisableQuestNotification</RootNamespace>
+    <Version>1.0.0</Version>
   </PropertyGroup>
-
-  <!-- Dependencies -->
-  <!--
-    <Import Project="..\Common\Common.projitems" Label="Shared" />
-  -->
 
   <!-- Translations -->
   <ItemGroup>
@@ -17,18 +12,22 @@
 
   <!-- SMAPI Manifest -->
   <PropertyGroup>
-    <Name>Science Is A Liar Sometimes</Name>
+    <Name>DisableQuestNotification</Name>
     <Authors>MonsoonSheep</Authors>
-    <Description>Weather forecast can be wrong sometimes</Description>
-    <UniqueId>MonsoonSheep.WrongForecast</UniqueId>
-    <UpdateKeys>Nexus:33740</UpdateKeys>
+    <Description>Monsoon's Mod</Description>
+    <UniqueId>MonsoonSheep.DisableQuestNotification</UniqueId>
+    <UpdateKeys>Nexus:696969696969</UpdateKeys>
     <Version>1.0.0</Version>
     <MinimumApiVersion>4.5.2</MinimumApiVersion>
     <MinimumGameVersion>1.6</MinimumGameVersion>
   </PropertyGroup>
+
+  <!-- Mod Dependencies for manifest builder -->
   <ItemGroup>
     <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
   </ItemGroup>
+
+  
   <ItemGroup>
     <PackageReference Update="Pathoschild.Stardew.ModBuildConfig" Version="4.4.0" />
   </ItemGroup>

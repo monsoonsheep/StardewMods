@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <RootNamespace>StardewMods.Umbrellas</RootNamespace>
+    <RootNamespace>StardewMods.$safeprojectname$</RootNamespace>
     <Version>1.0.0</Version>
   </PropertyGroup>
 
@@ -10,22 +10,19 @@
     <AdditionalFiles Include="i18n/default.json" />
   </ItemGroup>
 
-  <!-- Content Patcher Component -->
-  <ItemGroup>
-    <ContentPacks Include="CP" Version="$(Version)" FolderName="[CP] Monsoon's Umbrellas Starter Pack" />
-  </ItemGroup>
-  
   <!-- SMAPI Manifest -->
   <PropertyGroup>
-    <Name>Umbrellas</Name>
+    <Name>$safeprojectname$</Name>
     <Authors>MonsoonSheep</Authors>
-    <Description>NPCs can carry umbrellas! You can make unique umbrellas for characters.</Description>
-    <UniqueId>MonsoonSheep.Umbrellas</UniqueId>
-    <UpdateKeys>Nexus:30741</UpdateKeys>
+    <Description>Monsoon's Mod</Description>
+    <UniqueId>MonsoonSheep.$safeprojectname$</UniqueId>
+    <UpdateKeys>Nexus:696969696969</UpdateKeys>
     <Version>1.0.0</Version>
     <MinimumApiVersion>4.5.2</MinimumApiVersion>
     <MinimumGameVersion>1.6</MinimumGameVersion>
   </PropertyGroup>
+
+  <!-- Mod Dependencies for manifest builder -->
   <ItemGroup>
     <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
   </ItemGroup>

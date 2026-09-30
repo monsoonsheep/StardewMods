@@ -14,5 +14,8 @@
   <ItemGroup>
     <AdditionalFiles Include="i18n/default.json" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="Pathoschild.Stardew.ModBuildConfig" Version="4.4.0" />
+  </ItemGroup>
 
 </Project>

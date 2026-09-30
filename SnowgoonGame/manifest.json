@@ -27,7 +27,7 @@
     },
     {
       "UniqueID": "spacechase0.SpaceCore",
-      "MinimumVersion": "1.24"
+      "MinimumVersion": "1.28.4"
     }
   ],
   "UpdateKeys": [

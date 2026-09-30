@@ -203,7 +203,7 @@ internal class VisitorManager
             string behaviorName = visit.activity.Actors[i].Behavior;
 
             // End behavior can be something from ExtraNpcBehaviors
-            PathFindController.endBehavior endBehavior = (n, _) => (n as NPC)!.StartActivityRouteEndBehavior(behaviorName, null);
+            Action<NPC> endBehavior = (n) => n!.StartActivityRouteEndBehavior(behaviorName, null);
 
             // Pathfind to target
             if (!npc.MoveTo(Game1.getLocationFromName(targetLocation), visit.activity.Actors[i].TilePosition, endBehavior))

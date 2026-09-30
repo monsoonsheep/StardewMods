@@ -11,7 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SheepCore\SheepCore.csproj" Private="false" />
     <Reference Include="SpaceCore" HintPath="$(GamePath)\Mods\SpaceCore\SpaceCore.dll" Private="false" />
-    <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.0" />
+    <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.1" />
   </ItemGroup>
 
   <!-- Translations -->
@@ -31,7 +31,7 @@
     <Description>Make snowgoons with your friends</Description>
     <UniqueId>MonsoonSheep.SnowgoonGame</UniqueId>
     <UpdateKeys>Nexus:idhere</UpdateKeys>
-    <MinimumApiVersion>4.0.0</MinimumApiVersion>
+    <MinimumApiVersion>4.5.2</MinimumApiVersion>
     <MinimumGameVersion>1.6</MinimumGameVersion>
   </PropertyGroup>
   
@@ -39,6 +39,10 @@
     <SMAPIDependency Include="spacechase0.SpaceCore" Version="1.24" Reference="false" />
     <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
     <SMAPIDependency Include="MonsoonSheep.SheepCore" Version="0.1.0" Required="true" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Update="Pathoschild.Stardew.ModBuildConfig" Version="4.4.0" />
   </ItemGroup>
 </Project>
 

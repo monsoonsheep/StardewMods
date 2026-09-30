@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.5.002.0
+# Visual Studio Version 18
+VisualStudioVersion = 18.10.12217.157
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CollapseOnFarmFix", "CollapseOnFarmFix\CollapseOnFarmFix.csproj", "{7B8577A5-ED43-40F8-9A56-372C458D36C2}"
 EndProject
@@ -28,6 +28,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WrongForecast", "WrongForecast\WrongForecast.csproj", "{BBDEF5E6-1B21-408B-81CA-20A204DA93B8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnowgoonGame", "SnowgoonGame\SnowgoonGame.csproj", "{607CE0D3-CCCA-48AC-938C-DA690093B1D0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExampleProject", "ExampleProject\ExampleProject.csproj", "{3A175ED9-8ABF-433C-B864-AAF13D854B15}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DisableQuestNotification", "DisableQuestNotification\DisableQuestNotification.csproj", "{9601BF6E-0A60-4D5B-B428-371DCE5C399F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -83,6 +87,14 @@ Global
 		{607CE0D3-CCCA-48AC-938C-DA690093B1D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{607CE0D3-CCCA-48AC-938C-DA690093B1D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{607CE0D3-CCCA-48AC-938C-DA690093B1D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A175ED9-8ABF-433C-B864-AAF13D854B15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A175ED9-8ABF-433C-B864-AAF13D854B15}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A175ED9-8ABF-433C-B864-AAF13D854B15}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A175ED9-8ABF-433C-B864-AAF13D854B15}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9601BF6E-0A60-4D5B-B428-371DCE5C399F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9601BF6E-0A60-4D5B-B428-371DCE5C399F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9601BF6E-0A60-4D5B-B428-371DCE5C399F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9601BF6E-0A60-4D5B-B428-371DCE5C399F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -97,6 +109,7 @@ Global
 		Common\Common.projitems*{75f61fd6-a8de-4327-9cd2-2d939fe28b8a}*SharedItemsImports = 5
 		Common\Common.projitems*{89175375-9d93-46f6-8f69-42be4aecd4aa}*SharedItemsImports = 5
 		Common\Common.projitems*{a8ea9d0e-6405-4641-b1de-8f009bfdc5eb}*SharedItemsImports = 5
+		Common\Common.projitems*{a95860d1-aa37-4e34-9127-f1bccccbee35}*SharedItemsImports = 5
 		Common\Common.projitems*{b8a164cd-a176-4953-a8ad-db3e249a5c5d}*SharedItemsImports = 5
 		Common\Common.projitems*{d21f41bb-18e5-433a-b741-bc76b13d8336}*SharedItemsImports = 13
 	EndGlobalSection

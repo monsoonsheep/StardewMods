@@ -21,11 +21,14 @@
     <UniqueId>MonsoonSheep.CustomFarmerAnimations</UniqueId>
     <UpdateKeys>Nexus:69420</UpdateKeys>
     <Version>0.1.0</Version>
-    <MinimumApiVersion>4.0.0</MinimumApiVersion>
+    <MinimumApiVersion>4.5.2</MinimumApiVersion>
     <MinimumGameVersion>1.6</MinimumGameVersion>
   </PropertyGroup>
   <ItemGroup>
     <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="Pathoschild.Stardew.ModBuildConfig" Version="4.4.0" />
   </ItemGroup>
   
 </Project>

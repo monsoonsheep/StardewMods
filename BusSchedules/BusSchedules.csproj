@@ -10,8 +10,9 @@
   
   <ItemGroup>
     <ProjectReference Include="..\SheepCore\SheepCore.csproj" Private="False" />
-    <PackageReference Update="Leclair.Stardew.ModManifestBuilder" Version="2.4.0" />
-    <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.0" />
+    <PackageReference Update="Leclair.Stardew.ModManifestBuilder" Version="2.4.1" />
+    <PackageReference Update="Pathoschild.Stardew.ModBuildConfig" Version="4.4.0" />
+    <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.1" />
   </ItemGroup>
 
   <!-- Translations -->
@@ -27,7 +28,7 @@
     <UniqueId>MonsoonSheep.BusSchedules</UniqueId>
     <UpdateKeys>Nexus:30590</UpdateKeys>
     <Version>0.1.1</Version>
-    <MinimumApiVersion>4.0.0</MinimumApiVersion>
+    <MinimumApiVersion>4.5.2</MinimumApiVersion>
     <MinimumGameVersion>1.6</MinimumGameVersion>
   </PropertyGroup>
   <ItemGroup>

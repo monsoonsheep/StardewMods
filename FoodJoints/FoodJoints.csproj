@@ -9,10 +9,10 @@
   <Import Project="..\Common\Common.projitems" Label="Shared" />
   
   <ItemGroup>
-    <ProjectReference Include="..\SheepCore\SheepCore.csproj" Private="false"/>
-    <ProjectReference Include="..\ExtraNpcBehaviors\ExtraNpcBehaviors.csproj" Private="false"/>
+    <ProjectReference Include="..\SheepCore\SheepCore.csproj" Private="false" />
+    <ProjectReference Include="..\ExtraNpcBehaviors\ExtraNpcBehaviors.csproj" Private="false" />
     <Reference Include="SpaceCore" HintPath="$(GamePath)\Mods\SpaceCore\SpaceCore.dll" Private="false" />
-    <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.0" />
+    <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.1" />
   </ItemGroup>
 
   <!-- Translations -->
@@ -33,7 +33,7 @@
     <UniqueId>MonsoonSheep.FoodJoints</UniqueId>
     <UpdateKeys>Nexus:20695</UpdateKeys>
     <Version>0.1.0</Version>
-    <MinimumApiVersion>4.0.0</MinimumApiVersion>
+    <MinimumApiVersion>4.5.2</MinimumApiVersion>
     <MinimumGameVersion>1.6</MinimumGameVersion>
   </PropertyGroup>
   <ItemGroup>
@@ -41,5 +41,8 @@
     <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.12" Required="false" />
     <SMAPIDependency Include="MonsoonSheep.ExtraNpcBehaviors" Version="0.1.0" Required="true" />
     <SMAPIDependency Include="MonsoonSheep.SheepCore" Version="0.1.0" Required="true" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="Pathoschild.Stardew.ModBuildConfig" Version="4.4.0" />
   </ItemGroup>
 </Project>

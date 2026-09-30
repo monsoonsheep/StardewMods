@@ -31,7 +31,7 @@
     <UniqueId>MonsoonSheep.FarmHelpers</UniqueId>
     <UpdateKeys>Nexus:69420</UpdateKeys>
     <Version>0.1.0</Version>
-    <MinimumApiVersion>4.0.0</MinimumApiVersion>
+    <MinimumApiVersion>4.5.2</MinimumApiVersion>
     <MinimumGameVersion>1.6</MinimumGameVersion>
   </PropertyGroup>
   <ItemGroup>
