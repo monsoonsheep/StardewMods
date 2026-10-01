@@ -1,0 +1,8 @@
+{
+  "solution": {
+    "path": "..\\StardewMods.sln",
+    "projects": [
+      "DisableQuestNotification\\DisableQuestNotification.csproj"
+    ]
+  }
+}

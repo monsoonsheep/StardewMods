@@ -1,0 +1,28 @@
+{
+  /*
+   | This file is automatically updated by ModManifestBuilder
+   | when the project is compiled.
+   | 
+   | Changes made to this file may be overwritten.
+   | 
+   */
+  "$schema": "https://smapi.io/schemas/manifest.json",
+  "UniqueID": "MonsoonSheep.DisableQuestNotification",
+  "Name": "DisableQuestNotification",
+  "Author": "MonsoonSheep",
+  "Version": "1.1.0",
+  "Description": "Disable the new quest \"!\" mark pulsing in the UI",
+  "MinimumApiVersion": "4.5.2",
+  "MinimumGameVersion": "1.6",
+  "EntryDll": "DisableQuestNotification.dll",
+  "Dependencies": [
+    {
+      "UniqueID": "spacechase0.GenericModConfigMenu",
+      "MinimumVersion": "1.12",
+      "IsRequired": false
+    }
+  ],
+  "UpdateKeys": [
+    "Nexus:53229"
+  ]
+}

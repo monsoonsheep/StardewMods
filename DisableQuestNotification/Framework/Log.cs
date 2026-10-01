@@ -1,6 +1,6 @@
 using StardewModdingAPI;
 
-namespace DisableQuestNotification.Framework;
+namespace StardewMods.DisableQuestNotification.Framework;
 
 internal static class Log
 {

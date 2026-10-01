@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <RootNamespace>DisableQuestNotification</RootNamespace>
-    <Version>1.0.0</Version>
+    <RootNamespace>StardewMods.DisableQuestNotification</RootNamespace>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
   <!-- Translations -->
@@ -14,10 +14,10 @@
   <PropertyGroup>
     <Name>DisableQuestNotification</Name>
     <Authors>MonsoonSheep</Authors>
-    <Description>Monsoon's Mod</Description>
+    <Description>Disable the new quest "!" mark pulsing in the UI</Description>
     <UniqueId>MonsoonSheep.DisableQuestNotification</UniqueId>
-    <UpdateKeys>Nexus:696969696969</UpdateKeys>
-    <Version>1.0.0</Version>
+    <UpdateKeys>Nexus:53229</UpdateKeys>
+    <Version>1.1.0</Version>
     <MinimumApiVersion>4.5.2</MinimumApiVersion>
     <MinimumGameVersion>1.6</MinimumGameVersion>
   </PropertyGroup>
